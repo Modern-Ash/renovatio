@@ -5,7 +5,6 @@ import org.shark.renovatio.provider.cobol.service.CobolParsingService.Dialect;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.shared.spi.BaseLanguageProvider;
-import org.springframework.stereotype.Component;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,7 +13,7 @@ import java.util.*;
 /**
  * COBOL language provider implementation using real COBOL file analysis
  */
-@Component
+// @Component
 public class CobolProvider extends BaseLanguageProvider {
 
     private final CobolParsingService parsingService;

@@ -3,6 +3,7 @@ package org.shark.renovatio.provider.cobol.infrastructure;
 import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.provider.cobol.service.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -56,23 +57,24 @@ public class CobolProviderConfiguration {
         return new Db2MigrationService(parsingService);
     }
 
-    @Bean
-    public CobolLanguageProvider cobolLanguageProvider(
-            CobolParsingService parsingService,
-            JavaGenerationService javaGenerationService,
-            MigrationPlanService migrationPlanService,
-            IndexingService indexingService,
-            MetricsService metricsService,
-            TemplateCodeGenerationService templateCodeGenerationService,
-            Db2MigrationService db2MigrationService) {
-        return new CobolLanguageProvider(
-                parsingService,
-                javaGenerationService,
-                migrationPlanService,
-                indexingService,
-                metricsService,
-                templateCodeGenerationService,
-                db2MigrationService
-        );
-    }
+//    @Bean
+//    @ConditionalOnProperty(name = "renovatio.cobol.enabled", havingValue = "true", matchIfMissing = false)
+//    public CobolLanguageProvider cobolLanguageProvider(
+//            CobolParsingService parsingService,
+//            JavaGenerationService javaGenerationService,
+//            MigrationPlanService migrationPlanService,
+//            IndexingService indexingService,
+//            MetricsService metricsService,
+//            TemplateCodeGenerationService templateCodeGenerationService,
+//            Db2MigrationService db2MigrationService) {
+//        return new CobolLanguageProvider(
+//                parsingService,
+//                javaGenerationService,
+//                migrationPlanService,
+//                indexingService,
+//                metricsService,
+//                templateCodeGenerationService,
+//                db2MigrationService
+//        );
+//    }
 }

@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
  * Modern Java MCP provider exposing a curated set of OpenRewrite-based tools.
  */
 public class JavaProvider extends BaseLanguageProvider {
+    private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JavaProvider.class);
 
     private static final List<String> DEFAULT_SCOPE = List.of("**/*.java");
 
@@ -76,23 +77,33 @@ public class JavaProvider extends BaseLanguageProvider {
 
     @Override
     public AnalyzeResult analyze(NqlQuery query, Workspace workspace) {
-        Map<String, Object> params = optionalParameters(query);
-        String profile = stringParam(params, "profile", "quality");
-        List<String> goals = combineLists(listParam(params, "goals"), List.of(profile));
-        List<String> include = combineLists(listParam(params, "include"), listParam(params, "includeRecipes"));
-        List<String> exclude = combineLists(listParam(params, "exclude"), listParam(params, "excludeRecipes"));
-        int maxFindings = intParam(params, "maxFindings", 200);
+        try {
+            Map<String, Object> params = optionalParameters(query);
+            String profile = stringParam(params, "profile", "quality");
+            List<String> goals = combineLists(listParam(params, "goals"), List.of(profile));
+            List<String> include = combineLists(listParam(params, "include"), listParam(params, "includeRecipes"));
+            List<String> exclude = combineLists(listParam(params, "exclude"), listParam(params, "excludeRecipes"));
+            int maxFindings = intParam(params, "maxFindings", 200);
 
-        List<String> recipes = sanitizeRecipes(planner.resolveRecipes(goals, include, exclude));
-        List<String> scopePatterns = listParam(params, "scope");
-        if (scopePatterns.isEmpty()) {
-            scopePatterns = DEFAULT_SCOPE;
+            List<String> recipes = sanitizeRecipes(planner.resolveRecipes(goals, include, exclude));
+            List<String> scopePatterns = listParam(params, "scope");
+            if (scopePatterns.isEmpty()) {
+                scopePatterns = DEFAULT_SCOPE;
+            }
+
+            logger.info("[analyze] Workspace: {} | Recipes: {} | Scope: {}", workspace.getPath(), recipes, scopePatterns);
+
+            JavaRecipeExecutionResult execution = executor.preview(workspace.getPath(), recipes, scopePatterns);
+            AnalyzeResult analyzeResult = analyzeAdapter.adapt(execution, workspace, profile, maxFindings);
+            executions.put(analyzeResult.getRunId(), execution);
+            return analyzeResult;
+        } catch (Exception e) {
+            logger.error("Error in JavaProvider.analyze: {}", e.getMessage(), e);
+            AnalyzeResult errorResult = new AnalyzeResult();
+            errorResult.setSuccess(false);
+            errorResult.setMessage("JavaProvider.analyze failed: " + e.getMessage());
+            return errorResult;
         }
-
-        JavaRecipeExecutionResult execution = executor.preview(workspace.getPath(), recipes, scopePatterns);
-        AnalyzeResult analyzeResult = analyzeAdapter.adapt(execution, workspace, profile, maxFindings);
-        executions.put(analyzeResult.getRunId(), execution);
-        return analyzeResult;
     }
 
     @Override

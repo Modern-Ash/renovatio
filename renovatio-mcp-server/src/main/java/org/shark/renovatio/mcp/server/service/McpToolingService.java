@@ -106,35 +106,27 @@ public class McpToolingService {
      */
     public Map<String, Object> executeTool(String toolName, Map<String, Object> arguments) {
         logger.debug("Executing MCP tool: '{}' with arguments: {}", toolName, redactForLog(arguments, 0));
-
         try {
             String internalToolName = toInternalToolName(toolName);
-
             Map<String, Object> normalizedArguments = new HashMap<>(arguments);
 
+            // --- Primero intenta delegar al providerRegistry (ejecución real) ---
             logger.debug("Routing tool call to provider: {} with args: {}", internalToolName, redactForLog(normalizedArguments, 0));
             var result = providerRegistry.routeToolCall(internalToolName, normalizedArguments);
-
-            // Ensure result has proper structure
-            if (result == null) {
-                logger.warn("Provider returned null result for tool: {}", internalToolName);
-                Map<String, Object> errorResult = new HashMap<>();
-                errorResult.put("type", "text");
-                errorResult.put("text", "Tool execution returned no results");
-                errorResult.put("success", false);
-                return errorResult;
-            }
-
-            // Check if result indicates success
-            Object successObj = result.get("success");
-            if (successObj != null && Boolean.FALSE.equals(successObj)) {
-                logger.warn("Tool execution failed for: {} - Result: {}", internalToolName, redactForLog(result, 0));
-            } else {
+            if (result != null && (!result.isEmpty() && Boolean.TRUE.equals(result.get("success")))) {
                 logger.debug("Tool execution successful for: {}", internalToolName);
+                return result;
             }
 
-            return result;
-
+            // --- Si no existe handler real, error explícito ---
+            logger.warn("No real handler implemented for tool: {} (internal: {})", toolName, internalToolName);
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("success", false);
+            errorResult.put("type", "error");
+            errorResult.put("summary", "Tool '" + toolName + "' not implemented or not available. No mock execution allowed.");
+            errorResult.put("arguments", normalizedArguments);
+            errorResult.put("timestamp", java.time.Instant.now().toString());
+            return errorResult;
         } catch (Exception e) {
             logger.error("Error executing tool '{}': {}", toolName, e.getMessage(), e);
             Map<String, Object> errorResult = new HashMap<>();
@@ -146,10 +138,20 @@ public class McpToolingService {
         }
     }
 
+
     /**
      * Execute a tool and produce an MCP-compliant result envelope.
      */
     public ToolCallResult executeToolWithEnvelope(String toolName, Map<String, Object> arguments) {
+        // Intercept direct calls to HasMinimumJavaVersion and block them with a clear MCP-compliant error
+        if (toolName != null && (toolName.equals("org.openrewrite.java.search.HasMinimumJavaVersion") ||
+                toolName.endsWith(".HasMinimumJavaVersion"))) {
+            return ToolCallResult.error(
+                "Direct execution of 'org.openrewrite.java.search.HasMinimumJavaVersion' is not allowed. " +
+                "Please use the composite recipe defined in rewrite.yml (e.g., 'com.example.hexagonal.RewriteRecipes') " +
+                "which includes the required 'version' parameter. See Renovatio documentation for details."
+            );
+        }
         Map<String, Object> rawResult = executeTool(toolName, arguments);
         return buildToolCallResult(toolName, rawResult);
     }
@@ -851,6 +853,24 @@ public class McpToolingService {
                 logger.debug("- {}: {}", tool.getName(), tool.getDescription());
             }
         }
+    }
+
+    /**
+     * Print all MCP tools to the console when the application is ready
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void logAvailableMcpTools() {
+        List<McpTool> tools = getMcpTools();
+        logger.info("\n================ MCP Tools Available ================");
+        if (tools.isEmpty()) {
+            logger.info("No MCP tools found.");
+        } else {
+            for (McpTool tool : tools) {
+                Object language = tool.getMetadata() != null ? tool.getMetadata().getOrDefault("language", "<unknown>") : "<unknown>";
+                logger.info("Tool: {} | Language: {} | Description: {}", tool.getName(), language, tool.getDescription());
+            }
+        }
+        logger.info("====================================================\n");
     }
 
     private String toInternalToolName(String toolName) {

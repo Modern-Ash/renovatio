@@ -4,6 +4,10 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
 import org.openrewrite.Result;
 import org.openrewrite.SourceFile;
+import org.shark.renovatio.shared.dto.RecipeValidationError;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,6 +20,8 @@ import java.util.Objects;
 @Deprecated(forRemoval = false)
 public class JavaRefactoringService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(JavaRefactoringService.class);
+
     private final org.shark.renovatio.provider.java.OpenRewriteRunner delegate;
 
     public JavaRefactoringService() {
@@ -27,6 +33,15 @@ public class JavaRefactoringService {
     }
 
     public List<Result> runRecipe(Recipe recipe, List<SourceFile> sourceFiles, ExecutionContext ctx) {
-        return delegate.runRecipe(recipe, ctx, sourceFiles);
+        OpenRewriteRunResult result = delegate.runRecipe(recipe, ctx, sourceFiles);
+        if (!result.getValidationErrors().isEmpty()) {
+            StringBuilder sb = new StringBuilder("Recipe validation error(s): ");
+            for (RecipeValidationError err : result.getValidationErrors()) {
+                sb.append("[Recipe: ").append(err.getRecipeName()).append(", Message: ").append(err.getMessage()).append("] ");
+            }
+            LOGGER.warn(sb.toString());
+            return List.of(); // Devuelve lista vacía en vez de lanzar excepción
+        }
+        return result.getResults();
     }
 }

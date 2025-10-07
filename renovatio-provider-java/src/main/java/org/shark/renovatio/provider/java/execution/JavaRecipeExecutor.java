@@ -6,6 +6,7 @@ import org.openrewrite.Result;
 import org.openrewrite.SourceFile;
 import org.openrewrite.java.JavaParser;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
+import org.shark.renovatio.provider.java.OpenRewriteRunResult;
 import org.shark.renovatio.provider.java.discovery.OpenRewriteRecipeDiscoveryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +103,7 @@ public class JavaRecipeExecutor {
                         "No recipes selected");
             }
 
-            List<Result> results = runner.runRecipe(
+            OpenRewriteRunResult runResult = runner.runRecipe(
                     discoveryService.buildCompositeRecipe(activableRecipes),
                     ctx,
                     sourceFiles
@@ -112,7 +113,24 @@ public class JavaRecipeExecutor {
             List<Map<String, Object>> issues = new ArrayList<>();
             Set<String> touchedFiles = new LinkedHashSet<>();
 
-            for (Result result : results) {
+            // Si hay errores de validación, propágalos como issues y termina
+            if (!runResult.getValidationErrors().isEmpty()) {
+                for (org.shark.renovatio.shared.dto.RecipeValidationError err : runResult.getValidationErrors()) {
+                    Map<String, Object> issue = new HashMap<>();
+                    issue.put("type", "RecipeValidationError");
+                    issue.put("recipe", err.getRecipeName());
+                    issue.put("message", err.getMessage());
+                    issues.add(issue);
+                }
+                Map<String, Object> metrics = buildMetrics(javaFiles, List.of(), false, start, activableRecipes);
+                return new JavaRecipeExecutionResult(false, false, List.of(), issues, metrics,
+                        relativize(workspace, javaFiles),
+                        Duration.between(start, Instant.now()).toMillis(),
+                        activableRecipes,
+                        "Recipe validation error(s) detected");
+            }
+
+            for (Result result : runResult.getResults()) {
                 String before = result.getBefore() != null ? result.getBefore().printAll() : "";
                 String after = result.getAfter() != null ? result.getAfter().printAll() : "";
                 String sourcePath = resolveSourcePath(result, workspace);

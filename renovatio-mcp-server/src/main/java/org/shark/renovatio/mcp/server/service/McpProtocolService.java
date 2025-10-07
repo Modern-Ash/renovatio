@@ -30,9 +30,14 @@ public class McpProtocolService {
     /**
      * Main entry point for handling MCP requests.
      */
+    /**
+     * MCP JSON-RPC 2.0 compliance: alias methods with dot and slash for all MCP standard methods
+     */
     public McpResponse handleMcpRequest(McpRequest request) {
         try {
-            switch (request.getMethod()) {
+            String method = request.getMethod();
+            // MCP standard: support both dot and slash variants
+            switch (method) {
                 case "initialize":
                     return handleInitialize(request);
                 case "ping":
@@ -40,44 +45,75 @@ public class McpProtocolService {
                 case "shutdown":
                     return handleShutdown(request);
                 case "tools/list":
+                case "tools.list":
                     return handleToolsList(request);
                 case "tools/call":
+                case "tools.call":
                     return handleToolsCall(request);
                 case "tools/describe":
+                case "tools.describe":
                     return handleToolsDescribe(request);
                 case "capabilities":
                     return handleCapabilities(request);
                 case "server/info":
+                case "server.info":
                     return handleServerInfo(request);
                 case "content/read":
+                case "content.read":
                     return handleContentRead(request);
                 case "content/write":
+                case "content.write":
                     return handleContentWrite(request);
                 case "workspace/list":
+                case "workspace.list":
                     return handleWorkspaceList(request);
                 case "workspace/describe":
+                case "workspace.describe":
                     return handleWorkspaceDescribe(request);
                 case "logging/subscribe":
+                case "logging.subscribe":
                     return handleLoggingSubscribe(request);
                 case "logging/unsubscribe":
+                case "logging.unsubscribe":
                     return handleLoggingUnsubscribe(request);
                 case "prompts/list":
+                case "prompts.list":
                     return handlePromptsList(request);
                 case "prompts/get":
+                case "prompts.get":
                     return handlePromptsGet(request);
                 case "resources/list":
+                case "resources.list":
                     return handleResourcesList(request);
-                case "resources/read":
+                case "resources/get":
+                case "resources.get":
                     return handleResourcesRead(request);
-                case "cli/manifest":
-                    return handleCliManifest(request);
                 default:
-                    return new McpResponse(request.getId(),
-                            new McpError(-32601, "Method not found: " + request.getMethod()));
+                    // --- Compatibilidad Copilot/VSCode: método directo igual a tool ---
+                    // Si el método coincide con el nombre de una tool listada, redirige como tools/call
+                    boolean isTool = mcpToolingService.getMcpTools().stream()
+                        .anyMatch(tool -> tool.getName().equals(method));
+                    if (isTool) {
+                        // Construir llamada interna a tools/call
+                        Map<String, Object> params = new HashMap<>();
+                        params.put("name", method);
+                        // Si params vienen en "params", pásalos como arguments
+                        if (request.getParams() instanceof Map<?,?> map) {
+                            params.put("arguments", map);
+                        } else {
+                            params.put("arguments", request.getParams());
+                        }
+                        McpRequest callRequest = new McpRequest();
+                        callRequest.setId(request.getId());
+                        callRequest.setMethod("tools/call");
+                        callRequest.setParams(params);
+                        return handleToolsCall(callRequest);
+                    }
+                    // Si no es método MCP ni tool, error estándar
+                    return new McpResponse(request.getId(), new McpError(-32601, "Method not found: " + method));
             }
         } catch (Exception e) {
-            return new McpResponse(request.getId(),
-                    new McpError(-32603, "Internal error: " + e.getMessage()));
+            return new McpResponse(request.getId(), new McpError(-32603, "Internal error: " + e.getMessage()));
         }
     }
 

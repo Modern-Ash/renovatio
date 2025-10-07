@@ -1,4 +1,4 @@
-# Renovatio - MCP Server for Code Migration and Refactoring
+elimin# Renovatio - MCP Server for Code Migration and Refactoring
 
 **Renovatio** is a Model Content Protocol (MCP) server for automated code migration and refactoring, based on
 OpenRewrite concepts. It provides tools for migrating and upgrading COBOL and Java code with extensibility for

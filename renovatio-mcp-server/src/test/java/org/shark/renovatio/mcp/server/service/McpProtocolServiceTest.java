@@ -37,6 +37,15 @@ public class McpProtocolServiceTest {
         // Mock the basic dependencies
         // Simulate a real MCP tool with parameters for testing
         List<McpTool> mockTools = new ArrayList<>();
+        // COBOL tools commented out
+        /*
+        McpTool cobolTool = new McpTool();
+        cobolTool.setName("cobol_analyze");
+        cobolTool.setDescription("Analyze COBOL source code");
+        // ...cobol tool params and metadata...
+        mockTools.add(cobolTool);
+        */
+        // Java tool only
         McpTool tool = new McpTool();
         tool.setName("java_analyze");
         tool.setDescription("Analyze for java");
@@ -243,4 +252,31 @@ public class McpProtocolServiceTest {
         assertNull(response.getError());
         assertEquals(expected, response.getResult());
     }
+
+    @Test
+    void testDirectToolCallMethod() {
+        // Simulate a Copilot/VSCode direct tool call (method = tool name)
+        McpRequest request = new McpRequest();
+        request.setId("test-3");
+        request.setMethod("java_analyze");
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("workspacePath", "/tmp/project");
+        request.setParams(arguments);
+
+        McpResponse response = mcpProtocolService.handleMcpRequest(request);
+
+        assertNotNull(response);
+        assertEquals("test-3", response.getId());
+        assertNotNull(response.getResult());
+        assertTrue(response.getResult() instanceof ToolCallResult);
+        ToolCallResult result = (ToolCallResult) response.getResult();
+        assertFalse(result.isError());
+        assertNotNull(result.content());
+        assertFalse(result.content().isEmpty());
+        assertEquals("stub summary", result.content().get(0).text());
+        assertNotNull(result.structuredContent());
+        assertTrue(result.structuredContent() instanceof Map);
+        assertEquals(Boolean.TRUE, ((Map<?,?>)result.structuredContent()).get("success"));
+    }
 }
+

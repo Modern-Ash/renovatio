@@ -2,8 +2,8 @@ package org.shark.renovatio.provider.java;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
-import org.openrewrite.Result;
 import org.openrewrite.SourceFile;
+import org.shark.renovatio.shared.dto.RecipeValidationError;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -19,23 +19,26 @@ public class OpenRewriteRunner {
     /**
      * Execute a recipe over the provided source files after performing safety checks.
      * <p>
-     * Contract:
-     * - Throws IllegalArgumentException if a known-unsafe/misconfigured recipe is detected.
-     * - Supports composite recipes by validating children recursively.
+     * Now returns OpenRewriteRunResult, which includes both rewrite results and validation errors.
      */
-    public List<Result> runRecipe(Recipe recipe, ExecutionContext ctx, List<SourceFile> sourceFiles) {
+    public OpenRewriteRunResult runRecipe(Recipe recipe, ExecutionContext ctx, List<SourceFile> sourceFiles) {
         Objects.requireNonNull(recipe, "recipe");
         Objects.requireNonNull(ctx, "ctx");
         Objects.requireNonNull(sourceFiles, "sourceFiles");
 
-        validateSafeRecipe(recipe);
+        List<RecipeValidationError> validationErrors = new ArrayList<>();
+        validateSafeRecipe(recipe, validationErrors);
+        if (!validationErrors.isEmpty()) {
+            // If there are validation errors, do not run the recipe, return errors only
+            return new OpenRewriteRunResult(Collections.emptyList(), validationErrors);
+        }
         // Execute using OpenRewrite 8.21.0 API via LargeSourceSet
         org.openrewrite.LargeSourceSet lss = new org.openrewrite.internal.InMemoryLargeSourceSet(sourceFiles);
         org.openrewrite.RecipeRun run = recipe.run(lss, ctx);
-        return run.getChangeset().getAllResults();
+        return new OpenRewriteRunResult(run.getChangeset().getAllResults(), Collections.emptyList());
     }
 
-    private void validateSafeRecipe(Recipe root) {
+    private void validateSafeRecipe(Recipe root, List<RecipeValidationError> errors) {
         Deque<Recipe> stack = new ArrayDeque<>();
         Deque<Boolean> isRootStack = new ArrayDeque<>();
         stack.push(root);
@@ -48,13 +51,13 @@ public class OpenRewriteRunner {
             if (name.endsWith("org.openrewrite.java.CreateEmptyJavaClass") ||
                     name.equals("org.openrewrite.java.CreateEmptyJavaClass") ||
                     name.endsWith(".CreateEmptyJavaClass")) {
-                ensureCreateEmptyJavaClassParams(r, isRoot);
+                ensureCreateEmptyJavaClassParams(r, errors);
             }
             // Guard for HasMinimumJavaVersion requiring a non-null version
             if (name.endsWith("org.openrewrite.java.search.HasMinimumJavaVersion") ||
                     name.equals("org.openrewrite.java.search.HasMinimumJavaVersion") ||
                     name.endsWith(".HasMinimumJavaVersion")) {
-                ensureHasMinimumJavaVersionParams(r, isRoot);
+                ensureHasMinimumJavaVersionParams(r, errors);
             }
             // Recurse into child recipes if present
             List<Recipe> children = r.getRecipeList();
@@ -83,8 +86,7 @@ public class OpenRewriteRunner {
         return r.getClass().getName();
     }
 
-    private void ensureCreateEmptyJavaClassParams(Recipe r, boolean isRoot) {
-        // Try Optional<String> getters first
+    private void ensureCreateEmptyJavaClassParams(Recipe r, List<RecipeValidationError> errors) {
         Optional<String> pkg = readOptionalString(r, "getPackageName");
         Optional<String> cls = readOptionalString(r, "getClassName");
 
@@ -92,7 +94,6 @@ public class OpenRewriteRunner {
         boolean clsPresent = cls.map(s -> !s.isBlank()).orElse(false);
 
         if (!pkgPresent || !clsPresent) {
-            // Fallback to plain String getters only if the return type is actually String
             String pkgStr = pkgPresent ? pkg.orElse(null) : readStringIfReturnTypeIsString(r, "getPackageName");
             String clsStr = clsPresent ? cls.orElse(null) : readStringIfReturnTypeIsString(r, "getClassName");
             pkgPresent = pkgPresent || (pkgStr != null && !pkgStr.isBlank());
@@ -101,16 +102,11 @@ public class OpenRewriteRunner {
 
         if (!pkgPresent || !clsPresent) {
             String msg = "org.openrewrite.java.CreateEmptyJavaClass requires parameters: packageName and className";
-            if (isRoot) {
-                throw new IllegalArgumentException(msg);
-            } else {
-                throw new RuntimeException(msg);
-            }
+            errors.add(new RecipeValidationError(safeName(r), msg));
         }
     }
 
-    private void ensureHasMinimumJavaVersionParams(Recipe r, boolean isRoot) {
-        // Try a few common getter names for the version constraint
+    private void ensureHasMinimumJavaVersionParams(Recipe r, List<RecipeValidationError> errors) {
         List<String> getters = Arrays.asList("getVersion", "getSinceVersion", "getMinimumVersion", "getRelease");
         String version = null;
         for (String g : getters) {
@@ -126,12 +122,11 @@ public class OpenRewriteRunner {
             }
         }
         if (version == null || version.isBlank()) {
-            String msg = "org.openrewrite.java.search.HasMinimumJavaVersion requires a non-empty version constraint";
-            if (isRoot) {
-                throw new IllegalArgumentException(msg);
-            } else {
-                throw new RuntimeException(msg);
-            }
+            String msg = "Recipe 'org.openrewrite.java.search.HasMinimumJavaVersion' requires a non-empty 'version' parameter. " +
+                         "Please configure the 'version' parameter in the YAML or MCP recipe configuration. " +
+                         "This cannot be fixed dynamically by Renovatio. Example: \n" +
+                         "  - org.openrewrite.java.search.HasMinimumJavaVersion:\n      version: '11'\n";
+            errors.add(new RecipeValidationError(safeName(r), msg));
         }
     }
 
