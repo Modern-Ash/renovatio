@@ -37,6 +37,15 @@ public class McpProtocolServiceTest {
         // Mock the basic dependencies
         // Simulate a real MCP tool with parameters for testing
         List<McpTool> mockTools = new ArrayList<>();
+        // COBOL tools commented out
+        /*
+        McpTool cobolTool = new McpTool();
+        cobolTool.setName("cobol_analyze");
+        cobolTool.setDescription("Analyze COBOL source code");
+        // ...cobol tool params and metadata...
+        mockTools.add(cobolTool);
+        */
+        // Java tool only
         McpTool tool = new McpTool();
         tool.setName("java_analyze");
         tool.setDescription("Analyze for java");
@@ -57,7 +66,7 @@ public class McpProtocolServiceTest {
         when(mcpToolingService.getMcpTools()).thenReturn(mockTools);
         when(mcpToolingService.getSupportedLanguages()).thenReturn(java.util.Set.of("java"));
         when(mcpToolingService.executeToolWithEnvelope(anyString(), anyMap())).thenReturn(
-            ToolCallResult.ok("stub summary", Map.of("success", true))
+                ToolCallResult.ok("stub summary", Map.of("success", true))
         );
         when(mcpToolingService.getTool(anyString())).thenReturn(tool);
 
@@ -70,13 +79,13 @@ public class McpProtocolServiceTest {
         McpRequest request = new McpRequest();
         request.setId("test-1");
         request.setMethod("initialize");
-        
+
         McpResponse response = mcpProtocolService.handleMcpRequest(request);
-        
+
         assertNotNull(response);
         assertEquals("test-1", response.getId());
         assertNotNull(response.getResult());
-        
+
         @SuppressWarnings("unchecked")
         Map<String, Object> result = (Map<String, Object>) response.getResult();
         assertEquals("2025-06-18", result.get("protocolVersion"));
@@ -95,13 +104,13 @@ public class McpProtocolServiceTest {
         McpRequest request = new McpRequest();
         request.setId("test-2");
         request.setMethod("ping");
-        
+
         McpResponse response = mcpProtocolService.handleMcpRequest(request);
-        
+
         assertNotNull(response);
         assertEquals("test-2", response.getId());
         assertNotNull(response.getResult());
-        
+
         @SuppressWarnings("unchecked")
         Map<String, Object> result = (Map<String, Object>) response.getResult();
         assertEquals("pong", result.get("status"));
@@ -114,13 +123,13 @@ public class McpProtocolServiceTest {
         McpRequest request = new McpRequest();
         request.setId("test-3");
         request.setMethod("tools/list");
-        
+
         McpResponse response = mcpProtocolService.handleMcpRequest(request);
-        
+
         assertNotNull(response);
         assertEquals("test-3", response.getId());
         assertNotNull(response.getResult());
-        
+
         @SuppressWarnings("unchecked")
         Map<String, Object> result = (Map<String, Object>) response.getResult();
         assertNotNull(result.get("tools"));
@@ -172,13 +181,13 @@ public class McpProtocolServiceTest {
         McpRequest request = new McpRequest();
         request.setId("test-4");
         request.setMethod("capabilities");
-        
+
         McpResponse response = mcpProtocolService.handleMcpRequest(request);
-        
+
         assertNotNull(response);
         assertEquals("test-4", response.getId());
         assertNotNull(response.getResult());
-        
+
         @SuppressWarnings("unchecked")
         Map<String, Object> result = (Map<String, Object>) response.getResult();
         assertNotNull(result.get("capabilities"));
@@ -190,13 +199,13 @@ public class McpProtocolServiceTest {
         McpRequest request = new McpRequest();
         request.setId("test-5");
         request.setMethod("server/info");
-        
+
         McpResponse response = mcpProtocolService.handleMcpRequest(request);
-        
+
         assertNotNull(response);
         assertEquals("test-5", response.getId());
         assertNotNull(response.getResult());
-        
+
         @SuppressWarnings("unchecked")
         Map<String, Object> result = (Map<String, Object>) response.getResult();
         @SuppressWarnings("unchecked")
@@ -243,4 +252,31 @@ public class McpProtocolServiceTest {
         assertNull(response.getError());
         assertEquals(expected, response.getResult());
     }
+
+    @Test
+    void testDirectToolCallMethod() {
+        // Simulate a Copilot/VSCode direct tool call (method = tool name)
+        McpRequest request = new McpRequest();
+        request.setId("test-3");
+        request.setMethod("java_analyze");
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("workspacePath", "/tmp/project");
+        request.setParams(arguments);
+
+        McpResponse response = mcpProtocolService.handleMcpRequest(request);
+
+        assertNotNull(response);
+        assertEquals("test-3", response.getId());
+        assertNotNull(response.getResult());
+        assertTrue(response.getResult() instanceof ToolCallResult);
+        ToolCallResult result = (ToolCallResult) response.getResult();
+        assertFalse(result.isError());
+        assertNotNull(result.content());
+        assertFalse(result.content().isEmpty());
+        assertEquals("stub summary", result.content().get(0).text());
+        assertNotNull(result.structuredContent());
+        assertTrue(result.structuredContent() instanceof Map);
+        assertEquals(Boolean.TRUE, ((Map<?,?>)result.structuredContent()).get("success"));
+    }
 }
+

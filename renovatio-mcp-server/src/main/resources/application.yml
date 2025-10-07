@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8082
 
 spring:
   application:
@@ -38,7 +38,7 @@ renovatio:
     cobol:
       enabled: true
       recipes-path: "classpath:recipes/cobol"
-    
+
   # Recipe Configuration
   recipes:
     format: "unified"  # Use unified recipe format across all languages
@@ -57,7 +57,9 @@ management:
 # Logging Configuration
 logging:
   level:
+    root: INFO
     org.shark.renovatio: INFO
-    org.shark.renovatio.mcp.server: DEBUG
+    org.shark.renovatio.mcp.server: INFO
+    org.openrewrite: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

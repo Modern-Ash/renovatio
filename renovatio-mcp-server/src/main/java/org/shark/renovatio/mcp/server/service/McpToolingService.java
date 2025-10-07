@@ -28,6 +28,11 @@ public class McpToolingService {
     private static final Logger logger = LoggerFactory.getLogger(McpToolingService.class);
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final String DEFAULT_SPEC = "2024-11-05";
+    // Keys whose values should never be logged verbatim
+    private static final java.util.Set<String> SENSITIVE_KEYS = java.util.Set.of(
+            "content", "source", "code", "diff", "patch", "body", "text", "data", "fileContent"
+    );
+    private static final int MAX_STRING_LOG = 120; // limit any logged string length
     private final String spec;
     private final LanguageProviderRegistry providerRegistry;
     private final McpToolAdapter toolAdapter;
@@ -58,6 +63,27 @@ public class McpToolingService {
         return mcpTools;
     }
 
+    /**
+     * Get available MCP tools filtered by language (e.g., "java", "cobol").
+     */
+    public List<McpTool> getMcpTools(String language) {
+        if (language == null || language.isBlank()) {
+            return getMcpTools();
+        }
+        String lang = language.toLowerCase(Locale.ROOT);
+        var tools = providerRegistry.generateTools();
+        List<org.shark.renovatio.shared.domain.Tool> filtered = new ArrayList<>();
+        for (org.shark.renovatio.shared.domain.Tool t : tools) {
+            String name = t != null ? t.getName() : null;
+            if (name != null && name.toLowerCase(Locale.ROOT).startsWith(lang + ".")) {
+                filtered.add(t);
+            }
+        }
+        var mcpTools = toolAdapter.toMcpTools(filtered);
+        logger.debug("Resolved {} MCP tool(s) for language '{}'", mcpTools.size(), lang);
+        return mcpTools;
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public void logRegisteredTools() {
         try {
@@ -66,8 +92,10 @@ public class McpToolingService {
                 logger.warn("No MCP tools registered.");
                 return;
             }
-
-            logger.info(formatToolCatalog(tools));
+            // Only a concise summary at INFO
+            logger.info("MCP tools registered: {}", tools.size());
+            // Detailed catalog at DEBUG
+            logger.debug(formatToolCatalog(tools));
         } catch (Exception exception) {
             logger.warn("Could not list MCP tools at startup: {}", exception.getMessage(), exception);
         }
@@ -77,36 +105,28 @@ public class McpToolingService {
      * Execute a tool using the provider registry
      */
     public Map<String, Object> executeTool(String toolName, Map<String, Object> arguments) {
-        logger.debug("Executing MCP tool: '{}' with arguments: {}", toolName, arguments);
-
+        logger.debug("Executing MCP tool: '{}' with arguments: {}", toolName, redactForLog(arguments, 0));
         try {
             String internalToolName = toInternalToolName(toolName);
-
             Map<String, Object> normalizedArguments = new HashMap<>(arguments);
 
-            logger.debug("Routing tool call to provider: {} with args: {}", internalToolName, normalizedArguments);
+            // --- Primero intenta delegar al providerRegistry (ejecución real) ---
+            logger.debug("Routing tool call to provider: {} with args: {}", internalToolName, redactForLog(normalizedArguments, 0));
             var result = providerRegistry.routeToolCall(internalToolName, normalizedArguments);
-
-            // Ensure result has proper structure
-            if (result == null) {
-                logger.warn("Provider returned null result for tool: {}", internalToolName);
-                Map<String, Object> errorResult = new HashMap<>();
-                errorResult.put("type", "text");
-                errorResult.put("text", "Tool execution returned no results");
-                errorResult.put("success", false);
-                return errorResult;
-            }
-
-            // Check if result indicates success
-            Object successObj = result.get("success");
-            if (successObj != null && Boolean.FALSE.equals(successObj)) {
-                logger.warn("Tool execution failed for: {} - Result: {}", internalToolName, result);
-            } else {
+            if (result != null && (!result.isEmpty() && Boolean.TRUE.equals(result.get("success")))) {
                 logger.debug("Tool execution successful for: {}", internalToolName);
+                return result;
             }
 
-            return result;
-
+            // --- Si no existe handler real, error explícito ---
+            logger.warn("No real handler implemented for tool: {} (internal: {})", toolName, internalToolName);
+            Map<String, Object> errorResult = new HashMap<>();
+            errorResult.put("success", false);
+            errorResult.put("type", "error");
+            errorResult.put("summary", "Tool '" + toolName + "' not implemented or not available. No mock execution allowed.");
+            errorResult.put("arguments", normalizedArguments);
+            errorResult.put("timestamp", java.time.Instant.now().toString());
+            return errorResult;
         } catch (Exception e) {
             logger.error("Error executing tool '{}': {}", toolName, e.getMessage(), e);
             Map<String, Object> errorResult = new HashMap<>();
@@ -118,10 +138,20 @@ public class McpToolingService {
         }
     }
 
+
     /**
      * Execute a tool and produce an MCP-compliant result envelope.
      */
     public ToolCallResult executeToolWithEnvelope(String toolName, Map<String, Object> arguments) {
+        // Intercept direct calls to HasMinimumJavaVersion and block them with a clear MCP-compliant error
+        if (toolName != null && (toolName.equals("org.openrewrite.java.search.HasMinimumJavaVersion") ||
+                toolName.endsWith(".HasMinimumJavaVersion"))) {
+            return ToolCallResult.error(
+                "Direct execution of 'org.openrewrite.java.search.HasMinimumJavaVersion' is not allowed. " +
+                "Please use the composite recipe defined in rewrite.yml (e.g., 'com.example.hexagonal.RewriteRecipes') " +
+                "which includes the required 'version' parameter. See Renovatio documentation for details."
+            );
+        }
         Map<String, Object> rawResult = executeTool(toolName, arguments);
         return buildToolCallResult(toolName, rawResult);
     }
@@ -192,7 +222,7 @@ public class McpToolingService {
         java.nio.file.Path root = java.nio.file.Paths.get("");
         try (var stream = java.nio.file.Files.list(root)) {
             stream.filter(java.nio.file.Files::isDirectory)
-                  .forEach(dir -> workspaces.add(dir.toString()));
+                    .forEach(dir -> workspaces.add(dir.toString()));
         } catch (IOException e) {
             // Log and return empty list
         }
@@ -210,8 +240,8 @@ public class McpToolingService {
         info.put("isDirectory", java.nio.file.Files.isDirectory(dir));
         try {
             info.put("files", java.nio.file.Files.list(dir)
-                .map(java.nio.file.Path::toString)
-                .toArray(String[]::new));
+                    .map(java.nio.file.Path::toString)
+                    .toArray(String[]::new));
         } catch (IOException e) {
             info.put("files", new String[0]);
         }
@@ -414,9 +444,9 @@ public class McpToolingService {
 
         StringBuilder summary = new StringBuilder();
         summary.append(toolName)
-            .append(": analyzed ")
-            .append(files)
-            .append(files == 1 ? " file" : " files");
+                .append(": analyzed ")
+                .append(files)
+                .append(files == 1 ? " file" : " files");
         if (!metrics.isEmpty()) {
             summary.append(" (").append(String.join(", ", metrics)).append(")");
         }
@@ -480,11 +510,11 @@ public class McpToolingService {
         String planId = stringValue(structured.get("planId"), "plan");
         List<?> steps = asList(structured.get("steps"));
         StringBuilder summary = new StringBuilder(toolName)
-            .append(": generated plan ")
-            .append(planId)
-            .append(" with ")
-            .append(steps.size())
-            .append(" steps");
+                .append(": generated plan ")
+                .append(planId)
+                .append(" with ")
+                .append(steps.size())
+                .append(" steps");
 
         String message = stringValue(structured.get("message"), "");
         if (!message.isEmpty()) {
@@ -502,11 +532,11 @@ public class McpToolingService {
         String action = dryRun ? "previewed" : "applied";
 
         StringBuilder summary = new StringBuilder(toolName)
-            .append(": ")
-            .append(action)
-            .append(' ')
-            .append(changes.size())
-            .append(" changes");
+                .append(": ")
+                .append(action)
+                .append(' ')
+                .append(changes.size())
+                .append(" changes");
 
         String message = stringValue(structured.get("message"), "");
         if (!message.isEmpty()) {
@@ -521,9 +551,9 @@ public class McpToolingService {
     private String buildDiffSummary(String toolName, Map<String, Object> structured) {
         List<?> hunks = asList(structured.get("changes"));
         StringBuilder summary = new StringBuilder(toolName)
-            .append(": produced diff with ")
-            .append(hunks.size())
-            .append(hunks.size() == 1 ? " hunk" : " hunks");
+                .append(": produced diff with ")
+                .append(hunks.size())
+                .append(hunks.size() == 1 ? " hunk" : " hunks");
 
         String message = stringValue(structured.get("message"), "");
         if (!message.isEmpty()) {
@@ -538,9 +568,9 @@ public class McpToolingService {
     private String buildDiscoverSummary(String toolName, Map<String, Object> structured) {
         List<?> modules = asList(structured.get("modules"));
         StringBuilder summary = new StringBuilder(toolName)
-            .append(": discovered ")
-            .append(modules.size())
-            .append(modules.size() == 1 ? " module" : " modules");
+                .append(": discovered ")
+                .append(modules.size())
+                .append(modules.size() == 1 ? " module" : " modules");
         String message = stringValue(structured.get("message"), "");
         if (!message.isEmpty()) {
             summary.append(". ").append(message);
@@ -607,9 +637,9 @@ public class McpToolingService {
         simplified.put("success", parseSuccess(structured));
 
         String summary = firstNonEmptyString(
-            structured.get("summary"),
-            data.get("summary"),
-            structured.get("message")
+                structured.get("summary"),
+                data.get("summary"),
+                structured.get("message")
         );
         if (!summary.isEmpty()) {
             simplified.put("summary", summary);
@@ -626,9 +656,9 @@ public class McpToolingService {
         }
 
         List<?> files = firstNonEmptyList(
-            structured.get("analyzedFiles"),
-            structured.get("files"),
-            data.get("analyzedFiles")
+                structured.get("analyzedFiles"),
+                structured.get("files"),
+                data.get("analyzedFiles")
         );
         simplified.put("analyzedFiles", new ArrayList<>(files));
 
@@ -788,23 +818,24 @@ public class McpToolingService {
      */
     public void logProvidersAndTools() {
         logger.info("================ Renovatio MCP Server Started ================");
-        logger.info("Registered Language Providers:");
+        logger.info("Registered Language Providers: {}", providerRegistry.getAllProviders().size());
         var providers = providerRegistry.getAllProviders();
         if (providers.isEmpty()) {
             logger.warn("No language providers registered.");
         } else {
+            // Detailed providers list at DEBUG
             for (var provider : providers) {
-                logger.info("- {}: {}", provider.language(), provider.capabilities());
+                logger.debug("- {}: {}", provider.language(), provider.capabilities());
             }
         }
-        logger.info("");
-        logger.info("Generated MCP Tools:");
         var tools = getMcpTools();
+        logger.info("Generated MCP Tools: {}", tools.size());
         if (tools.isEmpty()) {
             logger.warn("No MCP tools generated.");
         } else {
+            // Detailed tools list at DEBUG
             for (var tool : tools) {
-                logger.info("- {}: {}", tool.getName(), tool.getDescription());
+                logger.debug("- {}: {}", tool.getName(), tool.getDescription());
             }
         }
         logger.info("===============================================================");
@@ -816,11 +847,30 @@ public class McpToolingService {
         if (tools == null || tools.isEmpty()) {
             logger.warn("No MCP Tools available on server startup. Check provider registration.");
         } else {
-            logger.info("MCP Tools available on server startup:");
+            // Only summary at INFO, details in DEBUG
+            logger.info("MCP Tools available on server startup: {}", tools.size());
             for (McpTool tool : tools) {
-                logger.info("- {}: {}", tool.getName(), tool.getDescription());
+                logger.debug("- {}: {}", tool.getName(), tool.getDescription());
             }
         }
+    }
+
+    /**
+     * Print all MCP tools to the console when the application is ready
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public void logAvailableMcpTools() {
+        List<McpTool> tools = getMcpTools();
+        logger.info("\n================ MCP Tools Available ================");
+        if (tools.isEmpty()) {
+            logger.info("No MCP tools found.");
+        } else {
+            for (McpTool tool : tools) {
+                Object language = tool.getMetadata() != null ? tool.getMetadata().getOrDefault("language", "<unknown>") : "<unknown>";
+                logger.info("Tool: {} | Language: {} | Description: {}", tool.getName(), language, tool.getDescription());
+            }
+        }
+        logger.info("====================================================\n");
     }
 
     private String toInternalToolName(String toolName) {
@@ -847,5 +897,55 @@ public class McpToolingService {
         String language = toolName.substring(0, idx);
         String remainder = toolName.substring(idx + 1);
         return language + '.' + remainder;
+    }
+
+    /**
+     * Redact potentially sensitive fields from maps/lists before logging.
+     */
+    @SuppressWarnings("unchecked")
+    private Object redactForLog(Object value, int depth) {
+        if (value == null) return null;
+        if (depth > 3) return "<redacted>"; // cap recursion
+        if (value instanceof Map<?, ?> m) {
+            Map<String, Object> out = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> e : m.entrySet()) {
+                String k = String.valueOf(e.getKey());
+                Object v = e.getValue();
+                if (k != null && isSensitiveKey(k)) {
+                    out.put(k, summarizeString(v));
+                } else {
+                    out.put(k, redactForLog(v, depth + 1));
+                }
+            }
+            return out;
+        }
+        if (value instanceof List<?> list) {
+            List<Object> out = new ArrayList<>(list.size());
+            for (Object item : list) {
+                out.add(redactForLog(item, depth + 1));
+            }
+            return out;
+        }
+        if (value instanceof CharSequence cs) {
+            String s = cs.toString();
+            return s.length() > MAX_STRING_LOG ? (s.substring(0, MAX_STRING_LOG) + "…") : s;
+        }
+        return value;
+    }
+
+    private boolean isSensitiveKey(String key) {
+        String k = key.toLowerCase(Locale.ROOT);
+        if (SENSITIVE_KEYS.contains(k)) return true;
+        // heuristics: redact any key that hints content/code
+        return k.contains("content") || k.contains("code") || k.contains("source") || k.contains("diff") || k.contains("patch") || k.contains("body") || k.contains("text") || k.contains("data");
+    }
+
+    private Object summarizeString(Object v) {
+        if (v == null) return "<redacted>";
+        if (v instanceof CharSequence cs) {
+            int len = cs.length();
+            return "<redacted:" + len + " chars>";
+        }
+        return "<redacted>";
     }
 }

@@ -13,13 +13,13 @@ import java.util.stream.Collectors;
 
 /**
  * MCP Protocol Service - implements the full Model Content Protocol specification.
- * 
+ * <p>
  * This service handles all MCP JSON-RPC 2.0 methods according to the specification at:
  * https://modelcontextprotocol.io/docs/develop/build-server
  */
 @Service
 public class McpProtocolService {
-    
+
     private final McpToolingService mcpToolingService;
     private final Set<String> loggingSubscribers = ConcurrentHashMap.newKeySet();
 
@@ -30,9 +30,14 @@ public class McpProtocolService {
     /**
      * Main entry point for handling MCP requests.
      */
+    /**
+     * MCP JSON-RPC 2.0 compliance: alias methods with dot and slash for all MCP standard methods
+     */
     public McpResponse handleMcpRequest(McpRequest request) {
         try {
-            switch (request.getMethod()) {
+            String method = request.getMethod();
+            // MCP standard: support both dot and slash variants
+            switch (method) {
                 case "initialize":
                     return handleInitialize(request);
                 case "ping":
@@ -40,44 +45,75 @@ public class McpProtocolService {
                 case "shutdown":
                     return handleShutdown(request);
                 case "tools/list":
+                case "tools.list":
                     return handleToolsList(request);
                 case "tools/call":
+                case "tools.call":
                     return handleToolsCall(request);
                 case "tools/describe":
+                case "tools.describe":
                     return handleToolsDescribe(request);
                 case "capabilities":
                     return handleCapabilities(request);
                 case "server/info":
+                case "server.info":
                     return handleServerInfo(request);
                 case "content/read":
+                case "content.read":
                     return handleContentRead(request);
                 case "content/write":
+                case "content.write":
                     return handleContentWrite(request);
                 case "workspace/list":
+                case "workspace.list":
                     return handleWorkspaceList(request);
                 case "workspace/describe":
+                case "workspace.describe":
                     return handleWorkspaceDescribe(request);
                 case "logging/subscribe":
+                case "logging.subscribe":
                     return handleLoggingSubscribe(request);
                 case "logging/unsubscribe":
+                case "logging.unsubscribe":
                     return handleLoggingUnsubscribe(request);
                 case "prompts/list":
+                case "prompts.list":
                     return handlePromptsList(request);
                 case "prompts/get":
+                case "prompts.get":
                     return handlePromptsGet(request);
                 case "resources/list":
+                case "resources.list":
                     return handleResourcesList(request);
-                case "resources/read":
+                case "resources/get":
+                case "resources.get":
                     return handleResourcesRead(request);
-                case "cli/manifest":
-                    return handleCliManifest(request);
                 default:
-                    return new McpResponse(request.getId(),
-                        new McpError(-32601, "Method not found: " + request.getMethod()));
+                    // --- Compatibilidad Copilot/VSCode: método directo igual a tool ---
+                    // Si el método coincide con el nombre de una tool listada, redirige como tools/call
+                    boolean isTool = mcpToolingService.getMcpTools().stream()
+                        .anyMatch(tool -> tool.getName().equals(method));
+                    if (isTool) {
+                        // Construir llamada interna a tools/call
+                        Map<String, Object> params = new HashMap<>();
+                        params.put("name", method);
+                        // Si params vienen en "params", pásalos como arguments
+                        if (request.getParams() instanceof Map<?,?> map) {
+                            params.put("arguments", map);
+                        } else {
+                            params.put("arguments", request.getParams());
+                        }
+                        McpRequest callRequest = new McpRequest();
+                        callRequest.setId(request.getId());
+                        callRequest.setMethod("tools/call");
+                        callRequest.setParams(params);
+                        return handleToolsCall(callRequest);
+                    }
+                    // Si no es método MCP ni tool, error estándar
+                    return new McpResponse(request.getId(), new McpError(-32601, "Method not found: " + method));
             }
         } catch (Exception e) {
-            return new McpResponse(request.getId(),
-                new McpError(-32603, "Internal error: " + e.getMessage()));
+            return new McpResponse(request.getId(), new McpError(-32603, "Internal error: " + e.getMessage()));
         }
     }
 
@@ -89,15 +125,25 @@ public class McpProtocolService {
         result.put("protocolVersion", "2025-06-18");
         result.put("capabilities", new McpCapabilities());
         result.put("serverInfo", Map.of(
-            "name", "Renovatio MCP Server",
-            "version", "1.0.0",
-            "description", "Multi-language refactoring and migration platform with full MCP compliance"
+                "name", "Renovatio MCP Server",
+                "version", "1.0.0",
+                "description", "Multi-language refactoring and migration platform with full MCP compliance"
         ));
-        
-        // Include available tools in initialization
-        var tools = mcpToolingService.getMcpTools();
+
+        // Optional language preference to filter available tools
+        String language = null;
+        Object paramsObj = request.getParams();
+        if (paramsObj instanceof Map<?, ?> map) {
+            Object lang = map.get("language");
+            if (lang != null) {
+                language = String.valueOf(lang);
+            }
+        }
+        var tools = (language == null || language.isBlank())
+                ? mcpToolingService.getMcpTools()
+                : mcpToolingService.getMcpTools(language);
         result.put("availableTools", tools);
-        
+
         return new McpResponse(request.getId(), result);
     }
 
@@ -126,7 +172,19 @@ public class McpProtocolService {
      */
     private McpResponse handleToolsList(McpRequest request) {
         Map<String, Object> result = new HashMap<>();
-        result.put("tools", mcpToolingService.getMcpTools());
+        String language = null;
+        Object paramsObj = request.getParams();
+        if (paramsObj instanceof Map<?, ?> map) {
+            Object lang = map.get("language");
+            if (lang != null) {
+                language = String.valueOf(lang);
+            }
+        }
+        if (language == null || language.isBlank()) {
+            result.put("tools", mcpToolingService.getMcpTools());
+        } else {
+            result.put("tools", mcpToolingService.getMcpTools(language));
+        }
         return new McpResponse(request.getId(), result);
     }
 
@@ -139,7 +197,7 @@ public class McpProtocolService {
             Map<String, Object> params = (Map<String, Object>) request.getParams();
             if (params == null || !params.containsKey("name")) {
                 return new McpResponse(request.getId(),
-                    new McpError(-32602, "Invalid params - missing tool name"));
+                        new McpError(-32602, "Invalid params - missing tool name"));
             }
 
             String toolName = normalizeToolName((String) params.get("name"));
@@ -150,7 +208,7 @@ public class McpProtocolService {
             return new McpResponse(request.getId(), toolResult);
         } catch (Exception e) {
             return new McpResponse(request.getId(),
-                new McpError(-32603, "Tool execution error: " + e.getMessage()));
+                    new McpError(-32603, "Tool execution error: " + e.getMessage()));
         }
     }
 
@@ -370,7 +428,17 @@ public class McpProtocolService {
      * CLI manifest method - provides tool information for CLI clients.
      */
     private McpResponse handleCliManifest(McpRequest request) {
-        List<McpTool> tools = mcpToolingService.getMcpTools();
+        String language = null;
+        Object paramsObj = request.getParams();
+        if (paramsObj instanceof Map<?, ?> map) {
+            Object lang = map.get("language");
+            if (lang != null) {
+                language = String.valueOf(lang);
+            }
+        }
+        List<McpTool> tools = (language == null || language.isBlank())
+                ? mcpToolingService.getMcpTools()
+                : mcpToolingService.getMcpTools(language);
         List<Map<String, Object>> commands = tools.stream().map(tool -> {
             Map<String, Object> command = new HashMap<>();
             command.put("name", tool.getName());
@@ -382,8 +450,8 @@ public class McpProtocolService {
         Map<String, Object> result = new HashMap<>();
         result.put("commands", commands);
         result.put("serverInfo", Map.of(
-            "name", "Renovatio MCP Server",
-            "version", "1.0.0"
+                "name", "Renovatio MCP Server",
+                "version", "1.0.0"
         ));
         return new McpResponse(request.getId(), result);
     }

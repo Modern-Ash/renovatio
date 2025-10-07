@@ -4,31 +4,35 @@ import org.openrewrite.config.Environment;
 import org.openrewrite.config.OptionDescriptor;
 import org.openrewrite.config.RecipeDescriptor;
 import org.openrewrite.config.YamlResourceLoader;
-import org.shark.renovatio.shared.domain.AnalyzeResult;
-import org.shark.renovatio.shared.domain.ApplyResult;
-import org.shark.renovatio.shared.domain.BasicTool;
-import org.shark.renovatio.shared.domain.StubResult;
-import org.shark.renovatio.shared.domain.Tool;
-import org.shark.renovatio.shared.domain.Workspace;
-import org.shark.renovatio.shared.domain.Scope;
-import org.shark.renovatio.shared.domain.MetricsResult;
-import org.shark.renovatio.shared.domain.DiffResult;
-import org.shark.renovatio.shared.domain.PerformanceMetrics;
+import org.shark.renovatio.provider.java.discovery.OpenRewriteRecipeDiscoveryService;
+import org.shark.renovatio.provider.java.execution.JavaRecipeExecutionResult;
+import org.shark.renovatio.provider.java.execution.JavaRecipeExecutor;
+import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.shared.spi.BaseLanguageProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.io.File;
 import java.io.InputStream;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.shark.renovatio.shared.domain.PlanResult;
 
+@Service
 public class JavaLanguageProvider extends BaseLanguageProvider {
 
-    private final OpenRewriteRunner openRewriteRunner = new OpenRewriteRunner();
+    private final OpenRewriteRecipeDiscoveryService discoveryService;
+    private final OpenRewriteRunner openRewriteRunner;
+
+    @Autowired
+    public JavaLanguageProvider(OpenRewriteRecipeDiscoveryService discoveryService, OpenRewriteRunner openRewriteRunner) {
+        this.discoveryService = discoveryService;
+        this.openRewriteRunner = openRewriteRunner;
+    }
 
     @Override
     public String language() {
@@ -42,8 +46,35 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
 
     @Override
     public List<Tool> getTools() {
-        // Solo publica tools MCP para recetas OpenRewrite descubiertas dinámicamente
-        return discoverRecipeTools();
+        List<Tool> tools = new ArrayList<>();
+        // Tool MCP analyze (ambos nombres)
+        Map<String, Object> inputSchema = new LinkedHashMap<>();
+        inputSchema.put("type", "object");
+        Map<String, Object> properties = new LinkedHashMap<>();
+        Map<String, Object> workspacePath = new LinkedHashMap<>();
+        workspacePath.put("type", "string");
+        workspacePath.put("description", "Absolute path to the workspace directory containing sources to analyze");
+        properties.put("workspacePath", workspacePath);
+        inputSchema.put("properties", properties);
+        inputSchema.put("required", List.of("workspacePath"));
+        inputSchema.put("additionalProperties", false);
+        // MCP tool: java_analyze
+        BasicTool analyzeToolUnderscore = new BasicTool();
+        analyzeToolUnderscore.setName("java_analyze");
+        analyzeToolUnderscore.setDescription("Analyze Java sources using OpenRewrite recipes");
+        analyzeToolUnderscore.setInputSchema(inputSchema);
+        analyzeToolUnderscore.setMetadata(Map.of("category", "analyze", "language", "java"));
+        tools.add(analyzeToolUnderscore);
+        // MCP tool: java.analyze
+        BasicTool analyzeToolDot = new BasicTool();
+        analyzeToolDot.setName("java.analyze");
+        analyzeToolDot.setDescription("Analyze Java sources using OpenRewrite recipes");
+        analyzeToolDot.setInputSchema(inputSchema);
+        analyzeToolDot.setMetadata(Map.of("category", "analyze", "language", "java"));
+        tools.add(analyzeToolDot);
+        // ...recetas OpenRewrite dinámicas...
+        tools.addAll(discoverRecipeTools());
+        return tools;
     }
 
 
@@ -51,7 +82,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
         try {
             Properties properties = new Properties();
             Environment.Builder builder = Environment.builder(properties)
-                .scanRuntimeClasspath();
+                    .scanRuntimeClasspath();
             File rewriteConfig = new File("rewrite.yml");
             if (rewriteConfig.exists()) {
                 try (InputStream inputStream = Files.newInputStream(rewriteConfig.toPath())) {
@@ -67,11 +98,39 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
     // Métodos MCP fijos: solo para cumplir la interfaz, no deben usarse directamente
     @Override
     public AnalyzeResult analyze(NqlQuery query, Workspace workspace) {
-        String recipeId = extractRecipeIdFromNql(query);
-        if (recipeId == null) {
-            throw new IllegalArgumentException("No recipe specified in NQL query for analyze().");
+        // Default OpenRewrite analysis recipes
+        List<String> defaultRecipes = List.of(
+            "org.openrewrite.java.migrate.UseDiamondOperator",
+            "org.openrewrite.java.cleanup.UnnecessaryParentheses",
+            "org.openrewrite.java.cleanup.RemoveUnusedImports",
+            "org.openrewrite.java.cleanup.UnnecessaryThrows"
+        );
+        List<String> recipesToRun;
+        // Try to extract recipe from NqlQuery target or parameters
+        if (query == null) {
+            recipesToRun = defaultRecipes;
+        } else if (query.getTarget() != null && !query.getTarget().isBlank()) {
+            recipesToRun = List.of(query.getTarget());
+        } else if (query.getParameters() != null && query.getParameters().containsKey("recipe")) {
+            Object recipe = query.getParameters().get("recipe");
+            recipesToRun = List.of(recipe.toString());
+        } else {
+            recipesToRun = defaultRecipes;
         }
-        return executeAnalyzeRecipe(recipeId, workspace, query);
+        JavaRecipeExecutor executor = new JavaRecipeExecutor(discoveryService, openRewriteRunner);
+        String workspacePath = workspace.getPath();
+        var execResult = executor.preview(workspacePath, recipesToRun, List.of());
+        AnalyzeResult analyzeResult = new AnalyzeResult();
+        // Populate the data field with findings and summary
+        Map<String, Object> data = new java.util.LinkedHashMap<>();
+        data.put("findings", execResult.issues());
+        data.put("analyzedFiles", execResult.analyzedFiles());
+        data.put("summary", "Analysis completed with " + recipesToRun.size() + " recipe(s).");
+        analyzeResult.setData(data);
+        analyzeResult.setAst(java.util.Collections.emptyMap());
+        analyzeResult.setDependencies(java.util.Collections.emptyMap());
+        analyzeResult.setSymbols(java.util.Collections.emptyMap());
+        return analyzeResult;
     }
 
     @Override
@@ -188,9 +247,10 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
 
     /**
      * Ejecuta una receta OpenRewrite sobre los archivos del workspace.
-     * @param recipeId ID de la receta OpenRewrite
-     * @param workspace Workspace Renovatio
-     * @param apply Si true, aplica los cambios; si false, solo simula
+     *
+     * @param recipeId       ID de la receta OpenRewrite
+     * @param workspace      Workspace Renovatio
+     * @param apply          Si true, aplica los cambios; si false, solo simula
      * @param collectMetrics Si true, recolecta métricas
      * @return Resultado de la ejecución de la receta
      */
@@ -209,8 +269,8 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
 
             Environment env = getOpenRewriteEnvironment();
             org.openrewrite.config.RecipeDescriptor descriptor = env.listRecipeDescriptors().stream()
-                .filter(d -> d.getName().equals(recipeId) || d.getDisplayName().equals(recipeId))
-                .findFirst().orElse(null);
+                    .filter(d -> d.getName().equals(recipeId) || d.getDisplayName().equals(recipeId))
+                    .findFirst().orElse(null);
             if (descriptor == null || descriptor.getRecipeList() == null || descriptor.getRecipeList().isEmpty()) {
                 result.success = false;
                 result.summary = "Recipe not found: " + recipeId;
@@ -259,7 +319,22 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             }
             List<org.openrewrite.SourceFile> sourceFileList = parser.parse(ctx, sources.toArray(new String[0])).collect(Collectors.toList());
             // Delegate to OpenRewriteRunner to support both legacy and modern APIs
-            List<org.openrewrite.Result> results = openRewriteRunner.runRecipe(recipe, ctx, sourceFileList);
+            OpenRewriteRunResult runResult = openRewriteRunner.runRecipe(recipe, ctx, sourceFileList);
+            if (!runResult.getValidationErrors().isEmpty()) {
+                result.success = false;
+                StringBuilder sb = new StringBuilder("Recipe validation error(s): ");
+                for (org.shark.renovatio.shared.dto.RecipeValidationError err : runResult.getValidationErrors()) {
+                    sb.append("[Recipe: ").append(err.getRecipeName()).append(", Message: ").append(err.getMessage()).append("] ");
+                    Map<String, Object> issue = new LinkedHashMap<>();
+                    issue.put("type", "RecipeValidationError");
+                    issue.put("recipe", err.getRecipeName());
+                    issue.put("message", err.getMessage());
+                    result.issues.add(issue);
+                }
+                result.summary = sb.toString();
+                return result;
+            }
+            List<org.openrewrite.Result> results = runResult.getResults();
 
             if (apply) {
                 for (org.openrewrite.Result r : results) {
@@ -321,7 +396,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
                 summary.append("without modifying any files");
             } else {
                 summary.append("changes to ").append(result.issues.size())
-                    .append(result.issues.size() == 1 ? " file" : " files");
+                        .append(result.issues.size() == 1 ? " file" : " files");
             }
             if (result.durationMs > 0) {
                 summary.append(" in ").append(result.durationMs).append(" ms");
@@ -342,7 +417,8 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             f.setAccessible(true);
             Object val = f.get(query);
             if (val != null) return val.toString();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return query.toString();
     }
 
@@ -351,27 +427,12 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
         return workspace.toAbsolutePath().relativize(file.toAbsolutePath()).toString();
     }
 
-    // Clase interna para encapsular el resultado de la ejecución de recetas
-    private static class RecipeExecutionResult {
-        boolean success = false;
-        String summary = "";
-        List<Map<String, Object>> issues = new ArrayList<>();
-        List<String> diffs = new ArrayList<>();
-        List<String> findings = new ArrayList<>();
-        List<String> plan = new ArrayList<>();
-        List<String> analyzedFiles = new ArrayList<>();
-        Map<String, Object> metrics = new LinkedHashMap<>();
-        int totalFiles = 0;
-        boolean applied = false;
-        long durationMs = 0;
-    }
-
     private List<Tool> discoverRecipeTools() {
         List<Tool> recipeTools = new ArrayList<>();
         try {
             Properties properties = new Properties();
             Environment.Builder builder = Environment.builder(properties)
-                .scanRuntimeClasspath();
+                    .scanRuntimeClasspath();
             File rewriteConfig = new File("rewrite.yml");
             if (rewriteConfig.exists()) {
                 try (InputStream inputStream = Files.newInputStream(rewriteConfig.toPath())) {
@@ -417,8 +478,8 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
         BasicTool tool = new BasicTool();
         tool.setName(toolName);
         tool.setDescription(descriptor.getDescription() != null
-            ? descriptor.getDescription()
-            : "OpenRewrite recipe: " + recipeId);
+                ? descriptor.getDescription()
+                : "OpenRewrite recipe: " + recipeId);
         tool.setInputSchema(inputSchema);
         tool.setMetadata(metadata);
         tools.add(tool);
@@ -517,20 +578,64 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             return "boolean";
         }
         if (normalized.contains("int") || normalized.contains("long") || normalized.contains("short")
-            || normalized.contains("byte")) {
+                || normalized.contains("byte")) {
             return "integer";
         }
         if (normalized.contains("double") || normalized.contains("float") || normalized.contains("bigdecimal")
-            || normalized.contains("number")) {
+                || normalized.contains("number")) {
             return "number";
         }
         if (normalized.contains("list") || normalized.contains("set") || normalized.contains("collection")
-            || normalized.contains("array")) {
+                || normalized.contains("array")) {
             return "array";
         }
         if (normalized.contains("map")) {
             return "object";
         }
         return "string";
+    }
+
+    // Clase interna para encapsular el resultado de la ejecución de recetas
+    private static class RecipeExecutionResult {
+        boolean success = false;
+        String summary = "";
+        List<Map<String, Object>> issues = new ArrayList<>();
+        List<String> diffs = new ArrayList<>();
+        List<String> findings = new ArrayList<>();
+        List<String> plan = new ArrayList<>();
+        List<String> analyzedFiles = new ArrayList<>();
+        Map<String, Object> metrics = new LinkedHashMap<>();
+        int totalFiles = 0;
+        boolean applied = false;
+        long durationMs = 0;
+    }
+
+    // MCP tool handler: enruta tools a métodos reales
+    // (Eliminada la anotación @Override porque no está en la interfaz base)
+    public Object handleToolCall(String toolName, Map<String, Object> args) {
+        if (toolName == null) return null;
+        switch (toolName) {
+            case "java_analyze":
+            case "java.analyze":
+                // Espera workspacePath y opcionalmente NqlQuery
+                String workspacePath = (String) args.get("workspacePath");
+                Workspace ws = new Workspace();
+                ws.setPath(workspacePath);
+                // Permite pasar un NqlQuery si está presente
+                NqlQuery nql = args.containsKey("nql") ? (NqlQuery) args.get("nql") : null;
+                return analyze(nql, ws);
+            case "java_metrics":
+            case "java.metrics":
+                workspacePath = (String) args.get("workspacePath");
+                ws = new Workspace();
+                ws.setPath(workspacePath);
+                return metrics(null, ws);
+            case "java_recipe_list":
+            case "java.recipe_list":
+                return getTools();
+            // Agrega más tools según sea necesario
+            default:
+                throw new UnsupportedOperationException("Tool not supported: " + toolName);
+        }
     }
 }

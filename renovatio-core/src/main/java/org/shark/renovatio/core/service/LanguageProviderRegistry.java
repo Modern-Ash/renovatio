@@ -1,15 +1,15 @@
 package org.shark.renovatio.core.service;
 
-import org.shark.renovatio.shared.spi.LanguageProvider;
+import jakarta.annotation.PostConstruct;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.shark.renovatio.shared.spi.LanguageProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PostConstruct;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -31,12 +31,16 @@ public class LanguageProviderRegistry {
             "language",
             "nql"
     );
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
+    // Keys whose values should not be logged verbatim
+    private static final Set<String> SENSITIVE_KEYS = Set.of(
+            "content", "source", "code", "diff", "unifiedDiff", "semanticDiff", "hunks",
+            "patch", "body", "text", "data", "fileContent", "planContent", "steps", "changes", "issues"
+    );
+    private static final int MAX_STRING_LOG = 120;
     private final Map<String, List<LanguageProvider>> providersByLanguage = new LinkedHashMap<>();
     private final Map<String, LanguageProvider> toolProviders = new ConcurrentHashMap<>();
+    @Autowired
+    private ApplicationContext applicationContext;
 
     /**
      * Auto-register all LanguageProvider beans after Spring context initialization
@@ -146,9 +150,9 @@ public class LanguageProviderRegistry {
      * Route tool call to appropriate language provider
      */
     public Map<String, Object> routeToolCall(String toolName, Map<String, Object> arguments) {
-        logger.info("=== ROUTING TOOL CALL ===");
-        logger.info("Tool name: {}", toolName);
-        logger.info("Arguments: {}", arguments);
+        logger.debug("=== ROUTING TOOL CALL ===");
+        logger.debug("Tool name: {}", toolName);
+        logger.debug("Arguments: {}", redactForLog(arguments, 0));
 
         try {
             Map<String, Object> safeArguments = arguments != null
@@ -176,9 +180,9 @@ public class LanguageProviderRegistry {
                 return createErrorResult("Unsupported capability '" + capabilitySection + "' for language: " + language);
             }
 
-            logger.info("Found provider for language: {}", language);
-            logger.info("Provider class: {}", provider.getClass().getName());
-            logger.info("Provider capabilities: {}", provider.capabilities());
+            logger.debug("Found provider for language: {}", language);
+            logger.debug("Provider class: {}", provider.getClass().getName());
+            logger.debug("Provider capabilities: {}", provider.capabilities());
 
             if (provider instanceof org.shark.renovatio.shared.spi.ExtendedLanguageProvider extendedProvider) {
                 Map<String, Object> extendedResult = extendedProvider.executeExtendedTool(normalizedCapability, safeArguments);
@@ -197,7 +201,7 @@ public class LanguageProviderRegistry {
             } else {
                 int underscoreInCapability = capability.indexOf('_');
                 if (underscoreInCapability > 0
-                    && shouldSplitRecipeIdentifier(capability.substring(0, underscoreInCapability))) {
+                        && shouldSplitRecipeIdentifier(capability.substring(0, underscoreInCapability))) {
                     recipeId = capability.substring(underscoreInCapability + 1);
                     capability = capability.substring(0, underscoreInCapability);
                 }
@@ -217,37 +221,37 @@ public class LanguageProviderRegistry {
             NqlQuery query = createNqlQuery(safeArguments, language);
             Scope scope = createScope(safeArguments);
 
-            logger.info("Created workspace: path={}, id={}", workspace.getPath(), workspace.getId());
-            logger.info("Created query: query={}, language={}", query.getOriginalQuery(), query.getLanguage());
-            logger.info("Created scope: includePatterns={}", scope.getIncludePatterns());
+            logger.debug("Created workspace: path={}, id={}", workspace.getPath(), workspace.getId());
+            logger.debug("Created query: query={}, language={}", query.getOriginalQuery(), query.getLanguage());
+            logger.debug("Created scope: includePatterns={}", scope.getIncludePatterns());
 
             // Route to appropriate method based on capability
-            logger.info("Routing to capability: {}", capability);
+            logger.debug("Routing to capability: {}", capability);
             switch (capabilityKey) {
                 case "analyze":
                     query.setType(NqlQuery.QueryType.FIND);
-                    logger.info("Calling provider.analyze()...");
+                    logger.debug("Calling provider.analyze()...");
                     AnalyzeResult analyzeResult = provider.analyze(query, workspace);
-                    logger.info("Provider.analyze() returned: success={}, message={}, runId={}",
+                    logger.debug("Provider.analyze() returned: success={}, message={}, runId={}",
                             analyzeResult.isSuccess(), analyzeResult.getMessage(), analyzeResult.getRunId());
                     Map<String, Object> analyzeMap = convertToMap(analyzeResult);
-                    logger.info("Converted result: {}", analyzeMap);
+                    logger.debug("Converted result: {}", redactForLog(analyzeMap, 0));
                     return analyzeMap;
 
                 case "metrics":
-                    logger.info("Calling provider.metrics()...");
+                    logger.debug("Calling provider.metrics()...");
                     MetricsResult metricsResult = provider.metrics(scope, workspace);
-                    logger.info("Provider.metrics() returned: success={}, message={}",
+                    logger.debug("Provider.metrics() returned: success={}, message={}",
                             metricsResult.isSuccess(), metricsResult.getMessage());
                     Map<String, Object> metricsMap = convertToMap(metricsResult);
-                    logger.info("Converted result: {}", metricsMap);
+                    logger.debug("Converted result: {}", redactForLog(metricsMap, 0));
                     return metricsMap;
 
                 case "plan":
                     query.setType(NqlQuery.QueryType.PLAN);
-                    logger.info("Calling provider.plan()...");
+                    logger.debug("Calling provider.plan()...");
                     PlanResult planResult = provider.plan(query, scope, workspace);
-                    logger.info("Provider.plan() returned: success={}, message={}",
+                    logger.debug("Provider.plan() returned: success={}, message={}",
                             planResult.isSuccess(), planResult.getMessage());
                     return convertToMap(planResult);
 
@@ -255,17 +259,17 @@ public class LanguageProviderRegistry {
                     query.setType(NqlQuery.QueryType.APPLY);
                     String planId = (String) safeArguments.get("planId");
                     boolean dryRun = Boolean.parseBoolean(safeArguments.getOrDefault("dryRun", "true").toString());
-                    logger.info("Calling provider.apply() with planId={}, dryRun={}", planId, dryRun);
+                    logger.debug("Calling provider.apply() with planId={}, dryRun={}", planId, dryRun);
                     ApplyResult applyResult = provider.apply(planId, dryRun, workspace);
-                    logger.info("Provider.apply() returned: success={}, message={}",
+                    logger.debug("Provider.apply() returned: success={}, message={}",
                             applyResult.isSuccess(), applyResult.getMessage());
                     return convertToMap(applyResult);
 
                 case "diff":
                     String runId = (String) safeArguments.get("runId");
-                    logger.info("Calling provider.diff() with runId={}", runId);
+                    logger.debug("Calling provider.diff() with runId={}", runId);
                     DiffResult diffResult = provider.diff(runId, workspace);
-                    logger.info("Provider.diff() returned: success={}, message={}",
+                    logger.debug("Provider.diff() returned: success={}, message={}",
                             diffResult.isSuccess(), diffResult.getMessage());
                     return convertToMap(diffResult);
 
@@ -366,17 +370,35 @@ public class LanguageProviderRegistry {
 
     private Scope createScope(Map<String, Object> arguments) {
         Scope scope = new Scope();
-        String scopePattern = (String) arguments.getOrDefault("scope", "**/*");
-        scope.setIncludePatterns(java.util.Arrays.asList(scopePattern));
+        Object scopeArg = arguments.get("scope");
+        List<String> patterns = new ArrayList<>();
+        if (scopeArg instanceof String s) {
+            if (s != null && !s.isBlank()) {
+                patterns.add(s);
+            }
+        } else if (scopeArg instanceof List<?> list) {
+            for (Object item : list) {
+                if (item != null) {
+                    String v = item.toString().trim();
+                    if (!v.isBlank()) {
+                        patterns.add(v);
+                    }
+                }
+            }
+        }
+        if (patterns.isEmpty()) {
+            patterns = java.util.Arrays.asList("**/*");
+        }
+        scope.setIncludePatterns(patterns);
         return scope;
     }
 
     private Map<String, Object> convertToMap(Object result) {
         Map<String, Object> map = new HashMap<>();
 
-        logger.info("=== CONVERT TO MAP DEBUG ===");
-        logger.info("Input result type: {}", result != null ? result.getClass().getName() : "null");
-        logger.info("Input result: {}", result);
+        logger.debug("=== CONVERT TO MAP DEBUG ===");
+        logger.debug("Input result type: {}", result != null ? result.getClass().getName() : "null");
+        logger.debug("Input result: {}", result);
 
         if (result instanceof ProviderResult providerResult) {
             map.put("success", providerResult.isSuccess());
@@ -390,14 +412,14 @@ public class LanguageProviderRegistry {
 
         if (result instanceof AnalyzeResult) {
             AnalyzeResult ar = (AnalyzeResult) result;
-            logger.info("Converting AnalyzeResult: success={}, message={}", ar.isSuccess(), ar.getMessage());
+            logger.debug("Converting AnalyzeResult: success={}, message={}", ar.isSuccess(), ar.getMessage());
             map.put("success", ar.isSuccess());
             map.put("message", ar.getMessage());
             map.put("runId", ar.getRunId());
 
             Map<String, Object> data = ar.getData() != null
-                ? new LinkedHashMap<>(ar.getData())
-                : new LinkedHashMap<>();
+                    ? new LinkedHashMap<>(ar.getData())
+                    : new LinkedHashMap<>();
             map.put("data", data);
 
             map.put("ast", ar.getAst());
@@ -422,9 +444,9 @@ public class LanguageProviderRegistry {
 
         } else if (result instanceof MetricsResult) {
             MetricsResult mr = (MetricsResult) result;
-            logger.info("Converting MetricsResult: success={}, message={}", mr.isSuccess(), mr.getMessage());
-            logger.info("MetricsResult metrics: {}", mr.getMetrics());
-            logger.info("MetricsResult details: {}", mr.getDetails());
+            logger.debug("Converting MetricsResult: success={}, message={}", mr.isSuccess(), mr.getMessage());
+            logger.debug("MetricsResult metrics: {}", redactForLog(mr.getMetrics(), 0));
+            logger.debug("MetricsResult details: {}", redactForLog(mr.getDetails(), 0));
 
             map.put("success", mr.isSuccess());
             map.put("message", mr.getMessage());
@@ -432,11 +454,11 @@ public class LanguageProviderRegistry {
             map.put("details", mr.getDetails());
             map.put("type", "metrics");
 
-            logger.info("Final converted map: {}", map);
+            logger.debug("Final converted map: {}", redactForLog(map, 0));
 
         } else if (result instanceof PlanResult) {
             PlanResult pr = (PlanResult) result;
-            logger.info("Converting PlanResult: success={}, message={}", pr.isSuccess(), pr.getMessage());
+            logger.debug("Converting PlanResult: success={}, message={}", pr.isSuccess(), pr.getMessage());
             map.put("success", pr.isSuccess());
             map.put("message", pr.getMessage());
             map.put("planId", pr.getPlanId());
@@ -446,7 +468,7 @@ public class LanguageProviderRegistry {
 
         } else if (result instanceof ApplyResult) {
             ApplyResult ar = (ApplyResult) result;
-            logger.info("Converting ApplyResult: success={}, message={}", ar.isSuccess(), ar.getMessage());
+            logger.debug("Converting ApplyResult: success={}, message={}", ar.isSuccess(), ar.getMessage());
             map.put("success", ar.isSuccess());
             map.put("message", ar.getMessage());
             map.put("dryRun", ar.isDryRun());
@@ -456,7 +478,7 @@ public class LanguageProviderRegistry {
 
         } else if (result instanceof DiffResult) {
             DiffResult dr = (DiffResult) result;
-            logger.info("Converting DiffResult: success={}, message={}", dr.isSuccess(), dr.getMessage());
+            logger.debug("Converting DiffResult: success={}, message={}", dr.isSuccess(), dr.getMessage());
             map.put("success", dr.isSuccess());
             map.put("message", dr.getMessage());
             map.put("unifiedDiff", dr.getUnifiedDiff());
@@ -470,7 +492,7 @@ public class LanguageProviderRegistry {
             map.put("type", "error");
         }
 
-        logger.info("convertToMap returning: {}", map);
+        logger.debug("convertToMap returning: {}", redactForLog(map, 0));
         return map;
     }
 
@@ -487,5 +509,57 @@ public class LanguageProviderRegistry {
                 capability.substring(0, 1).toUpperCase() +
                         capability.substring(1).toLowerCase(),
                 language);
+    }
+
+    // Redaction helpers for logging
+    @SuppressWarnings("unchecked")
+    private Object redactForLog(Object value, int depth) {
+        if (value == null) return null;
+        if (depth > 3) return "<redacted>";
+        if (value instanceof Map<?, ?> m) {
+            Map<String, Object> out = new LinkedHashMap<>();
+            for (Map.Entry<?, ?> e : m.entrySet()) {
+                String k = String.valueOf(e.getKey());
+                Object v = e.getValue();
+                if (k != null && isSensitiveKey(k)) {
+                    out.put(k, summarize(v));
+                } else {
+                    out.put(k, redactForLog(v, depth + 1));
+                }
+            }
+            return out;
+        }
+        if (value instanceof List<?> list) {
+            List<Object> out = new ArrayList<>(list.size());
+            for (Object item : list) {
+                out.add(redactForLog(item, depth + 1));
+            }
+            return out;
+        }
+        if (value instanceof CharSequence cs) {
+            String s = cs.toString();
+            return s.length() > MAX_STRING_LOG ? (s.substring(0, MAX_STRING_LOG) + "…") : s;
+        }
+        return value;
+    }
+
+    private boolean isSensitiveKey(String key) {
+        String k = key.toLowerCase(Locale.ROOT);
+        if (SENSITIVE_KEYS.contains(k)) return true;
+        return k.contains("content") || k.contains("code") || k.contains("source") || k.contains("diff") || k.contains("patch") || k.contains("body") || k.contains("text") || k.contains("data");
+    }
+
+    private Object summarize(Object v) {
+        if (v == null) return "<redacted>";
+        if (v instanceof CharSequence cs) {
+            return "<redacted:" + cs.length() + " chars>";
+        }
+        if (v instanceof List<?> list) {
+            return "<redacted:list size=" + list.size() + ">";
+        }
+        if (v instanceof Map<?, ?> map) {
+            return "<redacted:map size=" + map.size() + ">";
+        }
+        return "<redacted>";
     }
 }
