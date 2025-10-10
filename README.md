@@ -238,4 +238,31 @@ A sample configuration file `vscode-mcp-config.json` is provided. Point it to th
 
 ---
 
+## 📖 Documentation Index
+
+### Getting Started
+- **[README.md](./README.md)** (this file) - Project overview and quick start
+- **[MCP-QUICK-REFERENCE.md](./MCP-QUICK-REFERENCE.md)** - Quick reference for common tasks
+
+### MCP Client Integration
+- **[MCP-CLIENT-GUIDE.md](./MCP-CLIENT-GUIDE.md)** - Complete guide for MCP clients
+  - Language filtering strategies
+  - Practical usage examples
+  - Best practices and troubleshooting
+- **[examples/](./examples/)** - Pre-configured client setups
+  - Java-only configuration
+  - COBOL-only configuration
+  - Multi-language configuration
+  - Multiple server instances
+
+### Architecture & Design
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design principles
+- **[schemas/](./schemas/)** - JSON schemas for configuration validation
+
+### Tool Documentation
+- **Java Tools** - See section "Available MCP Tools" → "Java provider"
+- **COBOL Tools** - See section "Available MCP Tools" → "COBOL provider"
+
+---
+
 **Renovatio** – Focused MCP server for code migration and modernization.
