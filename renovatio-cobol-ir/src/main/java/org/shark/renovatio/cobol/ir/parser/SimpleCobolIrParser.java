@@ -30,8 +30,10 @@ import java.util.regex.Pattern;
 public class SimpleCobolIrParser {
 
     private static final Pattern PROGRAM_ID_PATTERN = Pattern.compile("PROGRAM-ID\\.\\s*([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern DATA_ITEM_PATTERN = Pattern.compile("(?m)^(\\s*)(\\d{2})\\s+([A-Z0-9-]+)(?:\\s+REDEFINES\\s+([A-Z0-9-]+))?\\s+PIC\\s+([^\.]+)\\.");
-    private static final Pattern PARAGRAPH_PATTERN = Pattern.compile("(?ms)^(?<!-) {0,6}([A-Z][A-Z0-9-]*)\\.(.*?)(?=^(?<!-) {0,6}[A-Z][A-Z0-9-]*\\.|\\Z)");
+    private static final Pattern DATA_ITEM_PATTERN = Pattern.compile("(?m)^\\s*(0[1-9]|[1-4][0-9])\\s+([A-Z0-9-]+)(?:\\s+REDEFINES\\s+([A-Z0-9-]+))?\\s+PIC\\s+([^\\.]+)\\.");
+    private static final Pattern PARAGRAPH_PATTERN = Pattern.compile(
+            "(?ms)^(?<!-) {0,6}(?!IF\\b|ELSE\\b|END-IF\\b|MOVE\\b|COMPUTE\\b|EVALUATE\\b|PERFORM\\b|CALL\\b|GOBACK\\b|STOP\\b|EXIT\\b)([A-Z][A-Z0-9-]*)\\.(.*?)(?=^(?<!-) {0,6}(?!IF\\b|ELSE\\b|END-IF\\b|MOVE\\b|COMPUTE\\b|EVALUATE\\b|PERFORM\\b|CALL\\b|GOBACK\\b|STOP\\b|EXIT\\b)[A-Z][A-Z0-9-]*\\.|\\Z)"
+    );
     private static final Pattern EXEC_SQL_PATTERN = Pattern.compile("EXEC\\s+SQL(.*?)END-EXEC", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     public CobolIntermediateModel parse(Path cobolFile) throws IOException {
@@ -45,6 +47,7 @@ public class SimpleCobolIrParser {
         }
         String programId = extractProgramId(source);
         List<CobolDataItem> dataItems = extractDataItems(source);
+        System.out.println("IR DEBUG: model data items size=" + (dataItems == null ? 0 : dataItems.size()));
         Map<String, CobolParagraph> paragraphs = extractParagraphs(source);
         ControlFlowGraph flowGraph = buildControlFlowGraph(paragraphs);
 
@@ -74,17 +77,35 @@ public class SimpleCobolIrParser {
     }
 
     private List<CobolDataItem> extractDataItems(String source) {
-        Matcher matcher = DATA_ITEM_PATTERN.matcher(source);
-        List<CobolDataItem> items = new ArrayList<>();
-        while (matcher.find()) {
-            int level = Integer.parseInt(matcher.group(2));
-            String name = matcher.group(3).toUpperCase(Locale.ROOT);
-            String redefines = matcher.group(4) != null ? matcher.group(4).toUpperCase(Locale.ROOT) : null;
-            String pic = matcher.group(5).trim();
-            String javaType = CobolTypeMapper.picToJavaType(pic);
-            items.add(new CobolDataItem(name, pic, level, null, redefines, javaType));
+        // Limit search to WORKING-STORAGE SECTION block
+        int wsStart = StringUtils.indexOfIgnoreCase(source, "WORKING-STORAGE SECTION");
+        if (wsStart < 0) {
+            return new ArrayList<>();
         }
-        return items;
+        int lkStart = StringUtils.indexOfIgnoreCase(source, "LINKAGE SECTION", wsStart);
+        int pdStart = StringUtils.indexOfIgnoreCase(source, "PROCEDURE DIVISION", wsStart);
+        int end = source.length();
+        if (lkStart >= 0) end = Math.min(end, lkStart);
+        if (pdStart >= 0) end = Math.min(end, pdStart);
+        String wsSection = source.substring(wsStart, end);
+
+        Matcher matcher = DATA_ITEM_PATTERN.matcher(wsSection);
+        Map<String, CobolDataItem> unique = new LinkedHashMap<>();
+        while (matcher.find()) {
+            int level = Integer.parseInt(matcher.group(1));
+            String name = matcher.group(2).toUpperCase(Locale.ROOT);
+            String redefines = matcher.group(3) != null ? matcher.group(3).toUpperCase(Locale.ROOT) : null;
+            String pic = matcher.group(4).trim();
+            String javaType = CobolTypeMapper.picToJavaType(pic);
+            if (!unique.containsKey(name)) {
+                System.out.println("IR DEBUG: WS item found -> level=" + level + ", name=" + name + ", pic=" + pic);
+            } else {
+                System.out.println("IR DEBUG: duplicate WS item ignored -> name=" + name);
+            }
+            unique.putIfAbsent(name, new CobolDataItem(name, pic, level, null, redefines, javaType));
+        }
+        System.out.println("IR DEBUG: total WS items=" + unique.size());
+        return new ArrayList<>(unique.values());
     }
 
     private Map<String, CobolParagraph> extractParagraphs(String source) {
@@ -260,11 +281,11 @@ public class SimpleCobolIrParser {
 
     private CobolStatement parseCall(String line) {
         String remainder = line.substring("CALL".length()).trim();
-        String[] parts = remainder.split("\s+USING\s+", 2);
+        String[] parts = remainder.split("\\s+USING\\s+", 2);
         String target = parts[0].replace("\"", "").replace("'", "");
         List<String> args = new ArrayList<>();
         if (parts.length > 1) {
-            args.addAll(Arrays.stream(parts[1].split(",|\s+")).map(String::trim).filter(s -> !s.isEmpty()).toList());
+            args.addAll(Arrays.stream(parts[1].split(",|\\s+")).map(String::trim).filter(s -> !s.isEmpty()).toList());
         }
         return new CallStatement(target, args);
     }
