@@ -1,15 +1,14 @@
 {
-  "$schema": "./schemas/mcp-config-schema.json",
+  "$schema": "../schemas/mcp-config-schema.json",
   "mcpServers": {
-    "renovatio": {
+    "renovatio-full": {
       "command": "/path/to/renovatio/run_mcp_stdio_server.sh",
       "args": [],
       "env": {
         "PATH": "/usr/bin:/bin:/usr/local/bin",
         "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk"
       },
-      "description": "Renovatio MCP Server - Multi-language refactoring and migration (Java + COBOL)"
+      "description": "Renovatio MCP Server - Full (Java + COBOL tools for migration projects)"
     }
   }
 }
-

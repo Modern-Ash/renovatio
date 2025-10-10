@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Renovatio MCP Tool Call",
+  "description": "Schema for calling Renovatio MCP tools following JSON-RPC 2.0",
+  "type": "object",
+  "required": ["jsonrpc", "id", "method", "params"],
+  "properties": {
+    "jsonrpc": {
+      "type": "string",
+      "const": "2.0",
+      "description": "JSON-RPC protocol version"
+    },
+    "id": {
+      "type": ["string", "number"],
+      "description": "Request identifier"
+    },
+    "method": {
+      "type": "string",
+      "enum": ["tools/call", "tools.call"],
+      "description": "MCP method to invoke"
+    },
+    "params": {
+      "type": "object",
+      "required": ["name", "arguments"],
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name of the tool to execute",
+          "examples": [
+            "java.analyze",
+            "java.format",
+            "cobol.analyze",
+            "cobol.plan",
+            "cobol.migrate_copybook"
+          ]
+        },
+        "arguments": {
+          "type": "object",
+          "description": "Tool-specific arguments",
+          "required": ["workspacePath"],
+          "properties": {
+            "workspacePath": {
+              "type": "string",
+              "description": "Absolute path to the workspace directory"
+            }
+          },
+          "additionalProperties": true
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "jsonrpc": "2.0",
+      "id": "1",
+      "method": "tools/call",
+      "params": {
+        "name": "java.analyze",
+        "arguments": {
+          "workspacePath": "/home/user/my-java-project",
+          "nql": "FIND classes WHERE package startsWith 'com.example'"
+        }
+      }
+    },
+    {
+      "jsonrpc": "2.0",
+      "id": "2",
+      "method": "tools/call",
+      "params": {
+        "name": "cobol.migrate_copybook",
+        "arguments": {
+          "workspacePath": "/home/user/cobol-legacy",
+          "copybook": "CUSTOMER.cpy"
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "javaAnalyzeArguments": {
+      "type": "object",
+      "required": ["workspacePath"],
+      "properties": {
+        "workspacePath": {
+          "type": "string"
+        },
+        "nql": {
+          "type": "string",
+          "description": "NQL query to select Java elements"
+        },
+        "scope": {
+          "type": "string",
+          "description": "Glob pattern for files to include"
+        }
+      }
+    },
+    "cobolAnalyzeArguments": {
+      "type": "object",
+      "required": ["workspacePath"],
+      "properties": {
+        "workspacePath": {
+          "type": "string"
+        },
+        "nql": {
+          "type": "string",
+          "description": "NQL query to select COBOL elements"
+        },
+        "scope": {
+          "type": "string",
+          "description": "Glob pattern for COBOL files"
+        }
+      }
+    },
+    "cobolPlanArguments": {
+      "type": "object",
+      "required": ["workspacePath"],
+      "properties": {
+        "workspacePath": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string",
+          "description": "Glob pattern for COBOL files"
+        },
+        "goals": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["db2", "jpa", "rest", "cics"]
+          },
+          "description": "Migration goals"
+        }
+      }
+    },
+    "cobolMigrateCopybookArguments": {
+      "type": "object",
+      "required": ["workspacePath", "copybook"],
+      "properties": {
+        "workspacePath": {
+          "type": "string"
+        },
+        "copybook": {
+          "type": "string",
+          "description": "Copybook file name (e.g., CUSTOMER.cpy)"
+        }
+      }
+    }
+  }
+}
