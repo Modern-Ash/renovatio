@@ -133,17 +133,28 @@ public class SimpleCobolIrParser {
     
     private Map<String, CobolParagraph> extractEntryParagraphs(String source) {
         Map<String, CobolParagraph> entries = new LinkedHashMap<>();
-        // Pattern to match ENTRY "name" USING ...
+        // Pattern to match ENTRY "name" USING ... and capture everything until next ENTRY or end
         Pattern entryPattern = Pattern.compile(
-            "(?m)^\\s*ENTRY\\s+[\"']([^\"']+)[\"'](?:\\s+USING\\s+([A-Z0-9-]+))?\\.?(.*?)(?=^\\s*ENTRY\\s+[\"']|^\\s*END\\s+PROGRAM|\\Z)",
+            "ENTRY\\s+[\"']([^\"']+)[\"'](?:\\s+USING\\s+([A-Z0-9-]+))?\\s*\\.(.*?)(?=ENTRY\\s+[\"']|\\Z)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
         );
+        
         Matcher matcher = entryPattern.matcher(source);
         while (matcher.find()) {
             String entryName = matcher.group(1).toUpperCase(Locale.ROOT);
             String usingParam = matcher.group(2);
             String body = matcher.group(3);
-            if (body != null && !body.trim().isEmpty()) {
+            
+            // Remove "exit program" and everything after it
+            int exitIdx = body.toLowerCase(Locale.ROOT).indexOf("exit program");
+            if (exitIdx > 0) {
+                body = body.substring(0, exitIdx);
+            }
+            
+            // Remove leading/trailing whitespace and periods
+            body = body.trim();
+            
+            if (!body.isEmpty()) {
                 List<CobolStatement> statements = parseStatements(body);
                 entries.put(entryName, new CobolParagraph(entryName, statements));
             }
@@ -167,52 +178,53 @@ public class SimpleCobolIrParser {
             if (line.isEmpty()) {
                 continue;
             }
-            if (line.startsWith("IF ")) {
+            String upperLine = line.toUpperCase(Locale.ROOT);
+            if (upperLine.startsWith("IF ")) {
                 i = parseIf(lines, i, statements);
                 continue;
             }
-            if (line.startsWith("EVALUATE")) {
+            if (upperLine.startsWith("EVALUATE")) {
                 i = parseEvaluate(lines, i, statements);
                 continue;
             }
-            if (line.startsWith("PERFORM")) {
+            if (upperLine.startsWith("PERFORM")) {
                 statements.add(parsePerform(line));
                 continue;
             }
-            if (line.startsWith("CALL")) {
+            if (upperLine.startsWith("CALL")) {
                 statements.add(parseCall(line));
                 continue;
             }
-            if (line.startsWith("EXEC SQL")) {
+            if (upperLine.startsWith("EXEC SQL")) {
                 i = parseExecSql(lines, i, statements);
                 continue;
             }
-            FileOperationStatement.OperationType op = detectFileOperation(line);
+            FileOperationStatement.OperationType op = detectFileOperation(upperLine);
             if (op != null) {
                 statements.add(new FileOperationStatement(op, parseFileName(line)));
                 continue;
             }
-            if (line.startsWith("COMPUTE")) {
+            if (upperLine.startsWith("COMPUTE")) {
                 statements.add(parseCompute(line));
                 continue;
             }
-            if (line.startsWith("ADD")) {
+            if (upperLine.startsWith("ADD")) {
                 statements.add(parseAdd(line));
                 continue;
             }
-            if (line.startsWith("SUBTRACT")) {
+            if (upperLine.startsWith("SUBTRACT")) {
                 statements.add(parseSubtract(line));
                 continue;
             }
-            if (line.startsWith("MULTIPLY")) {
+            if (upperLine.startsWith("MULTIPLY")) {
                 statements.add(parseMultiply(line));
                 continue;
             }
-            if (line.startsWith("DIVIDE")) {
+            if (upperLine.startsWith("DIVIDE")) {
                 statements.add(parseDivide(line));
                 continue;
             }
-            if (line.startsWith("MOVE")) {
+            if (upperLine.startsWith("MOVE")) {
                 statements.add(parseMove(line));
             }
         }

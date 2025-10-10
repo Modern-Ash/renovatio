@@ -28,7 +28,7 @@ class JavaGenerationServiceTest {
         tempDir = Files.createTempDirectory("cobol-ws-");
         CobolParsingService parsing = new CobolParsingService(CobolParsingService.Dialect.IBM);
         TemplateCodeGenerationService tmpl = new TemplateCodeGenerationService();
-        javaGenerationService = new JavaGenerationService(parsing, tmpl);
+        javaGenerationService = new JavaGenerationService(parsing, tmpl, new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService(), new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
         workspace = new Workspace("test", tempDir.toString(), "main");
     }
 
