@@ -57,24 +57,29 @@ public class CobolProviderConfiguration {
         return new Db2MigrationService(parsingService);
     }
 
-//    @Bean
-//    @ConditionalOnProperty(name = "renovatio.cobol.enabled", havingValue = "true", matchIfMissing = false)
-//    public CobolLanguageProvider cobolLanguageProvider(
-//            CobolParsingService parsingService,
-//            JavaGenerationService javaGenerationService,
-//            MigrationPlanService migrationPlanService,
-//            IndexingService indexingService,
-//            MetricsService metricsService,
-//            TemplateCodeGenerationService templateCodeGenerationService,
-//            Db2MigrationService db2MigrationService) {
-//        return new CobolLanguageProvider(
-//                parsingService,
-//                javaGenerationService,
-//                migrationPlanService,
-//                indexingService,
-//                metricsService,
-//                templateCodeGenerationService,
-//                db2MigrationService
-//        );
-//    }
+    // Enable CobolLanguageProvider when COBOL provider is enabled via either legacy or new property name
+    @Bean
+    @ConditionalOnProperty(
+            name = {"renovatio.providers.cobol.enabled", "renovatio.cobol.enabled"},
+            havingValue = "true",
+            matchIfMissing = true
+    )
+    public CobolLanguageProvider cobolLanguageProvider(
+            CobolParsingService parsingService,
+            JavaGenerationService javaGenerationService,
+            MigrationPlanService migrationPlanService,
+            IndexingService indexingService,
+            MetricsService metricsService,
+            TemplateCodeGenerationService templateCodeGenerationService,
+            Db2MigrationService db2MigrationService) {
+        return new CobolLanguageProvider(
+                parsingService,
+                javaGenerationService,
+                migrationPlanService,
+                indexingService,
+                metricsService,
+                templateCodeGenerationService,
+                db2MigrationService
+        );
+    }
 }
