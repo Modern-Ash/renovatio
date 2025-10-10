@@ -2,7 +2,6 @@ package org.shark.renovatio.cobol.recipes;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
-import org.openrewrite.Preconditions;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -53,7 +52,8 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new TargetMethodPresent(), new PopulateVisitor());
+        // Apply to all methods; internal logic will decide which methods to transform
+        return new PopulateVisitor();
     }
 
     private class TargetMethodPresent extends JavaIsoVisitor<ExecutionContext> {
@@ -88,7 +88,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                 paragraph = model.getEntryParagraph();
             }
             
-            List<String> rendered = renderParagraph(paragraph, model);
+            List<String> rendered = renderParagraph(paragraph, model, new LinkedHashSet<>(), null);
             if (rendered.isEmpty()) {
                 return method;
             }
@@ -99,7 +99,24 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
             if (dtoType == null) {
                 return method;
             }
-            String bodyTemplate = buildBody(rendered, dtoType);
+
+            // Determine DTO variable name to use:
+            // - For the target method (usually 'process'), reuse existing var if present (e.g., 'output').
+            // - For ENTRY-mapped methods (e.g., add/subtract/...), always use 'out'.
+            String dtoVarName;
+            if (isTargetMethod(method)) {
+                dtoVarName = findDtoVarName(method, dtoType);
+                if (dtoVarName == null || dtoVarName.isBlank()) {
+                    dtoVarName = "out";
+                }
+            } else {
+                dtoVarName = "out";
+            }
+
+            // Re-render with the chosen variable name
+            rendered = renderParagraph(paragraph, model, new LinkedHashSet<>(), dtoVarName);
+
+            String bodyTemplate = buildBody(rendered, dtoType, dtoVarName);
             return JavaTemplateSupport.replaceMethodBody(getCursor(), method, bodyTemplate);
         }
         
@@ -135,13 +152,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                 .anyMatch(text -> text != null && text.contains("TODO"));
     }
 
-    private List<String> renderParagraph(CobolParagraph paragraph, CobolIntermediateModel model) {
-        return renderParagraph(paragraph, model, new LinkedHashSet<>());
-    }
-
-    private List<String> renderParagraph(CobolParagraph paragraph,
-                                         CobolIntermediateModel model,
-                                         Set<String> visitedParagraphs) {
+    private List<String> renderParagraph(CobolParagraph paragraph, CobolIntermediateModel model, Set<String> visitedParagraphs, @Nullable String varName) {
         if (paragraph == null) {
             return List.of();
         }
@@ -155,7 +166,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
         try {
             List<String> lines = new ArrayList<>();
             for (CobolStatement statement : paragraph.getStatements()) {
-                lines.addAll(renderStatement(statement, model, visitedParagraphs));
+                lines.addAll(renderStatement(statement, model, visitedParagraphs, varName));
             }
             return lines;
         } finally {
@@ -165,21 +176,22 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
 
     private List<String> renderStatement(CobolStatement statement,
                                          CobolIntermediateModel model,
-                                         Set<String> visitedParagraphs) {
+                                         Set<String> visitedParagraphs,
+                                         @Nullable String varName) {
         if (statement instanceof MoveStatement move) {
-            return List.of(renderMove(move));
+            return List.of(renderMove(move, varName));
         }
         if (statement instanceof ComputeStatement compute) {
-            return List.of(renderCompute(compute));
+            return List.of(renderCompute(compute, varName));
         }
         if (statement instanceof IfStatement ifStatement) {
-            return renderIf(ifStatement, model, visitedParagraphs);
+            return renderIf(ifStatement, model, visitedParagraphs, varName);
         }
         if (statement instanceof PerformStatement perform) {
-            return renderPerform(perform, model, visitedParagraphs);
+            return renderPerform(perform, model, visitedParagraphs, varName);
         }
         if (statement instanceof EvaluateStatement evaluate) {
-            return renderEvaluate(evaluate, model, visitedParagraphs);
+            return renderEvaluate(evaluate, model, visitedParagraphs, varName);
         }
         if (statement instanceof Db2Statement db2) {
             return List.of(renderDb2(db2));
@@ -195,18 +207,19 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
 
     private List<String> renderIf(IfStatement ifStatement,
                                   CobolIntermediateModel model,
-                                  Set<String> visitedParagraphs) {
+                                  Set<String> visitedParagraphs,
+                                  @Nullable String varName) {
         List<String> lines = new ArrayList<>();
         lines.add(String.format(Locale.ROOT, "if (%s) {", translateCondition(ifStatement.getCondition())));
         for (CobolStatement stmt : ifStatement.getThenStatements()) {
-            for (String rendered : renderStatement(stmt, model, visitedParagraphs)) {
+            for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
                 lines.add(indent(rendered));
             }
         }
         if (!ifStatement.getElseStatements().isEmpty()) {
             lines.add("} else {");
             for (CobolStatement stmt : ifStatement.getElseStatements()) {
-                for (String rendered : renderStatement(stmt, model, visitedParagraphs)) {
+                for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
                     lines.add(indent(rendered));
                 }
             }
@@ -215,19 +228,22 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
         return lines;
     }
 
-    private String renderMove(MoveStatement move) {
-        return String.format(Locale.ROOT, "output.%s(%s);",
-                toSetter(move.getTarget()), toJavaExpression(move.getSource()));
+    private String renderMove(MoveStatement move, @Nullable String varName) {
+        String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+        return String.format(Locale.ROOT, "%s.%s(%s);",
+                targetVar, toSetter(move.getTarget()), toJavaExpression(move.getSource()));
     }
 
-    private String renderCompute(ComputeStatement compute) {
-        return String.format(Locale.ROOT, "output.%s(%s);",
-                toSetter(compute.getTarget()), translateExpression(compute.getExpression()));
+    private String renderCompute(ComputeStatement compute, @Nullable String varName) {
+        String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+        return String.format(Locale.ROOT, "%s.%s(%s);",
+                targetVar, toSetter(compute.getTarget()), translateExpression(compute.getExpression()));
     }
 
     private List<String> renderPerform(PerformStatement perform,
                                        CobolIntermediateModel model,
-                                       Set<String> visitedParagraphs) {
+                                       Set<String> visitedParagraphs,
+                                       @Nullable String varName) {
         List<String> lines = new ArrayList<>();
         if (perform.getParagraph() == null || perform.getParagraph().isBlank()) {
             lines.add("// PERFORM with unnamed paragraph");
@@ -235,7 +251,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
         }
 
         model.findParagraph(perform.getParagraph()).ifPresentOrElse(target -> {
-            List<String> nested = renderParagraph(target, model, new LinkedHashSet<>(visitedParagraphs));
+            List<String> nested = renderParagraph(target, model, new LinkedHashSet<>(visitedParagraphs), varName);
             if (nested.isEmpty()) {
                 lines.add(String.format(Locale.ROOT,
                         "// PERFORM %s (paragraph is empty)", perform.getParagraph()));
@@ -254,7 +270,8 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
 
     private List<String> renderEvaluate(EvaluateStatement evaluate,
                                         CobolIntermediateModel model,
-                                        Set<String> visitedParagraphs) {
+                                        Set<String> visitedParagraphs,
+                                        @Nullable String varName) {
         List<String> lines = new ArrayList<>();
         String selector = toJavaExpression(evaluate.getExpression());
         lines.add(String.format(Locale.ROOT, "switch (%s) {", selector));
@@ -264,7 +281,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                     : "case " + toJavaExpression(branch.getCondition());
             lines.add(indent(label + " -> {"));
             for (CobolStatement stmt : branch.getStatements()) {
-                for (String rendered : renderStatement(stmt, model, visitedParagraphs)) {
+                for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
                     lines.add(indent(indent(rendered)));
                 }
             }
@@ -382,14 +399,15 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
         return "    " + value;
     }
 
-    private String buildBody(List<String> statements, String dtoType) {
+    private String buildBody(List<String> statements, String dtoType, String varName) {
+        String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
         StringBuilder builder = new StringBuilder();
         builder.append("{\n");
-        builder.append(String.format(Locale.ROOT, "    %s output = new %s();\n", dtoType, dtoType));
+        builder.append(String.format(Locale.ROOT, "    %s %s = new %s();\n", dtoType, targetVar, dtoType));
         for (String statement : statements) {
             builder.append("    ").append(statement).append('\n');
         }
-        builder.append("    return output;\n");
+        builder.append(String.format(Locale.ROOT, "    return %s;\n", targetVar));
         builder.append("}");
         return builder.toString();
     }
@@ -403,5 +421,37 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
             return declarations.getTypeExpression().printTrimmed();
         }
         return null;
+    }
+
+    private @Nullable String findDtoVarName(J.MethodDeclaration method, String dtoType) {
+        if (method.getBody() == null) return null;
+        // 1) Look for a return identifier
+        for (J statement : method.getBody().getStatements()) {
+            if (statement instanceof J.Return r && r.getExpression() instanceof J.Identifier id) {
+                return id.getSimpleName();
+            }
+        }
+        // 2) Look for a variable declaration of the dtoType
+        for (J statement : method.getBody().getStatements()) {
+            if (statement instanceof J.VariableDeclarations v) {
+                String type = v.getTypeExpression() != null ? v.getTypeExpression().printTrimmed() : null;
+                if (type != null && simpleName(type).equals(simpleName(dtoType)) && !v.getVariables().isEmpty()) {
+                    return v.getVariables().get(0).getName().getSimpleName();
+                }
+                // Alternatively, check initializer is new dtoType()
+                if (!v.getVariables().isEmpty() && v.getVariables().get(0).getInitializer() instanceof J.NewClass nc) {
+                    String initType = nc.getClazz() != null ? nc.getClazz().printTrimmed() : null;
+                    if (initType != null && simpleName(initType).equals(simpleName(dtoType))) {
+                        return v.getVariables().get(0).getName().getSimpleName();
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private String simpleName(String fqOrSimple) {
+        int idx = fqOrSimple.lastIndexOf('.');
+        return idx >= 0 ? fqOrSimple.substring(idx + 1) : fqOrSimple;
     }
 }

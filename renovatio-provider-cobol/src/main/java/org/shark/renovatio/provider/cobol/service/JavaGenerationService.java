@@ -79,6 +79,8 @@ public class JavaGenerationService {
                     CobolIntermediateModel model = resolveIntermediateModel(metadata);
                     String serviceImpl = generateServiceImplementation(classBase, metadata);
                     serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl, model);
+                    // DEBUG: print generated service implementation for verification
+                    System.out.println("Generated Service Implementation (" + classBase + "):\n" + serviceImpl);
                     generatedFiles.put(classBase + "ServiceImpl.java", serviceImpl);
 
                     @SuppressWarnings("unchecked")
@@ -211,6 +213,16 @@ public class JavaGenerationService {
                     interfaceBuilder.addMethod(entryMethod);
                 }
             }
+            // Always include a default process method as a generic entry point
+            MethodSpec processMethod = MethodSpec.methodBuilder("process")
+                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                    .addParameter(dtoClass, "input")
+                    .returns(dtoClass)
+                    .addJavadoc("Process the COBOL program logic with given input\n")
+                    .addJavadoc("@param input Input data structure\n")
+                    .addJavadoc("@return Processed output data structure\n")
+                    .build();
+            interfaceBuilder.addMethod(processMethod);
         } else {
             // Add default process method if no ENTRY points
             MethodSpec processMethod = MethodSpec.methodBuilder("process")
@@ -282,8 +294,10 @@ public class JavaGenerationService {
                             .addParameter(dtoClass, "input")
                             .returns(dtoClass)
                             .addStatement("// TODO: Implement COBOL business logic for ENTRY $L", entryName)
-                            .addStatement("$T output = new $T()", dtoClass, dtoClass)
-                            .addStatement("return output")
+                            .addStatement("$T out = new $T()", dtoClass, dtoClass)
+                            .addStatement("// Placeholder setter to be replaced by semantic transpiler if available")
+                            .addStatement("out.setResult(null)")
+                            .addStatement("return out")
                             .build();
                     classBuilder.addMethod(entryMethod);
                 }

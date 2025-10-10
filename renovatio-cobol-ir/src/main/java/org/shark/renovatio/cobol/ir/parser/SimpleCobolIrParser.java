@@ -135,7 +135,7 @@ public class SimpleCobolIrParser {
         Map<String, CobolParagraph> entries = new LinkedHashMap<>();
         // Pattern to match ENTRY "name" USING ... and capture everything until next ENTRY or end
         Pattern entryPattern = Pattern.compile(
-            "ENTRY\\s+[\"']([^\"']+)[\"'](?:\\s+USING\\s+([A-Z0-9-]+))?\\s*\\.(.*?)(?=ENTRY\\s+[\"']|\\Z)",
+            "ENTRY\\s+[\"']([^\"']+)[\"'](?:\\s+USING\\s+([A-Za-z0-9-]+))?\\s*\\.(.*?)(?=ENTRY\\s+[\"']|\\Z)",
             Pattern.CASE_INSENSITIVE | Pattern.DOTALL
         );
         
@@ -243,15 +243,16 @@ public class SimpleCobolIrParser {
             if (current.isEmpty()) {
                 continue;
             }
-            if (current.startsWith("ELSE")) {
+            String up = current.toUpperCase(Locale.ROOT);
+            if (up.startsWith("ELSE")) {
                 inElse = true;
-                String afterElse = current.substring(4).trim();
+                String afterElse = current.substring(current.length() >= 4 ? 4 : 0).trim();
                 if (!afterElse.isEmpty() && !afterElse.equals(".")) {
                     (inElse ? elseLines : thenLines).add(afterElse);
                 }
                 continue;
             }
-            if (current.startsWith("END-IF")) {
+            if (up.startsWith("END-IF")) {
                 break;
             }
             if (inElse) {
@@ -274,16 +275,8 @@ public class SimpleCobolIrParser {
         int i = index + 1;
         for (; i < lines.size(); i++) {
             String current = lines.get(i).trim();
-            if (current.startsWith("WHEN")) {
-                if (!accumulator.isEmpty()) {
-                    branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
-                            parseStatements(String.join("\n", accumulator))));
-                    accumulator.clear();
-                }
-                currentCondition = current.substring(4).trim();
-                continue;
-            }
-            if (current.startsWith("WHEN OTHER")) {
+            String up = current.toUpperCase(Locale.ROOT);
+            if (up.startsWith("WHEN OTHER")) {
                 if (!accumulator.isEmpty()) {
                     branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
                             parseStatements(String.join("\n", accumulator))));
@@ -292,10 +285,21 @@ public class SimpleCobolIrParser {
                 currentCondition = "OTHER";
                 continue;
             }
-            if (current.startsWith("END-EVALUATE")) {
+            if (up.startsWith("WHEN")) {
+                if (!accumulator.isEmpty()) {
+                    branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
+                            parseStatements(String.join("\n", accumulator))));
+                    accumulator.clear();
+                }
+                currentCondition = current.substring(4).trim();
+                continue;
+            }
+            if (up.startsWith("END-EVALUATE")) {
                 break;
             }
-            accumulator.add(current);
+            if (!current.isEmpty()) {
+                accumulator.add(current);
+            }
         }
         if (!accumulator.isEmpty()) {
             branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
@@ -371,28 +375,18 @@ public class SimpleCobolIrParser {
         return new ComputeStatement(target, expression);
     }
 
-    private MoveStatement parseMove(String line) {
-        String trimmed = line.replace(".", "").trim();
-        String remainder = trimmed.substring("MOVE".length()).trim();
-        String[] parts = remainder.split("\\s+TO\\s+", 2);
-        if (parts.length != 2) {
-            return new MoveStatement(remainder, remainder);
-        }
-        return new MoveStatement(parts[0].trim(), parts[1].trim());
-    }
-
     private ComputeStatement parseAdd(String line) {
         String trimmed = line.replace(".", "").trim();
         String remainder = trimmed.substring("ADD".length()).trim();
         // ADD source TO target
-        String[] parts = remainder.split("\\s+TO\\s+", 2);
+        String[] parts = remainder.split("(?i)\\s+TO\\s+", 2);
         if (parts.length == 2) {
             String source = parts[0].trim();
             String target = parts[1].trim();
             return new ComputeStatement(target, target + " + " + source);
         }
         // ADD source1 source2 ... GIVING target
-        parts = remainder.split("\\s+GIVING\\s+", 2);
+        parts = remainder.split("(?i)\\s+GIVING\\s+", 2);
         if (parts.length == 2) {
             String target = parts[1].trim();
             String sources = parts[0].replace("+", " ").trim();
@@ -405,18 +399,18 @@ public class SimpleCobolIrParser {
         String trimmed = line.replace(".", "").trim();
         String remainder = trimmed.substring("SUBTRACT".length()).trim();
         // SUBTRACT source FROM target
-        String[] parts = remainder.split("\\s+FROM\\s+", 2);
+        String[] parts = remainder.split("(?i)\\s+FROM\\s+", 2);
         if (parts.length == 2) {
             String source = parts[0].trim();
             String target = parts[1].trim();
             return new ComputeStatement(target, target + " - " + source);
         }
         // SUBTRACT source1 FROM source2 GIVING target
-        if (remainder.contains("GIVING")) {
-            String[] givingParts = remainder.split("\\s+GIVING\\s+", 2);
+        if (remainder.toUpperCase(Locale.ROOT).contains("GIVING")) {
+            String[] givingParts = remainder.split("(?i)\\s+GIVING\\s+", 2);
             if (givingParts.length == 2) {
                 String target = givingParts[1].trim();
-                String[] fromParts = givingParts[0].split("\\s+FROM\\s+", 2);
+                String[] fromParts = givingParts[0].split("(?i)\\s+FROM\\s+", 2);
                 if (fromParts.length == 2) {
                     return new ComputeStatement(target, fromParts[1].trim() + " - " + fromParts[0].trim());
                 }
@@ -429,17 +423,17 @@ public class SimpleCobolIrParser {
         String trimmed = line.replace(".", "").trim();
         String remainder = trimmed.substring("MULTIPLY".length()).trim();
         // MULTIPLY source BY target
-        String[] parts = remainder.split("\\s+BY\\s+", 2);
+        String[] parts = remainder.split("(?i)\\s+BY\\s+", 2);
         if (parts.length == 2) {
             String source = parts[0].trim();
             String target = parts[1].trim();
             return new ComputeStatement(target, target + " * " + source);
         }
         // MULTIPLY source1 BY source2 GIVING target
-        parts = remainder.split("\\s+GIVING\\s+", 2);
+        parts = remainder.split("(?i)\\s+GIVING\\s+", 2);
         if (parts.length == 2) {
             String target = parts[1].trim();
-            String[] byParts = parts[0].split("\\s+BY\\s+", 2);
+            String[] byParts = parts[0].split("(?i)\\s+BY\\s+", 2);
             if (byParts.length == 2) {
                 return new ComputeStatement(target, byParts[0].trim() + " * " + byParts[1].trim());
             }
@@ -451,22 +445,32 @@ public class SimpleCobolIrParser {
         String trimmed = line.replace(".", "").trim();
         String remainder = trimmed.substring("DIVIDE".length()).trim();
         // DIVIDE source INTO target
-        String[] parts = remainder.split("\\s+INTO\\s+", 2);
+        String[] parts = remainder.split("(?i)\\s+INTO\\s+", 2);
         if (parts.length == 2) {
             String source = parts[0].trim();
             String target = parts[1].trim();
             return new ComputeStatement(target, target + " / " + source);
         }
         // DIVIDE source1 BY source2 GIVING target
-        parts = remainder.split("\\s+GIVING\\s+", 2);
+        parts = remainder.split("(?i)\\s+GIVING\\s+", 2);
         if (parts.length == 2) {
             String target = parts[1].trim();
-            String[] byParts = parts[0].split("\\s+BY\\s+", 2);
+            String[] byParts = parts[0].split("(?i)\\s+BY\\s+", 2);
             if (byParts.length == 2) {
                 return new ComputeStatement(target, byParts[0].trim() + " / " + byParts[1].trim());
             }
         }
         return new ComputeStatement("RESULT", remainder);
+    }
+
+    private MoveStatement parseMove(String line) {
+        String trimmed = line.replace(".", "").trim();
+        String remainder = trimmed.substring("MOVE".length()).trim();
+        String[] parts = remainder.split("(?i)\\s+TO\\s+", 2);
+        if (parts.length != 2) {
+            return new MoveStatement(remainder, remainder);
+        }
+        return new MoveStatement(parts[0].trim(), parts[1].trim());
     }
 
     private String normalizeCondition(String condition) {
