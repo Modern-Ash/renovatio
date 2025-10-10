@@ -1,6 +1,7 @@
 package org.shark.renovatio.provider.cobol.service;
 
 import com.squareup.javapoet.*;
+import org.shark.renovatio.cobol.ir.model.CobolDataItem;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
@@ -14,10 +15,15 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Java code generation service using JavaPoet
@@ -270,6 +276,7 @@ public class JavaGenerationService {
 
         ClassName interfaceClass = ClassName.get("org.shark.renovatio.generated.cobol", interfaceName);
         ClassName dtoClass = ClassName.get("org.shark.renovatio.generated.cobol", dtoName);
+        CobolIntermediateModel model = resolveIntermediateModel(programData);
 
         TypeSpec.Builder classBuilder = TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC)
@@ -318,14 +325,7 @@ public class JavaGenerationService {
         }
 
         // Implement validate method
-        MethodSpec validateMethod = MethodSpec.methodBuilder("validate")
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .addParameter(dtoClass, "input")
-                .returns(boolean.class)
-                .addStatement("// TODO: Implement validation logic")
-                .addStatement("return input != null")
-                .build();
+        MethodSpec validateMethod = buildValidateMethod(dtoClass, programData, model);
 
         classBuilder.addMethod(validateMethod);
 
@@ -335,6 +335,230 @@ public class JavaGenerationService {
                 .build();
 
         return javaFile.toString();
+    }
+
+    private MethodSpec buildValidateMethod(ClassName dtoClass,
+                                           Map<String, Object> programData,
+                                           CobolIntermediateModel model) {
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("validate")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(dtoClass, "input")
+                .returns(boolean.class);
+
+        methodBuilder.addStatement("if (input == null) { return false; }");
+
+        List<FieldValidation> validations = buildFieldValidations(programData, model);
+        if (validations.isEmpty()) {
+            methodBuilder.addStatement("return true");
+            return methodBuilder.build();
+        }
+
+        for (FieldValidation field : validations) {
+            addValidationStatements(methodBuilder, field);
+        }
+
+        methodBuilder.addStatement("return true");
+        return methodBuilder.build();
+    }
+
+    private void addValidationStatements(MethodSpec.Builder methodBuilder, FieldValidation field) {
+        String accessor = "input." + getterName(field.fieldName);
+        switch (field.javaType) {
+            case "String" -> addStringValidation(methodBuilder, field, accessor);
+            case "Integer", "Long" -> addIntegerValidation(methodBuilder, field, accessor);
+            case "BigDecimal" -> addBigDecimalValidation(methodBuilder, field, accessor);
+            default -> methodBuilder.addStatement("if ($L == null) { return false; }", accessor);
+        }
+    }
+
+    private void addStringValidation(MethodSpec.Builder methodBuilder, FieldValidation field, String accessor) {
+        CodeBlock.Builder condition = CodeBlock.builder();
+        condition.add("$L == null", accessor);
+        if (field.maxLength != null && field.maxLength > 0) {
+            condition.add(" || $L.length() > $L", accessor, field.maxLength);
+        } else {
+            condition.add(" || $L.isBlank()", accessor);
+        }
+        methodBuilder.addStatement("if ($L) { return false; }", condition.build());
+    }
+
+    private void addIntegerValidation(MethodSpec.Builder methodBuilder, FieldValidation field, String accessor) {
+        methodBuilder.addStatement("if ($L == null) { return false; }", accessor);
+        if (!field.allowsNegative) {
+            methodBuilder.addStatement("if ($L < 0) { return false; }", accessor);
+        }
+        if (field.precision != null && field.precision > 0) {
+            int scale = field.scale != null ? field.scale : 0;
+            int digits = field.precision - scale;
+            if (digits > 0) {
+                methodBuilder.addStatement(
+                        "if (String.valueOf(Math.abs($L)).length() > $L) { return false; }",
+                        accessor,
+                        digits);
+            }
+        }
+    }
+
+    private void addBigDecimalValidation(MethodSpec.Builder methodBuilder, FieldValidation field, String accessor) {
+        methodBuilder.addStatement("if ($L == null) { return false; }", accessor);
+        if (!field.allowsNegative) {
+            methodBuilder.addStatement("if ($L.signum() < 0) { return false; }", accessor);
+        }
+        if (field.scale != null) {
+            methodBuilder.addStatement("if ($L.scale() > $L) { return false; }", accessor, field.scale);
+        }
+        if (field.precision != null) {
+            methodBuilder.addStatement("if ($L.precision() > $L) { return false; }", accessor, field.precision);
+            if (field.scale != null) {
+                int integerDigits = field.precision - field.scale;
+                if (integerDigits > 0) {
+                    methodBuilder.addStatement(
+                            "if ($L.precision() - $L.scale() > $L) { return false; }",
+                            accessor,
+                            accessor,
+                            integerDigits);
+                }
+            }
+        }
+    }
+
+    private List<FieldValidation> buildFieldValidations(Map<String, Object> programData, CobolIntermediateModel model) {
+        Map<String, FieldValidation> validations = new LinkedHashMap<>();
+
+        for (Map<String, Object> field : resolveDtoFields(programData)) {
+            String name = field != null ? (String) field.get("name") : null;
+            if (name == null || name.isBlank()) {
+                continue;
+            }
+            String javaType = field.get("javaType") != null ? field.get("javaType").toString() : "String";
+            validations.putIfAbsent(name, new FieldValidation(name, javaType));
+        }
+
+        if (model != null) {
+            for (CobolDataItem item : model.getDataItems()) {
+                if (item == null) {
+                    continue;
+                }
+                String camel = toCamelCase(item.getName());
+                FieldValidation validation = validations.get(camel);
+                if (validation != null) {
+                    validation.applyPicture(item.getPicture());
+                    if (item.getJavaType() != null) {
+                        validation.javaType = item.getJavaType();
+                    }
+                }
+            }
+        }
+
+        return new ArrayList<>(validations.values());
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> resolveDtoFields(Map<String, Object> programData) {
+        if (programData == null) {
+            return List.of();
+        }
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) programData.get("entries");
+        if (entries != null && !entries.isEmpty()) {
+            List<Map<String, Object>> linkage = (List<Map<String, Object>>) programData.get("linkageItems");
+            return linkage != null ? linkage : List.of();
+        }
+        List<Map<String, Object>> dataItems = (List<Map<String, Object>>) programData.get("dataItems");
+        return dataItems != null ? dataItems : List.of();
+    }
+
+    private String getterName(String fieldName) {
+        String cleaned = fieldName == null ? "" : fieldName.trim();
+        if (cleaned.isEmpty()) {
+            return "get";
+        }
+        return "get" + capitalizeForAccessor(cleaned);
+    }
+
+    private String capitalizeForAccessor(String value) {
+        if (value == null || value.isEmpty()) {
+            return "";
+        }
+        return Character.toUpperCase(value.charAt(0)) + value.substring(1);
+    }
+
+    private static final class FieldValidation {
+        private final String fieldName;
+        private String javaType;
+        private Integer maxLength;
+        private Integer precision;
+        private Integer scale;
+        private boolean allowsNegative = true;
+
+        private FieldValidation(String fieldName, String javaType) {
+            this.fieldName = fieldName;
+            this.javaType = javaType == null ? "String" : javaType;
+        }
+
+        private void applyPicture(String picture) {
+            if (picture == null || picture.isBlank()) {
+                return;
+            }
+            String normalized = picture.toUpperCase(Locale.ROOT).replace(" ", "");
+            int compIndex = normalized.indexOf("COMP");
+            if (compIndex >= 0) {
+                normalized = normalized.substring(0, compIndex);
+            }
+
+            if (normalized.startsWith("X") || normalized.startsWith("A")) {
+                Integer length = extractLength(normalized);
+                if (length != null) {
+                    this.maxLength = length;
+                }
+                return;
+            }
+
+            if (normalized.contains("9")) {
+                this.allowsNegative = normalized.contains("S");
+                int vIndex = normalized.indexOf('V');
+                String before = vIndex >= 0 ? normalized.substring(0, vIndex) : normalized;
+                String after = vIndex >= 0 ? normalized.substring(vIndex + 1) : "";
+                before = before.replace("S", "");
+                after = after.replace("S", "");
+                int beforeDigits = countSymbol(before, '9');
+                int afterDigits = countSymbol(after, '9');
+                int totalDigits = beforeDigits + afterDigits;
+                if (totalDigits > 0) {
+                    this.precision = totalDigits;
+                }
+                if (afterDigits > 0) {
+                    this.scale = afterDigits;
+                }
+            }
+        }
+
+        private Integer extractLength(String pattern) {
+            Matcher grouped = Pattern.compile("[XA]\\((\\d+)\\)").matcher(pattern);
+            if (grouped.find()) {
+                return Integer.parseInt(grouped.group(1));
+            }
+            long simple = pattern.chars().filter(ch -> ch == 'X' || ch == 'A').count();
+            return simple > 0 ? (int) simple : null;
+        }
+
+        private int countSymbol(String part, char symbol) {
+            if (part == null || part.isEmpty()) {
+                return 0;
+            }
+            Matcher grouped = Pattern.compile(symbol + "\\((\\d+)\\)").matcher(part);
+            int total = 0;
+            while (grouped.find()) {
+                total += Integer.parseInt(grouped.group(1));
+            }
+            String stripped = part.replaceAll(symbol + "\\(\\d+\\)", "");
+            for (int i = 0; i < stripped.length(); i++) {
+                if (stripped.charAt(i) == symbol) {
+                    total++;
+                }
+            }
+            return total;
+        }
     }
 
     private CobolIntermediateModel resolveIntermediateModel(Map<String, Object> metadata) {
