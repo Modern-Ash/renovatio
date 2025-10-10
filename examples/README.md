@@ -64,6 +64,9 @@ Todas las configuraciones de ejemplo incluyen:
 - **`PATH`**: Rutas de sistema necesarias
 - **`JAVA_HOME`**: Ruta a la instalación de Java 17+
 - **`RENOVATIO_DEFAULT_LANGUAGE`** (opcional): Filtro de lenguaje predeterminado (`java` o `cobol`)
+  - Cuando se configura, el servidor filtrará automáticamente las herramientas al lenguaje especificado
+  - Las peticiones MCP pueden sobrescribir este valor usando el parámetro `language`
+  - Si no se configura, el servidor expone todas las herramientas de todos los lenguajes
 
 ## Personalización
 

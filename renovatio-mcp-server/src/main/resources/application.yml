@@ -31,6 +31,10 @@ mcp:
 
 # Language Provider Configuration
 renovatio:
+  # Default language filter (optional: java, cobol, or empty for all)
+  # Can be overridden by RENOVATIO_DEFAULT_LANGUAGE environment variable
+  default-language: ${RENOVATIO_DEFAULT_LANGUAGE:}
+  
   providers:
     java:
       enabled: true
