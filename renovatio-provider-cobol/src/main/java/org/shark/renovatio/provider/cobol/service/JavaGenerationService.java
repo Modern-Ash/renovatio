@@ -1,6 +1,9 @@
 package org.shark.renovatio.provider.cobol.service;
 
 import com.squareup.javapoet.*;
+import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
+import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
@@ -8,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.lang.model.element.Modifier;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -24,10 +28,17 @@ public class JavaGenerationService {
 
     private final CobolParsingService parsingService;
     private final TemplateCodeGenerationService templateService;
+    private final CobolIntermediateModelService intermediateModelService;
+    private final CobolSemanticTranspiler semanticTranspiler;
 
-    public JavaGenerationService(CobolParsingService parsingService, TemplateCodeGenerationService templateService) {
+    public JavaGenerationService(CobolParsingService parsingService,
+                                 TemplateCodeGenerationService templateService,
+                                 CobolIntermediateModelService intermediateModelService,
+                                 CobolSemanticTranspiler semanticTranspiler) {
         this.parsingService = parsingService;
         this.templateService = templateService;
+        this.intermediateModelService = intermediateModelService;
+        this.semanticTranspiler = semanticTranspiler;
     }
 
     /**
@@ -65,7 +76,9 @@ public class JavaGenerationService {
                     String serviceInterface = generateServiceInterface(classBase, metadata);
                     generatedFiles.put(classBase + "Service.java", serviceInterface);
                     // Generate implementation template
+                    CobolIntermediateModel model = resolveIntermediateModel(metadata);
                     String serviceImpl = generateServiceImplementation(classBase, metadata);
+                    serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl, model);
                     generatedFiles.put(classBase + "ServiceImpl.java", serviceImpl);
 
                     @SuppressWarnings("unchecked")
@@ -248,6 +261,24 @@ public class JavaGenerationService {
                 .build();
 
         return javaFile.toString();
+    }
+
+    private CobolIntermediateModel resolveIntermediateModel(Map<String, Object> metadata) {
+        if (metadata == null) {
+            return null;
+        }
+        Object sourcePath = metadata.get("filePath");
+        if (sourcePath instanceof String pathStr && !pathStr.isBlank()) {
+            Path path = Paths.get(pathStr);
+            if (Files.exists(path)) {
+                return intermediateModelService.parse(path);
+            }
+        }
+        Object rawSource = metadata.get("source");
+        if (rawSource instanceof String source && !source.isBlank()) {
+            return intermediateModelService.parse(source);
+        }
+        return null;
     }
 
     /**
