@@ -3,4 +3,4 @@ name: com.example.hexagonal.RewriteRecipes
 recipeList:
   - org.openrewrite.java.format.AutoFormat
   - org.openrewrite.java.search.HasMinimumJavaVersion:
-      version: '11'
+      version: '17'

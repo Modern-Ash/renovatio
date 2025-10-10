@@ -40,6 +40,8 @@
         <module>renovatio-provider-java</module>
         <module>renovatio-provider-cobol</module>
         <module>renovatio-mcp-server</module>
+        <module>renovatio-cobol-ir</module>
+        <module>cobol-openrewrite-recipes</module>
     </modules>
 
     <dependencyManagement>
@@ -63,6 +65,16 @@
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-provider-cobol</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-cobol-ir</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>cobol-openrewrite-recipes</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

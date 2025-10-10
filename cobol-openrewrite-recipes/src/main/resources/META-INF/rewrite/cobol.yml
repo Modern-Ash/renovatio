@@ -1,0 +1,8 @@
+type: specs.openrewrite.org/v1beta/recipe
+name: org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipe
+displayName: Populate COBOL process method
+description: Populate generated service methods with statements derived from the COBOL IR.
+recipeList:
+  - org.openrewrite.java.search.HasMinimumJavaVersion:
+      version: '17'
+  - org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipe
