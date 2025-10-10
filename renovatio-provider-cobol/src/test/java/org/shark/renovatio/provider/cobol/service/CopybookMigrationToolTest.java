@@ -32,19 +32,19 @@ public class CopybookMigrationToolTest {
         CobolLanguageProvider provider = new CobolLanguageProvider(
                 parsingService, javaGenerationService, migrationPlanService,
                 indexingService, metricsService, templateService, db2Service);
-//        CobolMcpToolsProvider tools = new CobolMcpToolsProvider(provider);
+        CobolMcpToolsProvider tools = new CobolMcpToolsProvider(provider);
 
         Map<String, Object> args = Map.of(
                 "workspacePath", temp.toString(),
                 "copybook", "CUSTOMER.cpy"
         );
 
-//        Object result = tools.executeCobolTool("cobol.copybook.migrate", args);
-//        assertTrue(result instanceof Map);
-//        Map<?, ?> resMap = (Map<?, ?>) result;
-//        assertEquals(true, resMap.get("success"));
-//        Map<?, ?> files = (Map<?, ?>) resMap.get("files");
-//        assertTrue(files.containsKey("CustomerDTO.java"));
-//        assertTrue(files.containsKey("CustomerService.java"));
+        Object result = tools.executeCobolTool("cobol.copybook.migrate", args);
+        assertTrue(result instanceof Map);
+        Map<?, ?> resMap = (Map<?, ?>) result;
+        assertEquals(true, resMap.get("success"));
+        Map<?, ?> files = (Map<?, ?>) resMap.get("files");
+        assertTrue(files.containsKey("CustomerDTO.java"));
+        assertTrue(files.containsKey("CustomerService.java"));
     }
 }
