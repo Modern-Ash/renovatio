@@ -29,6 +29,8 @@ public class McpProtocolServiceTest {
     private LanguageProviderRegistry languageProviderRegistry;
     @Mock
     private McpToolAdapter toolAdapter;
+    @Mock
+    private org.shark.renovatio.mcp.server.config.McpServerProperties serverProperties;
 
     @BeforeEach
     void setUp() {
@@ -63,14 +65,22 @@ public class McpProtocolServiceTest {
         metadata.put("tags", List.of("java", "analysis"));
         tool.setMetadata(metadata);
         mockTools.add(tool);
+        
+        List<McpTool> javaTools = new ArrayList<>();
+        javaTools.add(tool);
+        
         when(mcpToolingService.getMcpTools()).thenReturn(mockTools);
+        when(mcpToolingService.getMcpTools("java")).thenReturn(javaTools);
         when(mcpToolingService.getSupportedLanguages()).thenReturn(java.util.Set.of("java"));
         when(mcpToolingService.executeToolWithEnvelope(anyString(), anyMap())).thenReturn(
                 ToolCallResult.ok("stub summary", Map.of("success", true))
         );
         when(mcpToolingService.getTool(anyString())).thenReturn(tool);
+        
+        // Mock server properties with no default language
+        when(serverProperties.getDefaultLanguage()).thenReturn(null);
 
-        mcpProtocolService = new McpProtocolService(mcpToolingService);
+        mcpProtocolService = new McpProtocolService(mcpToolingService, serverProperties);
     }
 
     @Test
@@ -277,6 +287,79 @@ public class McpProtocolServiceTest {
         assertNotNull(result.structuredContent());
         assertTrue(result.structuredContent() instanceof Map);
         assertEquals(Boolean.TRUE, ((Map<?,?>)result.structuredContent()).get("success"));
+    }
+
+    @Test
+    void testDefaultLanguageFromConfiguration() {
+        // Configure mock to return "java" as default language
+        when(serverProperties.getDefaultLanguage()).thenReturn("java");
+        
+        McpProtocolService serviceWithDefaultLang = new McpProtocolService(mcpToolingService, serverProperties);
+        
+        // Test initialize without language parameter - should use default
+        McpRequest initRequest = new McpRequest();
+        initRequest.setId("test-default-1");
+        initRequest.setMethod("initialize");
+        
+        McpResponse response = serviceWithDefaultLang.handleMcpRequest(initRequest);
+        
+        assertNotNull(response);
+        assertEquals("test-default-1", response.getId());
+        
+        // Verify that getMcpTools was called with "java" language filter
+        verify(mcpToolingService, atLeastOnce()).getMcpTools("java");
+    }
+
+    @Test
+    void testDefaultLanguageOverriddenByRequestParameter() {
+        // Configure mock to return "java" as default language
+        when(serverProperties.getDefaultLanguage()).thenReturn("java");
+        
+        List<McpTool> cobolTools = new ArrayList<>();
+        McpTool cobolTool = new McpTool();
+        cobolTool.setName("cobol_analyze");
+        cobolTool.setDescription("Analyze COBOL");
+        cobolTools.add(cobolTool);
+        when(mcpToolingService.getMcpTools("cobol")).thenReturn(cobolTools);
+        
+        McpProtocolService serviceWithDefaultLang = new McpProtocolService(mcpToolingService, serverProperties);
+        
+        // Test initialize WITH language parameter - should override default
+        McpRequest initRequest = new McpRequest();
+        initRequest.setId("test-default-2");
+        initRequest.setMethod("initialize");
+        Map<String, Object> params = new HashMap<>();
+        params.put("language", "cobol");
+        initRequest.setParams(params);
+        
+        McpResponse response = serviceWithDefaultLang.handleMcpRequest(initRequest);
+        
+        assertNotNull(response);
+        assertEquals("test-default-2", response.getId());
+        
+        // Verify that getMcpTools was called with "cobol" (overrides default)
+        verify(mcpToolingService).getMcpTools("cobol");
+    }
+
+    @Test
+    void testToolsListUsesDefaultLanguage() {
+        // Configure mock to return "java" as default language
+        when(serverProperties.getDefaultLanguage()).thenReturn("java");
+        
+        McpProtocolService serviceWithDefaultLang = new McpProtocolService(mcpToolingService, serverProperties);
+        
+        // Test tools/list without language parameter - should use default
+        McpRequest listRequest = new McpRequest();
+        listRequest.setId("test-default-3");
+        listRequest.setMethod("tools/list");
+        
+        McpResponse response = serviceWithDefaultLang.handleMcpRequest(listRequest);
+        
+        assertNotNull(response);
+        assertEquals("test-default-3", response.getId());
+        
+        // Verify that getMcpTools was called with "java" language filter
+        verify(mcpToolingService, atLeastOnce()).getMcpTools("java");
     }
 }
 

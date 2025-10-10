@@ -1,5 +1,6 @@
 package org.shark.renovatio.mcp.server.service;
 
+import org.shark.renovatio.mcp.server.config.McpServerProperties;
 import org.shark.renovatio.mcp.server.model.*;
 import org.springframework.stereotype.Service;
 
@@ -21,10 +22,12 @@ import java.util.stream.Collectors;
 public class McpProtocolService {
 
     private final McpToolingService mcpToolingService;
+    private final McpServerProperties serverProperties;
     private final Set<String> loggingSubscribers = ConcurrentHashMap.newKeySet();
 
-    public McpProtocolService(McpToolingService mcpToolingService) {
+    public McpProtocolService(McpToolingService mcpToolingService, McpServerProperties serverProperties) {
         this.mcpToolingService = mcpToolingService;
+        this.serverProperties = serverProperties;
     }
 
     /**
@@ -130,7 +133,7 @@ public class McpProtocolService {
                 "description", "Multi-language refactoring and migration platform with full MCP compliance"
         ));
 
-        // Optional language preference to filter available tools
+        // Determine language preference: request param > env var/config > all languages
         String language = null;
         Object paramsObj = request.getParams();
         if (paramsObj instanceof Map<?, ?> map) {
@@ -139,6 +142,15 @@ public class McpProtocolService {
                 language = String.valueOf(lang);
             }
         }
+        
+        // If no language in request, use default from configuration
+        if (language == null || language.isBlank()) {
+            String defaultLanguage = serverProperties.getDefaultLanguage();
+            if (defaultLanguage != null && !defaultLanguage.isBlank()) {
+                language = defaultLanguage;
+            }
+        }
+        
         var tools = (language == null || language.isBlank())
                 ? mcpToolingService.getMcpTools()
                 : mcpToolingService.getMcpTools(language);
@@ -172,6 +184,8 @@ public class McpProtocolService {
      */
     private McpResponse handleToolsList(McpRequest request) {
         Map<String, Object> result = new HashMap<>();
+        
+        // Determine language preference: request param > env var/config > all languages
         String language = null;
         Object paramsObj = request.getParams();
         if (paramsObj instanceof Map<?, ?> map) {
@@ -180,6 +194,15 @@ public class McpProtocolService {
                 language = String.valueOf(lang);
             }
         }
+        
+        // If no language in request, use default from configuration
+        if (language == null || language.isBlank()) {
+            String defaultLanguage = serverProperties.getDefaultLanguage();
+            if (defaultLanguage != null && !defaultLanguage.isBlank()) {
+                language = defaultLanguage;
+            }
+        }
+        
         if (language == null || language.isBlank()) {
             result.put("tools", mcpToolingService.getMcpTools());
         } else {
@@ -428,6 +451,7 @@ public class McpProtocolService {
      * CLI manifest method - provides tool information for CLI clients.
      */
     private McpResponse handleCliManifest(McpRequest request) {
+        // Determine language preference: request param > env var/config > all languages
         String language = null;
         Object paramsObj = request.getParams();
         if (paramsObj instanceof Map<?, ?> map) {
@@ -436,6 +460,15 @@ public class McpProtocolService {
                 language = String.valueOf(lang);
             }
         }
+        
+        // If no language in request, use default from configuration
+        if (language == null || language.isBlank()) {
+            String defaultLanguage = serverProperties.getDefaultLanguage();
+            if (defaultLanguage != null && !defaultLanguage.isBlank()) {
+                language = defaultLanguage;
+            }
+        }
+        
         List<McpTool> tools = (language == null || language.isBlank())
                 ? mcpToolingService.getMcpTools()
                 : mcpToolingService.getMcpTools(language);
