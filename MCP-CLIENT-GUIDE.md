@@ -47,7 +47,12 @@ Crea o edita el archivo de configuración MCP del cliente (ej. `.vscode/mcp-conf
 
 ### Configuración con Preferencia de Lenguaje
 
-Para proyectos específicos de un lenguaje, puedes preconfigurar el lenguaje preferido:
+Para proyectos específicos de un lenguaje, puedes preconfigurar el lenguaje preferido mediante la variable de entorno `RENOVATIO_DEFAULT_LANGUAGE`. Esta variable filtra automáticamente las herramientas disponibles al lenguaje especificado, sin necesidad de pasar el parámetro `language` en cada petición.
+
+**Comportamiento:**
+- Si configuras `RENOVATIO_DEFAULT_LANGUAGE`, el servidor filtrará automáticamente las herramientas al lenguaje especificado
+- El parámetro `language` en las peticiones MCP (initialize, tools/list) puede sobrescribir este valor predeterminado
+- Si no se configura `RENOVATIO_DEFAULT_LANGUAGE` y no se especifica `language` en la petición, se mostrarán todas las herramientas
 
 #### Configuración para Proyectos Java
 
@@ -56,10 +61,13 @@ Para proyectos específicos de un lenguaje, puedes preconfigurar el lenguaje pre
   "mcpServers": {
     "renovatio-java": {
       "command": "/path/to/renovatio/run_mcp_stdio_server.sh",
-      "args": ["--language", "java"],
+      "args": [],
       "env": {
+        "PATH": "/usr/bin:/bin:/usr/local/bin",
+        "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk",
         "RENOVATIO_DEFAULT_LANGUAGE": "java"
-      }
+      },
+      "description": "Renovatio MCP Server - Java only (filters out COBOL tools)"
     }
   }
 }
@@ -72,10 +80,13 @@ Para proyectos específicos de un lenguaje, puedes preconfigurar el lenguaje pre
   "mcpServers": {
     "renovatio-cobol": {
       "command": "/path/to/renovatio/run_mcp_stdio_server.sh",
-      "args": ["--language", "cobol"],
+      "args": [],
       "env": {
+        "PATH": "/usr/bin:/bin:/usr/local/bin",
+        "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk",
         "RENOVATIO_DEFAULT_LANGUAGE": "cobol"
-      }
+      },
+      "description": "Renovatio MCP Server - COBOL only (filters out Java tools)"
     }
   }
 }
@@ -100,6 +111,12 @@ Para proyectos que mezclan Java y COBOL (migración):
 ---
 
 ## Filtrado por Lenguaje
+
+El servidor Renovatio soporta tres formas de filtrar herramientas por lenguaje, con la siguiente **prioridad** (de mayor a menor):
+
+1. **Parámetro `language` en peticiones MCP** (initialize, tools/list) - Mayor prioridad
+2. **Variable de entorno `RENOVATIO_DEFAULT_LANGUAGE`** - Prioridad media
+3. **Sin filtro** (todas las herramientas) - Por defecto si no se especifica nada
 
 ### Durante la Inicialización
 
