@@ -1,0 +1,15 @@
+{
+  "$schema": "../schemas/mcp-config-schema.json",
+  "mcpServers": {
+    "renovatio-cobol": {
+      "command": "/path/to/renovatio/run_mcp_stdio_server.sh",
+      "args": [],
+      "env": {
+        "PATH": "/usr/bin:/bin:/usr/local/bin",
+        "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk",
+        "RENOVATIO_DEFAULT_LANGUAGE": "cobol"
+      },
+      "description": "Renovatio MCP Server - COBOL only (filters out Java tools)"
+    }
+  }
+}

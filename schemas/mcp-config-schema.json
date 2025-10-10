@@ -1,0 +1,93 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Renovatio MCP Server Configuration",
+  "description": "Configuration schema for Renovatio MCP server client setup",
+  "type": "object",
+  "properties": {
+    "mcpServers": {
+      "type": "object",
+      "description": "MCP server configurations",
+      "patternProperties": {
+        "^[a-zA-Z0-9_-]+$": {
+          "type": "object",
+          "description": "Individual MCP server configuration",
+          "required": ["command"],
+          "properties": {
+            "command": {
+              "type": "string",
+              "description": "Path to the MCP server executable or script"
+            },
+            "args": {
+              "type": "array",
+              "description": "Command line arguments for the server",
+              "items": {
+                "type": "string"
+              },
+              "default": []
+            },
+            "env": {
+              "type": "object",
+              "description": "Environment variables for the server process",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "properties": {
+                "PATH": {
+                  "type": "string",
+                  "description": "System PATH variable"
+                },
+                "JAVA_HOME": {
+                  "type": "string",
+                  "description": "Java installation directory"
+                },
+                "RENOVATIO_DEFAULT_LANGUAGE": {
+                  "type": "string",
+                  "enum": ["java", "cobol"],
+                  "description": "Default language filter for tools"
+                }
+              }
+            },
+            "description": {
+              "type": "string",
+              "description": "Human-readable description of this server configuration"
+            }
+          }
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "mcpServers": {
+        "renovatio": {
+          "command": "/path/to/renovatio/run_mcp_stdio_server.sh",
+          "args": [],
+          "env": {
+            "PATH": "/usr/bin:/bin:/usr/local/bin",
+            "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk"
+          }
+        }
+      }
+    },
+    {
+      "mcpServers": {
+        "renovatio-java": {
+          "command": "/path/to/renovatio/run_mcp_stdio_server.sh",
+          "args": ["--language", "java"],
+          "env": {
+            "RENOVATIO_DEFAULT_LANGUAGE": "java"
+          },
+          "description": "Renovatio server configured for Java projects"
+        },
+        "renovatio-cobol": {
+          "command": "/path/to/renovatio/run_mcp_stdio_server.sh",
+          "args": ["--language", "cobol"],
+          "env": {
+            "RENOVATIO_DEFAULT_LANGUAGE": "cobol"
+          },
+          "description": "Renovatio server configured for COBOL migration projects"
+        }
+      }
+    }
+  ]
+}

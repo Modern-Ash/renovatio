@@ -88,38 +88,53 @@ java -cp renovatio-mcp-server/target/renovatio-mcp-server-*.jar org.shark.renova
 Renovatio implements the Model Content Protocol specification, making it compatible with MCP clients like VS Code
 extensions and Copilot Workspace. All tools are exposed following MCP standards with proper JSON-RPC 2.0 messaging.
 
-### Language selection (Java/COBOL) from MCP clients
+### 📖 Complete MCP Client Guide
 
-Clients can request tools for a specific language by passing a `language` parameter. This helps surface only the
-relevant tools for the chosen language:
+For detailed instructions on using Renovatio with MCP clients, including language-specific configurations and practical examples, see:
 
-- During `initialize`:
+**[MCP Client Guide](./MCP-CLIENT-GUIDE.md)** - Comprehensive guide with:
+- Language filtering (Java/COBOL)
+- Client configuration examples
+- Practical usage scenarios
+- Best practices and troubleshooting
 
+### Quick Start: Language Selection
+
+Clients can request tools for a specific language by passing a `language` parameter during initialization or when listing tools:
+
+**Initialize with language filter:**
 ```json
 {
   "jsonrpc": "2.0",
   "id": "1",
   "method": "initialize",
   "params": {
-    "language": "cobol"
+    "language": "java"
   }
 }
 ```
 
-- When listing tools:
-
+**List tools with language filter:**
 ```json
 {
   "jsonrpc": "2.0",
   "id": "2",
   "method": "tools/list",
   "params": {
-    "language": "java"
+    "language": "cobol"
   }
 }
 ```
 
 If `language` is omitted, all tools from all registered providers are returned.
+
+### Configuration Examples
+
+Pre-configured examples for different scenarios are available in the [`examples/`](./examples/) directory:
+- `vscode-java-only.json` - Java-only projects
+- `vscode-cobol-only.json` - COBOL migration projects
+- `vscode-multi-language.json` - Full stack (Java + COBOL)
+- `vscode-multiple-instances.json` - Multiple server instances
 
 ### Tool name mapping (dot ↔ underscore)
 
