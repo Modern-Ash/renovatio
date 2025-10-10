@@ -12,8 +12,7 @@ final class JavaTemplateSupport {
     }
 
     static J.Block applyTemplate(Cursor cursor, J.Block body, String templateSource) {
-        JavaTemplate template = JavaTemplate.builder(cursor, templateSource)
-                .imports(Collections.emptyList())
+        JavaTemplate template = JavaTemplate.builder(templateSource)
                 .build();
         return (J.Block) template.apply(cursor, body.getCoordinates().replace(), new Object[0]);
     }

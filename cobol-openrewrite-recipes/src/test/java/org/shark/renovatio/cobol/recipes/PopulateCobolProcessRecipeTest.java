@@ -54,9 +54,9 @@ class PopulateCobolProcessRecipeTest {
         ExecutionContext ctx = new InMemoryExecutionContext(Throwable::printStackTrace);
         ctx.putMessage(PopulateCobolProcessRecipe.CONTEXT_KEY, model);
 
-        List<J.CompilationUnit> cus = javaParser.parse(ctx, javaSource);
+        List<org.openrewrite.SourceFile> cus = javaParser.parse(ctx, javaSource).collect(java.util.stream.Collectors.toList());
         PopulateCobolProcessRecipe recipe = new PopulateCobolProcessRecipe();
-        List<Result> results = recipe.run(cus, ctx).getChangeset().getAllResults();
+        List<Result> results = recipe.run(cus, ctx).getResults();
 
         assertThat(results).hasSize(1);
         String updated = results.get(0).getAfter().printAll();

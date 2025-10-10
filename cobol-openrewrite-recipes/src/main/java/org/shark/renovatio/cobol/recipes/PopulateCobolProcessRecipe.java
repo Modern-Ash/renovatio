@@ -3,6 +3,7 @@ package org.shark.renovatio.cobol.recipes;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
 import org.openrewrite.Preconditions;
+import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
@@ -48,7 +49,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
     }
 
     @Override
-    protected TreeVisitor<?, ExecutionContext> getVisitor() {
+    public TreeVisitor<?, ExecutionContext> getVisitor() {
         return Preconditions.check(new TargetMethodPresent(), new PopulateVisitor());
     }
 
@@ -69,13 +70,24 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
             if (model == null) {
                 return method;
             }
-            if (!isTargetMethod(method) || method.getBody() == null) {
+            if (method.getBody() == null) {
                 return method;
             }
             if (!containsTodo(method.getBody())) {
                 return method;
             }
-            List<String> rendered = renderParagraph(model.getEntryParagraph());
+            
+            // Try to find a paragraph matching the method name
+            CobolParagraph paragraph = findParagraphForMethod(method, model);
+            if (paragraph == null) {
+                // Fallback to default method name check and entry paragraph
+                if (!isTargetMethod(method)) {
+                    return method;
+                }
+                paragraph = model.getEntryParagraph();
+            }
+            
+            List<String> rendered = renderParagraph(paragraph);
             if (rendered.isEmpty()) {
                 return method;
             }
@@ -88,6 +100,27 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
             }
             String bodyTemplate = buildBody(rendered, dtoType);
             return method.withBody(JavaTemplateSupport.applyTemplate(getCursor(), method.getBody(), bodyTemplate));
+        }
+        
+        private CobolParagraph findParagraphForMethod(J.MethodDeclaration method, CobolIntermediateModel model) {
+            String methodName = method.getSimpleName();
+            // Try to match method name to paragraph name (convert camelCase to UPPER-CASE)
+            String cobolName = camelCaseToCobolName(methodName);
+            return model.findParagraph(cobolName).orElse(null);
+        }
+        
+        private String camelCaseToCobolName(String camelCase) {
+            // Convert camelCase to COBOL-STYLE-NAME
+            // e.g., "add" -> "ADD", "subtract" -> "SUBTRACT"
+            StringBuilder result = new StringBuilder();
+            for (int i = 0; i < camelCase.length(); i++) {
+                char c = camelCase.charAt(i);
+                if (Character.isUpperCase(c) && i > 0) {
+                    result.append('-');
+                }
+                result.append(Character.toUpperCase(c));
+            }
+            return result.toString();
         }
     }
 
@@ -250,7 +283,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
         }
         J first = method.getParameters().get(0);
         if (first instanceof J.VariableDeclarations declarations && declarations.getTypeExpression() != null) {
-            return declarations.getTypeExpression().printTrimmed(getCursor());
+            return declarations.getTypeExpression().printTrimmed();
         }
         return null;
     }

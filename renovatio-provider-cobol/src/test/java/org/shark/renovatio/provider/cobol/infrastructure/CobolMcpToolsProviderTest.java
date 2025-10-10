@@ -18,7 +18,7 @@ class CobolMcpToolsProviderTest {
         // Build a minimal provider
         CobolParsingService parsingService = new CobolParsingService();
         TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
-        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService);
+        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService(), new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
         Db2MigrationService db2Service = new Db2MigrationService(parsingService);
         MigrationPlanService migrationPlanService = new MigrationPlanService(parsingService, javaGenerationService);
         IndexingService indexingService = new IndexingService();
