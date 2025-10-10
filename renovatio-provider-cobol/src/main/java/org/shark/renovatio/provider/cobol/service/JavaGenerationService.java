@@ -135,9 +135,24 @@ public class JavaGenerationService {
                 .addModifiers(Modifier.PUBLIC)
                 .build());
 
-        // Extract data items from metadata
+        // Check if there are ENTRY points - if so, use linkageItems instead of dataItems
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> dataItems = (List<Map<String, Object>>) programData.get("dataItems");
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) programData.get("entries");
+        List<Map<String, Object>> dataItems;
+        
+        if (entries != null && !entries.isEmpty()) {
+            // Use linkage section items for programs with ENTRY points
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> linkageItems = (List<Map<String, Object>>) programData.get("linkageItems");
+            dataItems = linkageItems != null ? linkageItems : new java.util.ArrayList<>();
+            System.out.println("DEBUG: Using linkageItems for DTO generation, count: " + dataItems.size());
+        } else {
+            // Use working-storage items for regular programs
+            @SuppressWarnings("unchecked")
+            List<Map<String, Object>> wsItems = (List<Map<String, Object>>) programData.get("dataItems");
+            dataItems = wsItems != null ? wsItems : new java.util.ArrayList<>();
+            System.out.println("DEBUG: Using dataItems for DTO generation, count: " + dataItems.size());
+        }
 
         if (dataItems != null) {
             for (Map<String, Object> item : dataItems) {
@@ -175,17 +190,39 @@ public class JavaGenerationService {
                 .addModifiers(Modifier.PUBLIC)
                 .addJavadoc("Service interface for COBOL program: $L\n", sanitizedClassName);
 
-        // Add process method
-        MethodSpec processMethod = MethodSpec.methodBuilder("process")
-                .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                .addParameter(dtoClass, "input")
-                .returns(dtoClass)
-                .addJavadoc("Process the COBOL program logic with given input\n")
-                .addJavadoc("@param input Input data structure\n")
-                .addJavadoc("@return Processed output data structure\n")
-                .build();
-
-        interfaceBuilder.addMethod(processMethod);
+        // Check if there are ENTRY points
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) programData.get("entries");
+        
+        if (entries != null && !entries.isEmpty()) {
+            // Generate a method for each ENTRY point
+            for (Map<String, Object> entry : entries) {
+                String entryName = (String) entry.get("name");
+                if (entryName != null && !entryName.isEmpty()) {
+                    String methodName = toCamelCase(entryName);
+                    MethodSpec entryMethod = MethodSpec.methodBuilder(methodName)
+                            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                            .addParameter(dtoClass, "input")
+                            .returns(dtoClass)
+                            .addJavadoc("COBOL ENTRY point: $L\n", entryName)
+                            .addJavadoc("@param input Input data structure\n")
+                            .addJavadoc("@return Processed output data structure\n")
+                            .build();
+                    interfaceBuilder.addMethod(entryMethod);
+                }
+            }
+        } else {
+            // Add default process method if no ENTRY points
+            MethodSpec processMethod = MethodSpec.methodBuilder("process")
+                    .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                    .addParameter(dtoClass, "input")
+                    .returns(dtoClass)
+                    .addJavadoc("Process the COBOL program logic with given input\n")
+                    .addJavadoc("@param input Input data structure\n")
+                    .addJavadoc("@return Processed output data structure\n")
+                    .build();
+            interfaceBuilder.addMethod(processMethod);
+        }
 
         // Add validation method
         MethodSpec validateMethod = MethodSpec.methodBuilder("validate")
@@ -229,19 +266,42 @@ public class JavaGenerationService {
                 .addJavadoc("Implementation of $L\n", interfaceName)
                 .addJavadoc("Generated from COBOL program: $L\n", sanitizedClassName);
 
-        // Implement process method
-        MethodSpec processMethod = MethodSpec.methodBuilder("process")
-                .addModifiers(Modifier.PUBLIC)
-                .addAnnotation(Override.class)
-                .addParameter(dtoClass, "input")
-                .returns(dtoClass)
-                .addStatement("// TODO: Implement COBOL business logic")
-                .addStatement("// Original COBOL program: $L", cleanClassName)
-                .addStatement("$T output = new $T()", dtoClass, dtoClass)
-                .addStatement("return output")
-                .build();
-
-        classBuilder.addMethod(processMethod);
+        // Check if there are ENTRY points
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) programData.get("entries");
+        
+        if (entries != null && !entries.isEmpty()) {
+            // Generate implementation for each ENTRY point
+            for (Map<String, Object> entry : entries) {
+                String entryName = (String) entry.get("name");
+                if (entryName != null && !entryName.isEmpty()) {
+                    String methodName = toCamelCase(entryName);
+                    MethodSpec entryMethod = MethodSpec.methodBuilder(methodName)
+                            .addModifiers(Modifier.PUBLIC)
+                            .addAnnotation(Override.class)
+                            .addParameter(dtoClass, "input")
+                            .returns(dtoClass)
+                            .addStatement("// TODO: Implement COBOL business logic for ENTRY $L", entryName)
+                            .addStatement("$T output = new $T()", dtoClass, dtoClass)
+                            .addStatement("return output")
+                            .build();
+                    classBuilder.addMethod(entryMethod);
+                }
+            }
+        } else {
+            // Add default process method if no ENTRY points
+            MethodSpec processMethod = MethodSpec.methodBuilder("process")
+                    .addModifiers(Modifier.PUBLIC)
+                    .addAnnotation(Override.class)
+                    .addParameter(dtoClass, "input")
+                    .returns(dtoClass)
+                    .addStatement("// TODO: Implement COBOL business logic")
+                    .addStatement("// Original COBOL program: $L", cleanClassName)
+                    .addStatement("$T output = new $T()", dtoClass, dtoClass)
+                    .addStatement("return output")
+                    .build();
+            classBuilder.addMethod(processMethod);
+        }
 
         // Implement validate method
         MethodSpec validateMethod = MethodSpec.methodBuilder("validate")

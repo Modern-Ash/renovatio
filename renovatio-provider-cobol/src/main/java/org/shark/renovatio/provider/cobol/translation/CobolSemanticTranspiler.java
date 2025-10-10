@@ -34,8 +34,7 @@ public class CobolSemanticTranspiler {
         JavaParser javaParser = JavaParser.fromJavaVersion()
                 .logCompilationWarningsAndErrors(false)
                 .build();
-        List<J.CompilationUnit> units = javaParser.parse(ctx, javaSource);
-        List<SourceFile> sources = new ArrayList<>(units);
+        List<SourceFile> sources = javaParser.parse(ctx, javaSource).collect(java.util.stream.Collectors.toList());
 
         OpenRewriteRunResult runResult = runner.runRecipe(new PopulateCobolProcessRecipe(), ctx, sources);
         if (!runResult.getValidationErrors().isEmpty() || runResult.getResults().isEmpty()) {
