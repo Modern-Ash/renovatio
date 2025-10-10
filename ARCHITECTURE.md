@@ -78,6 +78,21 @@ both standalone usage and MCP client integration.
 - COBOL parsing and analysis
 - COBOL-to-Java migration
 - Code generation capabilities
+- Semantic translation pipeline powered by the COBOL IR and OpenRewrite recipes
+
+### Supporting Modules
+
+#### renovatio-cobol-ir
+
+- Normalised intermediate representation for COBOL programs (data division, paragraphs, control flow)
+- Lightweight parser capable of extracting statements (`MOVE`, `COMPUTE`, `IF`, `PERFORM`, embedded SQL)
+- Execution context metadata used by translators
+
+#### cobol-openrewrite-recipes
+
+- Custom OpenRewrite recipes that consume the COBOL IR
+- `PopulateCobolProcessRecipe` replaces service `process` method TODOs with Java statements derived from COBOL paragraphs
+- Recipes enforce Java 17 compatibility via `HasMinimumJavaVersion`
 
 ## Runtime Modes
 
