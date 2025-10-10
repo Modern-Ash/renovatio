@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import javax.lang.model.element.Modifier;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -50,21 +51,22 @@ public class JavaGenerationService {
             for (org.shark.renovatio.provider.cobol.domain.CobolProgram program : programs) {
                 Map<String, Object> metadata = program.getMetadata();
                 String fileName = (String) metadata.get("filePath");
-                String baseName = Paths.get(fileName).getFileName().toString();
-                // Clean and sanitize the class base name
-                String classBase = sanitizeClassName(toPascalCase(baseName));
+                String baseName = fileName != null ? Paths.get(fileName).getFileName().toString() : null;
+                // Prefer programId when available to build class base name
+                String programId = (String) metadata.getOrDefault("programId", baseName);
+                String classBase = sanitizeClassName(toPascalCase(programId));
 
-                System.out.println("DEBUG: Processing file: " + fileName + ", baseName: " + baseName);
+                System.out.println("DEBUG: Processing file: " + fileName + ", programId: " + programId);
                 System.out.println("DEBUG: Generated classBase: " + classBase);
 
                 try {
-                    // Generate DTO class for data structures
+                    // Generate DTO class prioritizing LINKAGE items
                     String dtoClass = generateDataTransferObject(classBase, metadata);
                     generatedFiles.put(classBase + "DTO.java", dtoClass);
-                    // Generate service interface
+                    // Generate service interface with ENTRY methods
                     String serviceInterface = generateServiceInterface(classBase, metadata);
                     generatedFiles.put(classBase + "Service.java", serviceInterface);
-                    // Generate implementation template
+                    // Generate implementation with basic arithmetic mapping for known ENTRYs
                     String serviceImpl = generateServiceImplementation(classBase, metadata);
                     generatedFiles.put(classBase + "ServiceImpl.java", serviceImpl);
 
@@ -107,7 +109,6 @@ public class JavaGenerationService {
      * Generates a Java DTO class from COBOL data structures
      */
     private String generateDataTransferObject(String cleanClassName, Map<String, Object> programData) {
-        // Asegurar que el cleanClassName esté completamente limpio
         String sanitizedClassName = sanitizeClassName(cleanClassName);
         String className = sanitizedClassName + "DTO";
 
@@ -122,9 +123,12 @@ public class JavaGenerationService {
                 .addModifiers(Modifier.PUBLIC)
                 .build());
 
-        // Extract data items from metadata
+        // Prefer LINKAGE items (ENTRY USING) to build the DTO; fallback to working-storage
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> dataItems = (List<Map<String, Object>>) programData.get("dataItems");
+        List<Map<String, Object>> linkageItems = (List<Map<String, Object>>) programData.get("linkageItems");
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> wsItems = (List<Map<String, Object>>) programData.get("dataItems");
+        List<Map<String, Object>> dataItems = (linkageItems != null && !linkageItems.isEmpty()) ? linkageItems : wsItems;
 
         if (dataItems != null) {
             for (Map<String, Object> item : dataItems) {
@@ -149,7 +153,6 @@ public class JavaGenerationService {
      * Generates a service interface for COBOL program functionality
      */
     private String generateServiceInterface(String cleanClassName, Map<String, Object> programData) {
-        // Asegurar que el cleanClassName esté completamente limpio
         String sanitizedClassName = sanitizeClassName(cleanClassName);
         String interfaceName = sanitizedClassName + "Service";
         String dtoName = sanitizedClassName + "DTO";
@@ -186,6 +189,24 @@ public class JavaGenerationService {
 
         interfaceBuilder.addMethod(validateMethod);
 
+        // Add ENTRY-based methods
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) programData.get("entries");
+        if (entries != null && !entries.isEmpty()) {
+            for (Map<String, Object> entry : entries) {
+                String name = (String) entry.get("name");
+                if (name == null || name.isEmpty()) continue;
+                String methodName = toCamelCase(name);
+                MethodSpec m = MethodSpec.methodBuilder(methodName)
+                        .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
+                        .addParameter(dtoClass, "input")
+                        .returns(dtoClass)
+                        .addJavadoc("Implements ENTRY \"$L\" USING linkage structure\n", name)
+                        .build();
+                interfaceBuilder.addMethod(m);
+            }
+        }
+
         TypeSpec interfaceSpec = interfaceBuilder.build();
 
         JavaFile javaFile = JavaFile.builder("org.shark.renovatio.generated.cobol", interfaceSpec)
@@ -198,7 +219,6 @@ public class JavaGenerationService {
      * Generates a service implementation template
      */
     private String generateServiceImplementation(String cleanClassName, Map<String, Object> programData) {
-        // Asegurar que el cleanClassName esté completamente limpio
         String sanitizedClassName = sanitizeClassName(cleanClassName);
         String className = sanitizedClassName + "ServiceImpl";
         String interfaceName = sanitizedClassName + "Service";
@@ -216,7 +236,23 @@ public class JavaGenerationService {
                 .addJavadoc("Implementation of $L\n", interfaceName)
                 .addJavadoc("Generated from COBOL program: $L\n", sanitizedClassName);
 
-        // Implement process method
+        // Working-storage accumulator (calmemory) if present; use BigDecimal to preserve scale
+        boolean hasCalmemory = false;
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> wsItems = (List<Map<String, Object>>) programData.get("dataItems");
+        if (wsItems != null) {
+            for (Map<String, Object> it : wsItems) {
+                if ("calmemory".equalsIgnoreCase(String.valueOf(it.get("name")))) { hasCalmemory = true; break; }
+            }
+        }
+        if (hasCalmemory) {
+            FieldSpec calmemory = FieldSpec.builder(BigDecimal.class, "calmemory", Modifier.PRIVATE)
+                    .initializer("$T.ZERO", BigDecimal.class)
+                    .build();
+            classBuilder.addField(calmemory);
+        }
+
+        // Implement process method (generic pass-through with TODO)
         MethodSpec processMethod = MethodSpec.methodBuilder("process")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
@@ -227,7 +263,6 @@ public class JavaGenerationService {
                 .addStatement("$T output = new $T()", dtoClass, dtoClass)
                 .addStatement("return output")
                 .build();
-
         classBuilder.addMethod(processMethod);
 
         // Implement validate method
@@ -239,8 +274,108 @@ public class JavaGenerationService {
                 .addStatement("// TODO: Implement validation logic")
                 .addStatement("return input != null")
                 .build();
-
         classBuilder.addMethod(validateMethod);
+
+        // Implement ENTRY-based methods with arithmetic mapping when recognizable
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) programData.get("entries");
+        boolean linkageIsBigDecimal = false;
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> linkageItems = (List<Map<String, Object>>) programData.get("linkageItems");
+        if (linkageItems != null) {
+            for (Map<String, Object> it : linkageItems) {
+                if ("BigDecimal".equals(it.get("javaType"))) { linkageIsBigDecimal = true; break; }
+            }
+        }
+
+        if (entries != null && !entries.isEmpty()) {
+            for (Map<String, Object> entry : entries) {
+                String name = String.valueOf(entry.get("name"));
+                if (name == null || name.isEmpty()) continue;
+                String methodName = toCamelCase(name);
+
+                MethodSpec.Builder mb = MethodSpec.methodBuilder(methodName)
+                        .addModifiers(Modifier.PUBLIC)
+                        .addAnnotation(Override.class)
+                        .addParameter(dtoClass, "input")
+                        .returns(dtoClass);
+
+                // Prepare locals based on type preference
+                if (linkageIsBigDecimal) {
+                    mb.addStatement("$T a = input != null && input.getArg1() != null ? input.getArg1() : $T.ZERO", BigDecimal.class, BigDecimal.class)
+                      .addStatement("$T b = input != null && input.getArg2() != null ? input.getArg2() : $T.ZERO", BigDecimal.class, BigDecimal.class)
+                      .addStatement("$T res = $T.ZERO", BigDecimal.class, BigDecimal.class);
+
+                    switch (name.toLowerCase()) {
+                        case "add":
+                            mb.addStatement("res = a.add(b)");
+                            break;
+                        case "subtract":
+                            mb.addStatement("res = a.subtract(b)");
+                            break;
+                        case "multiply":
+                            mb.addStatement("res = a.multiply(b)");
+                            break;
+                        case "divide":
+                            mb.beginControlFlow("if (b.compareTo($T.ZERO) != 0)", BigDecimal.class)
+                                    .addStatement("res = a.divide(b, $T.DECIMAL128)", MathContext.class)
+                               .nextControlFlow("else")
+                                    .addStatement("// Division by zero; keeping res = 0")
+                               .endControlFlow();
+                            break;
+                        default:
+                            mb.addStatement("// TODO: Implement ENTRY '%L' mapping", name);
+                            break;
+                    }
+
+                    mb.addStatement("$T out = new $T()", dtoClass, dtoClass)
+                      .addStatement("out.setResult(res)");
+                    if (hasCalmemory) {
+                        mb.addStatement("this.calmemory = (this.calmemory == null ? $T.ZERO : this.calmemory).add(res)", BigDecimal.class)
+                          .addStatement("out.setStorage(this.calmemory)");
+                    }
+                    mb.addStatement("return out");
+                } else {
+                    // Integer/Long arithmetic fallback
+                    mb.addStatement("long a = input != null && input.getArg1() != null ? input.getArg1().longValue() : 0L")
+                      .addStatement("long b = input != null && input.getArg2() != null ? input.getArg2().longValue() : 0L")
+                      .addStatement("long res = 0L");
+
+                    switch (name.toLowerCase()) {
+                        case "add":
+                            mb.addStatement("res = a + b");
+                            break;
+                        case "subtract":
+                            mb.addStatement("res = a - b");
+                            break;
+                        case "multiply":
+                            mb.addStatement("res = a * b");
+                            break;
+                        case "divide":
+                            mb.beginControlFlow("if (b != 0)")
+                                    .addStatement("res = a / b")
+                               .nextControlFlow("else")
+                                    .addStatement("res = 0L")
+                               .endControlFlow();
+                            break;
+                        default:
+                            mb.addStatement("// TODO: Implement ENTRY '%L' mapping", name);
+                            break;
+                    }
+
+                    mb.addStatement("$T out = new $T()", dtoClass, dtoClass)
+                      .addStatement("out.setResult(new $T(res))", BigDecimal.class);
+                    if (hasCalmemory) {
+                        // Accumulate as BigDecimal for consistency with storage
+                        mb.addStatement("this.calmemory = (this.calmemory == null ? $T.ZERO : this.calmemory).add(new $T(res))", BigDecimal.class, BigDecimal.class)
+                          .addStatement("out.setStorage(this.calmemory)");
+                    }
+                    mb.addStatement("return out");
+                }
+
+                classBuilder.addMethod(mb.build());
+            }
+        }
 
         TypeSpec classSpec = classBuilder.build();
 

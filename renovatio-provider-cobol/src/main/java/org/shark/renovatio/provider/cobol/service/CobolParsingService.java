@@ -242,7 +242,14 @@ public class CobolParsingService {
         ast.put("cicsCommands", extractCicsCommands(source));
         ast.put("calls", new HashSet<String>());
         ast.put("copies", new HashSet<String>());
+        // Working-Storage data items
         ast.put("dataItems", extractDataItems(source));
+        // Linkage Section items (used by ENTRY ... USING ...)
+        Map<String, Object> linkage = extractLinkage(source);
+        ast.put("linkageItems", linkage.getOrDefault("items", Collections.emptyList()));
+        ast.put("linkageStructName", linkage.get("structName"));
+        // ENTRY points
+        ast.put("entries", extractEntries(source));
         ast.put("dialect", dialect.name());
         return ast;
     }
@@ -257,12 +264,16 @@ public class CobolParsingService {
         Matcher wsMatcher = wsPattern.matcher(source);
         if (wsMatcher.find()) {
             String wsSection = wsMatcher.group(1);
-            // Mejorar expresión regular para capturar tipos con números, paréntesis y V
-            Pattern fieldPattern = Pattern.compile("^\\s*\\d+\\s+([A-Z0-9-]+)\\s+PIC\\s+([A-Z0-9\\(\\)V]+)\\.", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+            // Capturar PIC y opcional COMP-3/COMP-5/SIGN
+            Pattern fieldPattern = Pattern.compile("^\\s*\\d+\\s+([A-Z0-9-]+)\\s+PIC\\s+([A-Z0-9\\(\\)V]+)(?:\\s+COMP-?\\d+)?(?:\\s+SIGNED)?\\.", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
             Matcher fieldMatcher = fieldPattern.matcher(wsSection);
             while (fieldMatcher.find()) {
                 String name = fieldMatcher.group(1);
                 String pic = fieldMatcher.group(2);
+                // Intentar capturar sufijos COMP-3/COMP-5
+                String fullDeclLine = fieldMatcher.group(0).toUpperCase(Locale.ROOT);
+                if (fullDeclLine.contains("COMP-3")) pic = pic + " COMP-3";
+                if (fullDeclLine.contains("COMP-5")) pic = pic + " COMP-5";
                 String javaType = mapCobolTypeToJava(pic);
                 Map<String, Object> item = new HashMap<>();
                 item.put("name", toCamelCase(name));
@@ -274,23 +285,103 @@ public class CobolParsingService {
     }
 
     /**
+     * Extrae LINKAGE SECTION: nombre del grupo 01 usado en ENTRY USING y sus campos nivel 05.
+     */
+    private Map<String, Object> extractLinkage(String source) {
+        Map<String, Object> result = new HashMap<>();
+        List<Map<String, Object>> items = new ArrayList<>();
+        result.put("items", items);
+
+        Pattern lkPattern = Pattern.compile("LINKAGE SECTION\\.(.*?)(PROCEDURE DIVISION\\.|\\Z)", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+        Matcher lkMatcher = lkPattern.matcher(source);
+        if (!lkMatcher.find()) {
+            return result;
+        }
+        String lkSection = lkMatcher.group(1);
+
+        // Detectar nombre del grupo 01 principal (ej: 01 calculator.)
+        Pattern groupPattern = Pattern.compile("^\\s*01\\s+([A-Z0-9-]+)\\s*\\.", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+        Matcher groupMatcher = groupPattern.matcher(lkSection);
+        String structName = null;
+        if (groupMatcher.find()) {
+            structName = groupMatcher.group(1).toLowerCase(Locale.ROOT);
+            result.put("structName", structName);
+        }
+
+        // Capturar los campos nivel 05 dentro de la sección de LINKAGE (sin profundizar niveles)
+        Pattern fieldPattern = Pattern.compile("^\\s*05\\s+([A-Z0-9-]+)\\s+PIC\\s+([A-Z0-9\\(\\)V]+)(?:\\s+COMP-?\\d+)?(?:\\s+SIGNED)?\\.", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+        Matcher fieldMatcher = fieldPattern.matcher(lkSection);
+        while (fieldMatcher.find()) {
+            String name = fieldMatcher.group(1);
+            String pic = fieldMatcher.group(2);
+            String declLine = fieldMatcher.group(0).toUpperCase(Locale.ROOT);
+            if (declLine.contains("COMP-3")) pic = pic + " COMP-3";
+            if (declLine.contains("COMP-5")) pic = pic + " COMP-5";
+            String javaType = mapCobolTypeToJava(pic);
+            Map<String, Object> item = new HashMap<>();
+            item.put("name", toCamelCase(name));
+            item.put("javaType", javaType);
+            items.add(item);
+        }
+
+        return result;
+    }
+
+    /**
+     * Extrae ENTRY "name" USING structName.
+     */
+    private List<Map<String, Object>> extractEntries(String source) {
+        List<Map<String, Object>> entries = new ArrayList<>();
+        Pattern entryPattern = Pattern.compile("ENTRY\\s+\"([A-Z0-9_-]+)\"\\s+USING\\s+([A-Z0-9-]+)\\.", Pattern.CASE_INSENSITIVE);
+        Matcher m = entryPattern.matcher(source);
+        while (m.find()) {
+            Map<String, Object> e = new HashMap<>();
+            e.put("name", m.group(1).toLowerCase(Locale.ROOT));
+            e.put("using", m.group(2).toLowerCase(Locale.ROOT));
+            entries.add(e);
+        }
+        return entries;
+    }
+
+    /**
      * Mapea el tipo PIC COBOL a tipo Java.
      */
     private String mapCobolTypeToJava(String pic) {
-        pic = pic.toUpperCase(Locale.ROOT);
-        // Integer: PIC 9, PIC 9(n)
-        if (pic.matches("9\\(\\d+\\)") || pic.equals("9")) {
-            return "Integer";
-        }
-        // BigDecimal: PIC 9(n)V99, PIC 9(n)V9(n)
-        if (pic.matches("9\\(\\d+\\)V\\d+") || pic.contains("V")) {
+        String p = pic.toUpperCase(Locale.ROOT).replaceAll("\\s+", " ");
+        boolean comp3 = p.contains("COMP-3");
+        boolean comp5 = p.contains("COMP-5");
+        boolean hasV = p.contains("V");
+
+        // Packed decimal or explicit decimal -> BigDecimal
+        if (comp3 || hasV) {
             return "BigDecimal";
         }
-        // String: PIC X, PIC X(n)
-        if (pic.startsWith("X")) {
+        // Alphanumeric
+        if (p.startsWith("X")) {
             return "String";
         }
+        // Numeric binary COMP-5: choose Integer/Long based on digits
+        int digits = extractDigitsCount(p);
+        if (comp5) {
+            if (digits <= 9) return "Integer";
+            return "Long";
+        }
+        // Plain numeric without V: Integer/Long based on digits
+        if (digits > 0) {
+            if (digits <= 9) return "Integer";
+            return "Long";
+        }
         return "String";
+    }
+
+    private int extractDigitsCount(String pic) {
+        Matcher m = Pattern.compile("9\\((\\d+)\\)").matcher(pic);
+        if (m.find()) {
+            return Integer.parseInt(m.group(1));
+        }
+        // Single 9
+        if (pic.contains("9")) return 1;
+        return 0;
     }
 
     private String toCamelCase(String name) {
@@ -322,6 +413,11 @@ public class CobolParsingService {
         metadata.put("calls", new HashSet<String>());
         metadata.put("copies", new HashSet<String>());
         metadata.put("dataItems", new ArrayList<>());
+        // Also expose linkage and entries for regex path
+        Map<String, Object> linkage = extractLinkage(source);
+        metadata.put("linkageItems", linkage.getOrDefault("items", Collections.emptyList()));
+        metadata.put("linkageStructName", linkage.get("structName"));
+        metadata.put("entries", extractEntries(source));
         metadata.put("dialect", defaultDialect.name());
 
         CobolProgram program = new CobolProgram();
