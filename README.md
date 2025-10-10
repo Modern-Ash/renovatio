@@ -1,4 +1,4 @@
-elimin# Renovatio - MCP Server for Code Migration and Refactoring
+# Renovatio - MCP Server for Code Migration and Refactoring
 
 **Renovatio** is a Model Content Protocol (MCP) server for automated code migration and refactoring, based on
 OpenRewrite concepts. It provides tools for migrating and upgrading COBOL and Java code with extensibility for
@@ -60,19 +60,26 @@ specification.
 
 ## Quick Start
 
-1. Build the project:
+1. Build the project (root):
 
 ```bash
-mvn clean compile
+mvn clean install
 ```
 
-2. Run the MCP server:
+2. Run the MCP server (HTTP mode):
 
 ```bash
 java -jar renovatio-mcp-server/target/renovatio-mcp-server-*.jar
 ```
 
-3. Connect MCP clients to the server to access migration tools.
+3. Run the MCP server (stdio mode, for direct MCP clients):
+
+```bash
+# Using the stdio entrypoint class
+java -cp renovatio-mcp-server/target/renovatio-mcp-server-*.jar org.shark.renovatio.mcp.server.McpStdioServerApplication
+```
+
+4. Connect MCP clients (VS Code extension, Copilot Workspace, etc.) to the server to access migration tools.
 
 ---
 
@@ -81,42 +88,90 @@ java -jar renovatio-mcp-server/target/renovatio-mcp-server-*.jar
 Renovatio implements the Model Content Protocol specification, making it compatible with MCP clients like VS Code
 extensions and Copilot Workspace. All tools are exposed following MCP standards with proper JSON-RPC 2.0 messaging.
 
-### Language selection (Java/Cobol) from MCP clients
+### 📖 Complete MCP Client Guide
 
-Clients can request tools for a specific language by passing a `language` parameter. This helps surface only the
-relevant tools for the chosen language:
+For detailed instructions on using Renovatio with MCP clients, including language-specific configurations and practical examples, see:
 
-- During `initialize`:
+**[MCP Client Guide](./MCP-CLIENT-GUIDE.md)** - Comprehensive guide with:
+- Language filtering (Java/COBOL)
+- Client configuration examples
+- Practical usage scenarios
+- Best practices and troubleshooting
 
+### Quick Start: Language Selection
+
+Clients can request tools for a specific language by passing a `language` parameter during initialization or when listing tools:
+
+**Initialize with language filter:**
 ```json
 {
   "jsonrpc": "2.0",
   "id": "1",
   "method": "initialize",
   "params": {
-    "language": "cobol"
+    "language": "java"
   }
 }
 ```
 
-- When listing tools:
-
+**List tools with language filter:**
 ```json
 {
   "jsonrpc": "2.0",
   "id": "2",
   "method": "tools/list",
   "params": {
-    "language": "java"
+    "language": "cobol"
   }
 }
 ```
 
 If `language` is omitted, all tools from all registered providers are returned.
 
-### Published COBOL tools
+### Configuration Examples
 
-The COBOL provider now exposes the following MCP tools:
+Pre-configured examples for different scenarios are available in the [`examples/`](./examples/) directory:
+- `vscode-java-only.json` - Java-only projects
+- `vscode-cobol-only.json` - COBOL migration projects
+- `vscode-multi-language.json` - Full stack (Java + COBOL)
+- `vscode-multiple-instances.json` - Multiple server instances
+
+### Tool name mapping (dot ↔ underscore)
+
+The MCP adapter sanitizes tool names for clients that do not support dots in method names. For example:
+- `java.analyze` will be exposed to some clients as `java_analyze`.
+- The server understands both forms and maps them internally.
+
+When invoking tools via `tools/call`, prefer the canonical dotted name if your client supports it.
+
+---
+
+## Available MCP Tools
+
+All provider tools accept a `workspacePath` parameter (added automatically by the server-side adapter when not present
+in the schema) to point to the workspace directory.
+
+### Java provider
+
+General tools:
+- `java.discover` — Inspect workspace structure
+- `java.analyze` — Analyze Java sources with OpenRewrite
+- `java.plan` — Plan refactoring based on goals
+- `java.apply` — Apply OpenRewrite recipes
+- `java.diff` — Generate git-like diff between revisions
+- `java.review` — Summarize refactoring outcome
+- `java.format` — Format sources and remove unused imports
+- `java.test` — Run project tests
+- `java.metrics` — Collect high-level Java metrics
+- `java.recipe_list` — List available OpenRewrite recipes
+- `java.recipe_describe` — Describe a specific recipe
+- `java.pipeline` — Execute preset modernization pipeline
+
+Dynamic recipes:
+- OpenRewrite recipes discovered on the classpath and in `rewrite.yml` are exposed as tools using the pattern
+  `java.<recipeId>` (e.g., `java.org.openrewrite.java.format.AutoFormat`).
+
+### COBOL provider
 
 - `cobol.analyze` — Analyze COBOL sources (parsing, AST, dependencies)
 - `cobol.metrics` — Collect high-level COBOL metrics (files, lines, copybooks)
@@ -126,8 +181,87 @@ The COBOL provider now exposes the following MCP tools:
 - `cobol.migrate_copybook` — Generate Java artifacts from a COBOL copybook (template-based)
 - `cobol.migrate_db2` — Generate JPA code from embedded DB2 EXEC SQL in COBOL programs
 
-All provider tools accept a `workspacePath` parameter (added automatically by the server-side adapter when not present
-in the schema) to point to the workspace directory.
+---
+
+## Configuration (OpenRewrite)
+
+- Renovatio loads OpenRewrite configuration from a top-level `rewrite.yml` if present.
+- The Java provider discovers OpenRewrite recipes from the runtime classpath and from `rewrite.yml` and exposes them as
+  individual MCP tools (see "Dynamic recipes").
+
+Example `rewrite.yml` snippet:
+
+```yaml
+rewrite:
+  recipes:
+    - org.openrewrite.java.format.AutoFormat
+    - org.openrewrite.java.cleanup.RemoveUnusedImports
+```
+
+---
+
+## Troubleshooting
+
+- "No real handler implemented for tool: java_analyze (internal: java.analyze)":
+  - Ensure the provider packages are scanned by Spring Boot when running the MCP server, especially in stdio mode.
+  - The stdio entrypoint `McpStdioServerApplication` must include provider packages in `scanBasePackages`, e.g.:
+
+```java
+@SpringBootApplication(scanBasePackages = {
+    "org.shark.renovatio.mcp.server",
+    "org.shark.renovatio.core",
+    "org.shark.renovatio.provider.java",
+    "org.shark.renovatio.provider.cobol"
+})
+```
+
+- Tools not listed in `tools/list` for a given language:
+  - Verify the `language` parameter passed by the client.
+  - Confirm the provider module is on the classpath and built (`mvn clean install`).
+  - Check `rewrite.yml` and classpath for recipe discovery.
+
+---
+
+## VS Code MCP client
+
+A sample configuration file `vscode-mcp-config.json` is provided. Point it to the appropriate server mode:
+- HTTP mode: the server runs as a web application.
+- stdio mode: use the stdio entrypoint class for direct protocol over stdio.
+
+---
+
+## Contributing
+
+- Code and documentation are in English (identifiers, comments, README, Javadoc).
+- Code reviews, comments, and review suggestions from maintainers may be provided in Spanish for developer convenience.
+- Follow conventional commit messages and keep modules self-contained.
+
+---
+
+## 📖 Documentation Index
+
+### Getting Started
+- **[README.md](./README.md)** (this file) - Project overview and quick start
+- **[MCP-QUICK-REFERENCE.md](./MCP-QUICK-REFERENCE.md)** - Quick reference for common tasks
+
+### MCP Client Integration
+- **[MCP-CLIENT-GUIDE.md](./MCP-CLIENT-GUIDE.md)** - Complete guide for MCP clients
+  - Language filtering strategies
+  - Practical usage examples
+  - Best practices and troubleshooting
+- **[examples/](./examples/)** - Pre-configured client setups
+  - Java-only configuration
+  - COBOL-only configuration
+  - Multi-language configuration
+  - Multiple server instances
+
+### Architecture & Design
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design principles
+- **[schemas/](./schemas/)** - JSON schemas for configuration validation
+
+### Tool Documentation
+- **Java Tools** - See section "Available MCP Tools" → "Java provider"
+- **COBOL Tools** - See section "Available MCP Tools" → "COBOL provider"
 
 ---
 
