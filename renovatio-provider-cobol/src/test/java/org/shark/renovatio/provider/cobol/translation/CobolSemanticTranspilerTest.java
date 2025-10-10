@@ -45,6 +45,6 @@ class CobolSemanticTranspilerTest {
         CobolSemanticTranspiler transpiler = new CobolSemanticTranspiler(new OpenRewriteRunner());
 
         String enriched = transpiler.enrichServiceImplementation(JAVA_STUB, model);
-        assertThat(enriched).contains("output.setCustomerName('JOHN');");
+        assertThat(enriched).contains("output.setCustomerName(\"JOHN\");");
     }
 }

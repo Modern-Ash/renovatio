@@ -12,8 +12,10 @@ import org.shark.renovatio.cobol.ir.model.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
 
@@ -86,7 +88,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                 paragraph = model.getEntryParagraph();
             }
             
-            List<String> rendered = renderParagraph(paragraph);
+            List<String> rendered = renderParagraph(paragraph, model);
             if (rendered.isEmpty()) {
                 return method;
             }
@@ -133,59 +135,84 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                 .anyMatch(text -> text != null && text.contains("TODO"));
     }
 
-    private List<String> renderParagraph(CobolParagraph paragraph) {
-        List<String> lines = new ArrayList<>();
-        for (CobolStatement statement : paragraph.getStatements()) {
-            if (statement instanceof MoveStatement move) {
-                lines.add(renderMove(move));
-                continue;
-            }
-            if (statement instanceof ComputeStatement compute) {
-                lines.add(renderCompute(compute));
-                continue;
-            }
-            if (statement instanceof IfStatement ifStatement) {
-                lines.addAll(renderIf(ifStatement));
-                continue;
-            }
-            if (statement instanceof PerformStatement perform) {
-                lines.add(renderPerform(perform));
-                continue;
-            }
-            if (statement instanceof Db2Statement db2) {
-                lines.add(renderDb2(db2));
-            }
-        }
-        return lines;
+    private List<String> renderParagraph(CobolParagraph paragraph, CobolIntermediateModel model) {
+        return renderParagraph(paragraph, model, new LinkedHashSet<>());
     }
 
-    private List<String> renderIf(IfStatement ifStatement) {
+    private List<String> renderParagraph(CobolParagraph paragraph,
+                                         CobolIntermediateModel model,
+                                         Set<String> visitedParagraphs) {
+        if (paragraph == null) {
+            return List.of();
+        }
+
+        String upperName = paragraph.getName().toUpperCase(Locale.ROOT);
+        if (!visitedParagraphs.add(upperName)) {
+            return List.of(String.format(Locale.ROOT,
+                    "// Recursive PERFORM of paragraph %s detected, skipping expansion", upperName));
+        }
+
+        try {
+            List<String> lines = new ArrayList<>();
+            for (CobolStatement statement : paragraph.getStatements()) {
+                lines.addAll(renderStatement(statement, model, visitedParagraphs));
+            }
+            return lines;
+        } finally {
+            visitedParagraphs.remove(upperName);
+        }
+    }
+
+    private List<String> renderStatement(CobolStatement statement,
+                                         CobolIntermediateModel model,
+                                         Set<String> visitedParagraphs) {
+        if (statement instanceof MoveStatement move) {
+            return List.of(renderMove(move));
+        }
+        if (statement instanceof ComputeStatement compute) {
+            return List.of(renderCompute(compute));
+        }
+        if (statement instanceof IfStatement ifStatement) {
+            return renderIf(ifStatement, model, visitedParagraphs);
+        }
+        if (statement instanceof PerformStatement perform) {
+            return renderPerform(perform, model, visitedParagraphs);
+        }
+        if (statement instanceof EvaluateStatement evaluate) {
+            return renderEvaluate(evaluate, model, visitedParagraphs);
+        }
+        if (statement instanceof Db2Statement db2) {
+            return List.of(renderDb2(db2));
+        }
+        if (statement instanceof CallStatement call) {
+            return List.of(renderCall(call));
+        }
+        if (statement instanceof FileOperationStatement fileOp) {
+            return List.of(renderFileOperation(fileOp));
+        }
+        return List.of("// Unhandled COBOL statement");
+    }
+
+    private List<String> renderIf(IfStatement ifStatement,
+                                  CobolIntermediateModel model,
+                                  Set<String> visitedParagraphs) {
         List<String> lines = new ArrayList<>();
         lines.add(String.format(Locale.ROOT, "if (%s) {", translateCondition(ifStatement.getCondition())));
         for (CobolStatement stmt : ifStatement.getThenStatements()) {
-            lines.add(indent(renderSingle(stmt)));
+            for (String rendered : renderStatement(stmt, model, visitedParagraphs)) {
+                lines.add(indent(rendered));
+            }
         }
         if (!ifStatement.getElseStatements().isEmpty()) {
             lines.add("} else {");
             for (CobolStatement stmt : ifStatement.getElseStatements()) {
-                lines.add(indent(renderSingle(stmt)));
+                for (String rendered : renderStatement(stmt, model, visitedParagraphs)) {
+                    lines.add(indent(rendered));
+                }
             }
         }
         lines.add("}");
         return lines;
-    }
-
-    private String renderSingle(CobolStatement statement) {
-        if (statement instanceof MoveStatement move) {
-            return renderMove(move);
-        }
-        if (statement instanceof ComputeStatement compute) {
-            return renderCompute(compute);
-        }
-        if (statement instanceof Db2Statement db2) {
-            return renderDb2(db2);
-        }
-        return "// Unhandled COBOL statement";
     }
 
     private String renderMove(MoveStatement move) {
@@ -198,12 +225,71 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                 toSetter(compute.getTarget()), translateExpression(compute.getExpression()));
     }
 
-    private String renderPerform(PerformStatement perform) {
-        return String.format(Locale.ROOT, "// TODO: PERFORM %s", perform.getParagraph());
+    private List<String> renderPerform(PerformStatement perform,
+                                       CobolIntermediateModel model,
+                                       Set<String> visitedParagraphs) {
+        List<String> lines = new ArrayList<>();
+        if (perform.getParagraph() == null || perform.getParagraph().isBlank()) {
+            lines.add("// PERFORM with unnamed paragraph");
+            return lines;
+        }
+
+        model.findParagraph(perform.getParagraph()).ifPresentOrElse(target -> {
+            List<String> nested = renderParagraph(target, model, new LinkedHashSet<>(visitedParagraphs));
+            if (nested.isEmpty()) {
+                lines.add(String.format(Locale.ROOT,
+                        "// PERFORM %s (paragraph is empty)", perform.getParagraph()));
+            } else {
+                lines.addAll(nested);
+            }
+        }, () -> lines.add(String.format(Locale.ROOT,
+                "// PERFORM %s (paragraph not found)", perform.getParagraph())));
+
+        if (perform.getThroughParagraph() != null) {
+            lines.add(String.format(Locale.ROOT,
+                    "// PERFORM THRU %s not yet expanded", perform.getThroughParagraph()));
+        }
+        return lines;
+    }
+
+    private List<String> renderEvaluate(EvaluateStatement evaluate,
+                                        CobolIntermediateModel model,
+                                        Set<String> visitedParagraphs) {
+        List<String> lines = new ArrayList<>();
+        String selector = toJavaExpression(evaluate.getExpression());
+        lines.add(String.format(Locale.ROOT, "switch (%s) {", selector));
+        for (EvaluateStatement.EvaluateWhenBranch branch : evaluate.getBranches()) {
+            String label = branch.getCondition().equalsIgnoreCase("OTHER")
+                    ? "default"
+                    : "case " + toJavaExpression(branch.getCondition());
+            lines.add(indent(label + " -> {"));
+            for (CobolStatement stmt : branch.getStatements()) {
+                for (String rendered : renderStatement(stmt, model, visitedParagraphs)) {
+                    lines.add(indent(indent(rendered)));
+                }
+            }
+            lines.add(indent("}"));
+        }
+        lines.add("}");
+        return lines;
     }
 
     private String renderDb2(Db2Statement db2) {
         return String.format(Locale.ROOT, "// EXEC SQL %s", db2.getSql());
+    }
+
+    private String renderCall(CallStatement call) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("// CALL ").append(call.getTarget());
+        if (!call.getArguments().isEmpty()) {
+            builder.append(" USING ")
+                    .append(String.join(", ", call.getArguments()));
+        }
+        return builder.toString();
+    }
+
+    private String renderFileOperation(FileOperationStatement fileOp) {
+        return String.format(Locale.ROOT, "// %s %s", fileOp.getOperationType(), fileOp.getFileName());
     }
 
     private String translateCondition(String condition) {

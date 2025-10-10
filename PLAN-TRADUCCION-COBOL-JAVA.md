@@ -28,7 +28,7 @@ Construir una canalización que transforme la **semántica** de los párrafos CO
 1. **Recipes OpenRewrite personalizadas**: definir un módulo `cobol-openrewrite-recipes` donde cada nodo del IR se materialice como una `Recipe` de OpenRewrite que parte del stub generado y lo enriquece con la lógica real (por ejemplo `CobolPerformRecipe`, `CobolEvaluateRecipe`). Estas recetas deberán construir o modificar `J.MethodDeclaration`, `J.If`, `J.Switch`, etc., para garantizar un AST Java válido.
 2. **Infraestructura compartida**: reutilizar directamente `OpenRewriteRunner` y el ciclo de ejecución existente (`JavaRecipeExecutor`) para aplicar las nuevas recetas a los servicios generados, asegurando la misma interfaz MCP (`preview/apply`, métricas, validaciones de seguridad).【F:renovatio-provider-java/src/main/java/org/shark/renovatio/provider/java/OpenRewriteRunner.java†L12-L132】【F:renovatio-provider-java/src/main/java/org/shark/renovatio/provider/java/execution/JavaRecipeExecutor.java†L23-L169】
 3. **Descubrimiento y composición**: registrar las recetas COBOL en `OpenRewriteRecipeDiscoveryService` para exponerlas como herramientas MCP al igual que las de Java, aprovechando la activación dinámica, validaciones y marcado de recetas inseguras.【F:renovatio-provider-java/src/main/java/org/shark/renovatio/provider/java/discovery/OpenRewriteRecipeDiscoveryService.java†L22-L158】
-4. **Conversión de tipos y estado**: mantener una tabla `PIC` → tipos Java y un contexto de ejecución (`CobolExecutionContext`) que puedan inyectarse a las recetas para generar atributos, DTOs y parámetros adecuados.
+4. **Conversión de tipos y estado**: mantener una tabla `PIC` → tipos Java y un contexto de ejecución (`CobolExecutionContext`) que puedan inyectarse a las recetas para generar atributos, DTOs y parámetros adecuados. Integrar librerías de binding como **JRecord** (copybooks → POJOs/records) y **LegStar** (serialización COBOL ↔ Java) para garantizar que las recetas operen con metadata real sin romper el contrato de `Recipe`/`JavaIsoVisitor` definido por OpenRewrite.
 5. **Soporte DB2/archivos**:
    - Incluir recetas específicas para construir repositorios Spring Data/JDBC a partir de metadata COBOL.
    - Generar adaptadores de I/O mediante recetas que creen componentes Spring (`@Repository`, `@Component`) con la configuración necesaria.
@@ -80,8 +80,10 @@ Construir una canalización que transforme la **semántica** de los párrafos CO
 - **ProLeap** o **Koopa**: parsing COBOL y obtención de AST detallado.
 - **OpenRewrite** + **JavaPoet**: generación y refactorización de código Java.
 - **MapStruct**: mapeo automático de DTO ↔ estructuras COBOL.
+- **JRecord**: lectura de copybooks, mapping `PIC` ↔ tipos Java y generación de POJOs.
+- **LegStar**: binding COBOL ↔ Java y soporte para CICS/IMS.
 - **jOOQ** / **Spring Data JDBC**: traducción de sentencias DB2 a repositorios Java.
-- **LegStar** / **Spring Integration**: integración con CICS, MQ y servicios externos.
+- **Spring Integration** / **Apache Camel**: integración con MQ, colas y servicios externos.
 - **GnuCOBOL** (en pipelines CI) para validar resultados ejecutando el programa original.
 - **ANTLR** (opcional) para reglas específicas cuando ProLeap no cubra ciertas extensiones.
 
