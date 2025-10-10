@@ -1,0 +1,122 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+package "renovatio-mcp-server" {
+  package "org.shark.renovatio.mcp.server" {
+    class McpServerApplication <<SpringBootApp>> {
+      +main(args: String[]): void
+    }
+    class McpStdioServerApplication <<SpringBootApp>> {
+      +main(args: String[]): void
+    }
+  }
+
+  package "org.shark.renovatio.mcp.server.service" {
+    class McpProtocolService {
+      +listTools(params: Map): List<McpTool>
+      +callTool(method: String, args: Map): ToolCallResult
+    }
+
+    class McpToolingService {
+      -providerRegistry: LanguageProviderRegistry
+      -toolAdapter: McpToolAdapter
+      -prompts: List<McpPrompt>
+      -resources: List<McpResource>
+      +getMcpTools(): List<McpTool>
+      +executeToolWithEnvelope(name: String, args: Map): ToolCallResult
+    }
+
+    class McpToolAdapter {
+      +toMcpTool(tool: Tool): McpTool
+      +toMcpTools(tools: List<Tool>): List<McpTool>
+      -sanitizeToolName(name: String): String
+    }
+  }
+
+  package "org.shark.renovatio.mcp.server.model" {
+    class McpTool {
+      -name: String
+      -description: String
+      -inputSchema: Map<String,Object>
+      -metadata: Map<String,Object>
+    }
+    class McpPrompt
+    class McpResource
+    class ToolCallResult {
+      -summary: String
+      -success: boolean
+      -arguments: Map<String,Object>
+      -type: String
+      -timestamp: String
+      -data: Object
+    }
+  }
+
+  package "org.shark.renovatio.mcp.server.transport" {
+    class McpStdioServer {
+      +start(): java.util.concurrent.CompletableFuture<Void>
+    }
+  }
+}
+
+package "renovatio-core" {
+  package "org.shark.renovatio.core.service" {
+    class LanguageProviderRegistry {
+      +generateTools(): List<Tool>
+      +execute(capability: String, args: Map): Object
+    }
+  }
+}
+
+package "renovatio-shared" {
+  package "org.shark.renovatio.shared.domain" {
+    class Tool {
+      -name: String
+      -description: String
+      -inputSchema: Map<String,Object>
+      -metadata: Map<String,Object>
+    }
+  }
+}
+
+' Relaciones principales
+McpServerApplication --> McpProtocolService : "arranque HTTP"
+McpStdioServerApplication --> McpStdioServer : "arranque stdio"
+McpStdioServer --> McpProtocolService : "delegación de llamadas"
+
+McpProtocolService --> McpToolingService : "tools/list, tools/call"
+McpToolingService --> LanguageProviderRegistry : "agrega/ejecuta tools"
+McpToolingService --> McpToolAdapter : "convierte Tool -> McpTool"
+
+McpToolAdapter ..> Tool : "entrada"
+McpToolAdapter ..> McpTool : "salida"
+McpToolingService ..> McpTool
+McpToolingService ..> McpPrompt
+McpToolingService ..> McpResource
+McpProtocolService ..> ToolCallResult
+
+' Notas explicativas
+note right of McpToolAdapter
+  Mapeo de nombres para clientes:
+  - Sustituye '.' por '_' (p.ej. "java.analyze" -> "java_analyze")
+  - Preserva el nombre original en metadata.originalName
+end note
+
+note bottom of McpStdioServerApplication
+  En modo stdio, es necesario incluir
+  los paquetes de providers en el escaneo
+  de componentes (p.ej.:
+  org.shark.renovatio.provider.java,
+  org.shark.renovatio.provider.cobol)
+end note
+
+note bottom of LanguageProviderRegistry
+  Orquesta providers de lenguaje:
+  - Descubre/exponen tools
+  - Ejecuta capacidades (analyze, plan, apply, etc.)
+end note
+
+@enduml

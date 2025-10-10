@@ -1,0 +1,59 @@
+@startuml
+' Sequence diagram for HttpMcpController
+' Endpoints: POST /mcp (JSON-RPC 2.0), GET /mcp/health
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ArrowColor #2c3e50
+skinparam ParticipantBorderColor #2c3e50
+skinparam ParticipantBackgroundColor #ecf0f1
+skinparam SequenceMessageAlign center
+
+actor Client as C
+participant "HttpMcpController" as Ctrl
+participant "McpProtocolService" as ProtoSvc
+collections "Map<String,Object> (HTTP body)" as HttpBody
+entity "McpRequest" as McpReq
+entity "McpResponse" as McpResp
+collections "Map<String,Object> (HTTP response)" as HttpResp
+
+== POST /mcp ==
+C -> Ctrl: POST /mcp {jsonrpc,id,method,params}
+activate Ctrl
+Ctrl -> HttpBody: leer body
+Ctrl -> McpReq: new McpRequest()
+Ctrl -> McpReq: setJsonrpc(body.jsonrpc || "2.0")
+Ctrl -> McpReq: setId(as String from body.id)
+Ctrl -> McpReq: setMethod(body.method)
+Ctrl -> McpReq: setParams(body.params)
+
+Ctrl -> ProtoSvc: handleMcpRequest(McpRequest)
+activate ProtoSvc
+ProtoSvc --> Ctrl: McpResponse
+deactivate ProtoSvc
+
+alt Respuesta con éxito
+  Ctrl -> HttpResp: jsonrpc = response.jsonrpc
+  Ctrl -> HttpResp: id = (preservar formato si id original era int)
+  Ctrl -> HttpResp: result = response.result
+  Ctrl --> C: 200 OK {jsonrpc,id,result}
+else Respuesta con error
+  Ctrl -> HttpResp: jsonrpc = response.jsonrpc
+  Ctrl -> HttpResp: id = (preservar formato si id original era int)
+  Ctrl -> HttpResp: error = response.error
+  Ctrl --> C: 200 OK {jsonrpc,id,error}
+end
+
+Deactivate Ctrl
+
+== Error interno (catch) ==
+... en caso de excepción ...
+Ctrl -> HttpResp: {jsonrpc:"2.0", id(body.id), error{code:-32603, message}}
+Ctrl --> C: 200 OK {error}
+
+== GET /mcp/health ==
+C -> Ctrl: GET /mcp/health
+activate Ctrl
+Ctrl --> C: 200 OK {status:"UP", server:"Renovatio MCP Server", timestamp}
+Deactivate Ctrl
+
+@enduml

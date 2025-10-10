@@ -1,0 +1,109 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+package "org.shark.renovatio.mcp.server.model" {
+  ' Records y clases de modelo MCP
+  class McpTool {
+    name: String
+    description: String
+    inputSchema: Map<String,Object>
+    outputSchema: Map<String,Object>
+    parameters: List<Map<String,Object>>
+    example: Map<String,Object>
+    metadata: Map<String,Object>
+  }
+
+  class McpRequest {
+    jsonrpc: String = "2.0"
+    id: String
+    method: String
+    params: Object
+  }
+
+  class McpResponse {
+    jsonrpc: String = "2.0"
+    id: String
+    result: Object
+    error: McpError
+  }
+
+  class McpError {
+    code: int
+    message: String
+    data: Object
+  }
+
+  class McpResource {
+    uri: String
+    name: String
+    mimeType: String
+    text: String
+  }
+
+  class McpPrompt {
+    name: String
+    description: String
+    messages: List<Message>
+  }
+  class "McpPrompt.Message" as McpPromptMessage {
+    role: String
+    content: String
+  }
+
+  class McpCapabilities {
+    tools: ToolsCapability
+    prompts: PromptsCapability
+    resources: ResourcesCapability
+  }
+  class "McpCapabilities.ToolsCapability" as ToolsCapability {
+    listChanged: boolean = true
+  }
+  class "McpCapabilities.PromptsCapability" as PromptsCapability {
+    listChanged: boolean = true
+  }
+  class "McpCapabilities.ResourcesCapability" as ResourcesCapability {
+    listChanged: boolean = true
+  }
+
+  class Change <<record>> {
+    file: String
+    diff: String
+  }
+
+  class Issue <<record>> {
+    file: String
+    line: Integer
+    severity: String
+    type: String
+    message: String
+    recipe: String
+  }
+
+  class Metrics <<record>> {
+    values: Map<String,Object>
+  }
+
+  class TextContent <<record>> {
+    type: String = "text"
+    text: String
+  }
+
+  class ToolCallResult <<record>> {
+    content: List<TextContent>
+    structuredContent: Object
+    isError: boolean
+  }
+
+  ' Relaciones entre clases del modelo
+  McpResponse o-- McpError
+  McpPrompt *-- McpPromptMessage : messages
+  McpCapabilities *-- ToolsCapability
+  McpCapabilities *-- PromptsCapability
+  McpCapabilities *-- ResourcesCapability
+  ToolCallResult *-- "1..*" TextContent : content
+}
+
+@enduml
