@@ -7,6 +7,7 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.marker.SearchResult;
 import org.shark.renovatio.cobol.ir.model.*;
 
 import java.time.Duration;
@@ -56,10 +57,11 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
     private class TargetMethodPresent extends JavaIsoVisitor<ExecutionContext> {
         @Override
         public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-            if (isTargetMethod(method) && method.getBody() != null && containsTodo(method.getBody())) {
-                return method;
+            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
+            if (isTargetMethod(m)) {
+                return SearchResult.found(m);
             }
-            return method;
+            return m;
         }
     }
 
@@ -73,10 +75,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
             if (method.getBody() == null) {
                 return method;
             }
-            if (!containsTodo(method.getBody())) {
-                return method;
-            }
-            
+
             // Try to find a paragraph matching the method name
             CobolParagraph paragraph = findParagraphForMethod(method, model);
             if (paragraph == null) {
@@ -99,7 +98,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                 return method;
             }
             String bodyTemplate = buildBody(rendered, dtoType);
-            return method.withBody(JavaTemplateSupport.applyTemplate(getCursor(), method.getBody(), bodyTemplate));
+            return JavaTemplateSupport.replaceMethodBody(getCursor(), method, bodyTemplate);
         }
         
         private CobolParagraph findParagraphForMethod(J.MethodDeclaration method, CobolIntermediateModel model) {
@@ -208,12 +207,42 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
     }
 
     private String translateCondition(String condition) {
-        String javaCondition = condition
+        if (condition == null) return "false";
+        String raw = condition.replace("THEN", "").trim();
+        // Normalize common COBOL operators
+        raw = raw.replaceAll("(?i)NOT \\=", "<>");
+        // Pattern: LEFT OP RIGHT (supports identifiers with dashes/dots and numeric/string literals)
+        java.util.regex.Pattern p = java.util.regex.Pattern.compile("(?<left>[A-Za-z0-9_.-]+)\\s*(?<op>>=|<=|<>|=|>|<)\\s*(?<right>.+)");
+        java.util.regex.Matcher m = p.matcher(raw);
+        if (m.matches()) {
+            String left = m.group("left");
+            String op = m.group("op");
+            String right = m.group("right").trim();
+            String javaOp = switch (op) {
+                case "=" -> "==";
+                case "<>" -> "!=";
+                default -> op;
+            };
+            String leftExpr = toJavaIdentifierRef(left);
+            String rightExpr = toJavaExpression(right);
+            return leftExpr + " " + javaOp + " " + rightExpr;
+        }
+        // Fallback to previous behavior for complex expressions
+        String javaCondition = raw
                 .replace("=", "==")
-                .replace("<>", "!=")
-                .replace("NOT =", "!=")
-                .replace("THEN", "");
+                .replace("<>", "!=");
         return toJavaExpression(javaCondition.trim());
+    }
+
+    private String toJavaIdentifierRef(String ident) {
+        if (ident == null || ident.isBlank()) return ident;
+        // If it's a pure number or quoted string, delegate to toJavaExpression
+        String t = ident.trim();
+        if (t.matches("[0-9]+") || t.startsWith("\"") || t.startsWith("'")) {
+            return toJavaExpression(t);
+        }
+        // Map COBOL variable name to getter on input
+        return String.format(java.util.Locale.ROOT, "input.get%s()", toPascal(t));
     }
 
     private String translateExpression(String expression) {
@@ -232,8 +261,10 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
             return "null";
         }
         String trimmed = value.trim();
-        if (trimmed.startsWith("'")) {
-            return trimmed;
+        if (trimmed.startsWith("'") && trimmed.endsWith("'") && trimmed.length() >= 2) {
+            String inner = trimmed.substring(1, trimmed.length() - 1);
+            String escaped = inner.replace("\\", "\\\\").replace("\"", "\\\"");
+            return "\"" + escaped + "\"";
         }
         if (trimmed.matches("\".*\"")) {
             return trimmed;

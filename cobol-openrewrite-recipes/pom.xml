@@ -24,6 +24,13 @@
             <artifactId>rewrite-java</artifactId>
             <version>${openrewrite.version}</version>
         </dependency>
+        <!-- Provide Java parser runtime for tests (JDK 17). Required by JavaParser.fromJavaVersion() -->
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-java-17</artifactId>
+            <version>${openrewrite.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>

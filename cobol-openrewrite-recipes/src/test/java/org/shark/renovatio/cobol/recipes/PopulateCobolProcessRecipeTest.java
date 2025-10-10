@@ -65,7 +65,7 @@ class PopulateCobolProcessRecipeTest {
 
         assertThat(results).hasSize(1);
         String updated = results.get(0).getAfter().printAll();
-        assertThat(updated).contains("output.setCustomerName('JOHN');");
+        assertThat(updated).contains("output.setCustomerName(\"JOHN\");");
         assertThat(updated).contains("if (input.getCustomerRating() > 80)");
         assertThat(updated).doesNotContain("TODO");
     }
