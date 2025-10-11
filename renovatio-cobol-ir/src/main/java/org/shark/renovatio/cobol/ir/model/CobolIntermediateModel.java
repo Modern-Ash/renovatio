@@ -1,5 +1,7 @@
 package org.shark.renovatio.cobol.ir.model;
 
+import lombok.Getter;
+
 import org.shark.renovatio.cobol.ir.context.CobolExecutionContext;
 import org.shark.renovatio.cobol.ir.flow.ControlFlowGraph;
 
@@ -14,6 +16,7 @@ import java.util.Optional;
  * Immutable representation of a COBOL program that has been normalised into a
  * structure convenient for downstream translators.
  */
+@Getter
 public final class CobolIntermediateModel {
 
     private final String programId;
@@ -28,26 +31,6 @@ public final class CobolIntermediateModel {
         this.dataItems = List.copyOf(builder.dataItems);
         this.controlFlowGraph = builder.controlFlowGraph;
         this.executionContext = builder.executionContext;
-    }
-
-    public String getProgramId() {
-        return programId;
-    }
-
-    public Map<String, CobolParagraph> getParagraphs() {
-        return paragraphs;
-    }
-
-    public List<CobolDataItem> getDataItems() {
-        return dataItems;
-    }
-
-    public ControlFlowGraph getControlFlowGraph() {
-        return controlFlowGraph;
-    }
-
-    public CobolExecutionContext getExecutionContext() {
-        return executionContext;
     }
 
     public Optional<CobolParagraph> findParagraph(String name) {
