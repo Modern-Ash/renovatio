@@ -2,6 +2,8 @@
 
 Esta guía explica cómo aprovechar [GitHub Spec Kit](https://github.com/github/spec-kit) para documentar y coordinar iniciativas de modernización dentro del proyecto Renovatio. El objetivo es producir especificaciones claras que puedan convertirse rápidamente en issues, planes MCP y tareas de desarrollo.
 
+> **📖 Para una explicación completa de qué es Spec Kit y cómo puede mejorar Renovatio**, consulta [EXPLICACION-SPEC-KIT.md](./EXPLICACION-SPEC-KIT.md)
+
 ## 1. ¿Qué es GitHub Spec Kit?
 
 GitHub Spec Kit es un conjunto de plantillas, utilidades CLI y flujos de trabajo pensados para estandarizar especificaciones funcionales/técnicas. Permite crear "specs" iterables (borrador → revisión → ejecución) con metadatos listos para integrarse en GitHub Projects, Issues o Pull Requests.
@@ -76,7 +78,18 @@ La plantilla cubre:
 
 ## 7. Recursos adicionales
 
+### Documentación principal
+
+- **[EXPLICACION-SPEC-KIT.md](./EXPLICACION-SPEC-KIT.md)** - Explicación completa de Spec Kit y mejoras para Renovatio
+- **[specs/ejemplos/](./specs/ejemplos/)** - Especificaciones de ejemplo listas para usar
+
+### Referencias externas
+
 - [Repositorio oficial de GitHub Spec Kit](https://github.com/github/spec-kit)
+- [Documentación de Spec Kit](https://github.com/github/spec-kit#readme)
+
+### Documentación de Renovatio
+
 - Plantilla de Renovatio: [docs/specs/renovatio-spec-template.md](./specs/renovatio-spec-template.md)
 - Documentación general del proyecto: [README.md](../README.md), [ARCHITECTURE.md](../ARCHITECTURE.md)
 

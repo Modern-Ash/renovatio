@@ -260,8 +260,10 @@ A sample configuration file `vscode-mcp-config.json` is provided. Point it to th
 - **[schemas/](./schemas/)** - JSON schemas for configuration validation
 
 ### Planning & Specifications
-- **[docs/spec-kit-integracion.md](./docs/spec-kit-integracion.md)** - Guía para crear especificaciones con GitHub Spec Kit y Renovatio
-- **[docs/specs/](./docs/specs/)** - Plantillas y borradores versionados de especificaciones
+- **[docs/EXPLICACION-SPEC-KIT.md](./docs/EXPLICACION-SPEC-KIT.md)** - Qué es @github/spec-kit y cómo puede mejorar Renovatio
+- **[docs/spec-kit-integracion.md](./docs/spec-kit-integracion.md)** - Guía práctica para usar Spec Kit con Renovatio
+- **[docs/specs/](./docs/specs/)** - Plantillas y especificaciones de ejemplo
+- **[docs/specs/ejemplos/](./docs/specs/ejemplos/)** - Especificaciones de ejemplo listas para usar
 
 ### Tool Documentation
 - **Java Tools** - See section "Available MCP Tools" → "Java provider"
