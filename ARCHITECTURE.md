@@ -76,9 +76,11 @@ both standalone usage and MCP client integration.
 #### renovatio-provider-cobol
 
 - COBOL parsing and analysis
-- COBOL-to-Java migration
-- Code generation capabilities
-- Semantic translation pipeline powered by the COBOL IR and OpenRewrite recipes
+- COBOL-to-Java migration (templates-based code generation)
+- DB2-to-JPA code migration helpers (from embedded EXEC SQL)
+- Indexing and search with Apache Lucene for fast symbol/code lookup
+- Optional CICS integration (mock or real endpoint configurable)
+- Semantic translation pipeline powered by the COBOL IR and optional OpenRewrite recipes
 
 ### Supporting Modules
 
@@ -91,8 +93,15 @@ both standalone usage and MCP client integration.
 #### cobol-openrewrite-recipes
 
 - Custom OpenRewrite recipes that consume the COBOL IR
-- `PopulateCobolProcessRecipe` replaces service `process` method TODOs with Java statements derived from COBOL paragraphs
-- Recipes enforce Java 17 compatibility via `HasMinimumJavaVersion`
+- Post-generation refactoring to enforce modern Java idioms and structure
+- Java 17 compatibility helpers and guardrails
+
+## MCP Schemas & Configuration
+
+- JSON schemas for MCP configuration and tool calls are provided under `schemas/`:
+  - `schemas/mcp-config-schema.json`
+  - `schemas/mcp-tool-call-schema.json`
+- Prefer configuration via `application.yml` for providers and server settings (e.g., enable/disable providers, COBOL dialect, CICS settings).
 
 ## Runtime Modes
 
