@@ -2,6 +2,8 @@ package org.shark.renovatio.cobol.ir.context;
 
 import java.math.BigDecimal;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class CobolTypeMapper {
 
@@ -16,8 +18,10 @@ public final class CobolTypeMapper {
         if (normalized.startsWith("PIC")) {
             normalized = normalized.substring(3).trim();
         }
-        if (normalized.matches("9\\(\\d+\\)")) {
-            int digits = Integer.parseInt(normalized.replaceAll("[^0-9]", ""));
+        // Integer/Long/BigDecimal based on number of digits in 9(n)
+        Matcher intMatcher = Pattern.compile("9\\((\\d+)\\)").matcher(normalized);
+        if (intMatcher.matches()) {
+            int digits = Integer.parseInt(intMatcher.group(1));
             if (digits <= 9) {
                 return Integer.class.getSimpleName();
             }
@@ -26,6 +30,7 @@ public final class CobolTypeMapper {
             }
             return BigDecimal.class.getSimpleName();
         }
+        // Decimal types e.g., 9(n)V9+
         if (normalized.matches("9\\(\\d+\\)V9+")) {
             return BigDecimal.class.getSimpleName();
         }

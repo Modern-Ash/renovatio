@@ -32,6 +32,8 @@
         <jgit.version>6.7.0.202309050840-r</jgit.version>
         <antlr4.version>4.11.1</antlr4.version>
         <mustache.version>0.9.10</mustache.version>
+        <!-- Lombok for boilerplate reduction -->
+        <lombok.version>1.18.34</lombok.version>
     </properties>
 
     <modules>
@@ -178,6 +180,13 @@
                 <artifactId>antlr4</artifactId>
                 <version>${antlr4.version}</version>
             </dependency>
+
+            <!-- Lombok for boilerplate code generation -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -197,6 +206,23 @@
                             <recipe>org.openrewrite.java.format.AutoFormat</recipe>
                         </activeRecipes>
                         <configLocation>rewrite.yml</configLocation>
+                    </configuration>
+                </plugin>
+                <!-- Ensure Lombok annotation processing across all modules by default -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.11.0</version>
+                    <configuration>
+                        <source>${maven.compiler.source}</source>
+                        <target>${maven.compiler.target}</target>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
             </plugins>

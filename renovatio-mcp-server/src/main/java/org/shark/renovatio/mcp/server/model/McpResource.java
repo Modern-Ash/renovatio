@@ -1,8 +1,10 @@
 package org.shark.renovatio.mcp.server.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 @Schema(description = "MCP Resource metadata")
+@Data
 public class McpResource {
     @Schema(description = "Resource URI")
     private String uri;
@@ -23,38 +25,6 @@ public class McpResource {
         this.uri = uri;
         this.name = name;
         this.mimeType = mimeType;
-        this.text = text;
-    }
-
-    public String getUri() {
-        return uri;
-    }
-
-    public void setUri(String uri) {
-        this.uri = uri;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getMimeType() {
-        return mimeType;
-    }
-
-    public void setMimeType(String mimeType) {
-        this.mimeType = mimeType;
-    }
-
-    public String getText() {
-        return text;
-    }
-
-    public void setText(String text) {
         this.text = text;
     }
 }

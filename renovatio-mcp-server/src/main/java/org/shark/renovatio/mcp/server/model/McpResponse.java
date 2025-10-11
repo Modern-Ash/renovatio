@@ -2,8 +2,10 @@ package org.shark.renovatio.mcp.server.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 @Schema(description = "MCP JSON-RPC 2.0 Response")
+@Data
 public class McpResponse {
     @JsonProperty("jsonrpc")
     @Schema(description = "JSON-RPC version", example = "2.0")
@@ -28,38 +30,6 @@ public class McpResponse {
 
     public McpResponse(String id, McpError error) {
         this.id = id;
-        this.error = error;
-    }
-
-    public String getJsonrpc() {
-        return jsonrpc;
-    }
-
-    public void setJsonrpc(String jsonrpc) {
-        this.jsonrpc = jsonrpc;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public Object getResult() {
-        return result;
-    }
-
-    public void setResult(Object result) {
-        this.result = result;
-    }
-
-    public McpError getError() {
-        return error;
-    }
-
-    public void setError(McpError error) {
         this.error = error;
     }
 }

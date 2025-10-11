@@ -6,7 +6,6 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
-import org.openrewrite.marker.SearchResult;
 import org.shark.renovatio.cobol.ir.model.*;
 
 import java.time.Duration;
@@ -54,17 +53,6 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
     public TreeVisitor<?, ExecutionContext> getVisitor() {
         // Apply to all methods; internal logic will decide which methods to transform
         return new PopulateVisitor();
-    }
-
-    private class TargetMethodPresent extends JavaIsoVisitor<ExecutionContext> {
-        @Override
-        public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method, ExecutionContext ctx) {
-            J.MethodDeclaration m = super.visitMethodDeclaration(method, ctx);
-            if (isTargetMethod(m)) {
-                return SearchResult.found(m);
-            }
-            return m;
-        }
     }
 
     private class PopulateVisitor extends JavaIsoVisitor<ExecutionContext> {
@@ -297,10 +285,10 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
 
     private String renderCall(CallStatement call) {
         StringBuilder builder = new StringBuilder();
-        builder.append("// CALL ").append(call.getTarget());
-        if (!call.getArguments().isEmpty()) {
+        builder.append("// CALL ").append(call.target());
+        if (!call.arguments().isEmpty()) {
             builder.append(" USING ")
-                    .append(String.join(", ", call.getArguments()));
+                    .append(String.join(", ", call.arguments()));
         }
         return builder.toString();
     }

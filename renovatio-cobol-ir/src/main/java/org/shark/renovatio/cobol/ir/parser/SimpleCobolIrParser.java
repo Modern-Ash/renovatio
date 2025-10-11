@@ -31,10 +31,22 @@ public class SimpleCobolIrParser {
 
     private static final Pattern PROGRAM_ID_PATTERN = Pattern.compile("PROGRAM-ID\\.\\s*([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern DATA_ITEM_PATTERN = Pattern.compile("(?m)^\\s*(0[1-9]|[1-4][0-9])\\s+([A-Z0-9-]+)(?:\\s+REDEFINES\\s+([A-Z0-9-]+))?\\s+PIC\\s+([^\\.]+)\\.");
+    // Keep paragraph pattern for potential future use, but we'll prefer manual scan to avoid false positives
     private static final Pattern PARAGRAPH_PATTERN = Pattern.compile(
-            "(?ms)^(?<!-) {0,6}(?!IF\\b|ELSE\\b|END-IF\\b|MOVE\\b|COMPUTE\\b|EVALUATE\\b|PERFORM\\b|CALL\\b|GOBACK\\b|STOP\\b|EXIT\\b)([A-Z][A-Z0-9-]*)\\.(.*?)(?=^(?<!-) {0,6}(?!IF\\b|ELSE\\b|END-IF\\b|MOVE\\b|COMPUTE\\b|EVALUATE\\b|PERFORM\\b|CALL\\b|GOBACK\\b|STOP\\b|EXIT\\b)[A-Z][A-Z0-9-]*\\.|\\Z)"
+            "(?ms)^\\s*([A-Z][A-Z0-9-]*)\\.(.*?)(?=^\\s*[A-Z][A-Z0-9-]*\\.|\\Z)"
     );
     private static final Pattern EXEC_SQL_PATTERN = Pattern.compile("EXEC\\s+SQL(.*?)END-EXEC", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+
+    private static final Pattern ENTRY_BLOCK_PATTERN = Pattern.compile(
+            "ENTRY\\s+[\"']([^\"']+)[\"'](?:\\s+USING\\s+([A-Za-z0-9-]+))?\\s*\\.(.*?)(?=ENTRY\\s+[\"']|\\Z)",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
+    );
+
+    private static final Set<String> RESERVED_PARAGRAPH_TOKENS = Set.of(
+            "IF", "ELSE", "MOVE", "COMPUTE", "EVALUATE", "PERFORM", "CALL", "GOBACK", "STOP", "EXIT",
+            "EXEC", "READ", "WRITE", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "ENTRY"
+    );
+    private static final Set<String> EXCLUDED_END_HEADERS = Set.of("END-IF", "END-EVALUATE", "END-EXEC");
 
     public CobolIntermediateModel parse(Path cobolFile) throws IOException {
         String source = Files.readString(cobolFile);
@@ -111,49 +123,75 @@ public class SimpleCobolIrParser {
     private Map<String, CobolParagraph> extractParagraphs(String source) {
         String procedureDiv = extractProcedureDivision(source);
         Map<String, CobolParagraph> paragraphs = new LinkedHashMap<>();
-        
-        // First, extract ENTRY statements
+
+        // First, extract ENTRY statements and remove them from the source to avoid interference
         Map<String, CobolParagraph> entryParagraphs = extractEntryParagraphs(procedureDiv);
         paragraphs.putAll(entryParagraphs);
-        
-        // Then, extract regular paragraphs
-        Matcher matcher = PARAGRAPH_PATTERN.matcher(procedureDiv);
-        while (matcher.find()) {
-            String name = matcher.group(1).toUpperCase(Locale.ROOT);
-            String body = matcher.group(2);
-            List<CobolStatement> statements = parseStatements(body);
-            paragraphs.put(name, new CobolParagraph(name, statements));
+        String procedureWithoutEntries = removeEntryBlocks(procedureDiv);
+
+        // Manual scan for paragraph headers to avoid misclassifying END-* and other statements as headers
+        List<String> lines = Arrays.asList(procedureWithoutEntries.split("\n", -1));
+        String currentHeader = null;
+        StringBuilder currentBody = new StringBuilder();
+
+        for (int idx = 0; idx < lines.size(); idx++) {
+            String rawLine = lines.get(idx);
+            String line = rawLine.stripLeading();
+            if (line.isEmpty()) {
+                if (currentHeader != null) currentBody.append(rawLine).append('\n');
+                continue;
+            }
+            Matcher headerMatcher = Pattern.compile("^([A-Z][A-Z0-9-]*)\\.$").matcher(line);
+            if (headerMatcher.find()) {
+                String candidate = headerMatcher.group(1).toUpperCase(Locale.ROOT);
+                boolean isReserved = RESERVED_PARAGRAPH_TOKENS.contains(candidate) || EXCLUDED_END_HEADERS.contains(candidate);
+                if (!isReserved) {
+                    // flush previous
+                    if (currentHeader != null) {
+                        List<CobolStatement> statements = parseStatements(currentBody.toString());
+                        paragraphs.put(currentHeader, new CobolParagraph(currentHeader, statements));
+                    }
+                    currentHeader = candidate;
+                    currentBody.setLength(0);
+                    continue;
+                }
+            }
+            if (currentHeader != null) {
+                currentBody.append(rawLine).append('\n');
+            }
         }
-        
+        if (currentHeader != null) {
+            List<CobolStatement> statements = parseStatements(currentBody.toString());
+            paragraphs.put(currentHeader, new CobolParagraph(currentHeader, statements));
+        }
+
         if (paragraphs.isEmpty()) {
             paragraphs.put("MAIN", CobolParagraph.empty("MAIN"));
         }
         return paragraphs;
     }
-    
+
+    private String removeEntryBlocks(String source) {
+        Matcher m = ENTRY_BLOCK_PATTERN.matcher(source);
+        StringBuffer sb = new StringBuffer();
+        while (m.find()) {
+            m.appendReplacement(sb, "");
+        }
+        m.appendTail(sb);
+        return sb.toString();
+    }
+
     private Map<String, CobolParagraph> extractEntryParagraphs(String source) {
         Map<String, CobolParagraph> entries = new LinkedHashMap<>();
-        // Pattern to match ENTRY "name" USING ... and capture everything until next ENTRY or end
-        Pattern entryPattern = Pattern.compile(
-            "ENTRY\\s+[\"']([^\"']+)[\"'](?:\\s+USING\\s+([A-Za-z0-9-]+))?\\s*\\.(.*?)(?=ENTRY\\s+[\"']|\\Z)",
-            Pattern.CASE_INSENSITIVE | Pattern.DOTALL
-        );
-        
-        Matcher matcher = entryPattern.matcher(source);
+        Matcher matcher = ENTRY_BLOCK_PATTERN.matcher(source);
         while (matcher.find()) {
             String entryName = matcher.group(1).toUpperCase(Locale.ROOT);
-            String usingParam = matcher.group(2);
             String body = matcher.group(3);
-            
-            // Remove "exit program" and everything after it
             int exitIdx = body.toLowerCase(Locale.ROOT).indexOf("exit program");
             if (exitIdx > 0) {
                 body = body.substring(0, exitIdx);
             }
-            
-            // Remove leading/trailing whitespace and periods
             body = body.trim();
-            
             if (!body.isEmpty()) {
                 List<CobolStatement> statements = parseStatements(body);
                 entries.put(entryName, new CobolParagraph(entryName, statements));
@@ -188,7 +226,8 @@ public class SimpleCobolIrParser {
                 continue;
             }
             if (upperLine.startsWith("PERFORM")) {
-                statements.add(parsePerform(line));
+                PerformStatement ps = parsePerform(line);
+                statements.add(ps);
                 continue;
             }
             if (upperLine.startsWith("CALL")) {

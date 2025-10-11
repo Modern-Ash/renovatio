@@ -8,6 +8,7 @@ open module org.shark.renovatio.core {
     requires org.apache.pdfbox;
     requires org.slf4j;
     requires io.swagger.v3.oas.annotations;
+    requires static lombok;
 
     exports org.shark.renovatio.core.dto;
     exports org.shark.renovatio.core.entity;

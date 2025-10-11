@@ -238,6 +238,18 @@ A sample configuration file `vscode-mcp-config.json` is provided. Point it to th
 
 ---
 
+## Lombok migration notes
+
+This repository now uses Lombok to remove boilerplate (getters, setters, toString, and simple constructors) in core DTOs and models.
+
+- Annotation processors: ensure they are enabled in your IDE. In IntelliJ IDEA: Settings → Build, Execution, Deployment → Compiler → Annotation Processors → Enable annotation processing. Install the Lombok plugin if prompted.
+- JPMS (module-info.java): modules that use Lombok declare `requires static lombok;` so compilation works while keeping Lombok optional at runtime.
+- Build tooling: Maven is configured to include Lombok as an annotation processor; no extra steps are needed.
+
+If you introduce new POJOs, prefer Lombok annotations (e.g., `@Data`, or `@Getter/@Setter` plus `@NoArgsConstructor/@AllArgsConstructor`) and keep any custom setters where defensive copies are needed.
+
+---
+
 ## 📖 Documentation Index
 
 ### Getting Started

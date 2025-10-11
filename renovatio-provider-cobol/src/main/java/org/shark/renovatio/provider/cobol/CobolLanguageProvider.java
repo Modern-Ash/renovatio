@@ -78,6 +78,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     private final MetricsService metricsService;
     private final TemplateCodeGenerationService templateCodeGenerationService;
     private final Db2MigrationService db2MigrationService;
+    private final IndexingService indexingService;
 
     public CobolLanguageProvider(
             CobolParsingService parsingService,
@@ -272,7 +273,6 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
             case CAP_MIGRATE_DB2:
                 return handleMigrateDb2(arguments);
             default:
-                Map<String, Object> o = null;
                 return null; // Not handled here, allow default routing
         }
     }
@@ -424,4 +424,3 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         return r;
     }
 }
-
