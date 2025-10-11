@@ -117,6 +117,12 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     @Override
     public AnalyzeResult analyze(NqlQuery query, Workspace workspace) {
         try {
+            // Index workspace for fast search on subsequent operations; ignore failures
+            try {
+                indexingService.indexWorkspace(workspace);
+            } catch (Exception ignored) {
+                // Best-effort: indexing failures shouldn't block analysis
+            }
             return parsingService.analyzeCOBOL(query, workspace);
         } catch (Exception e) {
             AnalyzeResult result;
