@@ -47,6 +47,18 @@ specification.
 
 ---
 
+## Module READMEs
+
+- [renovatio-shared](./renovatio-shared/README.md) — Shared DTOs, SPI interfaces, utilities, and NQL grammar.
+- [renovatio-core](./renovatio-core/README.md) — Core MCP engine, tool catalog, and NQL routing.
+- [renovatio-provider-java](./renovatio-provider-java/README.md) — Java provider with OpenRewrite integration.
+- [renovatio-provider-cobol](./renovatio-provider-cobol/README.md) — COBOL provider (parsing, metrics, migration to Java).
+- [renovatio-cobol-ir](./renovatio-cobol-ir/README.md) — COBOL Intermediate Representation and utilities.
+- [cobol-openrewrite-recipes](./cobol-openrewrite-recipes/README.md) — OpenRewrite recipes for post-generation refactoring.
+- [renovatio-mcp-server](./renovatio-mcp-server/README.md) — Spring Boot MCP server exposing providers and tools.
+
+---
+
 ## Technology Stack
 
 - **Java 17+**: Core platform
