@@ -259,6 +259,10 @@ A sample configuration file `vscode-mcp-config.json` is provided. Point it to th
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design principles
 - **[schemas/](./schemas/)** - JSON schemas for configuration validation
 
+### Planning & Specifications
+- **[docs/spec-kit-integracion.md](./docs/spec-kit-integracion.md)** - Guía para crear especificaciones con GitHub Spec Kit y Renovatio
+- **[docs/specs/](./docs/specs/)** - Plantillas y borradores versionados de especificaciones
+
 ### Tool Documentation
 - **Java Tools** - See section "Available MCP Tools" → "Java provider"
 - **COBOL Tools** - See section "Available MCP Tools" → "COBOL provider"
