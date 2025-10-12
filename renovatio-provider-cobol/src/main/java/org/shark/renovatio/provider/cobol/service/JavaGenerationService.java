@@ -300,10 +300,7 @@ public class JavaGenerationService {
                             .addAnnotation(Override.class)
                             .addParameter(dtoClass, "input")
                             .returns(dtoClass)
-                            .addStatement("// TODO: Implement COBOL business logic for ENTRY $L", entryName)
                             .addStatement("$T out = new $T()", dtoClass, dtoClass)
-                            .addStatement("// Placeholder setter to be replaced by semantic transpiler if available")
-                            .addStatement("out.setResult(null)")
                             .addStatement("return out")
                             .build();
                     classBuilder.addMethod(entryMethod);
@@ -316,8 +313,6 @@ public class JavaGenerationService {
                     .addAnnotation(Override.class)
                     .addParameter(dtoClass, "input")
                     .returns(dtoClass)
-                    .addStatement("// TODO: Implement COBOL business logic")
-                    .addStatement("// Original COBOL program: $L", cleanClassName)
                     .addStatement("$T output = new $T()", dtoClass, dtoClass)
                     .addStatement("return output")
                     .build();

@@ -73,10 +73,6 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 paragraph = model.getEntryParagraph();
             }
             
-            List<String> rendered = renderParagraph(paragraph, model, new LinkedHashSet<>(), null);
-            if (rendered.isEmpty()) {
-                return method;
-            }
             String returnType = method.getReturnTypeExpression() != null
                     ? method.getReturnTypeExpression().printTrimmed(getCursor())
                     : "void";
@@ -99,7 +95,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
             }
 
             // Re-render with the chosen variable name
-            rendered = renderParagraph(paragraph, model, new LinkedHashSet<>(), dtoVarName);
+            List<String> rendered = renderParagraph(paragraph, model, new LinkedHashSet<>(), dtoVarName);
 
             String bodyTemplate = buildBody(rendered, dtoType, dtoVarName);
             return JavaTemplateSupport.replaceMethodBody(getCursor(), method, bodyTemplate);
