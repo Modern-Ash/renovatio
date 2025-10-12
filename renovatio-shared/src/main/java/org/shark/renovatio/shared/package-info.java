@@ -1,8 +1,7 @@
 /**
- * Core shared abstractions and infrastructure that are reused across Renovatio modules.
+ * Renovatio shared root package.
  * <p>
- * This package exposes lightweight building blocks such as value objects, enums and
- * cross-cutting services that are safe to depend on from providers and higher level modules.
- * Keeping the documentation co-located helps preserve a clear architectural contract.
+ * Provides cross-cutting, protocol-agnostic building blocks that are reused by core, providers,
+ * and the MCP server. All exported APIs are designed to be stable and MCP-compliant.
  */
 package org.shark.renovatio.shared;

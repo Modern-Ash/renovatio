@@ -1,7 +1,9 @@
 /**
- * Service Provider Interfaces (SPI) that describe the contract a language provider must implement.
+ * Service Provider Interfaces (SPI) defining contracts for language providers and tools.
  * <p>
- * Implementations in provider modules plug into these abstractions to contribute new tooling
- * capabilities without leaking implementation details.
+ * These are stable, MCP-compliant abstractions implemented by provider modules. Keep interfaces
+ * small and focused, avoid leaking implementation details, and prefer additive evolution.
+ * <p>
+ * All documentation and identifiers are written in English.
  */
 package org.shark.renovatio.shared.spi;
