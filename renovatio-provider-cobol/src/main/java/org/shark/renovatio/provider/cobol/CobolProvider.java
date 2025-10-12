@@ -16,6 +16,93 @@ import java.util.*;
 // @Component
 public class CobolProvider extends BaseLanguageProvider {
 
+    // --- Constants: language, tool names, descriptions, metadata keys/values, messages ---
+    private static final String LANGUAGE = "cobol";
+
+    // Tool names
+    private static final String TOOL_ANALYZE = "cobol.analyze";
+    private static final String TOOL_METRICS = "cobol.metrics";
+    private static final String TOOL_DIFF = "cobol.diff";
+    private static final String TOOL_STUBS = "cobol.stubs_generate";
+
+    // Tool descriptions
+    private static final String DESC_ANALYZE = "Analyze COBOL source code";
+    private static final String DESC_METRICS = "Calculate COBOL code metrics";
+    private static final String DESC_DIFF = "Generate semantic diff for COBOL code";
+    private static final String DESC_STUBS = "Generate Java stubs/adapters for COBOL interfaces";
+
+    // Metadata keys
+    private static final String META_PARAMETERS = "parameters";
+    private static final String META_CAPABILITY = "capability";
+    private static final String META_WORKFLOW_PHASE = "workflowPhase";
+    private static final String META_LANGUAGE = "language";
+    private static final String META_DISPLAY_NAME = "displayName";
+
+    // Common values
+    private static final String VALUE_ANALYZE = "analyze";
+    private static final String VALUE_METRICS = "metrics";
+    private static final String VALUE_DIFF = "diff";
+    private static final String VALUE_STUBS = "stubs";
+    private static final String PHASE_ANALYSIS = "analysis";
+    private static final String PHASE_BASELINE = "baseline";
+    private static final String PHASE_REVIEW = "review";
+    private static final String PHASE_REFACTOR = "refactor";
+
+    // Schema keys
+    private static final String SCHEMA_TYPE = "type";
+    private static final String SCHEMA_OBJECT = "object";
+    private static final String SCHEMA_PROPERTIES = "properties";
+    private static final String SCHEMA_REQUIRED = "required";
+    private static final String SCHEMA_EXAMPLE = "example";
+    private static final String SCHEMA_DESCRIPTION = "description";
+    private static final String SCHEMA_STRING = "string";
+
+    // Common field keys
+    private static final String FIELD_WORKSPACE_PATH = "workspacePath";
+    private static final String FIELD_RUN_ID = "runId";
+    private static final String FIELD_TARGET_LANGUAGE = "targetLanguage";
+    private static final String FIELD_NAME = "name";
+
+    // Display names
+    private static final String DISPLAY_ANALYZE = "Analyze COBOL code";
+    private static final String DISPLAY_METRICS = "Collect COBOL metrics";
+    private static final String DISPLAY_DIFF = "Review COBOL changes";
+    private static final String DISPLAY_STUBS = "Generate COBOL interface stubs";
+
+    // Messages
+    private static final String MSG_PLAN_UNSUPPORTED = "Direct planning not supported for COBOL. Use generateStubs instead.";
+    private static final String MSG_APPLY_UNSUPPORTED = "Direct application not supported for COBOL. Use generateStubs instead.";
+    private static final String MSG_DIFF_OK = "COBOL diff generated";
+    private static final String MSG_METRICS_OK = "COBOL metrics calculated";
+    private static final String MSG_ANALYZE_FAILED_PREFIX = "COBOL analysis failed: ";
+    private static final String MSG_PARSED_FILES_FMT = "Parsed %d COBOL files";
+    private static final String MSG_STUBS_OK = "Java stubs generated for COBOL interfaces";
+    private static final String MSG_TODO_COBOL_INTERFACE = "TODO: Implement COBOL interface";
+
+    // Metrics/detail keys
+    private static final String METRIC_LOC = "linesOfCode";
+    private static final String METRIC_CYCLO = "cyclomaticComplexity";
+    private static final String METRIC_NUM_PROGRAMS = "numberOfPrograms";
+    private static final String METRIC_NUM_PROCEDURES = "numberOfProcedures";
+    private static final String METRIC_COPYBOOK_USAGE = "copybookUsage";
+
+    private static final String DETAIL_COMPLEX_PROCS = "complexProcedures";
+    private static final String DETAIL_UNUSED_VARS = "unusedVariables";
+    private static final String DETAIL_IO_OPS = "ioOperations";
+
+    // AST keys
+    private static final String AST_PROGRAMS = "programs";
+    private static final String AST_FILE_COUNT = "fileCount";
+
+    // Diff keys
+    private static final String DIFF_PROCEDURES_ADDED = "proceduresAdded";
+    private static final String DIFF_PROCEDURES_MODIFIED = "proceduresModified";
+    private static final String DIFF_COPYBOOKS_CHANGED = "copybooksChanged";
+
+    // Other
+    private static final String DIALECT_KEY = "dialect";
+    private static final String TARGET_LANG_JAVA = "java";
+
     private final CobolParsingService parsingService;
 
     public CobolProvider(CobolParsingService parsingService) {
@@ -24,7 +111,7 @@ public class CobolProvider extends BaseLanguageProvider {
 
     @Override
     public String language() {
-        return "cobol";
+        return LANGUAGE;
     }
 
     @Override
@@ -53,15 +140,15 @@ public class CobolProvider extends BaseLanguageProvider {
             }
 
             Map<String, Object> ast = new HashMap<>();
-            ast.put("programs", astPrograms);
-            ast.put("fileCount", cobolFiles.size());
+            ast.put(AST_PROGRAMS, astPrograms);
+            ast.put(AST_FILE_COUNT, cobolFiles.size());
             result.setAst(ast);
 
             result.setSuccess(true);
-            result.setMessage("Parsed " + cobolFiles.size() + " COBOL files");
+            result.setMessage(String.format(MSG_PARSED_FILES_FMT, cobolFiles.size()));
         } catch (Exception e) {
             result.setSuccess(false);
-            result.setMessage("COBOL analysis failed: " + e.getMessage());
+            result.setMessage(MSG_ANALYZE_FAILED_PREFIX + e.getMessage());
         }
         return result;
     }
@@ -69,7 +156,7 @@ public class CobolProvider extends BaseLanguageProvider {
     @Override
     public PlanResult plan(NqlQuery query, Scope scope, Workspace workspace) {
         // COBOL provider doesn't support direct planning
-        PlanResult result = new PlanResult(false, "Direct planning not supported for COBOL. Use generateStubs instead.");
+        PlanResult result = new PlanResult(false, MSG_PLAN_UNSUPPORTED);
         result.setRunId(generateRunId());
         return result;
     }
@@ -77,14 +164,14 @@ public class CobolProvider extends BaseLanguageProvider {
     @Override
     public ApplyResult apply(String planId, boolean dryRun, Workspace workspace) {
         // COBOL provider doesn't support direct application
-        ApplyResult result = new ApplyResult(false, "Direct application not supported for COBOL. Use generateStubs instead.");
+        ApplyResult result = new ApplyResult(false, MSG_APPLY_UNSUPPORTED);
         result.setRunId(generateRunId());
         return result;
     }
 
     @Override
     public DiffResult diff(String runId, Workspace workspace) {
-        DiffResult result = new DiffResult(true, "COBOL diff generated");
+        DiffResult result = new DiffResult(true, MSG_DIFF_OK);
         result.setRunId(runId);
 
         // Would use GumTree for semantic diffs as mentioned in requirements
@@ -92,9 +179,9 @@ public class CobolProvider extends BaseLanguageProvider {
         result.setUnifiedDiff(unifiedDiff);
 
         Map<String, Object> semanticDiff = new HashMap<>();
-        semanticDiff.put("proceduresAdded", 1);
-        semanticDiff.put("proceduresModified", 2);
-        semanticDiff.put("copybooksChanged", 1);
+        semanticDiff.put(DIFF_PROCEDURES_ADDED, 1);
+        semanticDiff.put(DIFF_PROCEDURES_MODIFIED, 2);
+        semanticDiff.put(DIFF_COPYBOOKS_CHANGED, 1);
         result.setSemanticDiff(semanticDiff);
 
         return result;
@@ -102,9 +189,9 @@ public class CobolProvider extends BaseLanguageProvider {
 
     @Override
     public Optional<StubResult> generateStubs(NqlQuery query, Workspace workspace) {
-        StubResult result = new StubResult(true, "Java stubs generated for COBOL interfaces");
+        StubResult result = new StubResult(true, MSG_STUBS_OK);
         result.setRunId(generateRunId());
-        result.setTargetLanguage("java");
+        result.setTargetLanguage(TARGET_LANG_JAVA);
 
         // Would use JavaPoet/templates as mentioned in requirements
         Map<String, String> generatedFiles = new HashMap<>();
@@ -123,21 +210,21 @@ public class CobolProvider extends BaseLanguageProvider {
 
     @Override
     public MetricsResult metrics(Scope scope, Workspace workspace) {
-        MetricsResult result = new MetricsResult(true, "COBOL metrics calculated");
+        MetricsResult result = new MetricsResult(true, MSG_METRICS_OK);
         result.setRunId(generateRunId());
 
         Map<String, Number> metrics = new HashMap<>();
-        metrics.put("linesOfCode", 2800);
-        metrics.put("cyclomaticComplexity", 12.3);
-        metrics.put("numberOfPrograms", 5);
-        metrics.put("numberOfProcedures", 45);
-        metrics.put("copybookUsage", 8);
+        metrics.put(METRIC_LOC, 2800);
+        metrics.put(METRIC_CYCLO, 12.3);
+        metrics.put(METRIC_NUM_PROGRAMS, 5);
+        metrics.put(METRIC_NUM_PROCEDURES, 45);
+        metrics.put(METRIC_COPYBOOK_USAGE, 8);
         result.setMetrics(metrics);
 
         Map<String, Object> details = new HashMap<>();
-        details.put("complexProcedures", Arrays.asList("PROCESS-TRANSACTIONS", "VALIDATE-CUSTOMER", "CALCULATE-TOTALS"));
-        details.put("unusedVariables", Arrays.asList("WS-TEMP", "WS-UNUSED"));
-        details.put("ioOperations", 15);
+        details.put(DETAIL_COMPLEX_PROCS, Arrays.asList("PROCESS-TRANSACTIONS", "VALIDATE-CUSTOMER", "CALCULATE-TOTALS"));
+        details.put(DETAIL_UNUSED_VARS, Arrays.asList("WS-TEMP", "WS-UNUSED"));
+        details.put(DETAIL_IO_OPS, 15);
         result.setDetails(details);
 
         return result;
@@ -149,146 +236,146 @@ public class CobolProvider extends BaseLanguageProvider {
 
         // Analyze tool
         BasicTool analyzeTool = new BasicTool(
-                "cobol.analyze",
-                "Analyze COBOL source code",
+                TOOL_ANALYZE,
+                DESC_ANALYZE,
                 Map.of(
-                        "type", "object",
-                        "properties", Map.of(
-                                "workspacePath", Map.of(
-                                        "description", "Path to the workspace directory to analyze",
-                                        "type", "string"
+                        SCHEMA_TYPE, SCHEMA_OBJECT,
+                        SCHEMA_PROPERTIES, Map.of(
+                                FIELD_WORKSPACE_PATH, Map.of(
+                                        SCHEMA_DESCRIPTION, "Path to the workspace directory to analyze",
+                                        SCHEMA_TYPE, SCHEMA_STRING
                                 )
                         ),
-                        "required", List.of("workspacePath"),
-                        "example", Map.of("workspacePath", "/path/to/cobol/workspace")
+                        SCHEMA_REQUIRED, List.of(FIELD_WORKSPACE_PATH),
+                        SCHEMA_EXAMPLE, Map.of(FIELD_WORKSPACE_PATH, "/path/to/cobol/workspace")
                 )
         );
-        analyzeTool.getMetadata().put("parameters", List.of(
+        analyzeTool.getMetadata().put(META_PARAMETERS, List.of(
                 Map.of(
-                        "name", "workspacePath",
-                        "description", "Path to the workspace directory to analyze",
-                        "type", "string",
+                        FIELD_NAME, FIELD_WORKSPACE_PATH,
+                        SCHEMA_DESCRIPTION, "Path to the workspace directory to analyze",
+                        SCHEMA_TYPE, SCHEMA_STRING,
                         "required", true
                 )
         ));
-        analyzeTool.getMetadata().put("example", Map.of("workspacePath", "/path/to/cobol/workspace"));
-        analyzeTool.getMetadata().put("capability", "analyze");
-        analyzeTool.getMetadata().put("workflowPhase", "analysis");
-        analyzeTool.getMetadata().put("language", language());
-        analyzeTool.getMetadata().put("displayName", "Analyze COBOL code");
+        analyzeTool.getMetadata().put(SCHEMA_EXAMPLE, Map.of(FIELD_WORKSPACE_PATH, "/path/to/cobol/workspace"));
+        analyzeTool.getMetadata().put(META_CAPABILITY, VALUE_ANALYZE);
+        analyzeTool.getMetadata().put(META_WORKFLOW_PHASE, PHASE_ANALYSIS);
+        analyzeTool.getMetadata().put(META_LANGUAGE, language());
+        analyzeTool.getMetadata().put(META_DISPLAY_NAME, DISPLAY_ANALYZE);
         tools.add(analyzeTool);
 
         // Metrics tool
         BasicTool metricsTool = new BasicTool(
-                "cobol.metrics",
-                "Calculate COBOL code metrics",
+                TOOL_METRICS,
+                DESC_METRICS,
                 Map.of(
-                        "type", "object",
-                        "properties", Map.of(
-                                "workspacePath", Map.of(
-                                        "description", "Path to the workspace directory to analyze",
-                                        "type", "string"
+                        SCHEMA_TYPE, SCHEMA_OBJECT,
+                        SCHEMA_PROPERTIES, Map.of(
+                                FIELD_WORKSPACE_PATH, Map.of(
+                                        SCHEMA_DESCRIPTION, "Path to the workspace directory to analyze",
+                                        SCHEMA_TYPE, SCHEMA_STRING
                                 )
                         ),
-                        "required", List.of("workspacePath"),
-                        "example", Map.of("workspacePath", "/path/to/cobol/workspace")
+                        SCHEMA_REQUIRED, List.of(FIELD_WORKSPACE_PATH),
+                        SCHEMA_EXAMPLE, Map.of(FIELD_WORKSPACE_PATH, "/path/to/cobol/workspace")
                 )
         );
-        metricsTool.getMetadata().put("parameters", List.of(
+        metricsTool.getMetadata().put(META_PARAMETERS, List.of(
                 Map.of(
-                        "name", "workspacePath",
-                        "description", "Path to the workspace directory to analyze",
-                        "type", "string",
+                        FIELD_NAME, FIELD_WORKSPACE_PATH,
+                        SCHEMA_DESCRIPTION, "Path to the workspace directory to analyze",
+                        SCHEMA_TYPE, SCHEMA_STRING,
                         "required", true
                 )
         ));
-        metricsTool.getMetadata().put("example", Map.of("workspacePath", "/path/to/cobol/workspace"));
-        metricsTool.getMetadata().put("capability", "metrics");
-        metricsTool.getMetadata().put("workflowPhase", "baseline");
-        metricsTool.getMetadata().put("language", language());
-        metricsTool.getMetadata().put("displayName", "Collect COBOL metrics");
+        metricsTool.getMetadata().put(SCHEMA_EXAMPLE, Map.of(FIELD_WORKSPACE_PATH, "/path/to/cobol/workspace"));
+        metricsTool.getMetadata().put(META_CAPABILITY, VALUE_METRICS);
+        metricsTool.getMetadata().put(META_WORKFLOW_PHASE, PHASE_BASELINE);
+        metricsTool.getMetadata().put(META_LANGUAGE, language());
+        metricsTool.getMetadata().put(META_DISPLAY_NAME, DISPLAY_METRICS);
         tools.add(metricsTool);
 
         // Diff tool
         BasicTool diffTool = new BasicTool(
-                "cobol.diff",
-                "Generate semantic diff for COBOL code",
+                TOOL_DIFF,
+                DESC_DIFF,
                 Map.of(
-                        "type", "object",
-                        "properties", Map.of(
-                                "runId", Map.of(
-                                        "description", "Run ID to generate diff for",
-                                        "type", "string"
+                        SCHEMA_TYPE, SCHEMA_OBJECT,
+                        SCHEMA_PROPERTIES, Map.of(
+                                FIELD_RUN_ID, Map.of(
+                                        SCHEMA_DESCRIPTION, "Run ID to generate diff for",
+                                        SCHEMA_TYPE, SCHEMA_STRING
                                 ),
-                                "workspacePath", Map.of(
-                                        "description", "Path to the workspace directory",
-                                        "type", "string"
+                                FIELD_WORKSPACE_PATH, Map.of(
+                                        SCHEMA_DESCRIPTION, "Path to the workspace directory",
+                                        SCHEMA_TYPE, SCHEMA_STRING
                                 )
                         ),
-                        "required", List.of("runId", "workspacePath"),
-                        "example", Map.of("runId", "run-123", "workspacePath", "/path/to/cobol/workspace")
+                        SCHEMA_REQUIRED, List.of(FIELD_RUN_ID, FIELD_WORKSPACE_PATH),
+                        SCHEMA_EXAMPLE, Map.of(FIELD_RUN_ID, "run-123", FIELD_WORKSPACE_PATH, "/path/to/cobol/workspace")
                 )
         );
-        diffTool.getMetadata().put("parameters", List.of(
+        diffTool.getMetadata().put(META_PARAMETERS, List.of(
                 Map.of(
-                        "name", "runId",
-                        "description", "Run ID to generate diff for",
-                        "type", "string",
+                        FIELD_NAME, FIELD_RUN_ID,
+                        SCHEMA_DESCRIPTION, "Run ID to generate diff for",
+                        SCHEMA_TYPE, SCHEMA_STRING,
                         "required", true
                 ),
                 Map.of(
-                        "name", "workspacePath",
-                        "description", "Path to the workspace directory",
-                        "type", "string",
+                        FIELD_NAME, FIELD_WORKSPACE_PATH,
+                        SCHEMA_DESCRIPTION, "Path to the workspace directory",
+                        SCHEMA_TYPE, SCHEMA_STRING,
                         "required", true
                 )
         ));
-        diffTool.getMetadata().put("example", Map.of("runId", "run-123", "workspacePath", "/path/to/cobol/workspace"));
-        diffTool.getMetadata().put("capability", "diff");
-        diffTool.getMetadata().put("workflowPhase", "review");
-        diffTool.getMetadata().put("language", language());
-        diffTool.getMetadata().put("displayName", "Review COBOL changes");
+        diffTool.getMetadata().put(SCHEMA_EXAMPLE, Map.of(FIELD_RUN_ID, "run-123", FIELD_WORKSPACE_PATH, "/path/to/cobol/workspace"));
+        diffTool.getMetadata().put(META_CAPABILITY, VALUE_DIFF);
+        diffTool.getMetadata().put(META_WORKFLOW_PHASE, PHASE_REVIEW);
+        diffTool.getMetadata().put(META_LANGUAGE, language());
+        diffTool.getMetadata().put(META_DISPLAY_NAME, DISPLAY_DIFF);
         tools.add(diffTool);
 
         // Generate stubs tool
         BasicTool stubsTool = new BasicTool(
-                "cobol.stubs_generate",
-                "Generate Java stubs/adapters for COBOL interfaces",
+                TOOL_STUBS,
+                DESC_STUBS,
                 Map.of(
-                        "type", "object",
-                        "properties", Map.of(
-                                "workspacePath", Map.of(
-                                        "description", "Path to the workspace directory",
-                                        "type", "string"
+                        SCHEMA_TYPE, SCHEMA_OBJECT,
+                        SCHEMA_PROPERTIES, Map.of(
+                                FIELD_WORKSPACE_PATH, Map.of(
+                                        SCHEMA_DESCRIPTION, "Path to the workspace directory",
+                                        SCHEMA_TYPE, SCHEMA_STRING
                                 ),
-                                "targetLanguage", Map.of(
-                                        "description", "Target language for stubs (e.g., java)",
-                                        "type", "string"
+                                FIELD_TARGET_LANGUAGE, Map.of(
+                                        SCHEMA_DESCRIPTION, "Target language for stubs (e.g., java)",
+                                        SCHEMA_TYPE, SCHEMA_STRING
                                 )
                         ),
-                        "required", List.of("workspacePath", "targetLanguage"),
-                        "example", Map.of("workspacePath", "/path/to/cobol/workspace", "targetLanguage", "java")
+                        SCHEMA_REQUIRED, List.of(FIELD_WORKSPACE_PATH, FIELD_TARGET_LANGUAGE),
+                        SCHEMA_EXAMPLE, Map.of(FIELD_WORKSPACE_PATH, "/path/to/cobol/workspace", FIELD_TARGET_LANGUAGE, TARGET_LANG_JAVA)
                 )
         );
-        stubsTool.getMetadata().put("parameters", List.of(
+        stubsTool.getMetadata().put(META_PARAMETERS, List.of(
                 Map.of(
-                        "name", "workspacePath",
-                        "description", "Path to the workspace directory",
-                        "type", "string",
+                        FIELD_NAME, FIELD_WORKSPACE_PATH,
+                        SCHEMA_DESCRIPTION, "Path to the workspace directory",
+                        SCHEMA_TYPE, SCHEMA_STRING,
                         "required", true
                 ),
                 Map.of(
-                        "name", "targetLanguage",
-                        "description", "Target language for stubs (e.g., java)",
-                        "type", "string",
+                        FIELD_NAME, FIELD_TARGET_LANGUAGE,
+                        SCHEMA_DESCRIPTION, "Target language for stubs (e.g., java)",
+                        SCHEMA_TYPE, SCHEMA_STRING,
                         "required", true
                 )
         ));
-        stubsTool.getMetadata().put("example", Map.of("workspacePath", "/path/to/cobol/workspace", "targetLanguage", "java"));
-        stubsTool.getMetadata().put("capability", "stubs");
-        stubsTool.getMetadata().put("workflowPhase", "refactor");
-        stubsTool.getMetadata().put("language", language());
-        stubsTool.getMetadata().put("displayName", "Generate COBOL interface stubs");
+        stubsTool.getMetadata().put(SCHEMA_EXAMPLE, Map.of(FIELD_WORKSPACE_PATH, "/path/to/cobol/workspace", FIELD_TARGET_LANGUAGE, TARGET_LANG_JAVA));
+        stubsTool.getMetadata().put(META_CAPABILITY, VALUE_STUBS);
+        stubsTool.getMetadata().put(META_WORKFLOW_PHASE, PHASE_REFACTOR);
+        stubsTool.getMetadata().put(META_LANGUAGE, language());
+        stubsTool.getMetadata().put(META_DISPLAY_NAME, DISPLAY_STUBS);
         tools.add(stubsTool);
 
         return tools;
@@ -297,13 +384,13 @@ public class CobolProvider extends BaseLanguageProvider {
     private Dialect resolveDialect(NqlQuery query, Workspace workspace) {
         String value = null;
         if (query != null && query.getParameters() != null) {
-            Object p = query.getParameters().get("dialect");
+            Object p = query.getParameters().get(DIALECT_KEY);
             if (p != null) {
                 value = p.toString();
             }
         }
         if (value == null && workspace != null && workspace.getMetadata() != null) {
-            Object m = workspace.getMetadata().get("dialect");
+            Object m = workspace.getMetadata().get(DIALECT_KEY);
             if (m != null) {
                 value = m.toString();
             }
