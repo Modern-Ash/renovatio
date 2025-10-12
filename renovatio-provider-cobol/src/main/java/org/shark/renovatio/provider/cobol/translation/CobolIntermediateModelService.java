@@ -2,7 +2,6 @@ package org.shark.renovatio.provider.cobol.translation;
 
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
