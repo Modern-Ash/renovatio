@@ -1,9 +1,7 @@
 package org.shark.renovatio.mcp.server.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.shark.renovatio.mcp.server.service.McpProtocolService;
 import org.shark.renovatio.mcp.server.model.McpRequest;
+import org.shark.renovatio.mcp.server.service.McpProtocolService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -55,7 +53,7 @@ public class HttpMcpController {
         static final String TIMESTAMP_KEY = "timestamp";
     }
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Autowired
     private McpProtocolService mcpProtocolService;
 

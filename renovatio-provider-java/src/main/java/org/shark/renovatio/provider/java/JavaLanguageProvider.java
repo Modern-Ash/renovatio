@@ -20,7 +20,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -101,7 +100,23 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
     // Métodos MCP fijos: solo para cumplir la interfaz, no deben usarse directamente
     @Override
     public AnalyzeResult analyze(NqlQuery query, Workspace workspace) {
-        // Default OpenRewrite analysis recipes
+        // Si el NQL provee explícitamente un recipeId, delegamos al flujo de receta única
+        String explicitRecipeId = null;
+        if (query != null) {
+            if (query.getTarget() != null && !query.getTarget().isBlank()) {
+                explicitRecipeId = query.getTarget();
+            } else if (query.getParameters() != null) {
+                Object rid = query.getParameters().getOrDefault("recipeId", query.getParameters().get("recipe"));
+                if (rid != null && !rid.toString().isBlank()) {
+                    explicitRecipeId = rid.toString();
+                }
+            }
+        }
+        if (explicitRecipeId != null && !explicitRecipeId.isBlank()) {
+            return executeAnalyzeRecipe(explicitRecipeId, workspace);
+        }
+
+        // Si no hay receta explícita, usar un conjunto por defecto y el ejecutor simplificado
         List<String> defaultRecipes = List.of(
             "org.openrewrite.java.migrate.UseDiamondOperator",
             "org.openrewrite.java.cleanup.UnnecessaryParentheses",
@@ -109,7 +124,6 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             "org.openrewrite.java.cleanup.UnnecessaryThrows"
         );
         List<String> recipesToRun;
-        // Try to extract recipe from NqlQuery target or parameters
         if (query == null) {
             recipesToRun = defaultRecipes;
         } else if (query.getTarget() != null && !query.getTarget().isBlank()) {
@@ -140,7 +154,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
     public MetricsResult metrics(Scope scope, Workspace workspace) {
         // Busca una receta de métricas específica, si existe
         String recipeId = "metrics"; // Ajustar si hay una receta concreta para métricas
-        return executeMetricsRecipe(recipeId, workspace, scope);
+        return executeMetricsRecipe(recipeId, workspace);
     }
 
     @Override
@@ -167,12 +181,12 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
         if (recipeId == null) {
             throw new IllegalArgumentException("No recipe specified in NQL query for plan().");
         }
-        return executePlanRecipe(recipeId, workspace, scope, query);
+        return executePlanRecipe(recipeId, workspace);
     }
 
     // --- Métodos privados para ejecutar recetas OpenRewrite y construir resultados MCP ---
 
-    private AnalyzeResult executeAnalyzeRecipe(String recipeId, Workspace workspace, NqlQuery query) {
+    private AnalyzeResult executeAnalyzeRecipe(String recipeId, Workspace workspace) {
         RecipeExecutionResult result = runOpenRewriteRecipe(recipeId, workspace, false, false);
         AnalyzeResult ar = new AnalyzeResult();
         ar.setSuccess(result.success);
@@ -201,7 +215,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
         return ar;
     }
 
-    private MetricsResult executeMetricsRecipe(String recipeId, Workspace workspace, Scope scope) {
+    private MetricsResult executeMetricsRecipe(String recipeId, Workspace workspace) {
         RecipeExecutionResult result = runOpenRewriteRecipe(recipeId, workspace, true, true);
         MetricsResult mr = new MetricsResult();
         mr.setSuccess(result.success);
@@ -237,7 +251,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
         return ap;
     }
 
-    private PlanResult executePlanRecipe(String recipeId, Workspace workspace, Scope scope, NqlQuery query) {
+    private PlanResult executePlanRecipe(String recipeId, Workspace workspace) {
         RecipeExecutionResult result = runOpenRewriteRecipe(recipeId, workspace, false, true);
         PlanResult pr = new PlanResult();
         pr.setSuccess(result.success);
@@ -274,7 +288,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             org.openrewrite.config.RecipeDescriptor descriptor = env.listRecipeDescriptors().stream()
                     .filter(d -> d.getName().equals(recipeId) || d.getDisplayName().equals(recipeId))
                     .findFirst().orElse(null);
-            if (descriptor == null || descriptor.getRecipeList() == null || descriptor.getRecipeList().isEmpty()) {
+            if (descriptor == null || descriptor.getRecipeList().isEmpty()) {
                 result.success = false;
                 result.summary = "Recipe not found: " + recipeId;
                 return result;
@@ -302,7 +316,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             Path workspacePath = Paths.get(workspace.getPath());
             List<Path> javaFiles;
             try (var stream = Files.walk(workspacePath)) {
-                javaFiles = stream.filter(p -> p.toString().endsWith(".java")).collect(Collectors.toList());
+                javaFiles = stream.filter(p -> p.toString().endsWith(".java")).toList();
             }
             result.totalFiles = javaFiles.size();
             for (Path file : javaFiles) {
@@ -387,7 +401,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             result.success = false;
             result.summary = "Error executing recipe: " + e.getMessage();
         } finally {
-            result.durationMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
+            result.durationMs = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
             result.metrics.put("durationMs", result.durationMs);
         }
 
@@ -444,7 +458,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             }
             Environment environment = builder.build();
             Collection<RecipeDescriptor> descriptors = environment.listRecipeDescriptors();
-            if (descriptors == null || descriptors.isEmpty()) {
+            if (descriptors.isEmpty()) {
                 log.debug("[JavaLanguageProvider] No OpenRewrite recipes discovered on the classpath.");
                 return recipeTools;
             }
@@ -479,31 +493,25 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
 
         BasicTool tool = new BasicTool();
         tool.setName(toolName);
-        tool.setDescription(descriptor.getDescription() != null
-                ? descriptor.getDescription()
-                : "OpenRewrite recipe: " + recipeId);
+        tool.setDescription(descriptor.getDescription());
         tool.setInputSchema(inputSchema);
         tool.setMetadata(metadata);
         tools.add(tool);
-        if (descriptor.getRecipeList() != null) {
-            for (RecipeDescriptor child : descriptor.getRecipeList()) {
-                collectRecipeTools(child, tools, seenRecipes, seenToolNames);
-            }
+        for (RecipeDescriptor child : descriptor.getRecipeList()) {
+            collectRecipeTools(child, tools, seenRecipes, seenToolNames);
         }
     }
 
     private List<Map<String, Object>> extractRecipeOptions(RecipeDescriptor descriptor) {
         List<Map<String, Object>> options = new ArrayList<>();
-        if (descriptor.getOptions() != null) {
-            for (OptionDescriptor opt : descriptor.getOptions()) {
-                Map<String, Object> optMap = new LinkedHashMap<>();
-                optMap.put("name", opt.getName());
-                optMap.put("type", opt.getType());
-                optMap.put("required", opt.isRequired());
-                optMap.put("description", opt.getDescription());
-                optMap.put("example", opt.getExample());
-                options.add(optMap);
-            }
+        for (OptionDescriptor opt : descriptor.getOptions()) {
+            Map<String, Object> optMap = new LinkedHashMap<>();
+            optMap.put("name", opt.getName());
+            optMap.put("type", opt.getType());
+            optMap.put("required", opt.isRequired());
+            Object description = optMap.put("description", opt.getDescription());
+            optMap.put("example", opt.getExample());
+            options.add(optMap);
         }
         return options;
     }
@@ -521,27 +529,25 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
         List<String> required = new ArrayList<>();
         required.add("workspacePath");
 
-        if (descriptor.getOptions() != null) {
-            for (OptionDescriptor option : descriptor.getOptions()) {
-                if (option.getName() == null || option.getName().isBlank()) {
-                    continue;
-                }
-                Map<String, Object> optionSchema = new LinkedHashMap<>();
-                optionSchema.put("type", mapOptionType(option.getType()));
-                if (option.getDescription() != null && !option.getDescription().isBlank()) {
-                    optionSchema.put("description", option.getDescription());
-                }
-                List<Object> examples = buildExamples(option.getExample());
-                if (!examples.isEmpty()) {
-                    optionSchema.put("examples", examples);
-                }
-                if (optionSchema.get("type").equals("array")) {
-                    optionSchema.putIfAbsent("items", Map.of("type", "string"));
-                }
-                properties.put(option.getName(), optionSchema);
-                if (option.isRequired()) {
-                    required.add(option.getName());
-                }
+        for (OptionDescriptor option : descriptor.getOptions()) {
+            if (option.getName().isBlank()) {
+                continue;
+            }
+            Map<String, Object> optionSchema = new LinkedHashMap<>();
+            optionSchema.put("type", mapOptionType(option.getType()));
+            if (option.getDescription() != null && !option.getDescription().isBlank()) {
+                optionSchema.put("description", option.getDescription());
+            }
+            List<Object> examples = buildExamples(option.getExample());
+            if (!examples.isEmpty()) {
+                optionSchema.put("examples", examples);
+            }
+            if (optionSchema.get("type").equals("array")) {
+                optionSchema.putIfAbsent("items", Map.of("type", "string"));
+            }
+            properties.put(option.getName(), optionSchema);
+            if (option.isRequired()) {
+                required.add(option.getName());
             }
         }
 
@@ -612,32 +618,4 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
         long durationMs = 0;
     }
 
-    // MCP tool handler: enruta tools a métodos reales
-    // (Eliminada la anotación @Override porque no está en la interfaz base)
-    public Object handleToolCall(String toolName, Map<String, Object> args) {
-        if (toolName == null) return null;
-        switch (toolName) {
-            case "java_analyze":
-            case "java.analyze":
-                // Espera workspacePath y opcionalmente NqlQuery
-                String workspacePath = (String) args.get("workspacePath");
-                Workspace ws = new Workspace();
-                ws.setPath(workspacePath);
-                // Permite pasar un NqlQuery si está presente
-                NqlQuery nql = args.containsKey("nql") ? (NqlQuery) args.get("nql") : null;
-                return analyze(nql, ws);
-            case "java_metrics":
-            case "java.metrics":
-                workspacePath = (String) args.get("workspacePath");
-                ws = new Workspace();
-                ws.setPath(workspacePath);
-                return metrics(null, ws);
-            case "java_recipe_list":
-            case "java.recipe_list":
-                return getTools();
-            // Agrega más tools según sea necesario
-            default:
-                throw new UnsupportedOperationException("Tool not supported: " + toolName);
-        }
-    }
 }

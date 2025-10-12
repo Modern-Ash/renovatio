@@ -69,8 +69,8 @@ class ModelClassesTest {
     @Test
     void evaluateStatement_andBranches_shouldCopy_andRejectNulls() {
         EvaluateStatement.EvaluateWhenBranch br = new EvaluateStatement.EvaluateWhenBranch("X", null);
-        assertEquals("X", br.getCondition());
-        assertEquals(List.of(), br.getStatements());
+        assertEquals("X", br.condition());
+        assertEquals(List.of(), br.statements());
         EvaluateStatement ev = new EvaluateStatement("A", List.of(br));
         assertEquals("A", ev.expression());
         assertEquals(1, ev.branches().size());

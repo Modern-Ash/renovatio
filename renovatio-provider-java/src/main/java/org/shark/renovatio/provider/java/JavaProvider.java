@@ -42,7 +42,115 @@ import java.util.stream.Collectors;
 public class JavaProvider extends BaseLanguageProvider {
     private static final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(JavaProvider.class);
 
-    private static final List<String> DEFAULT_SCOPE = List.of("**/*.java");
+    // Common identifiers
+    private static final String LANGUAGE_ID = "java";
+
+    // Default scope
+    private static final String DEFAULT_SCOPE_PATTERN = "**/*.java";
+    private static final List<String> DEFAULT_SCOPE = List.of(DEFAULT_SCOPE_PATTERN);
+
+    // Tool names (fully qualified)
+    private static final String TOOL_DISCOVER = "java.discover";
+    private static final String TOOL_ANALYZE = "java.analyze";
+    private static final String TOOL_PLAN = "java.plan";
+    private static final String TOOL_APPLY = "java.apply";
+    private static final String TOOL_DIFF = "java.diff";
+    private static final String TOOL_REVIEW = "java.review";
+    private static final String TOOL_FORMAT = "java.format";
+    private static final String TOOL_TEST = "java.test";
+    private static final String TOOL_METRICS = "java.metrics";
+    private static final String TOOL_RECIPE_LIST = "java.recipe_list";
+    private static final String TOOL_RECIPE_DESCRIBE = "java.recipe_describe";
+    private static final String TOOL_PIPELINE = "java.pipeline";
+
+    // Capability identifiers (lowercase, unqualified)
+    private static final String CAP_DISCOVER = "discover";
+    private static final String CAP_ANALYZE = "analyze";
+    private static final String CAP_PLAN = "plan";
+    private static final String CAP_APPLY = "apply";
+    private static final String CAP_DIFF = "diff";
+    private static final String CAP_REVIEW = "review";
+    private static final String CAP_FORMAT = "format";
+    private static final String CAP_TEST = "test";
+    private static final String CAP_RECIPE_LIST = "recipe_list";
+    private static final String CAP_RECIPE_DESCRIBE = "recipe_describe";
+    private static final String CAP_PIPELINE = "pipeline";
+
+    // Argument / field keys
+    private static final String KEY_TYPE = "type";
+    private static final String KEY_SUCCESS = "success";
+    private static final String KEY_ERROR = "error";
+    private static final String KEY_MESSAGE = "message";
+    private static final String KEY_MODULES = "modules";
+    private static final String KEY_DEPENDENCIES = "dependencies";
+    private static final String KEY_FILES = "files";
+    private static final String KEY_CHANGES = "changes";
+    private static final String KEY_ISSUES = "issues";
+    private static final String KEY_METRICS = "metrics";
+    private static final String KEY_RECIPES = "recipes";
+    private static final String KEY_RUN_ID = "runId";
+    private static final String KEY_DRY_RUN = "dryRun";
+    private static final String KEY_CHECKPOINT_REF = "checkpointRef";
+    private static final String KEY_SUMMARY_MD = "summaryMarkdown";
+    private static final String KEY_HIGHLIGHTS = "highlights";
+    private static final String KEY_PASSED = "passed";
+    private static final String KEY_FAILED = "failed";
+    private static final String KEY_FAILURES = "failures";
+    private static final String KEY_DETAILS = "details";
+    private static final String KEY_PLAN_ID = "planId";
+    private static final String KEY_STEPS = "steps";
+    private static final String KEY_GOALS = "goals";
+    private static final String KEY_SCOPE = "scope";
+    private static final String KEY_CREATED_AT = "createdAt";
+    private static final String KEY_WORKSPACE_PATH = "workspacePath";
+    private static final String KEY_FROM_REF = "fromRef";
+    private static final String KEY_TO_REF = "toRef";
+    private static final String KEY_NAME = "name";
+    private static final String KEY_PRESET = "preset";
+    // Additional common keys
+    private static final String KEY_DISPLAY_NAME = "displayName";
+    private static final String KEY_DESCRIPTION = "description";
+    private static final String KEY_TAGS = "tags";
+    private static final String KEY_OPTIONS = "options";
+    private static final String KEY_RECIPE = "recipe";
+    private static final String KEY_LINE = "line";
+    private static final String KEY_SEVERITY = "severity";
+    private static final String KEY_ANALYZED_FILES = "analyzedFiles";
+    private static final String KEY_SUMMARY = "summary";
+
+    // Nested object keys used in maps
+    private static final String KEY_FILE = "file";
+    private static final String KEY_DIFF = "diff";
+    private static final String KEY_GROUP_ID = "groupId";
+    private static final String KEY_ARTIFACT_ID = "artifactId";
+    private static final String KEY_VERSION = "version";
+
+    // Misc
+    private static final String METADATA_OUTPUT_SCHEMA = "outputSchema";
+    private static final String GIT_HEAD = "HEAD";
+    private static final String COMMIT_PREFIX = "Renovatio: ";
+
+    // Profiles and presets
+    private static final String PROFILE_QUALITY = "quality";
+    private static final String PROFILE_STYLE = "style";
+    private static final String PROFILE_MODERNIZE_JAVA17 = "modernize_java17";
+    private static final String PROFILE_SECURITY = "security";
+    private static final String PROFILE_TESTING_SUPPORT = "testing_support";
+    private static final String PROFILE_ALL = "all";
+    private static final List<String> PROFILES_ENUM = List.of(
+            PROFILE_QUALITY, PROFILE_STYLE, PROFILE_MODERNIZE_JAVA17, PROFILE_SECURITY, PROFILE_TESTING_SUPPORT, PROFILE_ALL
+    );
+
+    private static final String PRESET_CLEANUP_STYLE = "cleanup_style";
+    private static final String PRESET_REMOVE_DEPRECATIONS = "remove_deprecations";
+    private static final String PRESET_FORMAT_ONLY = "format_only";
+    private static final List<String> PRESETS_ENUM = List.of(
+            PROFILE_MODERNIZE_JAVA17, PRESET_CLEANUP_STYLE, PRESET_REMOVE_DEPRECATIONS, PRESET_FORMAT_ONLY
+    );
+
+    // Recipe constants
+    private static final String RECIPE_AUTO_FORMAT = "org.openrewrite.java.format.AutoFormat";
+    private static final String RECIPE_REMOVE_UNUSED_IMPORTS = "org.openrewrite.java.cleanup.RemoveUnusedImports";
 
     private final OpenRewriteRecipeDiscoveryService discoveryService;
     private final JavaRefactorPlanner planner;
@@ -67,7 +175,7 @@ public class JavaProvider extends BaseLanguageProvider {
 
     @Override
     public String language() {
-        return "java";
+        return LANGUAGE_ID;
     }
 
     @Override
@@ -79,14 +187,14 @@ public class JavaProvider extends BaseLanguageProvider {
     public AnalyzeResult analyze(NqlQuery query, Workspace workspace) {
         try {
             Map<String, Object> params = optionalParameters(query);
-            String profile = stringParam(params, "profile", "quality");
-            List<String> goals = combineLists(listParam(params, "goals"), List.of(profile));
-            List<String> include = combineLists(listParam(params, "include"), listParam(params, "includeRecipes"));
-            List<String> exclude = combineLists(listParam(params, "exclude"), listParam(params, "excludeRecipes"));
-            int maxFindings = intParam(params, "maxFindings", 200);
+            String profile = stringParam(params, KEY_PROFILE, PROFILE_QUALITY);
+            List<String> goals = combineLists(listParam(params, KEY_GOALS), List.of(profile));
+            List<String> include = combineLists(listParam(params, KEY_INCLUDE), listParam(params, KEY_RECIPES));
+            List<String> exclude = combineLists(listParam(params, KEY_EXCLUDE), listParam(params, KEY_EXCLUDE_RECIPES));
+            int maxFindings = intParam(params, KEY_MAX_FINDINGS, 200);
 
             List<String> recipes = sanitizeRecipes(planner.resolveRecipes(goals, include, exclude));
-            List<String> scopePatterns = listParam(params, "scope");
+            List<String> scopePatterns = listParam(params, KEY_SCOPE);
             if (scopePatterns.isEmpty()) {
                 scopePatterns = DEFAULT_SCOPE;
             }
@@ -109,11 +217,11 @@ public class JavaProvider extends BaseLanguageProvider {
     @Override
     public PlanResult plan(NqlQuery query, Scope scope, Workspace workspace) {
         Map<String, Object> params = optionalParameters(query);
-        String profile = stringParam(params, "profile", null);
-        List<String> goals = combineLists(listParam(params, "goals"), profile != null ? List.of(profile) : List.of());
+        String profile = stringParam(params, KEY_PROFILE, null);
+        List<String> goals = combineLists(listParam(params, KEY_GOALS), profile != null ? List.of(profile) : List.of());
         goals = goals.stream().filter(Objects::nonNull).filter(goal -> !goal.isBlank()).toList();
-        List<String> include = combineLists(listParam(params, "include"), listParam(params, "includeRecipes"));
-        List<String> exclude = combineLists(listParam(params, "exclude"), listParam(params, "excludeRecipes"));
+        List<String> include = combineLists(listParam(params, KEY_INCLUDE), listParam(params, KEY_INCLUDE_RECIPES));
+        List<String> exclude = combineLists(listParam(params, KEY_EXCLUDE), listParam(params, KEY_EXCLUDE_RECIPES));
         List<String> scopePatterns = scope != null && !CollectionUtils.isEmpty(scope.getIncludePatterns())
                 ? scope.getIncludePatterns()
                 : DEFAULT_SCOPE;
@@ -125,16 +233,16 @@ public class JavaProvider extends BaseLanguageProvider {
         result.setRunId(plan.id());
 
         Map<String, Object> steps = new LinkedHashMap<>();
-        steps.put("steps", planner.describePlanSteps(plan));
-        steps.put("recipes", plan.recipes());
-        steps.put("goals", plan.goals());
-        steps.put("scope", plan.scope());
+        steps.put(KEY_STEPS, planner.describePlanSteps(plan));
+        steps.put(KEY_RECIPES, plan.recipes());
+        steps.put(KEY_GOALS, plan.goals());
+        steps.put(KEY_SCOPE, plan.scope());
         result.setSteps(steps);
 
         Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("planId", plan.id());
-        metadata.put("createdAt", plan.createdAt().toString());
-        metadata.put("workspacePath", plan.workspacePath());
+        metadata.put(KEY_PLAN_ID, plan.id());
+        metadata.put(KEY_CREATED_AT, plan.createdAt().toString());
+        metadata.put(KEY_WORKSPACE_PATH, plan.workspacePath());
         result.setMetadata(metadata);
         return result;
     }
@@ -142,17 +250,17 @@ public class JavaProvider extends BaseLanguageProvider {
     @Override
     public ApplyResult apply(String planId, boolean dryRun, Workspace workspace) {
         Map<String, Object> args = new LinkedHashMap<>();
-        args.put("workspacePath", workspace != null ? workspace.getPath() : null);
-        args.put("planId", planId);
-        args.put("dryRun", dryRun);
+        args.put(KEY_WORKSPACE_PATH, workspace != null ? workspace.getPath() : null);
+        args.put(KEY_PLAN_ID, planId);
+        args.put(KEY_DRY_RUN, dryRun);
         Map<String, Object> response = handleApply(args);
-        if (!Boolean.TRUE.equals(response.get("success"))) {
-            return new ApplyResult(false, Objects.toString(response.get("error"), "Apply failed"));
+        if (!Boolean.TRUE.equals(response.get(KEY_SUCCESS))) {
+            return new ApplyResult(false, Objects.toString(response.get(KEY_ERROR), "Apply failed"));
         }
-        JavaRecipeExecutionResult execution = executions.get(response.get("runId"));
-        ApplyResult applyResult = applyAdapter.adapt(execution, dryRun, checkpoints.get(response.get("runId")));
-        applyResult.setRunId((String) response.get("runId"));
-        applyResult.setMessage((String) response.getOrDefault("message", execution.summary()));
+        JavaRecipeExecutionResult execution = executions.get(response.get(KEY_RUN_ID));
+        ApplyResult applyResult = applyAdapter.adapt(execution, dryRun, checkpoints.get(response.get(KEY_RUN_ID)));
+        applyResult.setRunId((String) response.get(KEY_RUN_ID));
+        applyResult.setMessage((String) response.getOrDefault(KEY_MESSAGE, execution.summary()));
         return applyResult;
     }
 
@@ -187,8 +295,8 @@ public class JavaProvider extends BaseLanguageProvider {
         });
         metricsResult.setMetrics(metrics);
         Map<String, Object> details = new LinkedHashMap<>();
-        details.put("recipes", execution.recipes());
-        details.put("analyzedFiles", execution.analyzedFiles());
+        details.put(KEY_RECIPES, execution.recipes());
+        details.put(KEY_ANALYZED_FILES, execution.analyzedFiles());
         metricsResult.setDetails(details);
         return metricsResult;
     }
@@ -201,18 +309,18 @@ public class JavaProvider extends BaseLanguageProvider {
     @Override
     public List<Tool> getTools() {
         List<Tool> tools = new ArrayList<>();
-        tools.add(createTool("java.discover", "Inspect workspace structure", workspaceSchema(), discoverOutputSchema()));
-        tools.add(createTool("java.analyze", "Analyze Java sources with OpenRewrite", analyzeSchema(), analyzeOutputSchema()));
-        tools.add(createTool("java.plan", "Plan refactoring based on goals", planSchema(), planOutputSchema()));
-        tools.add(createTool("java.apply", "Apply OpenRewrite recipes", applySchema(), applyOutputSchema()));
-        tools.add(createTool("java.diff", "Generate git diff between revisions", diffSchema(), diffOutputSchema()));
-        tools.add(createTool("java.review", "Summarize refactoring outcome", reviewSchema(), reviewOutputSchema()));
-        tools.add(createTool("java.format", "Format sources and remove unused imports", formatSchema(), applyOutputSchema()));
-        tools.add(createTool("java.test", "Run project tests", testSchema(), testOutputSchema()));
-        tools.add(createTool("java.metrics", "Collect high level metrics", metricsSchema(), metricsOutputSchema()));
-        tools.add(createTool("java.recipe_list", "List available OpenRewrite recipes", Map.of("type", "object"), recipeListOutputSchema()));
-        tools.add(createTool("java.recipe_describe", "Describe a specific recipe", recipeDescribeSchema(), recipeDescribeOutputSchema()));
-        tools.add(createTool("java.pipeline", "Execute preset modernization pipeline", pipelineSchema(), pipelineOutputSchema()));
+        tools.add(createTool(TOOL_DISCOVER, "Inspect workspace structure", workspaceSchema(), discoverOutputSchema()));
+        tools.add(createTool(TOOL_ANALYZE, "Analyze Java sources with OpenRewrite", analyzeSchema(), analyzeOutputSchema()));
+        tools.add(createTool(TOOL_PLAN, "Plan refactoring based on goals", planSchema(), planOutputSchema()));
+        tools.add(createTool(TOOL_APPLY, "Apply OpenRewrite recipes", applySchema(), applyOutputSchema()));
+        tools.add(createTool(TOOL_DIFF, "Generate git diff between revisions", diffSchema(), diffOutputSchema()));
+        tools.add(createTool(TOOL_REVIEW, "Summarize refactoring outcome", reviewSchema(), reviewOutputSchema()));
+        tools.add(createTool(TOOL_FORMAT, "Format sources and remove unused imports", formatSchema(), applyOutputSchema()));
+        tools.add(createTool(TOOL_TEST, "Run project tests", testSchema(), testOutputSchema()));
+        tools.add(createTool(TOOL_METRICS, "Collect high level metrics", metricsSchema(), metricsOutputSchema()));
+        tools.add(createTool(TOOL_RECIPE_LIST, "List available OpenRewrite recipes", Map.of("type", "object"), recipeListOutputSchema()));
+        tools.add(createTool(TOOL_RECIPE_DESCRIBE, "Describe a specific recipe", recipeDescribeSchema(), recipeDescribeOutputSchema()));
+        tools.add(createTool(TOOL_PIPELINE, "Execute preset modernization pipeline", pipelineSchema(), pipelineOutputSchema()));
         return tools;
     }
 
@@ -222,30 +330,30 @@ public class JavaProvider extends BaseLanguageProvider {
             return null;
         }
         return switch (capability.toLowerCase(Locale.ROOT)) {
-            case "discover" -> handleDiscover(arguments);
-            case "apply" -> handleApply(arguments);
-            case "diff" -> handleDiff(arguments);
-            case "review" -> handleReview(arguments);
-            case "format" -> handleFormat(arguments);
-            case "test" -> handleTest(arguments);
-            case "recipe_list" -> handleRecipeList(arguments);
-            case "recipe_describe" -> handleRecipeDescribe(arguments);
-            case "pipeline" -> handlePipeline(arguments);
+            case CAP_DISCOVER -> handleDiscover(arguments);
+            case CAP_APPLY -> handleApply(arguments);
+            case CAP_DIFF -> handleDiff(arguments);
+            case CAP_REVIEW -> handleReview(arguments);
+            case CAP_FORMAT -> handleFormat(arguments);
+            case CAP_TEST -> handleTest(arguments);
+            case CAP_RECIPE_LIST -> handleRecipeList(arguments);
+            case CAP_RECIPE_DESCRIBE -> handleRecipeDescribe(arguments);
+            case CAP_PIPELINE -> handlePipeline(arguments);
             default -> null;
         };
     }
 
     private Map<String, Object> handleDiscover(Map<String, Object> arguments) {
         Path workspace = workspace(arguments);
-        Map<String, Object> result = baseResponse("discover");
+        Map<String, Object> result = baseResponse(CAP_DISCOVER);
         if (workspace == null) {
-            return error(result, "workspacePath is required");
+            return error(result, KEY_WORKSPACE_PATH + " is required");
         }
         try {
-            result.put("modules", discoverModules(workspace));
-            result.put("dependencies", discoverDependencies(workspace));
-            result.put("files", listFiles(workspace, 200));
-            result.put("message", String.format(Locale.ROOT, "Discovered %d module(s)", ((List<?>) result.get("modules")).size()));
+            result.put(KEY_MODULES, discoverModules(workspace));
+            result.put(KEY_DEPENDENCIES, discoverDependencies(workspace));
+            result.put(KEY_FILES, listFiles(workspace, 200));
+            result.put(KEY_MESSAGE, String.format(Locale.ROOT, "Discovered %d module(s)", ((List<?>) result.get(KEY_MODULES)).size()));
             return success(result);
         } catch (IOException ex) {
             return error(result, ex.getMessage());
@@ -254,15 +362,15 @@ public class JavaProvider extends BaseLanguageProvider {
 
     private Map<String, Object> handleApply(Map<String, Object> arguments) {
         Path workspace = workspace(arguments);
-        Map<String, Object> result = baseResponse("apply");
+        Map<String, Object> result = baseResponse(CAP_APPLY);
         if (workspace == null) {
-            return error(result, "workspacePath is required");
+            return error(result, KEY_WORKSPACE_PATH + " is required");
         }
 
-        String planId = stringParam(arguments, "planId", null);
-        List<String> recipes = listParam(arguments, "recipes");
-        boolean dryRun = booleanParam(arguments, "dryRun", true);
-        List<String> scope = listParam(arguments, "scope");
+        String planId = stringParam(arguments, KEY_PLAN_ID, null);
+        List<String> recipes = listParam(arguments, KEY_RECIPES);
+        boolean dryRun = booleanParam(arguments, KEY_DRY_RUN, true);
+        List<String> scope = listParam(arguments, KEY_SCOPE);
 
         if (planId != null) {
             Optional<JavaPlan> plan = planner.findPlan(planId);
@@ -290,13 +398,13 @@ public class JavaProvider extends BaseLanguageProvider {
         JavaRecipeExecutionResult execution = executor.apply(workspace.toString(), sanitizedRecipes, scope, dryRun);
         String runId = planId != null ? planId + "-run" : generateRunId();
         executions.put(runId, execution);
-        result.put("runId", runId);
-        result.put("dryRun", dryRun);
-        result.put("changes", execution.changes());
-        result.put("issues", execution.issues());
-        result.put("metrics", execution.metrics());
-        result.put("recipes", execution.recipes());
-        result.put("message", execution.summary());
+        result.put(KEY_RUN_ID, runId);
+        result.put(KEY_DRY_RUN, dryRun);
+        result.put(KEY_CHANGES, execution.changes());
+        result.put(KEY_ISSUES, execution.issues());
+        result.put(KEY_METRICS, execution.metrics());
+        result.put(KEY_RECIPES, execution.recipes());
+        result.put(KEY_MESSAGE, execution.summary());
 
         if (!execution.success()) {
             return error(result, execution.summary());
@@ -306,7 +414,7 @@ public class JavaProvider extends BaseLanguageProvider {
             String checkpoint = createCheckpoint(workspace, execution.summary());
             if (checkpoint != null) {
                 checkpoints.put(runId, checkpoint);
-                result.put("checkpointRef", checkpoint);
+                result.put(KEY_CHECKPOINT_REF, checkpoint);
             }
         }
         return success(result);
@@ -314,16 +422,16 @@ public class JavaProvider extends BaseLanguageProvider {
 
     private Map<String, Object> handleDiff(Map<String, Object> arguments) {
         Path workspace = workspace(arguments);
-        Map<String, Object> result = baseResponse("diff");
+        Map<String, Object> result = baseResponse(CAP_DIFF);
         if (workspace == null) {
-            return error(result, "workspacePath is required");
+            return error(result, KEY_WORKSPACE_PATH + " is required");
         }
-        String fromRef = stringParam(arguments, "fromRef", null);
-        String toRef = stringParam(arguments, "toRef", "HEAD");
+        String fromRef = stringParam(arguments, KEY_FROM_REF, null);
+        String toRef = stringParam(arguments, KEY_TO_REF, GIT_HEAD);
         try {
             List<Map<String, Object>> changes = gitDiff(workspace, fromRef, toRef);
-            result.put("changes", changes);
-            result.put("message", String.format(Locale.ROOT, "Generated diff with %d change(s)", changes.size()));
+            result.put(KEY_CHANGES, changes);
+            result.put(KEY_MESSAGE, String.format(Locale.ROOT, "Generated diff with %d change(s)", changes.size()));
             return success(result);
         } catch (Exception ex) {
             return error(result, ex.getMessage());
@@ -332,40 +440,40 @@ public class JavaProvider extends BaseLanguageProvider {
 
     private Map<String, Object> handleReview(Map<String, Object> arguments) {
         Map<String, Object> diff = handleDiff(arguments);
-        Map<String, Object> result = baseResponse("review");
-        if (Boolean.FALSE.equals(diff.get("success"))) {
+        Map<String, Object> result = baseResponse(CAP_REVIEW);
+        if (Boolean.FALSE.equals(diff.get(KEY_SUCCESS))) {
             return diff;
         }
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> changes = (List<Map<String, Object>>) diff.getOrDefault("changes", List.of());
+        List<Map<String, Object>> changes = (List<Map<String, Object>>) diff.getOrDefault(KEY_CHANGES, List.of());
         List<Map<String, Object>> highlights = new ArrayList<>();
         for (Map<String, Object> change : changes) {
             Map<String, Object> highlight = new LinkedHashMap<>();
-            highlight.put("file", change.get("file"));
-            highlight.put("summary", "Updated file " + change.get("file"));
+            highlight.put(KEY_FILE, change.get(KEY_FILE));
+            highlight.put(KEY_SUMMARY, "Updated file " + change.get(KEY_FILE));
             highlights.add(highlight);
         }
-        result.put("summaryMarkdown", String.format(Locale.ROOT, "### Review\n- %d change(s) detected", changes.size()));
-        result.put("highlights", highlights);
-        result.put("diff", diff.get("changes"));
+        result.put(KEY_SUMMARY_MD, String.format(Locale.ROOT, "### Review\n- %d change(s) detected", changes.size()));
+        result.put(KEY_HIGHLIGHTS, highlights);
+        result.put(KEY_DIFF, diff.get(KEY_CHANGES));
         return success(result);
     }
 
     private Map<String, Object> handleFormat(Map<String, Object> arguments) {
         arguments = new LinkedHashMap<>(arguments);
-        arguments.put("recipes", List.of(
-                "org.openrewrite.java.format.AutoFormat",
-                "org.openrewrite.java.cleanup.RemoveUnusedImports"
+        arguments.put(KEY_RECIPES, List.of(
+                RECIPE_AUTO_FORMAT,
+                RECIPE_REMOVE_UNUSED_IMPORTS
         ));
-        arguments.put("dryRun", false);
+        arguments.put(KEY_DRY_RUN, false);
         return handleApply(arguments);
     }
 
     private Map<String, Object> handleTest(Map<String, Object> arguments) {
         Path workspace = workspace(arguments);
-        Map<String, Object> result = baseResponse("test");
+        Map<String, Object> result = baseResponse(CAP_TEST);
         if (workspace == null) {
-            return error(result, "workspacePath is required");
+            return error(result, KEY_WORKSPACE_PATH + " is required");
         }
         List<String> command = determineTestCommand(workspace);
         if (command.isEmpty()) {
@@ -376,19 +484,19 @@ public class JavaProvider extends BaseLanguageProvider {
             builder.directory(workspace.toFile());
             Process process = builder.start();
             int exit = process.waitFor();
-            result.put("passed", exit == 0);
-            result.put("failed", exit == 0 ? 0 : 1);
+            result.put(KEY_PASSED, exit == 0);
+            result.put(KEY_FAILED, exit == 0 ? 0 : 1);
             if (exit != 0) {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
                     String failureMessage = reader.lines().limit(50).collect(Collectors.joining(System.lineSeparator()));
                     Map<String, Object> failure = new LinkedHashMap<>();
-                    failure.put("message", failureMessage);
-                    result.put("failures", List.of(failure));
+                    failure.put(KEY_MESSAGE, failureMessage);
+                    result.put(KEY_FAILURES, List.of(failure));
                 }
             } else {
-                result.put("failures", List.of());
+                result.put(KEY_FAILURES, List.of());
             }
-            result.put("message", exit == 0 ? "Tests passed" : "Tests failed (exit code " + exit + ")");
+            result.put(KEY_MESSAGE, exit == 0 ? "Tests passed" : "Tests failed (exit code " + exit + ")");
             return success(result);
         } catch (IOException | InterruptedException ex) {
             Thread.currentThread().interrupt();
@@ -397,82 +505,82 @@ public class JavaProvider extends BaseLanguageProvider {
     }
 
     private Map<String, Object> handleRecipeList(Map<String, Object> arguments) {
-        Map<String, Object> result = baseResponse("recipe_list");
+        Map<String, Object> result = baseResponse(CAP_RECIPE_LIST);
         List<Map<String, Object>> recipes = discoveryService.listAllRecipes().stream()
                 .map(this::toRecipeMap)
                 .collect(Collectors.toList());
-        result.put("recipes", recipes);
-        result.put("message", String.format(Locale.ROOT, "Found %d recipes", recipes.size()));
+        result.put(KEY_RECIPES, recipes);
+        result.put(KEY_MESSAGE, String.format(Locale.ROOT, "Found %d recipes", recipes.size()));
         return success(result);
     }
 
     private Map<String, Object> handleRecipeDescribe(Map<String, Object> arguments) {
-        Map<String, Object> result = baseResponse("recipe_describe");
-        String name = stringParam(arguments, "name", null);
+        Map<String, Object> result = baseResponse(CAP_RECIPE_DESCRIBE);
+        String name = stringParam(arguments, KEY_NAME, null);
         if (name == null || name.isBlank()) {
-            return error(result, "name parameter is required");
+            return error(result, KEY_NAME + " parameter is required");
         }
         Optional<RecipeInfo> info = discoveryService.describeRecipe(name);
         if (info.isEmpty()) {
             return error(result, "Recipe not found: " + name);
         }
-        result.put("recipe", toRecipeMap(info.get()));
+        result.put(KEY_RECIPE, toRecipeMap(info.get()));
         return success(result);
     }
 
     private Map<String, Object> handlePipeline(Map<String, Object> arguments) {
         Path workspace = workspace(arguments);
-        Map<String, Object> result = baseResponse("pipeline");
+        Map<String, Object> result = baseResponse(CAP_PIPELINE);
         if (workspace == null) {
-            return error(result, "workspacePath is required");
+            return error(result, KEY_WORKSPACE_PATH + " is required");
         }
-        String preset = stringParam(arguments, "preset", "modernize_java17");
-        boolean dryRun = booleanParam(arguments, "dryRun", true);
+        String preset = stringParam(arguments, KEY_PRESET, PROFILE_MODERNIZE_JAVA17);
+        boolean dryRun = booleanParam(arguments, KEY_DRY_RUN, true);
 
         List<String> goals = List.of(preset);
         JavaPlan plan = planner.createPlan(workspace.toString(), goals, List.of(), List.of(), DEFAULT_SCOPE);
         JavaRecipeExecutionResult analyze = executor.preview(workspace.toString(), plan.recipes(), DEFAULT_SCOPE);
         JavaRecipeExecutionResult apply = executor.apply(workspace.toString(), plan.recipes(), DEFAULT_SCOPE, dryRun);
 
-        result.put("planId", plan.id());
-        result.put("issues", analyze.issues());
-        result.put("changes", apply.changes());
-        result.put("message", String.format(Locale.ROOT,
+        result.put(KEY_PLAN_ID, plan.id());
+        result.put(KEY_ISSUES, analyze.issues());
+        result.put(KEY_CHANGES, apply.changes());
+        result.put(KEY_MESSAGE, String.format(Locale.ROOT,
                 "Pipeline '%s' executed with %d recipe(s)", preset, plan.recipes().size()));
         return success(result);
     }
 
     private Map<String, Object> baseResponse(String type) {
         Map<String, Object> response = new LinkedHashMap<>();
-        response.put("type", type);
-        response.put("success", false);
+        response.put(KEY_TYPE, type);
+        response.put(KEY_SUCCESS, false);
         return response;
     }
 
     private Map<String, Object> success(Map<String, Object> response) {
-        response.put("success", true);
+        response.put(KEY_SUCCESS, true);
         return response;
     }
 
     private Map<String, Object> error(Map<String, Object> response, String message) {
-        response.put("success", false);
-        response.put("error", message);
-        response.put("message", message);
+        response.put(KEY_SUCCESS, false);
+        response.put(KEY_ERROR, message);
+        response.put(KEY_MESSAGE, message);
         return response;
     }
 
     private Path workspace(Map<String, Object> arguments) {
-        String path = stringParam(arguments, "workspacePath", null);
+        String path = stringParam(arguments, KEY_WORKSPACE_PATH, null);
         return path != null ? Paths.get(path) : null;
     }
 
     private Map<String, Object> toRecipeMap(RecipeInfo info) {
         Map<String, Object> map = new LinkedHashMap<>();
-        map.put("name", info.name());
-        map.put("displayName", info.displayName());
-        map.put("description", info.description());
-        map.put("tags", info.tags());
-        map.put("options", info.options());
+        map.put(KEY_NAME, info.name());
+        map.put(KEY_DISPLAY_NAME, info.displayName());
+        map.put(KEY_DESCRIPTION, info.description());
+        map.put(KEY_TAGS, info.tags());
+        map.put(KEY_OPTIONS, info.options());
         return map;
     }
 
@@ -482,7 +590,7 @@ public class JavaProvider extends BaseLanguageProvider {
                 return null;
             }
             git.add().addFilepattern(".").call();
-            RevCommit commit = git.commit().setMessage("Renovatio: " + summary).call();
+            RevCommit commit = git.commit().setMessage(COMMIT_PREFIX + summary).call();
             return commit.getName();
         } catch (IOException | GitAPIException ex) {
             return null;
@@ -512,8 +620,8 @@ public class JavaProvider extends BaseLanguageProvider {
                         entryFormatter.setRepository(repository);
                         entryFormatter.format(entry);
                         Map<String, Object> change = new LinkedHashMap<>();
-                        change.put("file", entry.getNewPath());
-                        change.put("diff", out.toString(StandardCharsets.UTF_8));
+                        change.put(KEY_FILE, entry.getNewPath());
+                        change.put(KEY_DIFF, new String(out.toByteArray(), StandardCharsets.UTF_8));
                         changes.add(change);
                     }
                 }
@@ -564,9 +672,9 @@ public class JavaProvider extends BaseLanguageProvider {
             } else if (trimmed.startsWith("</dependency>")) {
                 if (artifact != null) {
                     Map<String, String> dependency = new LinkedHashMap<>();
-                    dependency.put("groupId", group);
-                    dependency.put("artifactId", artifact);
-                    dependency.put("version", version);
+                    dependency.put(KEY_GROUP_ID, group);
+                    dependency.put(KEY_ARTIFACT_ID, artifact);
+                    dependency.put(KEY_VERSION, version);
                     dependencies.add(dependency);
                 }
                 group = artifact = version = null;
@@ -609,48 +717,48 @@ public class JavaProvider extends BaseLanguageProvider {
 
     private Map<String, Object> workspaceSchema() {
         return schema(builder -> {
-            builder.put("workspacePath", property("string", "Workspace root", true));
+            builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true));
         });
     }
 
     private Map<String, Object> analyzeSchema() {
         return schema(builder -> {
-            builder.put("workspacePath", property("string", "Workspace root", true));
-            builder.put("profile", property("string", "Analysis profile", false,
-                    Map.of("enum", List.of("quality", "style", "modernize_java17", "security", "testing_support", "all"))));
-            builder.put("include", arrayProperty("Include specific recipes"));
-            builder.put("exclude", arrayProperty("Exclude recipes"));
-            builder.put("maxFindings", property("integer", "Maximum issues returned", false));
+            builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true));
+            builder.put(KEY_PROFILE, property("string", "Analysis profile", false,
+                    Map.of("enum", PROFILES_ENUM)));
+            builder.put(KEY_INCLUDE, arrayProperty("Include specific recipes"));
+            builder.put(KEY_EXCLUDE, arrayProperty("Exclude recipes"));
+            builder.put(KEY_MAX_FINDINGS, property("integer", "Maximum issues returned", false));
         });
     }
 
     private Map<String, Object> planSchema() {
         return schema(builder -> {
-            builder.put("workspacePath", property("string", "Workspace root", true));
-            builder.put("goals", arrayProperty("High level goals"));
-            builder.put("includeRecipes", arrayProperty("Force include recipes"));
-            builder.put("excludeRecipes", arrayProperty("Remove recipes"));
-            builder.put("scope", arrayProperty("Glob patterns"));
-            builder.put("profile", property("string", "Planning profile", false,
-                    Map.of("enum", List.of("quality", "style", "modernize_java17", "security", "testing_support", "all"))));
+            builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true));
+            builder.put(KEY_GOALS, arrayProperty("High level goals"));
+            builder.put(KEY_INCLUDE_RECIPES, arrayProperty("Force include recipes"));
+            builder.put(KEY_EXCLUDE_RECIPES, arrayProperty("Remove recipes"));
+            builder.put(KEY_SCOPE, arrayProperty("Glob patterns"));
+            builder.put(KEY_PROFILE, property("string", "Planning profile", false,
+                    Map.of("enum", PROFILES_ENUM)));
         });
     }
 
     private Map<String, Object> applySchema() {
         return schema(builder -> {
-            builder.put("workspacePath", property("string", "Workspace root", true));
-            builder.put("planId", property("string", "Existing plan identifier", false));
-            builder.put("recipes", arrayProperty("Recipes to execute"));
-            builder.put("dryRun", property("boolean", "Preview changes only", false));
-            builder.put("scope", arrayProperty("Glob patterns"));
+            builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true));
+            builder.put(KEY_PLAN_ID, property("string", "Existing plan identifier", false));
+            builder.put(KEY_RECIPES, arrayProperty("Recipes to execute"));
+            builder.put(KEY_DRY_RUN, property("boolean", "Preview changes only", false));
+            builder.put(KEY_SCOPE, arrayProperty("Glob patterns"));
         });
     }
 
     private Map<String, Object> diffSchema() {
         return schema(builder -> {
-            builder.put("workspacePath", property("string", "Workspace root", true));
-            builder.put("fromRef", property("string", "Git reference to diff from", false));
-            builder.put("toRef", property("string", "Git reference to diff to", false));
+            builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true));
+            builder.put(KEY_FROM_REF, property("string", "Git reference to diff from", false));
+            builder.put(KEY_TO_REF, property("string", "Git reference to diff to", false));
         });
     }
 
@@ -659,27 +767,27 @@ public class JavaProvider extends BaseLanguageProvider {
     }
 
     private Map<String, Object> formatSchema() {
-        return schema(builder -> builder.put("workspacePath", property("string", "Workspace root", true)));
+        return schema(builder -> builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true)));
     }
 
     private Map<String, Object> testSchema() {
-        return schema(builder -> builder.put("workspacePath", property("string", "Workspace root", true)));
+        return schema(builder -> builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true)));
     }
 
     private Map<String, Object> metricsSchema() {
-        return schema(builder -> builder.put("workspacePath", property("string", "Workspace root", true)));
+        return schema(builder -> builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true)));
     }
 
     private Map<String, Object> recipeDescribeSchema() {
-        return schema(builder -> builder.put("name", property("string", "Recipe name", true)));
+        return schema(builder -> builder.put(KEY_NAME, property("string", "Recipe name", true)));
     }
 
     private Map<String, Object> pipelineSchema() {
         return schema(builder -> {
-            builder.put("workspacePath", property("string", "Workspace root", true));
-            builder.put("preset", property("string", "Preset pipeline", false,
-                    Map.of("enum", List.of("modernize_java17", "cleanup_style", "remove_deprecations", "format_only"))));
-            builder.put("dryRun", property("boolean", "Preview changes", false));
+            builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true));
+            builder.put(KEY_PRESET, property("string", "Preset pipeline", false,
+                    Map.of("enum", PRESETS_ENUM)));
+            builder.put(KEY_DRY_RUN, property("boolean", "Preview changes", false));
         });
     }
 
@@ -687,18 +795,18 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> dependency = new LinkedHashMap<>();
         dependency.put("type", "object");
         dependency.put("properties", Map.of(
-                "groupId", Map.of("type", "string"),
-                "artifactId", Map.of("type", "string"),
-                "version", Map.of("type", "string")
+                KEY_GROUP_ID, Map.of("type", "string"),
+                KEY_ARTIFACT_ID, Map.of("type", "string"),
+                KEY_VERSION, Map.of("type", "string")
         ));
 
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "modules", Map.of("type", "array", "items", Map.of("type", "string")),
-                "dependencies", Map.of("type", "array", "items", dependency),
-                "files", Map.of("type", "array", "items", Map.of("type", "string")),
-                "message", Map.of("type", "string")
+                KEY_MODULES, Map.of("type", "array", "items", Map.of("type", "string")),
+                KEY_DEPENDENCIES, Map.of("type", "array", "items", dependency),
+                KEY_FILES, Map.of("type", "array", "items", Map.of("type", "string")),
+                KEY_MESSAGE, Map.of("type", "string")
         ));
         return schema;
     }
@@ -707,18 +815,18 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> issue = new LinkedHashMap<>();
         issue.put("type", "object");
         issue.put("properties", Map.of(
-                "file", Map.of("type", "string"),
-                "line", Map.of("type", "integer"),
-                "severity", Map.of("type", "string"),
+                KEY_FILE, Map.of("type", "string"),
+                KEY_LINE, Map.of("type", "integer"),
+                KEY_SEVERITY, Map.of("type", "string"),
                 "type", Map.of("type", "string"),
-                "message", Map.of("type", "string"),
-                "recipe", Map.of("type", "string")
+                KEY_MESSAGE, Map.of("type", "string"),
+                KEY_RECIPE, Map.of("type", "string")
         ));
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "issues", Map.of("type", "array", "items", issue),
-                "metrics", Map.of("type", "object")
+                KEY_ISSUES, Map.of("type", "array", "items", issue),
+                KEY_METRICS, Map.of("type", "object")
         ));
         return schema;
     }
@@ -727,9 +835,9 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "planId", Map.of("type", "string"),
-                "recipes", Map.of("type", "array", "items", Map.of("type", "string")),
-                "steps", Map.of("type", "array", "items", Map.of("type", "object"))
+                KEY_PLAN_ID, Map.of("type", "string"),
+                KEY_RECIPES, Map.of("type", "array", "items", Map.of("type", "string")),
+                KEY_STEPS, Map.of("type", "array", "items", Map.of("type", "object"))
         ));
         return schema;
     }
@@ -738,9 +846,9 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "changes", Map.of("type", "array", "items", Map.of("type", "object")),
-                "issues", Map.of("type", "array", "items", Map.of("type", "object")),
-                "metrics", Map.of("type", "object")
+                KEY_CHANGES, Map.of("type", "array", "items", Map.of("type", "object")),
+                KEY_ISSUES, Map.of("type", "array", "items", Map.of("type", "object")),
+                KEY_METRICS, Map.of("type", "object")
         ));
         return schema;
     }
@@ -749,7 +857,7 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "changes", Map.of("type", "array", "items", Map.of("type", "object"))
+                KEY_CHANGES, Map.of("type", "array", "items", Map.of("type", "object"))
         ));
         return schema;
     }
@@ -758,8 +866,8 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "summaryMarkdown", Map.of("type", "string"),
-                "highlights", Map.of("type", "array", "items", Map.of("type", "object"))
+                KEY_SUMMARY_MD, Map.of("type", "string"),
+                KEY_HIGHLIGHTS, Map.of("type", "array", "items", Map.of("type", "object"))
         ));
         return schema;
     }
@@ -768,9 +876,9 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "passed", Map.of("type", "boolean"),
-                "failed", Map.of("type", "integer"),
-                "failures", Map.of("type", "array", "items", Map.of("type", "object"))
+                KEY_PASSED, Map.of("type", "boolean"),
+                KEY_FAILED, Map.of("type", "integer"),
+                KEY_FAILURES, Map.of("type", "array", "items", Map.of("type", "object"))
         ));
         return schema;
     }
@@ -779,8 +887,8 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "metrics", Map.of("type", "object"),
-                "details", Map.of("type", "object")
+                KEY_METRICS, Map.of("type", "object"),
+                KEY_DETAILS, Map.of("type", "object")
         ));
         return schema;
     }
@@ -789,7 +897,7 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "recipes", Map.of("type", "array", "items", Map.of("type", "object"))
+                KEY_RECIPES, Map.of("type", "array", "items", Map.of("type", "object"))
         ));
         return schema;
     }
@@ -797,7 +905,7 @@ public class JavaProvider extends BaseLanguageProvider {
     private Map<String, Object> recipeDescribeOutputSchema() {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
-        schema.put("properties", Map.of("recipe", Map.of("type", "object")));
+        schema.put("properties", Map.of(KEY_RECIPE, Map.of("type", "object")));
         return schema;
     }
 
@@ -805,16 +913,16 @@ public class JavaProvider extends BaseLanguageProvider {
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
         schema.put("properties", Map.of(
-                "planId", Map.of("type", "string"),
-                "issues", Map.of("type", "array", "items", Map.of("type", "object")),
-                "changes", Map.of("type", "array", "items", Map.of("type", "object"))
+                KEY_PLAN_ID, Map.of("type", "string"),
+                KEY_ISSUES, Map.of("type", "array", "items", Map.of("type", "object")),
+                KEY_CHANGES, Map.of("type", "array", "items", Map.of("type", "object"))
         ));
         return schema;
     }
 
     private BasicTool createTool(String name, String description, Map<String, Object> inputSchema, Map<String, Object> outputSchema) {
         BasicTool tool = new BasicTool(name, description, inputSchema);
-        tool.getMetadata().put("outputSchema", outputSchema);
+        tool.getMetadata().put(METADATA_OUTPUT_SCHEMA, outputSchema);
         return tool;
     }
 
@@ -913,6 +1021,14 @@ public class JavaProvider extends BaseLanguageProvider {
         }
     }
 
+    // Keys for common parameter names to avoid typos
+    private static final String KEY_INCLUDE = "include";
+    private static final String KEY_EXCLUDE = "exclude";
+    private static final String KEY_INCLUDE_RECIPES = "includeRecipes";
+    private static final String KEY_EXCLUDE_RECIPES = "excludeRecipes";
+    private static final String KEY_PROFILE = "profile";
+    private static final String KEY_MAX_FINDINGS = "maxFindings";
+
     private List<String> sanitizeRecipes(List<String> recipes) {
         if (recipes == null || recipes.isEmpty()) {
             return List.of();
@@ -942,5 +1058,10 @@ public class JavaProvider extends BaseLanguageProvider {
             set.addAll(second.stream().filter(Objects::nonNull).filter(s -> !s.isBlank()).toList());
         }
         return new ArrayList<>(set);
+    }
+
+    // Generate unique run id
+    private String generateRunId() {
+        return java.util.UUID.randomUUID().toString();
     }
 }
