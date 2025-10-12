@@ -40,18 +40,18 @@ class SimpleCobolIrParserTest {
         assertEquals(2, model.getDataItems().size());
 
         CobolParagraph main = model.getEntryParagraph();
-        assertEquals("MAIN-PARA", main.getName());
-        assertFalse(main.getStatements().isEmpty());
+        assertEquals("MAIN-PARA", main.name());
+        assertFalse(main.statements().isEmpty());
 
-        MoveStatement move = (MoveStatement) main.getStatements().get(0);
-        assertEquals("'JOHN'", move.getSource());
-        assertEquals("CUSTOMER-NAME", move.getTarget());
+        MoveStatement move = (MoveStatement) main.statements().get(0);
+        assertEquals("'JOHN'", move.source());
+        assertEquals("CUSTOMER-NAME", move.target());
 
-        IfStatement ifStatement = (IfStatement) main.getStatements().stream()
+        IfStatement ifStatement = (IfStatement) main.statements().stream()
                 .filter(stmt -> stmt instanceof IfStatement)
                 .findFirst()
                 .orElseThrow();
-        assertEquals("CUSTOMER-RATING > 80", ifStatement.getCondition());
+        assertEquals("CUSTOMER-RATING > 80", ifStatement.condition());
         List<CobolParagraph> paragraphs = model.getParagraphs().values().stream().toList();
         assertEquals(2, paragraphs.size());
     }

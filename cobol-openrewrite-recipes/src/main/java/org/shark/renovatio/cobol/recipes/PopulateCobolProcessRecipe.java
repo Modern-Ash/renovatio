@@ -2,6 +2,7 @@ package org.shark.renovatio.cobol.recipes;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Option;
+import org.openrewrite.Recipe;
 import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
@@ -9,13 +10,9 @@ import org.openrewrite.java.tree.J;
 import org.shark.renovatio.cobol.ir.model.*;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
-public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
+public class PopulateCobolProcessRecipe extends Recipe {
 
     public static final String CONTEXT_KEY = "renovatio.cobol.ir";
 
@@ -145,7 +142,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
             return List.of();
         }
 
-        String upperName = paragraph.getName().toUpperCase(Locale.ROOT);
+        String upperName = paragraph.name().toUpperCase(Locale.ROOT);
         if (!visitedParagraphs.add(upperName)) {
             return List.of(String.format(Locale.ROOT,
                     "// Recursive PERFORM of paragraph %s detected, skipping expansion", upperName));
@@ -153,7 +150,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
 
         try {
             List<String> lines = new ArrayList<>();
-            for (CobolStatement statement : paragraph.getStatements()) {
+            for (CobolStatement statement : paragraph.statements()) {
                 lines.addAll(renderStatement(statement, model, visitedParagraphs, varName));
             }
             return lines;
@@ -198,15 +195,15 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                                   Set<String> visitedParagraphs,
                                   @Nullable String varName) {
         List<String> lines = new ArrayList<>();
-        lines.add(String.format(Locale.ROOT, "if (%s) {", translateCondition(ifStatement.getCondition())));
-        for (CobolStatement stmt : ifStatement.getThenStatements()) {
+        lines.add(String.format(Locale.ROOT, "if (%s) {", translateCondition(ifStatement.condition())));
+        for (CobolStatement stmt : ifStatement.thenStatements()) {
             for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
                 lines.add(indent(rendered));
             }
         }
-        if (!ifStatement.getElseStatements().isEmpty()) {
+        if (!ifStatement.elseStatements().isEmpty()) {
             lines.add("} else {");
-            for (CobolStatement stmt : ifStatement.getElseStatements()) {
+            for (CobolStatement stmt : ifStatement.elseStatements()) {
                 for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
                     lines.add(indent(rendered));
                 }
@@ -219,13 +216,13 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
     private String renderMove(MoveStatement move, @Nullable String varName) {
         String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
         return String.format(Locale.ROOT, "%s.%s(%s);",
-                targetVar, toSetter(move.getTarget()), toJavaExpression(move.getSource()));
+                targetVar, toSetter(move.target()), toJavaExpression(move.source()));
     }
 
     private String renderCompute(ComputeStatement compute, @Nullable String varName) {
         String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
         return String.format(Locale.ROOT, "%s.%s(%s);",
-                targetVar, toSetter(compute.getTarget()), translateExpression(compute.getExpression()));
+                targetVar, toSetter(compute.target()), translateExpression(compute.expression()));
     }
 
     private List<String> renderPerform(PerformStatement perform,
@@ -233,25 +230,25 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                                        Set<String> visitedParagraphs,
                                        @Nullable String varName) {
         List<String> lines = new ArrayList<>();
-        if (perform.getParagraph() == null || perform.getParagraph().isBlank()) {
+        if (perform.paragraph() == null || perform.paragraph().isBlank()) {
             lines.add("// PERFORM with unnamed paragraph");
             return lines;
         }
 
-        model.findParagraph(perform.getParagraph()).ifPresentOrElse(target -> {
+        model.findParagraph(perform.paragraph()).ifPresentOrElse(target -> {
             List<String> nested = renderParagraph(target, model, new LinkedHashSet<>(visitedParagraphs), varName);
             if (nested.isEmpty()) {
                 lines.add(String.format(Locale.ROOT,
-                        "// PERFORM %s (paragraph is empty)", perform.getParagraph()));
+                        "// PERFORM %s (paragraph is empty)", perform.paragraph()));
             } else {
                 lines.addAll(nested);
             }
         }, () -> lines.add(String.format(Locale.ROOT,
-                "// PERFORM %s (paragraph not found)", perform.getParagraph())));
+                "// PERFORM %s (paragraph not found)", perform.paragraph())));
 
-        if (perform.getThroughParagraph() != null) {
+        if (perform.throughParagraph() != null) {
             lines.add(String.format(Locale.ROOT,
-                    "// PERFORM THRU %s not yet expanded", perform.getThroughParagraph()));
+                    "// PERFORM THRU %s not yet expanded", perform.throughParagraph()));
         }
         return lines;
     }
@@ -261,9 +258,9 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
                                         Set<String> visitedParagraphs,
                                         @Nullable String varName) {
         List<String> lines = new ArrayList<>();
-        String selector = toJavaExpression(evaluate.getExpression());
+        String selector = toJavaExpression(evaluate.expression());
         lines.add(String.format(Locale.ROOT, "switch (%s) {", selector));
-        for (EvaluateStatement.EvaluateWhenBranch branch : evaluate.getBranches()) {
+        for (EvaluateStatement.EvaluateWhenBranch branch : evaluate.branches()) {
             String label = branch.getCondition().equalsIgnoreCase("OTHER")
                     ? "default"
                     : "case " + toJavaExpression(branch.getCondition());
@@ -280,7 +277,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
     }
 
     private String renderDb2(Db2Statement db2) {
-        return String.format(Locale.ROOT, "// EXEC SQL %s", db2.getSql());
+        return String.format(Locale.ROOT, "// EXEC SQL %s", db2.sql());
     }
 
     private String renderCall(CallStatement call) {
@@ -294,7 +291,7 @@ public class PopulateCobolProcessRecipe extends org.openrewrite.Recipe {
     }
 
     private String renderFileOperation(FileOperationStatement fileOp) {
-        return String.format(Locale.ROOT, "// %s %s", fileOp.getOperationType(), fileOp.getFileName());
+        return String.format(Locale.ROOT, "// %s %s", fileOp.operationType(), fileOp.fileName());
     }
 
     private String translateCondition(String condition) {

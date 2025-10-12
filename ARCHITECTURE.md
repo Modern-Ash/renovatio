@@ -7,40 +7,38 @@ both standalone usage and MCP client integration.
 
 ```
 ┌─────────────────────┐
-│   MCP Clients       │
+│     MCP Clients     │
 │ (VS Code, Copilot)  │
 └──────────┬──────────┘
-           │ JSON-RPC 2.0 over HTTP or stdio
-           │
+           │ JSON-RPC 2.0 (HTTP | stdio)
 ┌──────────▼──────────┐
 │  renovatio-mcp-     │
-│  server             │
-│  ┌─────────────────┐│
-│  │ MCP Protocol    ││  McpProtocolService / McpToolingService
-│  │ Implementation  ││  - tools/list, tools/call, prompts, resources
-│  └─────────────────┘│  - McpToolAdapter (name mapping '.' ↔ '_')
+│  server (Spring)    │
 └──────────┬──────────┘
-           │ protocol-agnostic Tool API
-┌──────────▼──────────┐
-│  renovatio-core     │
-│  (Core Engine)      │
-│  ┌─────────────────┐│
-│  │ Language        ││  LanguageProviderRegistry
-│  │ Provider        ││  - generateTools()
-│  │ Registry        ││  - route execution to providers
-│  └─────────────────┘│
+           │ MCP ↔ Core adapter (tools/list, tools/call)
+┌──────────▼──────────┐           ┌─────────────────────────┐
+│   renovatio-core    │ ◄──────── │     renovatio-shared    │
+│  (LanguageProvider  │   uses    │ (domain, SPI, NQL, util)│
+│     Registry)       │           └─────────────────────────┘
 └──────────┬──────────┘
            │ provider SPI
-    ┌──────┴──────┐
-    │             │
-┌───▼──┐    ┌─────▼──────┐
-│ Java │    │   COBOL    │
-│ Prov │    │ Provider   │
-└──────┘    └────────────┘
+      ┌────┴─────┐
+      │          │
+┌─────▼────┐  ┌──▼────────────────┐
+│  Java    │  │      COBOL        │
+│ Provider │  │     Provider      │
+│ (OpenRew)│  │ (parse/metrics/   │
+└─────┬────┘  │  migration)       │
+      │       └───┬────────────────┘
+      │           │ uses
+      │      ┌────▼──────────────┐    ┌────────────────────────────┐
+      │      │ renovatio-cobol-  │    │ cobol-openrewrite-recipes  │
+      │      │ ir (IR & utils)   │    │ (OpenRewrite recipes)      │
+      │      └───────────────────┘    └────────────────────────────┘
 ```
 
 - Java provider integrates OpenRewrite (recipe discovery, execution, dynamic tools)
-- COBOL provider handles parsing, metrics, and migration scaffolding
+- COBOL provider handles parsing, metrics, migration planning and generation (templates), Lucene indexing, optional CICS
 
 ## Module Structure
 
@@ -102,6 +100,18 @@ both standalone usage and MCP client integration.
   - `schemas/mcp-config-schema.json`
   - `schemas/mcp-tool-call-schema.json`
 - Prefer configuration via `application.yml` for providers and server settings (e.g., enable/disable providers, COBOL dialect, CICS settings).
+
+## Quick Links
+
+- Module READMEs:
+    - [renovatio-shared](./renovatio-shared/README.md)
+    - [renovatio-core](./renovatio-core/README.md)
+    - [renovatio-provider-java](./renovatio-provider-java/README.md)
+    - [renovatio-provider-cobol](./renovatio-provider-cobol/README.md)
+    - [renovatio-cobol-ir](./renovatio-cobol-ir/README.md)
+    - [cobol-openrewrite-recipes](./cobol-openrewrite-recipes/README.md)
+    - [renovatio-mcp-server](./renovatio-mcp-server/README.md)
+- Diagrams: see `docs/diagrams/*` (PlantUML)
 
 ## Runtime Modes
 

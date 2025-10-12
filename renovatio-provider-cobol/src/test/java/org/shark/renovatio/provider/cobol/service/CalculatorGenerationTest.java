@@ -8,7 +8,7 @@ import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -16,7 +16,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * Test for calculator COBOL program with ENTRY statements
  */
-public class CalculatorGenerationTest {
+class CalculatorGenerationTest {
 
     private static final String CALCULATOR_COBOL = """
        identification division.
@@ -68,7 +68,7 @@ public class CalculatorGenerationTest {
         """;
 
     @Test
-    public void testParseCalculatorEntries() throws Exception {
+    void testParseCalculatorEntries() throws Exception {
         CobolParsingService parsingService = new CobolParsingService();
         Path tempFile = java.nio.file.Files.createTempFile("calculator", ".cob");
         java.nio.file.Files.writeString(tempFile, CALCULATOR_COBOL);
@@ -78,37 +78,44 @@ public class CalculatorGenerationTest {
         // Check that entries are extracted
         @SuppressWarnings("unchecked")
         java.util.List<Map<String, Object>> entries = (java.util.List<Map<String, Object>>) metadata.get("entries");
-        
-        assertThat(entries).isNotNull();
-        assertThat(entries).hasSize(4);
-        assertThat(entries).extracting(e -> e.get("name")).containsExactlyInAnyOrder("add", "subtract", "multiply", "divide");
-        
+
+        assertThat(entries)
+                .isNotNull()
+                .hasSize(4)
+                .extracting(e -> e.get("name"))
+                .containsExactlyInAnyOrder("add", "subtract", "multiply", "divide");
+
         // Check that linkage items are extracted
         @SuppressWarnings("unchecked")
         java.util.List<Map<String, Object>> linkageItems = (java.util.List<Map<String, Object>>) metadata.get("linkageItems");
-        
-        assertThat(linkageItems).isNotNull();
-        assertThat(linkageItems).hasSize(4);
-        assertThat(linkageItems).extracting(item -> item.get("name")).containsExactlyInAnyOrder("arg1", "arg2", "result", "storage");
+
+        assertThat(linkageItems)
+                .isNotNull()
+                .hasSize(4)
+                .extracting(item -> item.get("name"))
+                .containsExactlyInAnyOrder("arg1", "arg2", "result", "storage");
     }
 
     @Test
-    public void testIRParserExtractsEntryParagraphs() {
+    void testIRParserExtractsEntryParagraphs() {
         SimpleCobolIrParser parser = new SimpleCobolIrParser();
         CobolIntermediateModel model = parser.parse(CALCULATOR_COBOL);
         
         // Check that ENTRY paragraphs are extracted
-        assertThat(model.getParagraphs()).containsKeys("ADD", "SUBTRACT", "MULTIPLY", "DIVIDE");
-        
+        assertThat(model.findParagraph("ADD")).isPresent();
+        assertThat(model.findParagraph("SUBTRACT")).isPresent();
+        assertThat(model.findParagraph("MULTIPLY")).isPresent();
+        assertThat(model.findParagraph("DIVIDE")).isPresent();
+
         // Check that each paragraph has statements
-        assertThat(model.getParagraphs().get("ADD").getStatements()).isNotEmpty();
-        assertThat(model.getParagraphs().get("SUBTRACT").getStatements()).isNotEmpty();
-        assertThat(model.getParagraphs().get("MULTIPLY").getStatements()).isNotEmpty();
-        assertThat(model.getParagraphs().get("DIVIDE").getStatements()).isNotEmpty();
+        for (String name : List.of("ADD", "SUBTRACT", "MULTIPLY", "DIVIDE")) {
+            var paragraph = model.findParagraph(name).orElseThrow();
+            assertThat(paragraph.statements()).isNotEmpty();
+        }
     }
 
     @Test
-    public void testJavaGenerationCreatesMethodsForEntries() throws Exception {
+    void testJavaGenerationCreatesMethodsForEntries() throws Exception {
         CobolParsingService parsingService = new CobolParsingService();
         TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
         CobolIntermediateModelService intermediateModelService = new CobolIntermediateModelService();
@@ -131,11 +138,14 @@ public class CalculatorGenerationTest {
         System.out.println("Generated DTO:\n" + dtoCode);
         
         // Check that DTO has fields from linkage section
-        assertThat(dtoCode).contains("private BigDecimal arg1");
-        assertThat(dtoCode).contains("private BigDecimal arg2");
-        assertThat(dtoCode).contains("private BigDecimal result");
-        assertThat(dtoCode).contains("private BigDecimal storage");
-        
+        assertThat(dtoCode)
+                .contains(
+                        "private BigDecimal arg1",
+                        "private BigDecimal arg2",
+                        "private BigDecimal result",
+                        "private BigDecimal storage"
+                );
+
         // Generate Service Interface
         java.lang.reflect.Method interfaceMethod = javaGenerationService.getClass()
             .getDeclaredMethod("generateServiceInterface", String.class, Map.class);
@@ -145,9 +155,12 @@ public class CalculatorGenerationTest {
         System.out.println("Generated Service Interface:\n" + serviceInterface);
         
         // Check that service interface has methods for each ENTRY
-        assertThat(serviceInterface).contains("CalculatorDTO add(CalculatorDTO input)");
-        assertThat(serviceInterface).contains("CalculatorDTO subtract(CalculatorDTO input)");
-        assertThat(serviceInterface).contains("CalculatorDTO multiply(CalculatorDTO input)");
-        assertThat(serviceInterface).contains("CalculatorDTO divide(CalculatorDTO input)");
+        assertThat(serviceInterface)
+                .contains(
+                        "CalculatorDTO add(CalculatorDTO input)",
+                        "CalculatorDTO subtract(CalculatorDTO input)",
+                        "CalculatorDTO multiply(CalculatorDTO input)",
+                        "CalculatorDTO divide(CalculatorDTO input)"
+                );
     }
 }

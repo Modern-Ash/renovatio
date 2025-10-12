@@ -1,17 +1,11 @@
 package org.shark.renovatio.cobol.ir.model;
 
-import lombok.Value;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-@Value
-public final class CobolParagraph {
-
-    String name;
-    List<CobolStatement> statements;
+public record CobolParagraph(String name, List<CobolStatement> statements) {
 
     public CobolParagraph(String name, List<CobolStatement> statements) {
         this.name = Objects.requireNonNull(name, "name").toUpperCase();

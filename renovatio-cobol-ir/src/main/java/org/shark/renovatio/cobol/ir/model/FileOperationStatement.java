@@ -1,11 +1,8 @@
 package org.shark.renovatio.cobol.ir.model;
 
-import lombok.Value;
-
 import java.util.Objects;
 
-@Value
-public final class FileOperationStatement implements CobolStatement {
+public record FileOperationStatement(OperationType operationType, String fileName) implements CobolStatement {
 
     public enum OperationType {
         READ,
@@ -15,9 +12,6 @@ public final class FileOperationStatement implements CobolStatement {
         OPEN,
         CLOSE
     }
-
-    OperationType operationType;
-    String fileName;
 
     public FileOperationStatement(OperationType operationType, String fileName) {
         this.operationType = Objects.requireNonNull(operationType, "operationType");

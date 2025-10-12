@@ -1,16 +1,10 @@
 package org.shark.renovatio.cobol.ir.model;
 
-import lombok.Value;
-
 import java.util.List;
 import java.util.Objects;
 
-@Value
-public final class IfStatement implements CobolStatement {
-
-    String condition;
-    List<CobolStatement> thenStatements;
-    List<CobolStatement> elseStatements;
+public record IfStatement(String condition, List<CobolStatement> thenStatements,
+                          List<CobolStatement> elseStatements) implements CobolStatement {
 
     public IfStatement(String condition,
                        List<CobolStatement> thenStatements,

@@ -5,11 +5,12 @@ import org.openrewrite.config.OptionDescriptor;
 import org.openrewrite.config.RecipeDescriptor;
 import org.openrewrite.config.YamlResourceLoader;
 import org.shark.renovatio.provider.java.discovery.OpenRewriteRecipeDiscoveryService;
-import org.shark.renovatio.provider.java.execution.JavaRecipeExecutionResult;
 import org.shark.renovatio.provider.java.execution.JavaRecipeExecutor;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.shared.spi.BaseLanguageProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class JavaLanguageProvider extends BaseLanguageProvider {
+
+    private static final Logger log = LoggerFactory.getLogger(JavaLanguageProvider.class);
 
     private final OpenRewriteRecipeDiscoveryService discoveryService;
     private final OpenRewriteRunner openRewriteRunner;
@@ -442,7 +445,7 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             Environment environment = builder.build();
             Collection<RecipeDescriptor> descriptors = environment.listRecipeDescriptors();
             if (descriptors == null || descriptors.isEmpty()) {
-                System.out.println("[JavaLanguageProvider] No OpenRewrite recipes discovered on the classpath.");
+                log.debug("[JavaLanguageProvider] No OpenRewrite recipes discovered on the classpath.");
                 return recipeTools;
             }
             Set<String> seenRecipes = new LinkedHashSet<>();
@@ -450,10 +453,9 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             for (RecipeDescriptor descriptor : descriptors) {
                 collectRecipeTools(descriptor, recipeTools, seenRecipes, seenToolNames);
             }
-            System.out.println("[JavaLanguageProvider] Exposing " + recipeTools.size() + " OpenRewrite recipe tool(s).");
+            log.debug("[JavaLanguageProvider] Exposing {} OpenRewrite recipe tool(s).", recipeTools.size());
         } catch (Exception e) {
-            System.err.println("[WARN] Unable to discover OpenRewrite recipes: " + e.getMessage());
-            e.printStackTrace(System.err);
+            log.warn("[JavaLanguageProvider] Unable to discover OpenRewrite recipes: {}", e.getMessage(), e);
         }
         return recipeTools;
     }

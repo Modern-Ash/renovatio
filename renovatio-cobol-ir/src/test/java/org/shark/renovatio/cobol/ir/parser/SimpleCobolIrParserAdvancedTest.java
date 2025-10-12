@@ -68,33 +68,33 @@ class SimpleCobolIrParserAdvancedTest {
 
         CobolParagraph p1 = paras.get("PARA-1");
         // Validate that different statement types are present
-        assertTrue(p1.getStatements().stream().anyMatch(s -> s instanceof MoveStatement));
-        assertTrue(p1.getStatements().stream().anyMatch(s -> s instanceof IfStatement));
-        assertTrue(p1.getStatements().stream().anyMatch(s -> s instanceof EvaluateStatement));
-        assertTrue(p1.getStatements().stream().anyMatch(s -> s instanceof PerformStatement));
-        assertTrue(p1.getStatements().stream().anyMatch(s -> s instanceof CallStatement));
-        assertTrue(p1.getStatements().stream().anyMatch(s -> s instanceof Db2Statement));
+        assertTrue(p1.statements().stream().anyMatch(s -> s instanceof MoveStatement));
+        assertTrue(p1.statements().stream().anyMatch(s -> s instanceof IfStatement));
+        assertTrue(p1.statements().stream().anyMatch(s -> s instanceof EvaluateStatement));
+        assertTrue(p1.statements().stream().anyMatch(s -> s instanceof PerformStatement));
+        assertTrue(p1.statements().stream().anyMatch(s -> s instanceof CallStatement));
+        assertTrue(p1.statements().stream().anyMatch(s -> s instanceof Db2Statement));
         // File operations are validated below in cobol2 scenario
-        assertTrue(p1.getStatements().stream().anyMatch(s -> s instanceof ComputeStatement));
+        assertTrue(p1.statements().stream().anyMatch(s -> s instanceof ComputeStatement));
 
         // Check cleaned SQL content
-        Db2Statement sql = (Db2Statement) p1.getStatements().stream()
+        Db2Statement sql = (Db2Statement) p1.statements().stream()
                 .filter(s -> s instanceof Db2Statement)
                 .findFirst().orElseThrow();
-        assertEquals("SELECT COL FROM TAB", sql.getSql());
+        assertEquals("SELECT COL FROM TAB", sql.sql());
 
         // Check Evaluate branches collected
-        EvaluateStatement eval = (EvaluateStatement) p1.getStatements().stream()
+        EvaluateStatement eval = (EvaluateStatement) p1.statements().stream()
                 .filter(s -> s instanceof EvaluateStatement)
                 .findFirst().orElseThrow();
-        assertEquals("WS-NUM", eval.getExpression());
-        assertEquals(2, eval.getBranches().size());
-        assertEquals("0", eval.getBranches().get(0).getCondition());
-        assertEquals("OTHER", eval.getBranches().get(1).getCondition());
+        assertEquals("WS-NUM", eval.expression());
+        assertEquals(2, eval.branches().size());
+        assertEquals("0", eval.branches().get(0).getCondition());
+        assertEquals("OTHER", eval.branches().get(1).getCondition());
 
         // Control flow edges due to PERFORM and THRU
         ControlFlowGraph g = model.getControlFlowGraph();
-        Map<String, Set<String>> adj = g.getAdjacency();
+        Map<String, Set<String>> adj = g.adjacency();
         assertTrue(adj.get("PARA-1").contains("PARA-2"));
         assertTrue(adj.get("PARA-2").contains("PARA-3"));
 
@@ -114,12 +114,12 @@ class SimpleCobolIrParserAdvancedTest {
         CobolIntermediateModel m2 = parser.parse(cobol2);
         CobolParagraph mp = m2.getEntryParagraph();
         // Ensure statements created even for malformed/degenerate forms
-        assertTrue(mp.getStatements().stream().filter(s -> s instanceof ComputeStatement).count() >= 5);
+        assertTrue(mp.statements().stream().filter(s -> s instanceof ComputeStatement).count() >= 5);
         // Unknown file name results in UNKNOWN
-        FileOperationStatement read = (FileOperationStatement) mp.getStatements().stream()
+        FileOperationStatement read = (FileOperationStatement) mp.statements().stream()
                 .filter(s -> s instanceof FileOperationStatement)
                 .findFirst().orElseThrow();
-        assertEquals("UNKNOWN", read.getFileName());
+        assertEquals("UNKNOWN", read.fileName());
     }
 
     @Test
@@ -140,10 +140,10 @@ class SimpleCobolIrParserAdvancedTest {
         assertTrue(model.getParagraphs().containsKey("A"));
         assertTrue(model.getParagraphs().containsKey("B"));
         CobolParagraph a = model.getParagraphs().get("A");
-        assertEquals(1, a.getStatements().size());
-        MoveStatement onlyMove = (MoveStatement) a.getStatements().get(0);
-        assertEquals("'X'", onlyMove.getSource());
-        assertEquals("ARG1", onlyMove.getTarget());
+        assertEquals(1, a.statements().size());
+        MoveStatement onlyMove = (MoveStatement) a.statements().get(0);
+        assertEquals("'X'", onlyMove.source());
+        assertEquals("ARG1", onlyMove.target());
     }
 
     @Test
@@ -160,10 +160,10 @@ class SimpleCobolIrParserAdvancedTest {
         SimpleCobolIrParser parser = new SimpleCobolIrParser();
         CobolIntermediateModel model = parser.parse(cobol);
         CobolParagraph p = model.getEntryParagraph();
-        assertTrue(p.getStatements().stream().anyMatch(s -> s instanceof CallStatement));
-        Db2Statement sql = (Db2Statement) p.getStatements().stream()
+        assertTrue(p.statements().stream().anyMatch(s -> s instanceof CallStatement));
+        Db2Statement sql = (Db2Statement) p.statements().stream()
                 .filter(s -> s instanceof Db2Statement).findFirst().orElseThrow();
-        assertTrue(sql.getSql().toUpperCase().contains("SELECT 1 FROM T"));
+        assertTrue(sql.sql().toUpperCase().contains("SELECT 1 FROM T"));
     }
 
     @Test
@@ -179,7 +179,7 @@ class SimpleCobolIrParserAdvancedTest {
             SimpleCobolIrParser parser = new SimpleCobolIrParser();
             CobolIntermediateModel model = parser.parse(tmp);
             assertEquals("COBOLPROGRAM", model.getProgramId());
-            assertEquals("MAIN", model.getEntryParagraph().getName());
+            assertEquals("MAIN", model.getEntryParagraph().name());
         } finally {
             Files.deleteIfExists(tmp);
         }

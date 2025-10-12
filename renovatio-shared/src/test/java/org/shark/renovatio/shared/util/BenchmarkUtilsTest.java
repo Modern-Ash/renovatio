@@ -4,16 +4,19 @@ import org.junit.jupiter.api.Test;
 import org.shark.renovatio.shared.domain.AnalyzeResult;
 import org.shark.renovatio.shared.domain.PerformanceMetrics;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BenchmarkUtilsTest {
 
+    private static void run() {
+        // trivial work
+        for (int i = 0; i < 10; i++) {
+        }
+    }
+
     @Test
     void measure_returnsExecutionTime() {
-        PerformanceMetrics pm = BenchmarkUtils.measure(() -> {
-            // trivial work
-            for (int i = 0; i < 10; i++) {}
-        });
+        PerformanceMetrics pm = BenchmarkUtils.measure(BenchmarkUtilsTest::run);
         assertTrue(pm.getExecutionTimeMs() >= 0);
     }
 

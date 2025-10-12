@@ -116,13 +116,9 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
 
     @Override
     public AnalyzeResult analyze(NqlQuery query, Workspace workspace) {
+        // Index workspace for fast search on subsequent operations; ignore failures
+        safeIndexWorkspace(workspace);
         try {
-            // Index workspace for fast search on subsequent operations; ignore failures
-            try {
-                indexingService.indexWorkspace(workspace);
-            } catch (Exception ignored) {
-                // Best-effort: indexing failures shouldn't block analysis
-            }
             return parsingService.analyzeCOBOL(query, workspace);
         } catch (Exception e) {
             AnalyzeResult result;
@@ -270,6 +266,8 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     }
 
     @Override
+    @SuppressWarnings("java:S1168")
+    // Intentionally return null for "not handled" to enable registry fallback per ExtendedLanguageProvider contract
     public Map<String, Object> executeExtendedTool(String capability, Map<String, Object> arguments) {
         if (capability == null) return null;
         String cap = capability.toLowerCase(Locale.ROOT);
@@ -428,5 +426,16 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         r.put(KEY_SUCCESS, false);
         r.put(KEY_MESSAGE, msg);
         return r;
+    }
+
+    /**
+     * Best-effort workspace indexing that never throws, to avoid nested try/catch in callers.
+     */
+    private void safeIndexWorkspace(Workspace workspace) {
+        try {
+            indexingService.indexWorkspace(workspace);
+        } catch (Exception ignored) {
+            // Best-effort: indexing failures shouldn't block provider operations
+        }
     }
 }

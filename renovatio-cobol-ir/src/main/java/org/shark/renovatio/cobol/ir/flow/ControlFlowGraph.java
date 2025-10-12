@@ -4,19 +4,12 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
-public final class ControlFlowGraph {
+public record ControlFlowGraph(Map<String, Set<String>> adjacency) {
 
-    private final Map<String, Set<String>> adjacency;
-
-    private ControlFlowGraph(Map<String, Set<String>> adjacency) {
+    public ControlFlowGraph(Map<String, Set<String>> adjacency) {
         this.adjacency = Collections.unmodifiableMap(adjacency);
-    }
-
-    public Map<String, Set<String>> getAdjacency() {
-        return adjacency;
     }
 
     public Set<String> successors(String node) {

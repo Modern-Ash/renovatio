@@ -68,7 +68,7 @@ public final class CobolIntermediateModel {
 
         public Builder addParagraph(CobolParagraph paragraph) {
             Objects.requireNonNull(paragraph, "paragraph");
-            this.paragraphs.put(paragraph.getName().toUpperCase(), paragraph);
+            this.paragraphs.put(paragraph.name().toUpperCase(), paragraph);
             return this;
         }
 

@@ -5,11 +5,7 @@ import lombok.Value;
 import java.util.List;
 import java.util.Objects;
 
-@Value
-public final class EvaluateStatement implements CobolStatement {
-
-    String expression;
-    List<EvaluateWhenBranch> branches;
+public record EvaluateStatement(String expression, List<EvaluateWhenBranch> branches) implements CobolStatement {
 
     public EvaluateStatement(String expression, List<EvaluateWhenBranch> branches) {
         this.expression = Objects.requireNonNull(expression, "expression");

@@ -12,8 +12,8 @@ class ModelClassesTest {
     @Test
     void moveStatement_shouldHoldValues_andRejectNulls() {
         MoveStatement m = new MoveStatement("A", "B");
-        assertEquals("A", m.getSource());
-        assertEquals("B", m.getTarget());
+        assertEquals("A", m.source());
+        assertEquals("B", m.target());
         assertThrows(NullPointerException.class, () -> new MoveStatement(null, "B"));
         assertThrows(NullPointerException.class, () -> new MoveStatement("A", null));
     }
@@ -21,8 +21,8 @@ class ModelClassesTest {
     @Test
     void computeStatement_shouldHoldValues_andRejectNulls() {
         ComputeStatement c = new ComputeStatement("T", "X+1");
-        assertEquals("T", c.getTarget());
-        assertEquals("X+1", c.getExpression());
+        assertEquals("T", c.target());
+        assertEquals("X+1", c.expression());
         assertThrows(NullPointerException.class, () -> new ComputeStatement(null, "X"));
         assertThrows(NullPointerException.class, () -> new ComputeStatement("T", null));
     }
@@ -31,8 +31,8 @@ class ModelClassesTest {
     void fileOperationStatement_shouldHoldValues_andRejectNulls() {
         for (FileOperationStatement.OperationType t : FileOperationStatement.OperationType.values()) {
             FileOperationStatement f = new FileOperationStatement(t, "FILEA");
-            assertEquals(t, f.getOperationType());
-            assertEquals("FILEA", f.getFileName());
+            assertEquals(t, f.operationType());
+            assertEquals("FILEA", f.fileName());
         }
         assertThrows(NullPointerException.class, () -> new FileOperationStatement(null, "X"));
         assertThrows(NullPointerException.class, () -> new FileOperationStatement(FileOperationStatement.OperationType.OPEN, null));
@@ -41,18 +41,18 @@ class ModelClassesTest {
     @Test
     void performStatement_shouldUppercaseParagraph_andAllowNullThrough() {
         PerformStatement p1 = new PerformStatement("para-1", null);
-        assertEquals("PARA-1", p1.getParagraph());
-        assertNull(p1.getThroughParagraph());
+        assertEquals("PARA-1", p1.paragraph());
+        assertNull(p1.throughParagraph());
         PerformStatement p2 = new PerformStatement("para-1", "para-2");
-        assertEquals("PARA-2", p2.getThroughParagraph());
+        assertEquals("PARA-2", p2.throughParagraph());
     }
 
     @Test
     void ifStatement_shouldCopyLists_andRejectNullCondition() {
         IfStatement s = new IfStatement("A > B", List.of(new MoveStatement("1","X")), null);
-        assertEquals("A > B", s.getCondition());
-        assertEquals(1, s.getThenStatements().size());
-        assertNotNull(s.getElseStatements());
+        assertEquals("A > B", s.condition());
+        assertEquals(1, s.thenStatements().size());
+        assertNotNull(s.elseStatements());
         assertThrows(NullPointerException.class, () -> new IfStatement(null, List.of(), List.of()));
     }
 
@@ -72,8 +72,8 @@ class ModelClassesTest {
         assertEquals("X", br.getCondition());
         assertEquals(List.of(), br.getStatements());
         EvaluateStatement ev = new EvaluateStatement("A", List.of(br));
-        assertEquals("A", ev.getExpression());
-        assertEquals(1, ev.getBranches().size());
+        assertEquals("A", ev.expression());
+        assertEquals(1, ev.branches().size());
         assertThrows(NullPointerException.class, () -> new EvaluateStatement(null, List.of()));
         assertThrows(NullPointerException.class, () -> new EvaluateStatement.EvaluateWhenBranch(null, List.of()));
     }
@@ -81,17 +81,17 @@ class ModelClassesTest {
     @Test
     void cobolParagraph_shouldUppercaseName_andCopyStatements_andSupportEmpty() {
         CobolParagraph empty = CobolParagraph.empty("main");
-        assertEquals("MAIN", empty.getName());
-        assertNotNull(empty.getStatements());
+        assertEquals("MAIN", empty.name());
+        assertNotNull(empty.statements());
         CobolParagraph p = new CobolParagraph("para-1", null);
-        assertEquals("PARA-1", p.getName());
-        assertEquals(List.of(), p.getStatements());
+        assertEquals("PARA-1", p.name());
+        assertEquals(List.of(), p.statements());
     }
 
     @Test
     void db2Statement_shouldHoldSql_andRejectNull() {
         Db2Statement s = new Db2Statement("SELECT 1 FROM SYSIBM.SYSDUMMY1");
-        assertEquals("SELECT 1 FROM SYSIBM.SYSDUMMY1", s.getSql());
+        assertEquals("SELECT 1 FROM SYSIBM.SYSDUMMY1", s.sql());
         assertThrows(NullPointerException.class, () -> new Db2Statement(null));
     }
 
@@ -123,10 +123,10 @@ class ModelClassesTest {
         assertEquals("SAMPLE", m.getProgramId());
         assertEquals(p1, m.findParagraph("main").orElseThrow());
         assertTrue(m.findParagraph(null).isEmpty());
-        assertEquals("MAIN", m.getEntryParagraph().getName());
+        assertEquals("MAIN", m.getEntryParagraph().name());
         // When map is empty, getEntryParagraph returns MAIN
         CobolIntermediateModel m2 = CobolIntermediateModel.builder().programId("x").build();
-        assertEquals("MAIN", m2.getEntryParagraph().getName());
+        assertEquals("MAIN", m2.getEntryParagraph().name());
         assertEquals(0, m2.getParagraphs().size());
     }
 
@@ -139,7 +139,7 @@ class ModelClassesTest {
                 "A", java.util.Set.of("B"),
                 "B", java.util.Set.of("C"),
                 "C", java.util.Set.of()
-        ), g.getAdjacency());
+        ), g.adjacency());
         assertEquals(java.util.Set.of("B"), g.successors("a"));
         assertEquals(java.util.Set.of(), g.successors(null));
     }
