@@ -383,10 +383,48 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         private String translateExpression(String expression) {
-            return expression
-                    .replace("**,", "Math.pow")
+            if (expression == null || expression.isBlank()) {
+                return "null";
+            }
+            // First, replace power operator and normalize whitespace
+            String normalized = expression
+                    .replace("**", "Math.pow")
                     .replace("\n", " ")
                     .trim();
+            
+            // Split by operators while preserving them
+            // Pattern matches: +, -, *, /, (, ), and whitespace
+            String[] tokens = normalized.split("(?<=[-+*/()])|(?=[-+*/()])");
+            StringBuilder result = new StringBuilder();
+            
+            for (String token : tokens) {
+                String trimmed = token.trim();
+                if (trimmed.isEmpty()) {
+                    continue;
+                }
+                // Keep operators and parentheses as-is
+                if (trimmed.matches("[-+*/()]")) {
+                    result.append(" ").append(trimmed).append(" ");
+                }
+                // Keep numeric literals as-is
+                else if (trimmed.matches("[0-9]+\\.?[0-9]*")) {
+                    result.append(trimmed);
+                }
+                // Keep quoted strings as-is
+                else if (trimmed.startsWith("\"") || trimmed.startsWith("'")) {
+                    result.append(trimmed);
+                }
+                // Convert COBOL variable names to Java getter calls
+                else if (trimmed.matches("[A-Za-z][A-Za-z0-9-]*")) {
+                    result.append(toJavaIdentifierRef(trimmed));
+                }
+                // Keep other tokens as-is (e.g., Math.pow)
+                else {
+                    result.append(trimmed);
+                }
+            }
+            
+            return result.toString().trim();
         }
 
         private String toSetter(String cobolName) {
