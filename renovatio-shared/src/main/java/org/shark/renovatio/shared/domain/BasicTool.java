@@ -3,9 +3,12 @@ package org.shark.renovatio.shared.domain;
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.Data;
+
 /**
  * Basic implementation of the Tool interface for internal use.
  */
+@Data
 public class BasicTool implements Tool {
 
     private String name;
