@@ -271,21 +271,18 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     public Map<String, Object> executeExtendedTool(String capability, Map<String, Object> arguments) {
         if (capability == null) return null;
         String cap = capability.toLowerCase(Locale.ROOT);
-        switch (cap) {
-            case CAP_MIGRATE_COPYBOOK:
-                return handleMigrateCopybook(arguments);
-            case CAP_MIGRATE_DB2:
-                return handleMigrateDb2(arguments);
-            default:
-                return null; // Not handled here, allow default routing
-        }
+        return switch (cap) {
+            case CAP_MIGRATE_COPYBOOK -> handleMigrateCopybook(arguments);
+            case CAP_MIGRATE_DB2 -> handleMigrateDb2(arguments);
+            default -> null; // Not handled here, allow default routing
+        };
     }
 
     // ---- Extended tool handlers ----
     private Map<String, Object> handleMigrateCopybook(Map<String, Object> args) {
         String workspacePath = asString(args.get(KEY_WORKSPACE_PATH));
         String copybook = asString(args.get(KEY_COPYBOOK));
-        Map<String, Object> response = baseResponse(TYPE_STUBS);
+        Map<String, Object> response = baseResponse();
         if (workspacePath == null || workspacePath.isBlank()) {
             return error(response, MSG_REQUIRED_WORKSPACE);
         }
@@ -312,7 +309,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     private Map<String, Object> handleMigrateDb2(Map<String, Object> args) {
         String workspacePath = asString(args.get(KEY_WORKSPACE_PATH));
         String program = asString(args.get(KEY_PROGRAM));
-        Map<String, Object> response = baseResponse(TYPE_STUBS);
+        Map<String, Object> response = baseResponse();
         if (workspacePath == null || workspacePath.isBlank()) {
             return error(response, MSG_REQUIRED_WORKSPACE);
         }
@@ -409,9 +406,9 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         return o == null ? null : String.valueOf(o);
     }
 
-    private Map<String, Object> baseResponse(String type) {
+    private Map<String, Object> baseResponse() {
         Map<String, Object> r = new LinkedHashMap<>();
-        r.put(KEY_TYPE, type);
+        r.put(KEY_TYPE, CobolLanguageProvider.TYPE_STUBS);
         r.put(KEY_SUCCESS, false);
         r.put(KEY_MESSAGE, "");
         return r;
