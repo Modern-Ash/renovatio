@@ -1,0 +1,33 @@
+@startuml
+' Sequence diagram for McpProtocolController
+' Endpoints: POST / (JSON-RPC 2.0), GET /health
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ArrowColor #2c3e50
+skinparam ParticipantBorderColor #2c3e50
+skinparam ParticipantBackgroundColor #ecf0f1
+skinparam SequenceMessageAlign center
+
+actor Client as C
+participant "McpProtocolController" as Ctrl
+participant "McpProtocolService" as ProtoSvc
+entity "McpRequest" as McpReq
+entity "McpResponse" as McpResp
+
+== POST / ==
+C -> Ctrl: POST / {McpRequest}
+activate Ctrl
+Ctrl -> ProtoSvc: handleMcpRequest(McpRequest)
+activate ProtoSvc
+ProtoSvc --> Ctrl: McpResponse
+Deactivate ProtoSvc
+Ctrl --> C: 200 OK {McpResponse}
+Deactivate Ctrl
+
+== GET /health ==
+C -> Ctrl: GET /health
+activate Ctrl
+Ctrl --> C: 200 OK "MCP Server is running"
+Deactivate Ctrl
+
+@enduml

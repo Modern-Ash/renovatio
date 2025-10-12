@@ -1,0 +1,132 @@
+@startuml
+' Renovatio - System Component Diagram
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam wrapWidth 200
+skinparam defaultTextAlignment left
+
+' Clients
+package "Clients" {
+  [VS Code MCP Client] as VSCode
+  [Copilot Workspace] as Copilot
+}
+
+' Transport / Entry points
+package "MCP Server (renovatio-mcp-server)" {
+  [McpServerApplication\n(HTTP)] as HttpApp <<Spring Boot>>
+  [McpStdioServerApplication\n(stdio)] as StdioApp <<Spring Boot>>
+  [McpStdioServer] as StdioTransport <<Transport>>
+
+  package "Services" {
+    [McpProtocolService] as ProtocolSvc <<Service>>
+    [McpToolingService] as ToolingSvc <<Service>>
+    [McpToolAdapter] as ToolAdapter <<Adapter>>
+  }
+
+  package "MCP Model" {
+    [McpTool] <<Model>>
+    [McpRequest] <<Model>>
+    [McpResponse] <<Model>>
+    [McpError] <<Model>>
+    [McpCapabilities] <<Model>>
+    [ToolCallResult] <<Model>>
+  }
+}
+
+' Core
+package "Core (renovatio-core)" {
+  [LanguageProviderRegistry] as Registry <<Core>>
+}
+
+' Shared domain
+package "Shared (renovatio-shared)" {
+  [Tool] <<Domain>>
+  [ProviderResult\n(Analyze/Plan/Apply/...)] as ProviderResult <<Domain>>
+}
+
+' Providers
+package "Providers" {
+  package "Java (renovatio-provider-java)" {
+    [JavaLanguageProvider] as JavaProvider <<Provider>>
+    [OpenRewriteRecipeDiscoveryService] as RecipeDiscovery <<Service>>
+    [JavaRecipeExecutor] as RecipeExecutor <<Service>>
+    [OpenRewriteRunner] as ORRunner <<Adapter>>
+  }
+  package "COBOL (renovatio-provider-cobol)" {
+    [CobolLanguageProvider] as CobolProvider <<Provider>>
+    [CobolParser/Analysis] as CobolParser <<Service>>
+    [Migration/CodeGen] as CobolGen <<Service>>
+  }
+}
+
+' External libraries (runtime)
+package "External Libraries" {
+  [OpenRewrite] as OpenRewriteLib <<Library>>
+  [ProLeap / Koopa] as ProLeapLib <<Library>>
+}
+
+' Interfaces (JSON-RPC 2.0)
+interface "tools/list" as IToolsList
+interface "tools/call" as IToolsCall
+interface "prompts/list" as IPromptsList
+interface "resources/list" as IResourcesList
+
+' Client -> Server
+VSCode --> IToolsList
+VSCode --> IToolsCall
+VSCode --> IPromptsList
+VSCode --> IResourcesList
+Copilot --> IToolsList
+Copilot --> IToolsCall
+
+' Transport binds interfaces to protocol service
+IToolsList ..> ProtocolSvc : JSON-RPC 2.0
+IToolsCall ..> ProtocolSvc : JSON-RPC 2.0
+IPromptsList ..> ProtocolSvc
+IResourcesList ..> ProtocolSvc
+
+' Entry points
+HttpApp --> ProtocolSvc : HTTP
+StdioApp --> StdioTransport
+StdioTransport --> ProtocolSvc : stdio
+
+' Protocol -> Tooling
+ProtocolSvc --> ToolingSvc : list/call tools
+ToolingSvc --> Registry : generateTools()/execute()
+ToolingSvc --> ToolAdapter : Tool -> McpTool
+
+' Shared models
+ToolAdapter ..> Tool : input
+ToolAdapter ..> McpTool : output
+Registry ..> Tool : aggregates
+
+' Registry routes to providers
+Registry --> JavaProvider : capabilities
+Registry --> CobolProvider : capabilities
+
+' Java provider internals
+JavaProvider --> RecipeDiscovery : list recipes
+JavaProvider --> RecipeExecutor : analyze/plan/apply
+RecipeExecutor --> ORRunner : run recipe
+ORRunner --> OpenRewriteLib : execute
+
+' COBOL provider internals
+CobolProvider --> CobolParser : parse/analyze
+CobolProvider --> CobolGen : plan/migrate
+CobolParser --> ProLeapLib
+
+' Notes
+note right of ToolAdapter
+  Name mapping for clients:
+  - Dotted to underscored ("java.analyze" -> "java_analyze")
+  - originalName preserved in metadata
+end note
+
+note bottom of StdioApp
+  Ensure component scan includes providers:
+  - org.shark.renovatio.provider.java
+  - org.shark.renovatio.provider.cobol
+end note
+
+@enduml

@@ -1,10 +1,13 @@
 package org.shark.renovatio.shared.domain;
 
+import lombok.Data;
+
 import java.util.Map;
 
 /**
  * Workspace context for operations
  */
+@Data
 public class Workspace {
     private String id;
     private String path;
@@ -18,38 +21,5 @@ public class Workspace {
         this.id = id;
         this.path = path;
         this.branch = branch;
-    }
-
-    // Getters and setters
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
-    }
-
-    public String getBranch() {
-        return branch;
-    }
-
-    public void setBranch(String branch) {
-        this.branch = branch;
-    }
-
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
     }
 }

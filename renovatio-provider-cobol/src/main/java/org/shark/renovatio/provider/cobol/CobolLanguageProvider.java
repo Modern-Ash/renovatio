@@ -15,13 +15,70 @@ import java.util.*;
  */
 public class CobolLanguageProvider extends BaseLanguageProvider {
 
+    // --- Constants to avoid duplicated string literals ---
+    private static final String LANG_COBOL = "cobol";
+
+    // Tool identifiers
+    private static final String TOOL_ANALYZE = "cobol.analyze";
+    private static final String TOOL_METRICS = "cobol.metrics";
+    private static final String TOOL_PLAN = "cobol.plan";
+    private static final String TOOL_APPLY = "cobol.apply";
+    private static final String TOOL_DIFF = "cobol.diff";
+    private static final String TOOL_MIGRATE_COPYBOOK = "cobol.migrate_copybook";
+    private static final String TOOL_MIGRATE_DB2 = "cobol.migrate_db2";
+
+    // Extended capabilities (executeExtendedTool)
+    private static final String CAP_MIGRATE_COPYBOOK = "migrate_copybook";
+    private static final String CAP_MIGRATE_DB2 = "migrate_db2";
+
+    // Common JSON keys and values
+    private static final String KEY_TYPE = "type";
+    private static final String KEY_PROPERTIES = "properties";
+    private static final String KEY_DESCRIPTION = "description";
+    private static final String KEY_ITEMS = "items";
+    private static final String KEY_STRING = "string";
+    private static final String KEY_ARRAY = "array";
+    private static final String KEY_BOOLEAN = "boolean";
+    private static final String KEY_REQUIRED = "required";
+    private static final String KEY_NQL = "nql";
+    private static final String KEY_SCOPE = "scope";
+    private static final String KEY_GOALS = "goals";
+    private static final String KEY_PLAN_ID = "planId";
+    private static final String KEY_DRY_RUN = "dryRun";
+    private static final String KEY_RUN_ID = "runId";
+    private static final String KEY_COPYBOOK = "copybook";
+    private static final String KEY_PROGRAM = "program";
+    private static final String KEY_WORKSPACE_PATH = "workspacePath";
+    private static final String KEY_SUCCESS = "success";
+    private static final String KEY_MESSAGE = "message";
+    private static final String KEY_DATA = "data";
+    private static final String KEY_GENERATED = "generated";
+
+    // Common values
+    private static final String TYPE_OBJECT = "object";
+    private static final String TYPE_STUBS = "stubs";
+
+    // Error/Info messages
+    private static final String MSG_ANALYSIS_FAILED = "COBOL analysis failed: ";
+    private static final String MSG_PLAN_FAILED = "Migration planning failed: ";
+    private static final String MSG_APPLY_FAILED = "Migration application failed: ";
+    private static final String MSG_DIFF_FAILED = "Diff generation failed: ";
+    private static final String MSG_METRICS_FAILED = "Metrics calculation failed: ";
+    private static final String MSG_NO_COPYBOOK = "No copybook specified";
+    private static final String MSG_COPYBOOK_NOT_FOUND = "Copybook not found: ";
+    private static final String MSG_NO_PROGRAM = "No COBOL program specified";
+    private static final String MSG_PROGRAM_NOT_FOUND = "COBOL program not found: ";
+    private static final String MSG_REQUIRED_WORKSPACE = "workspacePath is required";
+    private static final String MSG_REQUIRED_COPYBOOK = "copybook is required (e.g., CUSTOMER.cpy)";
+    private static final String MSG_REQUIRED_PROGRAM = "program is required (e.g., ORDERPROC.cbl)";
+
     private final CobolParsingService parsingService;
     private final JavaGenerationService javaGenerationService;
     private final MigrationPlanService migrationPlanService;
-    private final IndexingService indexingService;
     private final MetricsService metricsService;
     private final TemplateCodeGenerationService templateCodeGenerationService;
     private final Db2MigrationService db2MigrationService;
+    private final IndexingService indexingService;
 
     public CobolLanguageProvider(
             CobolParsingService parsingService,
@@ -42,7 +99,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
 
     @Override
     public String language() {
-        return "cobol";
+        return LANG_COBOL;
     }
 
     @Override
@@ -59,10 +116,13 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
 
     @Override
     public AnalyzeResult analyze(NqlQuery query, Workspace workspace) {
+        // Index workspace for fast search on subsequent operations; ignore failures
+        safeIndexWorkspace(workspace);
         try {
             return parsingService.analyzeCOBOL(query, workspace);
         } catch (Exception e) {
-            AnalyzeResult result = new AnalyzeResult(false, "COBOL analysis failed: " + e.getMessage());
+            AnalyzeResult result;
+            result = new AnalyzeResult(false, MSG_ANALYSIS_FAILED + e.getMessage());
             return result;
         }
     }
@@ -72,7 +132,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         try {
             return migrationPlanService.createMigrationPlan(query, scope, workspace);
         } catch (Exception e) {
-            return new PlanResult(false, "Migration planning failed: " + e.getMessage());
+            return new PlanResult(false, MSG_PLAN_FAILED + e.getMessage());
         }
     }
 
@@ -81,7 +141,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         try {
             return migrationPlanService.applyMigrationPlan(planId, dryRun, workspace);
         } catch (Exception e) {
-            return new ApplyResult(false, "Migration application failed: " + e.getMessage());
+            return new ApplyResult(false, MSG_APPLY_FAILED + e.getMessage());
         }
     }
 
@@ -90,7 +150,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         try {
             return migrationPlanService.generateDiff(runId, workspace);
         } catch (Exception e) {
-            return new DiffResult(false, "Diff generation failed: " + e.getMessage());
+            return new DiffResult(false, MSG_DIFF_FAILED + e.getMessage());
         }
     }
 
@@ -109,7 +169,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         try {
             return metricsService.calculateMetrics(scope, workspace);
         } catch (Exception e) {
-            return new MetricsResult(false, "Metrics calculation failed: " + e.getMessage());
+            return new MetricsResult(false, MSG_METRICS_FAILED + e.getMessage());
         }
     }
 
@@ -120,13 +180,13 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         try {
             String copybookName = null;
             if (query.getParameters() != null) {
-                Object cb = query.getParameters().get("copybook");
+                Object cb = query.getParameters().get(KEY_COPYBOOK);
                 if (cb != null) {
                     copybookName = cb.toString();
                 }
             }
             if (copybookName == null) {
-                return new StubResult(false, "No copybook specified");
+                return new StubResult(false, MSG_NO_COPYBOOK);
             }
             final String finalCopybookName = copybookName;
             Path root = Paths.get(workspace.getPath());
@@ -135,7 +195,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                     .filter(p -> p.getFileName().toString().equalsIgnoreCase(finalCopybookName))
                     .findFirst();
             if (copybookPath.isEmpty()) {
-                return new StubResult(false, "Copybook not found: " + copybookName);
+                return new StubResult(false, MSG_COPYBOOK_NOT_FOUND + copybookName);
             }
 
             Map<String, Object> metadata = parsingService.parseCopybook(copybookPath.get(), parsingService.getDefaultDialect());
@@ -161,13 +221,13 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         try {
             String programName = null;
             if (query.getParameters() != null) {
-                Object p = query.getParameters().get("program");
+                Object p = query.getParameters().get(KEY_PROGRAM);
                 if (p != null) {
                     programName = p.toString();
                 }
             }
             if (programName == null) {
-                return new StubResult(false, "No COBOL program specified");
+                return new StubResult(false, MSG_NO_PROGRAM);
             }
             final String finalProgramName = programName;
             Path root = Paths.get(workspace.getPath());
@@ -176,7 +236,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                     .filter(p -> p.getFileName().toString().equalsIgnoreCase(finalProgramName))
                     .findFirst();
             if (programPath.isEmpty()) {
-                return new StubResult(false, "COBOL program not found: " + programName);
+                return new StubResult(false, MSG_PROGRAM_NOT_FOUND + programName);
             }
 
             Map<String, String> generated = db2MigrationService.migrateCobolFile(programPath.get());
@@ -194,43 +254,40 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     public java.util.List<Tool> getTools() {
         // Publish COBOL tools for MCP clients
         List<Tool> tools = new ArrayList<>();
-        tools.add(new BasicTool("cobol.analyze", "Analyze COBOL sources (parsing, AST, dependencies)", baseSchema()));
-        tools.add(new BasicTool("cobol.metrics", "Collect high-level COBOL metrics (files, lines, copybooks)", baseSchema()));
-        tools.add(new BasicTool("cobol.plan", "Create migration plan from COBOL to Java", planSchema()));
-        tools.add(new BasicTool("cobol.apply", "Apply migration plan (code generation, transforms)", applySchema()));
-        tools.add(new BasicTool("cobol.diff", "Generate diff for last migration run", diffSchema()));
+        tools.add(new BasicTool(TOOL_ANALYZE, "Analyze COBOL sources (parsing, AST, dependencies)", baseSchema()));
+        tools.add(new BasicTool(TOOL_METRICS, "Collect high-level COBOL metrics (files, lines, copybooks)", baseSchema()));
+        tools.add(new BasicTool(TOOL_PLAN, "Create migration plan from COBOL to Java", planSchema()));
+        tools.add(new BasicTool(TOOL_APPLY, "Apply migration plan (code generation, transforms)", applySchema()));
+        tools.add(new BasicTool(TOOL_DIFF, "Generate diff for last migration run", diffSchema()));
         // Extended provider-specific tools
-        tools.add(new BasicTool("cobol.migrate_copybook", "Generate Java artifacts from a COBOL copybook (templates)", migrateCopybookSchema()));
-        tools.add(new BasicTool("cobol.migrate_db2", "Generate JPA code from embedded DB2 EXEC SQL in COBOL program", migrateDb2Schema()));
+        tools.add(new BasicTool(TOOL_MIGRATE_COPYBOOK, "Generate Java artifacts from a COBOL copybook (templates)", migrateCopybookSchema()));
+        tools.add(new BasicTool(TOOL_MIGRATE_DB2, "Generate JPA code from embedded DB2 EXEC SQL in COBOL program", migrateDb2Schema()));
         return tools;
     }
 
     @Override
+    @SuppressWarnings("java:S1168")
+    // Intentionally return null for "not handled" to enable registry fallback per ExtendedLanguageProvider contract
     public Map<String, Object> executeExtendedTool(String capability, Map<String, Object> arguments) {
-        if (capability == null) {
-            return null;
-        }
+        if (capability == null) return null;
         String cap = capability.toLowerCase(Locale.ROOT);
-        switch (cap) {
-            case "migrate_copybook":
-                return handleMigrateCopybook(arguments);
-            case "migrate_db2":
-                return handleMigrateDb2(arguments);
-            default:
-                return null; // Not handled here, allow default routing
-        }
+        return switch (cap) {
+            case CAP_MIGRATE_COPYBOOK -> handleMigrateCopybook(arguments);
+            case CAP_MIGRATE_DB2 -> handleMigrateDb2(arguments);
+            default -> null; // Not handled here, allow default routing
+        };
     }
 
     // ---- Extended tool handlers ----
     private Map<String, Object> handleMigrateCopybook(Map<String, Object> args) {
-        String workspacePath = asString(args.get("workspacePath"));
-        String copybook = asString(args.get("copybook"));
-        Map<String, Object> response = baseResponse("stubs");
+        String workspacePath = asString(args.get(KEY_WORKSPACE_PATH));
+        String copybook = asString(args.get(KEY_COPYBOOK));
+        Map<String, Object> response = baseResponse();
         if (workspacePath == null || workspacePath.isBlank()) {
-            return error(response, "workspacePath is required");
+            return error(response, MSG_REQUIRED_WORKSPACE);
         }
         if (copybook == null || copybook.isBlank()) {
-            return error(response, "copybook is required (e.g., CUSTOMER.cpy)");
+            return error(response, MSG_REQUIRED_COPYBOOK);
         }
         Workspace ws = new Workspace();
         ws.setId("default");
@@ -238,26 +295,26 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         NqlQuery query = new NqlQuery();
         query.setLanguage(language());
         Map<String, Object> params = new LinkedHashMap<>();
-        params.put("copybook", copybook);
+        params.put(KEY_COPYBOOK, copybook);
         query.setParameters(params);
         StubResult result = migrateCopybook(query, ws);
-        response.put("success", result.isSuccess());
-        response.put("message", result.getMessage());
+        response.put(KEY_SUCCESS, result.isSuccess());
+        response.put(KEY_MESSAGE, result.getMessage());
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("generated", result.getGeneratedCode());
-        response.put("data", data);
+        data.put(KEY_GENERATED, result.getGeneratedCode());
+        response.put(KEY_DATA, data);
         return success(response);
     }
 
     private Map<String, Object> handleMigrateDb2(Map<String, Object> args) {
-        String workspacePath = asString(args.get("workspacePath"));
-        String program = asString(args.get("program"));
-        Map<String, Object> response = baseResponse("stubs");
+        String workspacePath = asString(args.get(KEY_WORKSPACE_PATH));
+        String program = asString(args.get(KEY_PROGRAM));
+        Map<String, Object> response = baseResponse();
         if (workspacePath == null || workspacePath.isBlank()) {
-            return error(response, "workspacePath is required");
+            return error(response, MSG_REQUIRED_WORKSPACE);
         }
         if (program == null || program.isBlank()) {
-            return error(response, "program is required (e.g., ORDERPROC.cbl)");
+            return error(response, MSG_REQUIRED_PROGRAM);
         }
         Workspace ws = new Workspace();
         ws.setId("default");
@@ -265,82 +322,82 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         NqlQuery query = new NqlQuery();
         query.setLanguage(language());
         Map<String, Object> params = new LinkedHashMap<>();
-        params.put("program", program);
+        params.put(KEY_PROGRAM, program);
         query.setParameters(params);
         StubResult result = migrateDb2(query, ws);
-        response.put("success", result.isSuccess());
-        response.put("message", result.getMessage());
+        response.put(KEY_SUCCESS, result.isSuccess());
+        response.put(KEY_MESSAGE, result.getMessage());
         Map<String, Object> data = new LinkedHashMap<>();
-        data.put("generated", result.getGeneratedCode());
-        response.put("data", data);
+        data.put(KEY_GENERATED, result.getGeneratedCode());
+        response.put(KEY_DATA, data);
         return success(response);
     }
 
     // ---- Schemas ----
     private Map<String, Object> baseSchema() {
         Map<String, Object> schema = new LinkedHashMap<>();
-        schema.put("type", "object");
+        schema.put(KEY_TYPE, TYPE_OBJECT);
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("nql", Map.of(
-                "type", "string",
-                "description", "NQL query to select COBOL elements or recipes"
+        props.put(KEY_NQL, Map.of(
+                KEY_TYPE, KEY_STRING,
+                KEY_DESCRIPTION, "NQL query to select COBOL elements or recipes"
         ));
-        props.put("scope", Map.of(
-                "type", "string",
-                "description", "Glob pattern for files to include (e.g., **/*.cbl)"
+        props.put(KEY_SCOPE, Map.of(
+                KEY_TYPE, KEY_STRING,
+                KEY_DESCRIPTION, "Glob pattern for files to include (e.g., **/*.cbl)"
         ));
-        schema.put("properties", props);
+        schema.put(KEY_PROPERTIES, props);
         return schema;
     }
 
     private Map<String, Object> planSchema() {
         Map<String, Object> schema = baseSchema();
         @SuppressWarnings("unchecked")
-        Map<String, Object> props = (Map<String, Object>) schema.get("properties");
-        props.put("goals", Map.of(
-                "type", "array",
-                "description", "High-level migration goals (e.g., db2, jpa, rest)",
-                "items", Map.of("type", "string")
+        Map<String, Object> props = (Map<String, Object>) schema.get(KEY_PROPERTIES);
+        props.put(KEY_GOALS, Map.of(
+                KEY_TYPE, KEY_ARRAY,
+                KEY_DESCRIPTION, "High-level migration goals (e.g., db2, jpa, rest)",
+                KEY_ITEMS, Map.of(KEY_TYPE, KEY_STRING)
         ));
         return schema;
     }
 
     private Map<String, Object> applySchema() {
         Map<String, Object> schema = new LinkedHashMap<>();
-        schema.put("type", "object");
+        schema.put(KEY_TYPE, TYPE_OBJECT);
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("planId", Map.of("type", "string", "description", "Plan id returned by cobol.plan"));
-        props.put("dryRun", Map.of("type", "boolean", "description", "Simulate without writing files"));
-        schema.put("properties", props);
+        props.put(KEY_PLAN_ID, Map.of(KEY_TYPE, KEY_STRING, KEY_DESCRIPTION, "Plan id returned by cobol.plan"));
+        props.put(KEY_DRY_RUN, Map.of(KEY_TYPE, KEY_BOOLEAN, KEY_DESCRIPTION, "Simulate without writing files"));
+        schema.put(KEY_PROPERTIES, props);
         return schema;
     }
 
     private Map<String, Object> diffSchema() {
         Map<String, Object> schema = new LinkedHashMap<>();
-        schema.put("type", "object");
+        schema.put(KEY_TYPE, TYPE_OBJECT);
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("runId", Map.of("type", "string", "description", "Run id from previous operation"));
-        schema.put("properties", props);
+        props.put(KEY_RUN_ID, Map.of(KEY_TYPE, KEY_STRING, KEY_DESCRIPTION, "Run id from previous operation"));
+        schema.put(KEY_PROPERTIES, props);
         return schema;
     }
 
     private Map<String, Object> migrateCopybookSchema() {
         Map<String, Object> schema = new LinkedHashMap<>();
-        schema.put("type", "object");
+        schema.put(KEY_TYPE, TYPE_OBJECT);
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("copybook", Map.of("type", "string", "description", "Copybook file name (e.g., CUSTOMER.cpy)"));
-        schema.put("properties", props);
-        schema.put("required", java.util.List.of("copybook"));
+        props.put(KEY_COPYBOOK, Map.of(KEY_TYPE, KEY_STRING, KEY_DESCRIPTION, "Copybook file name (e.g., CUSTOMER.cpy)"));
+        schema.put(KEY_PROPERTIES, props);
+        schema.put(KEY_REQUIRED, java.util.List.of(KEY_COPYBOOK));
         return schema;
     }
 
     private Map<String, Object> migrateDb2Schema() {
         Map<String, Object> schema = new LinkedHashMap<>();
-        schema.put("type", "object");
+        schema.put(KEY_TYPE, TYPE_OBJECT);
         Map<String, Object> props = new LinkedHashMap<>();
-        props.put("program", Map.of("type", "string", "description", "COBOL program with EXEC SQL (e.g., ORDERPROC.cbl)"));
-        schema.put("properties", props);
-        schema.put("required", java.util.List.of("program"));
+        props.put(KEY_PROGRAM, Map.of(KEY_TYPE, KEY_STRING, KEY_DESCRIPTION, "COBOL program with EXEC SQL (e.g., ORDERPROC.cbl)"));
+        schema.put(KEY_PROPERTIES, props);
+        schema.put(KEY_REQUIRED, java.util.List.of(KEY_PROGRAM));
         return schema;
     }
 
@@ -349,22 +406,33 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         return o == null ? null : String.valueOf(o);
     }
 
-    private Map<String, Object> baseResponse(String type) {
+    private Map<String, Object> baseResponse() {
         Map<String, Object> r = new LinkedHashMap<>();
-        r.put("type", type);
-        r.put("success", false);
-        r.put("message", "");
+        r.put(KEY_TYPE, CobolLanguageProvider.TYPE_STUBS);
+        r.put(KEY_SUCCESS, false);
+        r.put(KEY_MESSAGE, "");
         return r;
     }
 
     private Map<String, Object> success(Map<String, Object> r) {
-        r.put("success", true);
+        r.put(KEY_SUCCESS, true);
         return r;
     }
 
     private Map<String, Object> error(Map<String, Object> r, String msg) {
-        r.put("success", false);
-        r.put("message", msg);
+        r.put(KEY_SUCCESS, false);
+        r.put(KEY_MESSAGE, msg);
         return r;
+    }
+
+    /**
+     * Best-effort workspace indexing that never throws, to avoid nested try/catch in callers.
+     */
+    private void safeIndexWorkspace(Workspace workspace) {
+        try {
+            indexingService.indexWorkspace(workspace);
+        } catch (Exception ignored) {
+            // Best-effort: indexing failures shouldn't block provider operations
+        }
     }
 }

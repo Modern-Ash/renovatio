@@ -24,7 +24,7 @@ public class CopybookMigrationToolTest {
 
         CobolParsingService parsingService = new CobolParsingService();
         TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
-        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService);
+        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService(), new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
         Db2MigrationService db2Service = new Db2MigrationService(parsingService);
         MigrationPlanService migrationPlanService = new MigrationPlanService(parsingService, javaGenerationService);
         IndexingService indexingService = new IndexingService();
@@ -32,19 +32,19 @@ public class CopybookMigrationToolTest {
         CobolLanguageProvider provider = new CobolLanguageProvider(
                 parsingService, javaGenerationService, migrationPlanService,
                 indexingService, metricsService, templateService, db2Service);
-//        CobolMcpToolsProvider tools = new CobolMcpToolsProvider(provider);
+        CobolMcpToolsProvider tools = new CobolMcpToolsProvider(provider);
 
         Map<String, Object> args = Map.of(
                 "workspacePath", temp.toString(),
                 "copybook", "CUSTOMER.cpy"
         );
 
-//        Object result = tools.executeCobolTool("cobol.copybook.migrate", args);
-//        assertTrue(result instanceof Map);
-//        Map<?, ?> resMap = (Map<?, ?>) result;
-//        assertEquals(true, resMap.get("success"));
-//        Map<?, ?> files = (Map<?, ?>) resMap.get("files");
-//        assertTrue(files.containsKey("CustomerDTO.java"));
-//        assertTrue(files.containsKey("CustomerService.java"));
+        Object result = tools.executeCobolTool("cobol.copybook.migrate", args);
+        assertTrue(result instanceof Map);
+        Map<?, ?> resMap = (Map<?, ?>) result;
+        assertEquals(true, resMap.get("success"));
+        Map<?, ?> files = (Map<?, ?>) resMap.get("files");
+        assertTrue(files.containsKey("CustomerDTO.java"));
+        assertTrue(files.containsKey("CustomerService.java"));
     }
 }

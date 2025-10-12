@@ -1,11 +1,17 @@
 package org.shark.renovatio.provider.cobol.domain;
 
+import lombok.Getter;
+import lombok.Setter;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Represents a COBOL data item (field/variable)
  */
+@Getter
+@Setter
 public class CobolDataItem {
     private String name;
     private int level;
@@ -25,174 +31,84 @@ public class CobolDataItem {
         this.picture = picture;
     }
 
-    // Getters and setters
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getLevel() {
-        return level;
-    }
-
-    public void setLevel(int level) {
-        this.level = level;
-    }
-
-    public String getPicture() {
-        return picture;
-    }
-
-    public void setPicture(String picture) {
-        this.picture = picture;
-    }
-
-    public String getUsage() {
-        return usage;
-    }
-
-    public void setUsage(String usage) {
-        this.usage = usage;
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public void setValue(String value) {
-        this.value = value;
-    }
-
-    public boolean isGroup() {
-        return isGroup;
-    }
-
-    public void setGroup(boolean group) {
-        isGroup = group;
-    }
-
-    public List<CobolDataItem> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<CobolDataItem> children) {
-        this.children = children;
-    }
-
-    public Map<String, Object> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Map<String, Object> attributes) {
-        this.attributes = attributes;
-    }
 
     /**
      * Converts COBOL picture clause to Java type
      */
     public String getJavaType() {
         if (picture == null) return "Object";
+        String pic = picture.trim().toUpperCase();
 
-        if (picture.startsWith("9")) {
-            if (picture.contains("V")) {
-                return "BigDecimal";
-            } else if (picture.length() <= 9) {
+        // Alphanumeric
+        if (pic.startsWith("X") || pic.startsWith("A")) {
+            return "String";
+        }
+
+        // Numeric with implied decimal
+        if (pic.contains("V") && pic.startsWith("9")) {
+            return "BigDecimal";
+        }
+
+        // Pure numeric
+        if (pic.startsWith("9")) {
+            int totalDigits = estimateNumericDigits(pic);
+            if (totalDigits <= 9) {
                 return "Integer";
             } else {
                 return "Long";
             }
-        } else if (picture.startsWith("X")) {
-            return "String";
-        } else if (picture.startsWith("A")) {
-            return "String";
         }
 
         return "Object";
+    }
+
+    private static final Pattern PIC_NUM_PAREN = Pattern.compile("9\\((\\d+)\\)");
+
+    private int estimateNumericDigits(String pic) throws NumberFormatException {
+        // Handles patterns like 9(5), 9(12), fallback to count of '9' chars if present
+        Matcher m = PIC_NUM_PAREN.matcher(pic);
+        if (m.find()) {
+            return Integer.parseInt(m.group(1));
+        }
+        // Fallback: count literal 9s
+        int count = 0;
+        for (char c : pic.toCharArray()) {
+            if (c == '9') count++;
+        }
+        return count > 0 ? count : 1;
     }
 }
 
 /**
  * Represents a COBOL paragraph
  */
+@Getter
+@Setter
 class CobolParagraph {
     private String name;
     private List<CobolStatement> statements;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<CobolStatement> getStatements() {
-        return statements;
-    }
-
-    public void setStatements(List<CobolStatement> statements) {
-        this.statements = statements;
-    }
 }
 
 /**
  * Represents a COBOL section
  */
+@Getter
+@Setter
 class CobolSection {
     private String name;
     private List<CobolParagraph> paragraphs;
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<CobolParagraph> getParagraphs() {
-        return paragraphs;
-    }
-
-    public void setParagraphs(List<CobolParagraph> paragraphs) {
-        this.paragraphs = paragraphs;
-    }
 }
 
 /**
  * Represents a COBOL statement
  */
+@Getter
+@Setter
 class CobolStatement {
     private StatementType type;
     private String sourceCode;
     private Map<String, Object> attributes;
 
-    public StatementType getType() {
-        return type;
-    }
-
-    public void setType(StatementType type) {
-        this.type = type;
-    }
-
-    public String getSourceCode() {
-        return sourceCode;
-    }
-
-    public void setSourceCode(String sourceCode) {
-        this.sourceCode = sourceCode;
-    }
-
-    public Map<String, Object> getAttributes() {
-        return attributes;
-    }
-
-    public void setAttributes(Map<String, Object> attributes) {
-        this.attributes = attributes;
-    }
 
     public enum StatementType {
         MOVE, COMPUTE, IF, PERFORM, CALL, READ, WRITE, OPEN, CLOSE,

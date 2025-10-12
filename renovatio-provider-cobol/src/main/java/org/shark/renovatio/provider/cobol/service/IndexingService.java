@@ -1,5 +1,6 @@
 package org.shark.renovatio.provider.cobol.service;
 
+import lombok.Data;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -293,95 +294,23 @@ public class IndexingService {
     /**
      * Search result data structure
      */
+    @Data
     public static class SearchResult {
         private String filePath;
         private String type;
         private String name;
         private String content;
         private float score;
-
-        // Getters and setters
-        public String getFilePath() {
-            return filePath;
-        }
-
-        public void setFilePath(String filePath) {
-            this.filePath = filePath;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public void setContent(String content) {
-            this.content = content;
-        }
-
-        public float getScore() {
-            return score;
-        }
-
-        public void setScore(float score) {
-            this.score = score;
-        }
     }
 
     /**
      * Symbol occurrence data structure
      */
+    @Data
     public static class SymbolOccurrence {
         private String symbolName;
         private String filePath;
         private String type;
         private String context;
-
-        // Getters and setters
-        public String getSymbolName() {
-            return symbolName;
-        }
-
-        public void setSymbolName(String symbolName) {
-            this.symbolName = symbolName;
-        }
-
-        public String getFilePath() {
-            return filePath;
-        }
-
-        public void setFilePath(String filePath) {
-            this.filePath = filePath;
-        }
-
-        public String getType() {
-            return type;
-        }
-
-        public void setType(String type) {
-            this.type = type;
-        }
-
-        public String getContext() {
-            return context;
-        }
-
-        public void setContext(String context) {
-            this.context = context;
-        }
     }
 }

@@ -1,10 +1,12 @@
 package org.shark.renovatio.mcp.server.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 import java.util.List;
 
 @Schema(description = "MCP Prompt definition")
+@Data
 public class McpPrompt {
     @Schema(description = "Prompt name")
     private String name;
@@ -24,31 +26,8 @@ public class McpPrompt {
         this.messages = messages;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public List<Message> getMessages() {
-        return messages;
-    }
-
-    public void setMessages(List<Message> messages) {
-        this.messages = messages;
-    }
-
     @Schema(description = "Prompt message")
+    @Data
     public static class Message {
         @Schema(description = "Message role", example = "user")
         private String role;
@@ -61,22 +40,6 @@ public class McpPrompt {
 
         public Message(String role, String content) {
             this.role = role;
-            this.content = content;
-        }
-
-        public String getRole() {
-            return role;
-        }
-
-        public void setRole(String role) {
-            this.role = role;
-        }
-
-        public String getContent() {
-            return content;
-        }
-
-        public void setContent(String content) {
             this.content = content;
         }
     }

@@ -47,6 +47,18 @@ specification.
 
 ---
 
+## Module READMEs
+
+- [renovatio-shared](./renovatio-shared/README.md) — Shared DTOs, SPI interfaces, utilities, and NQL grammar.
+- [renovatio-core](./renovatio-core/README.md) — Core MCP engine, tool catalog, and NQL routing.
+- [renovatio-provider-java](./renovatio-provider-java/README.md) — Java provider with OpenRewrite integration.
+- [renovatio-provider-cobol](./renovatio-provider-cobol/README.md) — COBOL provider (parsing, metrics, migration to Java).
+- [renovatio-cobol-ir](./renovatio-cobol-ir/README.md) — COBOL Intermediate Representation and utilities.
+- [cobol-openrewrite-recipes](./cobol-openrewrite-recipes/README.md) — OpenRewrite recipes for post-generation refactoring.
+- [renovatio-mcp-server](./renovatio-mcp-server/README.md) — Spring Boot MCP server exposing providers and tools.
+
+---
+
 ## Technology Stack
 
 - **Java 17+**: Core platform
@@ -238,6 +250,18 @@ A sample configuration file `vscode-mcp-config.json` is provided. Point it to th
 
 ---
 
+## Lombok migration notes
+
+This repository now uses Lombok to remove boilerplate (getters, setters, toString, and simple constructors) in core DTOs and models.
+
+- Annotation processors: ensure they are enabled in your IDE. In IntelliJ IDEA: Settings → Build, Execution, Deployment → Compiler → Annotation Processors → Enable annotation processing. Install the Lombok plugin if prompted.
+- JPMS (module-info.java): modules that use Lombok declare `requires static lombok;` so compilation works while keeping Lombok optional at runtime.
+- Build tooling: Maven is configured to include Lombok as an annotation processor; no extra steps are needed.
+
+If you introduce new POJOs, prefer Lombok annotations (e.g., `@Data`, or `@Getter/@Setter` plus `@NoArgsConstructor/@AllArgsConstructor`) and keep any custom setters where defensive copies are needed.
+
+---
+
 ## 📖 Documentation Index
 
 ### Getting Started
@@ -258,6 +282,13 @@ A sample configuration file `vscode-mcp-config.json` is provided. Point it to th
 ### Architecture & Design
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design principles
 - **[schemas/](./schemas/)** - JSON schemas for configuration validation
+
+### Planning & Specifications
+- **[docs/specs/INDEX.md](./docs/specs/INDEX.md)** - 📚 Índice central de especificaciones y guías Spec Kit
+- **[docs/SPEC-KIT-QUICK-START.md](./docs/SPEC-KIT-QUICK-START.md)** - ⚡ Guía rápida: Empieza en 5 minutos
+- **[docs/EXPLICACION-SPEC-KIT.md](./docs/EXPLICACION-SPEC-KIT.md)** - 📖 Qué es @github/spec-kit y cómo mejora Renovatio
+- **[docs/spec-kit-integracion.md](./docs/spec-kit-integracion.md)** - 🔧 Guía detallada de integración
+- **[docs/specs/ejemplos/](./docs/specs/ejemplos/)** - 🎯 Especificaciones de ejemplo listas para usar
 
 ### Tool Documentation
 - **Java Tools** - See section "Available MCP Tools" → "Java provider"

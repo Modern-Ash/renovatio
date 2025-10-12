@@ -123,7 +123,8 @@ public class LanguageProviderRegistry {
      * Generate a list of all MCP-compliant tools from all registered language providers.
      */
     public List<Tool> generateTools() {
-        List<Tool> allTools = new ArrayList<>();
+        // Deduplicate tools by name while preserving first occurrence order
+        Map<String, Tool> dedup = new LinkedHashMap<>();
         toolProviders.clear();
         for (Map.Entry<String, List<LanguageProvider>> entry : providersByLanguage.entrySet()) {
             for (LanguageProvider provider : entry.getValue()) {
@@ -133,17 +134,18 @@ public class LanguageProviderRegistry {
                         if (tool == null) {
                             continue;
                         }
-                        allTools.add(tool);
+                        // Map tool name to last provider (as before) for routing, but keep first tool instance in list
                         LanguageProvider previous = toolProviders.put(tool.getName(), provider);
                         if (previous != null && previous != provider) {
                             logger.debug("Tool '{}' was previously provided by {} and is now mapped to {}", tool.getName(),
                                     previous.getClass().getSimpleName(), provider.getClass().getSimpleName());
                         }
+                        dedup.putIfAbsent(tool.getName(), tool);
                     }
                 }
             }
         }
-        return allTools;
+        return new ArrayList<>(dedup.values());
     }
 
     /**
@@ -362,9 +364,8 @@ public class LanguageProviderRegistry {
                 parameters.put(entry.getKey(), entry.getValue());
             }
         }
-        if (!parameters.isEmpty()) {
-            query.setParameters(parameters);
-        }
+        // Always set a non-null parameters map to avoid NPEs in consumers/tests
+        query.setParameters(parameters);
         return query;
     }
 

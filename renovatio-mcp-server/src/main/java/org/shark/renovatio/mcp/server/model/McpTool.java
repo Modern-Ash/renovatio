@@ -4,9 +4,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Data;
+
 /**
  * MCP Tool model representing a tool available through the MCP protocol
  */
+@Data
 public class McpTool {
     private String name;
     private String description;
@@ -36,72 +39,7 @@ public class McpTool {
         this.metadata = metadata != null ? new LinkedHashMap<>(metadata) : new LinkedHashMap<>();
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Map<String, Object> getInputSchema() {
-        return inputSchema;
-    }
-
-    public void setInputSchema(Map<String, Object> inputSchema) {
-        this.inputSchema = inputSchema;
-    }
-
-    public Map<String, Object> getOutputSchema() {
-        return outputSchema;
-    }
-
-    public void setOutputSchema(Map<String, Object> outputSchema) {
-        this.outputSchema = outputSchema;
-    }
-
-    public List<Map<String, Object>> getParameters() {
-        return parameters;
-    }
-
-    public void setParameters(List<Map<String, Object>> parameters) {
-        this.parameters = parameters;
-    }
-
-    public Map<String, Object> getExample() {
-        return example;
-    }
-
-    public void setExample(Map<String, Object> example) {
-        this.example = example;
-    }
-
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-
     public void setMetadata(Map<String, Object> metadata) {
         this.metadata = metadata != null ? new LinkedHashMap<>(metadata) : new LinkedHashMap<>();
-    }
-
-    @Override
-    public String toString() {
-        return "McpTool{" +
-                "name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", inputSchema=" + inputSchema +
-                ", outputSchema=" + outputSchema +
-                ", parameters=" + parameters +
-                ", example=" + example +
-                ", metadata=" + metadata +
-                '}';
     }
 }

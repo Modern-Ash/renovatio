@@ -24,8 +24,10 @@ public class CobolProviderConfiguration {
     @Bean
     public JavaGenerationService javaGenerationService(
             CobolParsingService parsingService,
-            TemplateCodeGenerationService templateCodeGenerationService) {
-        return new JavaGenerationService(parsingService, templateCodeGenerationService);
+            TemplateCodeGenerationService templateCodeGenerationService,
+            org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService intermediateModelService,
+            org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler semanticTranspiler) {
+        return new JavaGenerationService(parsingService, templateCodeGenerationService, intermediateModelService, semanticTranspiler);
     }
 
     @Bean
@@ -57,24 +59,29 @@ public class CobolProviderConfiguration {
         return new Db2MigrationService(parsingService);
     }
 
-//    @Bean
-//    @ConditionalOnProperty(name = "renovatio.cobol.enabled", havingValue = "true", matchIfMissing = false)
-//    public CobolLanguageProvider cobolLanguageProvider(
-//            CobolParsingService parsingService,
-//            JavaGenerationService javaGenerationService,
-//            MigrationPlanService migrationPlanService,
-//            IndexingService indexingService,
-//            MetricsService metricsService,
-//            TemplateCodeGenerationService templateCodeGenerationService,
-//            Db2MigrationService db2MigrationService) {
-//        return new CobolLanguageProvider(
-//                parsingService,
-//                javaGenerationService,
-//                migrationPlanService,
-//                indexingService,
-//                metricsService,
-//                templateCodeGenerationService,
-//                db2MigrationService
-//        );
-//    }
+    // Enable CobolLanguageProvider when COBOL provider is enabled via either legacy or new property name
+    @Bean
+    @ConditionalOnProperty(
+            name = {"renovatio.providers.cobol.enabled", "renovatio.cobol.enabled"},
+            havingValue = "true",
+            matchIfMissing = true
+    )
+    public CobolLanguageProvider cobolLanguageProvider(
+            CobolParsingService parsingService,
+            JavaGenerationService javaGenerationService,
+            MigrationPlanService migrationPlanService,
+            IndexingService indexingService,
+            MetricsService metricsService,
+            TemplateCodeGenerationService templateCodeGenerationService,
+            Db2MigrationService db2MigrationService) {
+        return new CobolLanguageProvider(
+                parsingService,
+                javaGenerationService,
+                migrationPlanService,
+                indexingService,
+                metricsService,
+                templateCodeGenerationService,
+                db2MigrationService
+        );
+    }
 }

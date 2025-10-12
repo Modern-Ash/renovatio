@@ -1,24 +1,17 @@
 package org.shark.renovatio.shared.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 /**
  * Represents a validation error for an OpenRewrite recipe.
  * Used to report misconfiguration or missing parameters in recipes in a structured, MCP-compliant way.
  */
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RecipeValidationError {
-    private final String recipeName;
-    private final String message;
-
-    public RecipeValidationError(String recipeName, String message) {
-        this.recipeName = recipeName;
-        this.message = message;
-    }
-
-    public String getRecipeName() {
-        return recipeName;
-    }
-
-    public String getMessage() {
-        return message;
-    }
+    private String recipeName;
+    private String message;
 }
-

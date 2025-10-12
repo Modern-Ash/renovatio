@@ -1,8 +1,10 @@
 package org.shark.renovatio.mcp.server.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
 
 @Schema(description = "MCP Server capabilities")
+@Data
 public class McpCapabilities {
     @Schema(description = "Tools capability")
     private ToolsCapability tools;
@@ -19,66 +21,21 @@ public class McpCapabilities {
         this.resources = new ResourcesCapability();
     }
 
-    public ToolsCapability getTools() {
-        return tools;
-    }
-
-    public void setTools(ToolsCapability tools) {
-        this.tools = tools;
-    }
-
-    public PromptsCapability getPrompts() {
-        return prompts;
-    }
-
-    public void setPrompts(PromptsCapability prompts) {
-        this.prompts = prompts;
-    }
-
-    public ResourcesCapability getResources() {
-        return resources;
-    }
-
-    public void setResources(ResourcesCapability resources) {
-        this.resources = resources;
-    }
-
+    @Data
     public static class ToolsCapability {
         @Schema(description = "Whether server supports listing tools")
         private boolean listChanged = true;
-
-        public boolean isListChanged() {
-            return listChanged;
-        }
-
-        public void setListChanged(boolean listChanged) {
-            this.listChanged = listChanged;
-        }
     }
 
+    @Data
     public static class PromptsCapability {
         @Schema(description = "Whether server supports listing prompts")
         private boolean listChanged = true;
-
-        public boolean isListChanged() {
-            return listChanged;
-        }
-
-        public void setListChanged(boolean listChanged) {
-            this.listChanged = listChanged;
-        }
     }
 
+    @Data
     public static class ResourcesCapability {
         @Schema(description = "Whether server supports listing resources")
         private boolean listChanged = true;
-
-        public boolean isListChanged() {
-            return listChanged;
-        }
-
-        public void setListChanged(boolean listChanged) {
-            this.listChanged = listChanged;
-        }
     }
 }
