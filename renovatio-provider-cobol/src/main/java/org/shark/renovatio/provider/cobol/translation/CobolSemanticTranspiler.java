@@ -5,14 +5,12 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Result;
 import org.openrewrite.SourceFile;
 import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.tree.J;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipe;
 import org.shark.renovatio.provider.java.OpenRewriteRunResult;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
