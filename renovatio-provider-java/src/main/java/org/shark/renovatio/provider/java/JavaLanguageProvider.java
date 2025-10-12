@@ -509,7 +509,6 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
             optMap.put("name", opt.getName());
             optMap.put("type", opt.getType());
             optMap.put("required", opt.isRequired());
-            Object description = optMap.put("description", opt.getDescription());
             optMap.put("example", opt.getExample());
             options.add(optMap);
         }

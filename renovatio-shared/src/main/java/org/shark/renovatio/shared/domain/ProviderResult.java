@@ -2,9 +2,12 @@ package org.shark.renovatio.shared.domain;
 
 import java.util.Map;
 
+import lombok.Data;
+
 /**
  * Base class for provider operation results
  */
+@Data
 public abstract class ProviderResult {
     private boolean success;
     private String message;
@@ -20,46 +23,5 @@ public abstract class ProviderResult {
         this();
         this.success = success;
         this.message = message;
-    }
-
-    // Getters and setters
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getRunId() {
-        return runId;
-    }
-
-    public void setRunId(String runId) {
-        this.runId = runId;
-    }
-
-    public Map<String, Object> getMetadata() {
-        return metadata;
-    }
-
-    public void setMetadata(Map<String, Object> metadata) {
-        this.metadata = metadata;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
     }
 }

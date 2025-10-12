@@ -131,12 +131,6 @@ public class PopulateCobolProcessRecipe extends Recipe {
         return method.getSimpleName().equals(methodName);
     }
 
-    private boolean containsTodo(J.Block body) {
-        return body.getStatements().stream()
-                .map(stmt -> stmt.printTrimmed())
-                .anyMatch(text -> text != null && text.contains("TODO"));
-    }
-
     private List<String> renderParagraph(CobolParagraph paragraph, CobolIntermediateModel model, Set<String> visitedParagraphs, @Nullable String varName) {
         if (paragraph == null) {
             return List.of();
@@ -261,11 +255,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
         String selector = toJavaExpression(evaluate.expression());
         lines.add(String.format(Locale.ROOT, "switch (%s) {", selector));
         for (EvaluateStatement.EvaluateWhenBranch branch : evaluate.branches()) {
-            String label = branch.getCondition().equalsIgnoreCase("OTHER")
+            String label = branch.condition().equalsIgnoreCase("OTHER")
                     ? "default"
-                    : "case " + toJavaExpression(branch.getCondition());
+                    : "case " + toJavaExpression(branch.condition());
             lines.add(indent(label + " -> {"));
-            for (CobolStatement stmt : branch.getStatements()) {
+            for (CobolStatement stmt : branch.statements()) {
                 for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
                     lines.add(indent(indent(rendered)));
                 }
@@ -298,7 +292,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
         if (condition == null) return "false";
         String raw = condition.replace("THEN", "").trim();
         // Normalize common COBOL operators
-        raw = raw.replaceAll("(?i)NOT \\=", "<>");
+        raw = raw.replaceAll("(?i)NOT =", "<>");
         // Pattern: LEFT OP RIGHT (supports identifiers with dashes/dots and numeric/string literals)
         java.util.regex.Pattern p = java.util.regex.Pattern.compile("(?<left>[A-Za-z0-9_.-]+)\\s*(?<op>>=|<=|<>|=|>|<)\\s*(?<right>.+)");
         java.util.regex.Matcher m = p.matcher(raw);
@@ -409,27 +403,53 @@ public class PopulateCobolProcessRecipe extends Recipe {
     }
 
     private @Nullable String findDtoVarName(J.MethodDeclaration method, String dtoType) {
-        if (method.getBody() == null) return null;
-        // 1) Look for a return identifier
-        for (J statement : method.getBody().getStatements()) {
-            if (statement instanceof J.Return r && r.getExpression() instanceof J.Identifier id) {
-                return id.getSimpleName();
-            }
+        return Optional.ofNullable(method.getBody())
+                .map(body -> {
+                    String fromReturn = findReturnIdentifierVarName(body);
+                    return (fromReturn != null && !fromReturn.isBlank())
+                            ? fromReturn
+                            : findDeclaredDtoVarName(body, dtoType);
+                })
+                .orElse(null);
+    }
+
+    // Find variable name from a return statement like: return out;
+    private @Nullable String findReturnIdentifierVarName(J.Block body) {
+        return body.getStatements().stream()
+                .filter(s -> s instanceof J.Return)
+                .map(s -> (J.Return) s)
+                .map(J.Return::getExpression)
+                .filter(Objects::nonNull)
+                .filter(expr -> expr instanceof J.Identifier)
+                .map(expr -> ((J.Identifier) expr).getSimpleName())
+                .findFirst()
+                .orElse(null);
+    }
+
+    // Find variable name from a local declaration matching the DTO type or new DTO() initializer
+    private @Nullable String findDeclaredDtoVarName(J.Block body, String dtoType) {
+        String simpleDto = simpleName(dtoType);
+        return body.getStatements().stream()
+                .filter(s -> s instanceof J.VariableDeclarations)
+                .map(s -> (J.VariableDeclarations) s)
+                .map(v -> extractVarNameIfMatches(v, simpleDto))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private @Nullable String extractVarNameIfMatches(J.VariableDeclarations v, String simpleDto) {
+        if (v.getVariables().isEmpty()) {
+            return null;
         }
-        // 2) Look for a variable declaration of the dtoType
-        for (J statement : method.getBody().getStatements()) {
-            if (statement instanceof J.VariableDeclarations v) {
-                String type = v.getTypeExpression() != null ? v.getTypeExpression().printTrimmed() : null;
-                if (type != null && simpleName(type).equals(simpleName(dtoType)) && !v.getVariables().isEmpty()) {
-                    return v.getVariables().get(0).getName().getSimpleName();
-                }
-                // Alternatively, check initializer is new dtoType()
-                if (!v.getVariables().isEmpty() && v.getVariables().get(0).getInitializer() instanceof J.NewClass nc) {
-                    String initType = nc.getClazz() != null ? nc.getClazz().printTrimmed() : null;
-                    if (initType != null && simpleName(initType).equals(simpleName(dtoType))) {
-                        return v.getVariables().get(0).getName().getSimpleName();
-                    }
-                }
+        String declaredType = v.getTypeExpression() != null ? simpleName(v.getTypeExpression().printTrimmed()) : null;
+        if (declaredType != null && declaredType.equals(simpleDto)) {
+            return v.getVariables().get(0).getName().getSimpleName();
+        }
+        if (v.getVariables().get(0).getInitializer() instanceof J.NewClass nc) {
+            String initType = nc.getClazz() != null ? simpleName(nc.getClazz().printTrimmed()) : null;
+            if (initType != null && initType.equals(simpleDto)) {
+                return v.getVariables().get(0).getName().getSimpleName();
             }
         }
         return null;

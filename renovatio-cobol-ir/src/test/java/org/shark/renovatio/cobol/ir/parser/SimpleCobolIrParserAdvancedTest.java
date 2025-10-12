@@ -89,8 +89,8 @@ class SimpleCobolIrParserAdvancedTest {
                 .findFirst().orElseThrow();
         assertEquals("WS-NUM", eval.expression());
         assertEquals(2, eval.branches().size());
-        assertEquals("0", eval.branches().get(0).getCondition());
-        assertEquals("OTHER", eval.branches().get(1).getCondition());
+        assertEquals("0", eval.branches().get(0).condition());
+        assertEquals("OTHER", eval.branches().get(1).condition());
 
         // Control flow edges due to PERFORM and THRU
         ControlFlowGraph g = model.getControlFlowGraph();

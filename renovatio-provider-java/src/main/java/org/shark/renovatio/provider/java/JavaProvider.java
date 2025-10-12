@@ -65,8 +65,6 @@ public class JavaProvider extends BaseLanguageProvider {
 
     // Capability identifiers (lowercase, unqualified)
     private static final String CAP_DISCOVER = "discover";
-    private static final String CAP_ANALYZE = "analyze";
-    private static final String CAP_PLAN = "plan";
     private static final String CAP_APPLY = "apply";
     private static final String CAP_DIFF = "diff";
     private static final String CAP_REVIEW = "review";
@@ -186,33 +184,43 @@ public class JavaProvider extends BaseLanguageProvider {
     @Override
     public AnalyzeResult analyze(NqlQuery query, Workspace workspace) {
         try {
-            Map<String, Object> params = optionalParameters(query);
-            String profile = stringParam(params, KEY_PROFILE, PROFILE_QUALITY);
-            List<String> goals = combineLists(listParam(params, KEY_GOALS), List.of(profile));
-            List<String> include = combineLists(listParam(params, KEY_INCLUDE), listParam(params, KEY_RECIPES));
-            List<String> exclude = combineLists(listParam(params, KEY_EXCLUDE), listParam(params, KEY_EXCLUDE_RECIPES));
-            int maxFindings = intParam(params, KEY_MAX_FINDINGS, 200);
+            AnalyzeContext ctx = buildAnalyzeContext(query);
+            logger.info("[analyze] Workspace: {} | Recipes: {} | Scope: {}", workspace.getPath(), ctx.recipes(), ctx.scopePatterns());
 
-            List<String> recipes = sanitizeRecipes(planner.resolveRecipes(goals, include, exclude));
-            List<String> scopePatterns = listParam(params, KEY_SCOPE);
-            if (scopePatterns.isEmpty()) {
-                scopePatterns = DEFAULT_SCOPE;
-            }
-
-            logger.info("[analyze] Workspace: {} | Recipes: {} | Scope: {}", workspace.getPath(), recipes, scopePatterns);
-
-            JavaRecipeExecutionResult execution = executor.preview(workspace.getPath(), recipes, scopePatterns);
-            AnalyzeResult analyzeResult = analyzeAdapter.adapt(execution, workspace, profile, maxFindings);
+            JavaRecipeExecutionResult execution = executor.preview(workspace.getPath(), ctx.recipes(), ctx.scopePatterns());
+            AnalyzeResult analyzeResult = analyzeAdapter.adapt(execution, workspace, ctx.profile(), ctx.maxFindings());
             executions.put(analyzeResult.getRunId(), execution);
             return analyzeResult;
         } catch (Exception e) {
             logger.error("Error in JavaProvider.analyze: {}", e.getMessage(), e);
-            AnalyzeResult errorResult = new AnalyzeResult();
-            errorResult.setSuccess(false);
-            errorResult.setMessage("JavaProvider.analyze failed: " + e.getMessage());
-            return errorResult;
+            return toAnalyzeError(e);
         }
     }
+
+    private AnalyzeContext buildAnalyzeContext(NqlQuery query) {
+        Map<String, Object> params = optionalParameters(query);
+        String profile = stringParam(params, KEY_PROFILE, PROFILE_QUALITY);
+        List<String> goals = combineLists(listParam(params, KEY_GOALS), List.of(profile));
+        List<String> include = combineLists(listParam(params, KEY_INCLUDE), listParam(params, KEY_RECIPES));
+        List<String> exclude = combineLists(listParam(params, KEY_EXCLUDE), listParam(params, KEY_EXCLUDE_RECIPES));
+        int maxFindings = intParam(params, KEY_MAX_FINDINGS, 200);
+
+        List<String> recipes = sanitizeRecipes(planner.resolveRecipes(goals, include, exclude));
+        List<String> scopePatterns = listParam(params, KEY_SCOPE);
+        if (scopePatterns.isEmpty()) {
+            scopePatterns = DEFAULT_SCOPE;
+        }
+        return new AnalyzeContext(profile, recipes, scopePatterns, maxFindings);
+    }
+
+    private AnalyzeResult toAnalyzeError(Exception e) {
+        AnalyzeResult errorResult = new AnalyzeResult();
+        errorResult.setSuccess(false);
+        errorResult.setMessage("JavaProvider.analyze failed: " + e.getMessage());
+        return errorResult;
+    }
+
+    private record AnalyzeContext(String profile, List<String> recipes, List<String> scopePatterns, int maxFindings) {}
 
     @Override
     public PlanResult plan(NqlQuery query, Scope scope, Workspace workspace) {
@@ -352,7 +360,7 @@ public class JavaProvider extends BaseLanguageProvider {
         try {
             result.put(KEY_MODULES, discoverModules(workspace));
             result.put(KEY_DEPENDENCIES, discoverDependencies(workspace));
-            result.put(KEY_FILES, listFiles(workspace, 200));
+            result.put(KEY_FILES, listFiles(workspace));
             result.put(KEY_MESSAGE, String.format(Locale.ROOT, "Discovered %d module(s)", ((List<?>) result.get(KEY_MODULES)).size()));
             return success(result);
         } catch (IOException ex) {
@@ -621,7 +629,7 @@ public class JavaProvider extends BaseLanguageProvider {
                         entryFormatter.format(entry);
                         Map<String, Object> change = new LinkedHashMap<>();
                         change.put(KEY_FILE, entry.getNewPath());
-                        change.put(KEY_DIFF, new String(out.toByteArray(), StandardCharsets.UTF_8));
+                        change.put(KEY_DIFF, out.toString(StandardCharsets.UTF_8));
                         changes.add(change);
                     }
                 }
@@ -683,11 +691,11 @@ public class JavaProvider extends BaseLanguageProvider {
         return dependencies;
     }
 
-    private List<String> listFiles(Path workspace, int limit) throws IOException {
+    private List<String> listFiles(Path workspace) throws IOException {
         List<String> files = new ArrayList<>();
         try (var stream = Files.walk(workspace)) {
             stream.filter(Files::isRegularFile)
-                    .limit(limit)
+                    .limit(200)
                     .forEach(path -> files.add(workspace.relativize(path).toString()));
         }
         return files;
@@ -716,9 +724,7 @@ public class JavaProvider extends BaseLanguageProvider {
     }
 
     private Map<String, Object> workspaceSchema() {
-        return schema(builder -> {
-            builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true));
-        });
+        return schema(builder -> builder.put(KEY_WORKSPACE_PATH, property("string", "Workspace root", true)));
     }
 
     private Map<String, Object> analyzeSchema() {
@@ -972,7 +978,6 @@ public class JavaProvider extends BaseLanguageProvider {
                 : Map.of();
     }
 
-    @SuppressWarnings("unchecked")
     private List<String> listParam(Map<String, ?> params, String key) {
         Object value = params.get(key);
         if (value == null) {
@@ -1061,7 +1066,7 @@ public class JavaProvider extends BaseLanguageProvider {
     }
 
     // Generate unique run id
-    private String generateRunId() {
+    public String generateRunId() {
         return java.util.UUID.randomUUID().toString();
     }
 }
