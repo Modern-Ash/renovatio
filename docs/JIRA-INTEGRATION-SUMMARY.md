@@ -44,7 +44,7 @@ Un ejemplo real de especificación mostrando:
 - ✅ Sprint planning integrado
 
 ### 4. **GitHub Actions para sincronización automática**
-📄 **[.github/workflows/jira-sync.yml](./.github/workflows/jira-sync.yml)**
+📄 **[.github/workflows/jira-sync.yml](../.github/workflows/jira-sync.yml)**
 
 Workflow que automáticamente:
 - ✅ Detecta tickets Jira en PRs/issues
@@ -190,9 +190,7 @@ vim docs/specs/activas/migracion-customer.md
 
 # 6. Commit
 git add docs/specs/activas/migracion-customer.md
-git commit -m "docs: Add migration spec for Customer module
-
-Related to RENO-200"
+git commit -m "docs: Add migration spec for Customer module" -m "Related to RENO-200"
 git push
 ```
 
