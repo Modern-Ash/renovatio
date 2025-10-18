@@ -359,7 +359,28 @@ renovatio:
 
 Esto puede generarse automáticamente con un script que parsee los metadatos de todas las specs.
 
-### 5.6 Integración con herramientas de análisis
+### 5.6 Integración con Jira y GitHub para tracking
+
+**Propuesta:** Añadir soporte completo para vincular tickets de Jira en las especificaciones:
+
+```yaml
+# En metadatos de la spec
+jira_epic: "RENO-100"
+jira_parent_story: "RENO-101"
+linked_jira_issues: ["RENO-102", "RENO-103"]
+jira_project: "RENO"
+jira_sprint: "Sprint 1"
+```
+
+**Implementación:** Ver guía completa en [JIRA-GITHUB-INTEGRATION.md](./JIRA-GITHUB-INTEGRATION.md)
+
+**Beneficios:**
+- Trazabilidad completa desde planning hasta ejecución
+- Sincronización bidireccional Jira ↔ GitHub
+- Smart commits para automatizar transiciones de estado
+- Métricas unificadas en ambas plataformas
+
+### 5.7 Integración con herramientas de análisis
 
 **Propuesta:** Añadir comandos que generen métricas desde especificaciones:
 
@@ -376,13 +397,13 @@ spec-kit analyze docs/specs/activas/migracion-compleja.md
 # Recomendación: Dividir en 2 fases
 ```
 
-### 5.7 Templates específicos por tipo de migración
+### 5.8 Templates específicos por tipo de migración
 
 **Propuesta:** Crear templates especializados:
 
 ```
 docs/specs/templates/
-├── renovatio-spec-template.md           # Template genérico (ya existe)
+├── renovatio-spec-template.md           # Template genérico (ya existe con Jira)
 ├── cobol-to-java-template.md            # Migración COBOL → Java
 ├── java-upgrade-template.md             # Upgrade de versión Java
 ├── db2-to-jpa-template.md               # DB2 embebido → JPA
@@ -390,7 +411,7 @@ docs/specs/templates/
 └── openrewrite-recipe-template.md       # Nueva receta OpenRewrite
 ```
 
-Cada template incluiría secciones específicas para ese tipo de migración.
+Cada template incluiría secciones específicas para ese tipo de migración y soporte para Jira integration.
 
 ---
 
@@ -400,8 +421,10 @@ Cada template incluiría secciones específicas para ese tipo de migración.
 
 - [x] Crear documento de explicación de Spec Kit (este documento)
 - [ ] Instalar y configurar `@github/spec-kit` en el proyecto
-- [ ] Actualizar `renovatio-spec-template.md` con metadatos enriquecidos
-- [ ] Crear 2-3 especificaciones de ejemplo en `docs/specs/ejemplos/`
+- [x] Actualizar `renovatio-spec-template.md` con metadatos enriquecidos
+- [x] Añadir soporte para Jira integration en template
+- [x] Crear especificación de ejemplo con Jira en `docs/specs/ejemplos/`
+- [x] Crear guía completa de Jira-GitHub integration
 - [ ] Documentar el flujo de trabajo en `docs/spec-kit-integracion.md`
 
 ### Fase 2: Integración básica (2 semanas)

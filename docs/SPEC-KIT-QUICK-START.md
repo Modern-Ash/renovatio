@@ -175,7 +175,16 @@ renovatio:
   expected_outcomes:
     files_migrated: 15
     success_rate: ">= 95%"
+
+# Integración Jira (NUEVO)
+jira_epic: "RENO-100"
+jira_parent_story: "RENO-101"
+linked_jira_issues: ["RENO-102", "RENO-103"]
+jira_project: "RENO"
+jira_sprint: "Sprint 1"
 ```
+
+> **💡 Tip**: Consulta [JIRA-GITHUB-INTEGRATION.md](./JIRA-GITHUB-INTEGRATION.md) para aprender a usar Jira tickets en tus specs.
 
 ### Ejecutar secuencia de herramientas
 
@@ -374,6 +383,7 @@ curl -H "Authorization: token $GITHUB_TOKEN" \
 
 - **[EXPLICACION-SPEC-KIT.md](./EXPLICACION-SPEC-KIT.md)** - Explicación completa y propuestas de mejora
 - **[spec-kit-integracion.md](./spec-kit-integracion.md)** - Guía detallada de integración
+- **[JIRA-GITHUB-INTEGRATION.md](./JIRA-GITHUB-INTEGRATION.md)** - 🆕 Integración Jira-GitHub en spec-driven workflow
 - **[specs/ejemplos/](./specs/ejemplos/)** - Especificaciones de ejemplo
 - **[GitHub Spec Kit oficial](https://github.com/github/spec-kit)** - Repositorio y documentación
 
