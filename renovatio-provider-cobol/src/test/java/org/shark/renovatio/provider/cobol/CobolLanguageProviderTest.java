@@ -28,11 +28,13 @@ class CobolLanguageProviderTest {
         // Initialize services
         CobolParsingService parsingService = new CobolParsingService();
         TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
-        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService(), new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
+        org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService();
+        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
         Db2MigrationService db2Service = new Db2MigrationService(parsingService);
         MigrationPlanService migrationPlanService = new MigrationPlanService(parsingService, javaGenerationService);
         IndexingService indexingService = new IndexingService();
         MetricsService metricsService = new MetricsService();
+        ControlBreakDecompositionService decompositionService = new ControlBreakDecompositionService(irService, parsingService);
 
         provider = new CobolLanguageProvider(
                 parsingService,
@@ -41,7 +43,8 @@ class CobolLanguageProviderTest {
                 indexingService,
                 metricsService,
                 templateService,
-                db2Service
+                db2Service,
+                decompositionService
         );
 
         // Setup test workspace

@@ -26,10 +26,12 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     private static final String TOOL_DIFF = "cobol.diff";
     private static final String TOOL_MIGRATE_COPYBOOK = "cobol.migrate_copybook";
     private static final String TOOL_MIGRATE_DB2 = "cobol.migrate_db2";
+    private static final String TOOL_DECOMPOSE = "cobol.decompose";
 
     // Extended capabilities (executeExtendedTool)
     private static final String CAP_MIGRATE_COPYBOOK = "migrate_copybook";
     private static final String CAP_MIGRATE_DB2 = "migrate_db2";
+    private static final String CAP_DECOMPOSE = "decompose";
 
     // Common JSON keys and values
     private static final String KEY_TYPE = "type";
@@ -79,6 +81,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     private final TemplateCodeGenerationService templateCodeGenerationService;
     private final Db2MigrationService db2MigrationService;
     private final IndexingService indexingService;
+    private final ControlBreakDecompositionService decompositionService;
 
     public CobolLanguageProvider(
             CobolParsingService parsingService,
@@ -87,7 +90,8 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
             IndexingService indexingService,
             MetricsService metricsService,
             TemplateCodeGenerationService templateCodeGenerationService,
-            Db2MigrationService db2MigrationService) {
+            Db2MigrationService db2MigrationService,
+            ControlBreakDecompositionService decompositionService) {
         this.parsingService = parsingService;
         this.javaGenerationService = javaGenerationService;
         this.migrationPlanService = migrationPlanService;
@@ -95,6 +99,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         this.metricsService = metricsService;
         this.templateCodeGenerationService = templateCodeGenerationService;
         this.db2MigrationService = db2MigrationService;
+        this.decompositionService = decompositionService;
     }
 
     @Override
@@ -250,6 +255,60 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         }
     }
 
+    /**
+     * Decompose COBOL control break patterns into reusable architectural components.
+     * 
+     * <p>This method addresses the architectural impedance mismatch between COBOL's
+     * file-processing paradigm (READ loops, control breaks, ISAM files) and modern
+     * service-oriented architectures.
+     * 
+     * <p>Instead of translating 1 COBOL program to 1 Java program, it:
+     * <ul>
+     *   <li>Detects control break patterns (grouping, subtotals, etc.)</li>
+     *   <li>Extracts business rules as discrete, testable components</li>
+     *   <li>Generates repository interfaces for data access</li>
+     *   <li>Creates aggregation strategies using Java Streams</li>
+     *   <li>Produces validation components</li>
+     * </ul>
+     * 
+     * @param workspace The workspace containing COBOL programs
+     * @return StubResult containing decomposed components
+     */
+    public StubResult decomposeControlBreaks(Workspace workspace) {
+        try {
+            var analysisResult = decompositionService.analyzeAndDecompose(workspace);
+            
+            if (!analysisResult.hasResults()) {
+                return new StubResult(false, 
+                        "No control break patterns detected. Programs may not use ISAM/sequential file processing with grouping.");
+            }
+            
+            // Generate code for each decomposed program
+            Map<String, String> allGenerated = new LinkedHashMap<>();
+            for (var decomposition : analysisResult.getDecompositions()) {
+                StubResult genResult = decompositionService.generateDecomposedCode(decomposition, workspace);
+                if (genResult.isSuccess() && genResult.getGeneratedCode() != null) {
+                    allGenerated.putAll(genResult.getGeneratedCode());
+                }
+            }
+            
+            StringBuilder message = new StringBuilder();
+            message.append("Decomposed ").append(analysisResult.getDecompositions().size()).append(" program(s) ");
+            message.append("with ").append(analysisResult.getTotalControlBreakPatterns()).append(" control break pattern(s). ");
+            message.append("Generated ").append(allGenerated.size()).append(" reusable component(s).");
+            
+            if (!analysisResult.getErrors().isEmpty()) {
+                message.append(" Errors: ").append(analysisResult.getErrors().size());
+            }
+            
+            StubResult result = new StubResult(true, message.toString());
+            result.setGeneratedCode(allGenerated);
+            return result;
+        } catch (Exception e) {
+            return new StubResult(false, "Control break decomposition failed: " + e.getMessage());
+        }
+    }
+
     @Override
     public java.util.List<Tool> getTools() {
         // Publish COBOL tools for MCP clients
@@ -262,6 +321,10 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         // Extended provider-specific tools
         tools.add(new BasicTool(TOOL_MIGRATE_COPYBOOK, "Generate Java artifacts from a COBOL copybook (templates)", migrateCopybookSchema()));
         tools.add(new BasicTool(TOOL_MIGRATE_DB2, "Generate JPA code from embedded DB2 EXEC SQL in COBOL program", migrateDb2Schema()));
+        tools.add(new BasicTool(TOOL_DECOMPOSE, 
+                "Decompose COBOL control break patterns into reusable architectural components (repositories, business rules, aggregations). " +
+                "Solves the impedance mismatch between COBOL file processing and modern architectures.", 
+                decomposeSchema()));
         return tools;
     }
 
@@ -273,6 +336,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         String cap = capability.toLowerCase(Locale.ROOT);
         return switch (cap) {
             case CAP_MIGRATE_COPYBOOK -> handleMigrateCopybook(arguments);
+            case CAP_DECOMPOSE -> handleDecompose(arguments);
             case CAP_MIGRATE_DB2 -> handleMigrateDb2(arguments);
             default -> null; // Not handled here, allow default routing
         };
@@ -329,6 +393,31 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         response.put(KEY_MESSAGE, result.getMessage());
         Map<String, Object> data = new LinkedHashMap<>();
         data.put(KEY_GENERATED, result.getGeneratedCode());
+        response.put(KEY_DATA, data);
+        return success(response);
+    }
+
+    private Map<String, Object> handleDecompose(Map<String, Object> args) {
+        String workspacePath = asString(args.get(KEY_WORKSPACE_PATH));
+        Map<String, Object> response = baseResponse();
+        if (workspacePath == null || workspacePath.isBlank()) {
+            return error(response, MSG_REQUIRED_WORKSPACE);
+        }
+        Workspace ws = new Workspace();
+        ws.setId("default");
+        ws.setPath(workspacePath);
+        StubResult result = decomposeControlBreaks(ws);
+        response.put(KEY_SUCCESS, result.isSuccess());
+        response.put(KEY_MESSAGE, result.getMessage());
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put(KEY_GENERATED, result.getGeneratedCode());
+        
+        // Add decomposition details
+        if (result.isSuccess()) {
+            data.put("description", "Generated reusable architectural components: " +
+                    "repositories (data access), business rules (discrete logic), " +
+                    "aggregations (stream-based collectors), and validators.");
+        }
         response.put(KEY_DATA, data);
         return success(response);
     }
@@ -398,6 +487,19 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         props.put(KEY_PROGRAM, Map.of(KEY_TYPE, KEY_STRING, KEY_DESCRIPTION, "COBOL program with EXEC SQL (e.g., ORDERPROC.cbl)"));
         schema.put(KEY_PROPERTIES, props);
         schema.put(KEY_REQUIRED, java.util.List.of(KEY_PROGRAM));
+        return schema;
+    }
+
+    private Map<String, Object> decomposeSchema() {
+        Map<String, Object> schema = new LinkedHashMap<>();
+        schema.put(KEY_TYPE, TYPE_OBJECT);
+        Map<String, Object> props = new LinkedHashMap<>();
+        props.put(KEY_WORKSPACE_PATH, Map.of(
+                KEY_TYPE, KEY_STRING, 
+                KEY_DESCRIPTION, "Path to workspace containing COBOL programs with control break patterns"
+        ));
+        schema.put(KEY_PROPERTIES, props);
+        schema.put(KEY_REQUIRED, java.util.List.of(KEY_WORKSPACE_PATH));
         return schema;
     }
 
