@@ -219,8 +219,11 @@ public class ControlBreakPatternDetector {
                     baseField = matcher.group(3);
                 }
 
-                if (baseField != null && dataItemNames.contains(baseField.toUpperCase())) {
-                    pairs.put(baseField.toUpperCase(), name.toUpperCase());
+                if (baseField != null) {
+                    String baseFieldUpper = baseField.toUpperCase();
+                    if (dataItemNames.contains(baseFieldUpper)) {
+                        pairs.put(baseFieldUpper, name);
+                    }
                 }
             }
         }

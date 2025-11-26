@@ -511,17 +511,23 @@ public class ControlBreakDecompositionService {
         // Fields
         for (String dep : dependencies) {
             String[] parts = dep.split(" ");
-            code.append("    private final ").append(parts[0]).append(" ").append(parts[1]).append(";\n");
+            if (parts.length >= 2) {
+                code.append("    private final ").append(parts[0]).append(" ").append(parts[1]).append(";\n");
+            }
         }
         code.append("\n");
 
         // Constructor
-        code.append("    public ").append(className).append("(\n");
-        code.append("            ").append(String.join(",\n            ", dependencies));
+        code.append("    public ").append(className).append("(");
+        if (!dependencies.isEmpty()) {
+            code.append("\n            ").append(String.join(",\n            ", dependencies));
+        }
         code.append(") {\n");
         for (String dep : dependencies) {
             String[] parts = dep.split(" ");
-            code.append("        this.").append(parts[1]).append(" = ").append(parts[1]).append(";\n");
+            if (parts.length >= 2) {
+                code.append("        this.").append(parts[1]).append(" = ").append(parts[1]).append(";\n");
+            }
         }
         code.append("    }\n\n");
 
@@ -600,6 +606,7 @@ public class ControlBreakDecompositionService {
     private String toCamelCase(String input) {
         if (input == null || input.isEmpty()) return input;
         String pascal = toPascalCase(input);
+        if (pascal.isEmpty()) return input;
         return Character.toLowerCase(pascal.charAt(0)) + pascal.substring(1);
     }
 

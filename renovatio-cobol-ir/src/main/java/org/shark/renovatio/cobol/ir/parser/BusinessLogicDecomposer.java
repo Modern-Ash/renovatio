@@ -617,6 +617,9 @@ public class BusinessLogicDecomposer {
             return input;
         }
         String[] parts = input.toLowerCase().split("[-_]");
+        if (parts.length == 0) {
+            return input.toLowerCase();
+        }
         StringBuilder result = new StringBuilder(parts[0]);
         for (int i = 1; i < parts.length; i++) {
             if (!parts[i].isEmpty()) {
