@@ -2,3 +2,21 @@
 
 - 2026-08-30T14:33:31.471429Z | work.created | state=drafting actor=project:owner
 - 2026-08-30T14:33:31.471878Z | work.decomposition-linked | parent=ai-modernization/three-pass-modernization actor=project:owner
+- 2026-08-30T23:13:01.490714Z | tool.prepared | run=tool-20260830t23131788142381z tool=repository operation=create-branch actor=project:agent
+- 2026-08-30T23:13:01.493276Z | tool.running | run=tool-20260830t23131788142381z actor=project:agent
+- 2026-08-30T23:13:01.506630Z | tool.completed | run=tool-20260830t23131788142381z exit-code=0
+- 2026-08-30T23:13:40.877346Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T23:18:50.876630Z | artifact.added | kind=spec uri=repo://docs/specs/residual-semantic-enrichment.md actor=project:owner
+- 2026-08-30T23:18:51.168921Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=specified
+- 2026-08-30T23:18:51.462404Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=specified
+- 2026-08-30T23:18:51.760951Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=specified
+- 2026-08-30T23:18:52.050943Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=specified
+- 2026-08-30T23:18:52.357459Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=specified
+- 2026-08-30T23:19:24.014070Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T23:19:37.314186Z | artifact.added | kind=prompt-catalog uri=repo://renovatio-llm/src/main/resources/prompts/catalog-v1.yaml actor=project:owner
+- 2026-08-30T23:26:19.975263Z | artifact.added | kind=spec uri=repo://docs/specs/residual-semantic-enrichment.md actor=project:owner
+- 2026-08-30T23:26:53.337983Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T23:27:20.340617Z | artifact.added | kind=spec uri=repo://docs/specs/residual-semantic-enrichment.md actor=project:owner
+- 2026-08-30T23:27:43.922084Z | work.clarified-advisory | questions=4 actor=project:owner
+- 2026-08-30T23:42:19.302128Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-08-30T23:42:33.243410Z | work.transitioned | from=drafting to=clarified actor=project:owner
