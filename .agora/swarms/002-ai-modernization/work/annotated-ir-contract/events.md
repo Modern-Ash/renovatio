@@ -2,3 +2,16 @@
 
 - 2026-08-30T14:33:30.944334Z | work.created | state=drafting actor=project:owner
 - 2026-08-30T14:33:30.944793Z | work.decomposition-linked | parent=ai-modernization/three-pass-modernization actor=project:owner
+- 2026-08-30T16:58:40.230556Z | tool.prepared | run=tool-20260830t16581788119920z tool=repository operation=create-branch actor=project:agent
+- 2026-08-30T16:58:40.232265Z | tool.running | run=tool-20260830t16581788119920z actor=project:agent
+- 2026-08-30T16:58:40.245049Z | tool.completed | run=tool-20260830t16581788119920z exit-code=0
+- 2026-08-30T17:01:21.914021Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:08:29.837826Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-ir-contract.md actor=project:owner
+- 2026-08-30T17:08:30.043773Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=specified
+- 2026-08-30T17:08:30.260718Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=specified
+- 2026-08-30T17:08:30.480345Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=specified
+- 2026-08-30T17:08:30.690212Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=specified
+- 2026-08-30T17:08:49.268427Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:10:50.436613Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:11:48.447659Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:12:51.798911Z | work.clarified-advisory | questions=5 actor=project:owner
