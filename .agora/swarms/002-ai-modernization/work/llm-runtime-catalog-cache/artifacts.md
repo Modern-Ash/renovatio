@@ -59,3 +59,6 @@ artifact-kinds: ["spec","implementation-plan","threat-model","prompt-catalog","t
 | consistency-report | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t21421788136944z.md | none | project:agent | 2026-08-30T21:42:24.259329Z |
 | test-report | repo://docs/reports/llm-catalog-provider-policy-correction-20260830.md | 88c2217315d95d17973db8001111feff6983651db47171960a02b53b71985db7 | project:agent | 2026-08-30T21:44:15.571823Z |
 | test-report | repo://docs/reports/llm-runtime-final-full-verification-20260830.md | e1741c19e86222469647f1e9769c624c59898e378fb18167063d3e51d68e5c77 | project:agent | 2026-08-30T21:46:33.889458Z |
+| consistency-report | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t21491788137385z.md | none | project:agent | 2026-08-30T21:49:45.268792Z |
+| test-report | repo://docs/reports/llm-cache-promotion-f13b4bf9-20260830.md | ea755832997167debca370263aca352bff7b088650fd683fe4cfe937889f4dfa | project:agent | 2026-08-30T21:50:06.295127Z |
+| consistency-report | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t21541788137667z.md | none | project:agent | 2026-08-30T21:54:27.941409Z |

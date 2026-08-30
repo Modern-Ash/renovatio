@@ -3,15 +3,15 @@ schema: "agora/work/v1"
 id: "llm-runtime-catalog-cache"
 swarm: "ai-modernization"
 title: "Real LLM runtime, PromptCatalog, and cache"
-state: "implementing"
+state: "verifying"
 revision: 1
 operational-status: "active"
 status-reason: null
 status-by: null
 status-at: null
 acceptance-criteria: {"prompt-catalog":"Versioned YAML prompt entries declare promptId, appliesTo, system text, few-shot examples, output schema, validators, and deterministic fallback.","provider-wiring":"A provider-neutral interface has Claude wiring, environment-based credentials, timeout and retry policy, and an offline fake for tests.","cache":"Identical canonical IR input and prompt version resolve to a committed cache entry without a network call.","agora-attribution":"Every cache miss records input hash, output hash, model, promptId, and cache artifact through a governed Agora tool-run without secrets.","service-clarity":"The existing NQL parser service no longer claims to be an LLM integration."}
-satisfied-criteria: []
-criterion-statuses: {"prompt-catalog":["specified","planned","implemented"],"provider-wiring":["specified","planned","implemented"],"cache":["specified","planned","implemented"],"agora-attribution":["specified","planned","implemented"],"service-clarity":["specified","planned","implemented"]}
+satisfied-criteria: ["prompt-catalog","provider-wiring","cache","agora-attribution","service-clarity"]
+criterion-statuses: {"prompt-catalog":["specified","planned","implemented","verified","accepted"],"provider-wiring":["specified","planned","implemented","verified","accepted"],"cache":["specified","planned","implemented","verified","accepted"],"agora-attribution":["specified","planned","implemented","verified","accepted"],"service-clarity":["specified","planned","implemented","verified","accepted"]}
 required-artifacts: ["spec","implementation-plan","prompt-catalog","threat-model","test-report"]
 child-work-refs: []
 budget-limits: null
@@ -26,11 +26,11 @@ Queue 4. Depends on annotated-ir-contract. Create renovatio-llm with a provider-
 
 ## Acceptance criteria
 
-- [ ] **prompt-catalog:** Versioned YAML prompt entries declare promptId, appliesTo, system text, few-shot examples, output schema, validators, and deterministic fallback.; stages: specified, planned, implemented
-- [ ] **provider-wiring:** A provider-neutral interface has Claude wiring, environment-based credentials, timeout and retry policy, and an offline fake for tests.; stages: specified, planned, implemented
-- [ ] **cache:** Identical canonical IR input and prompt version resolve to a committed cache entry without a network call.; stages: specified, planned, implemented
-- [ ] **agora-attribution:** Every cache miss records input hash, output hash, model, promptId, and cache artifact through a governed Agora tool-run without secrets.; stages: specified, planned, implemented
-- [ ] **service-clarity:** The existing NQL parser service no longer claims to be an LLM integration.; stages: specified, planned, implemented
+- [x] **prompt-catalog:** Versioned YAML prompt entries declare promptId, appliesTo, system text, few-shot examples, output schema, validators, and deterministic fallback.; stages: specified, planned, implemented, verified, accepted
+- [x] **provider-wiring:** A provider-neutral interface has Claude wiring, environment-based credentials, timeout and retry policy, and an offline fake for tests.; stages: specified, planned, implemented, verified, accepted
+- [x] **cache:** Identical canonical IR input and prompt version resolve to a committed cache entry without a network call.; stages: specified, planned, implemented, verified, accepted
+- [x] **agora-attribution:** Every cache miss records input hash, output hash, model, promptId, and cache artifact through a governed Agora tool-run without secrets.; stages: specified, planned, implemented, verified, accepted
+- [x] **service-clarity:** The existing NQL parser service no longer claims to be an LLM integration.; stages: specified, planned, implemented, verified, accepted
 
 ## Required artifacts
 

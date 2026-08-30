@@ -21,7 +21,5 @@ Date: 2026-08-30
 Agora recorded the approval at `2026-08-30T19:35:13.391406Z` in
 `repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/approvals.md`.
 
-Commit C persists this record, its Agora evidence entry, and the owner approval. Commit D
-`d547e8face947e6b5dfa5d6409366c3f54ca5f74` contains only the generated verified manifest bound to
-the values above. This four-commit interpretation supersedes the report's earlier three-commit
-wording. No provider credentials or raw IR are included.
+Commit C must persist this record, its Agora evidence entry, the owner approval and a verified
+manifest bound to the values above. No provider credentials or raw IR are included.
