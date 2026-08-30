@@ -1,0 +1,39 @@
+# Work events
+
+- 2026-08-30T14:33:30.417017Z | work.created | state=drafting actor=project:owner
+- 2026-08-30T14:33:30.417470Z | work.decomposition-linked | parent=ai-modernization/three-pass-modernization actor=project:owner
+- 2026-08-30T14:48:59.063162Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T14:53:42.456532Z | artifact.added | kind=spec uri=repo://docs/specs/characterization-guardrails.md actor=project:owner
+- 2026-08-30T14:53:42.670646Z | work.criterion-stage-marked | criterion=golden-fixtures actor=project:owner stage=specified
+- 2026-08-30T14:53:42.883842Z | work.criterion-stage-marked | criterion=gate-order actor=project:owner stage=specified
+- 2026-08-30T14:53:43.102068Z | work.criterion-stage-marked | criterion=safe-fallback actor=project:owner stage=specified
+- 2026-08-30T14:53:43.308069Z | work.criterion-stage-marked | criterion=offline-ci actor=project:owner stage=specified
+- 2026-08-30T14:56:17.209247Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T14:57:06.170925Z | artifact.added | kind=spec uri=repo://docs/specs/characterization-guardrails.md actor=project:owner
+- 2026-08-30T14:57:45.176483Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T14:59:20.998389Z | artifact.added | kind=spec uri=repo://docs/specs/characterization-guardrails.md actor=project:owner
+- 2026-08-30T14:59:53.134731Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T15:04:54.941823Z | artifact.added | kind=spec uri=repo://docs/specs/characterization-guardrails.md actor=project:owner
+- 2026-08-30T15:05:16.455381Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-08-30T15:05:24.073722Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T15:06:11.872892Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/characterization-guardrails.md actor=project:agent
+- 2026-08-30T15:06:12.091045Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-30T15:06:30.649998Z | tool.prepared | run=tool-20260830t15061788113190z tool=repository operation=commit actor=project:agent
+- 2026-08-30T15:06:30.651345Z | tool.running | run=tool-20260830t15061788113190z actor=project:agent
+- 2026-08-30T15:06:30.674375Z | tool.completed | run=tool-20260830t15061788113190z exit-code=0
+- 2026-08-30T16:00:58.852228Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/characterization-guardrails.md actor=project:agent
+- 2026-08-30T16:00:59.070618Z | work.criterion-stage-marked | criterion=golden-fixtures actor=project:owner stage=planned
+- 2026-08-30T16:00:59.284696Z | work.criterion-stage-marked | criterion=gate-order actor=project:owner stage=planned
+- 2026-08-30T16:00:59.492169Z | work.criterion-stage-marked | criterion=safe-fallback actor=project:owner stage=planned
+- 2026-08-30T16:00:59.703899Z | work.criterion-stage-marked | criterion=offline-ci actor=project:owner stage=planned
+- 2026-08-30T16:01:00.132341Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-30T16:05:35.959557Z | artifact.added | kind=test-plan uri=repo://docs/test-plans/characterization-guardrails.md actor=project:agent
+- 2026-08-30T16:05:43.381253Z | evidence.added | id=evidence-000001 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-30T16:06:48.381329Z | tool.prepared | run=tool-20260830t16061788116808z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:06:48.383075Z | tool.running | run=tool-20260830t16061788116808z actor=project:agent
+- 2026-08-30T16:06:48.406189Z | tool.completed | run=tool-20260830t16061788116808z exit-code=0
+- 2026-08-30T16:07:33.851837Z | evidence.added | id=evidence-000002 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-30T16:07:46.705998Z | tool.prepared | run=tool-20260830t16071788116866z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:07:46.707439Z | tool.running | run=tool-20260830t16071788116866z actor=project:agent
+- 2026-08-30T16:07:46.730837Z | tool.completed | run=tool-20260830t16071788116866z exit-code=0
+- 2026-08-30T16:25:06.058112Z | evidence.added | id=evidence-000003 type=test-report result=success revision=1 actor=project:agent

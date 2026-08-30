@@ -1,0 +1,23 @@
+# Work events
+
+- 2026-08-30T14:32:58.943010Z | work.created | state=drafting actor=project:owner
+- 2026-08-30T14:33:30.417323Z | work.decomposed | child=ai-modernization/characterization-guardrails actor=project:owner
+- 2026-08-30T14:33:30.680778Z | work.decomposed | child=ai-modernization/deterministic-semantic-core actor=project:owner
+- 2026-08-30T14:33:30.944643Z | work.decomposed | child=ai-modernization/annotated-ir-contract actor=project:owner
+- 2026-08-30T14:33:31.208645Z | work.decomposed | child=ai-modernization/llm-runtime-catalog-cache actor=project:owner
+- 2026-08-30T14:33:31.471733Z | work.decomposed | child=ai-modernization/residual-semantic-enrichment actor=project:owner
+- 2026-08-30T14:33:31.739064Z | work.decomposed | child=ai-modernization/annotated-openrewrite-pass actor=project:owner
+- 2026-08-30T14:33:32.001924Z | work.decomposed | child=ai-modernization/idiomatic-polish-proposals actor=project:owner
+- 2026-08-30T14:34:20.998648Z | artifact.added | kind=architecture-decision-record uri=specs/ai-modernization/ADR-001-three-pass-llm-architecture.md actor=project:owner
+- 2026-08-30T14:34:38.116205Z | tool.prepared | run=tool-20260830t14341788111278z tool=repository operation=commit actor=project:agent
+- 2026-08-30T14:34:38.117338Z | tool.running | run=tool-20260830t14341788111278z actor=project:agent
+- 2026-08-30T14:34:38.139898Z | tool.completed | run=tool-20260830t14341788111278z exit-code=0
+- 2026-08-30T14:35:04.956150Z | tool.prepared | run=tool-20260830t14351788111304z tool=repository operation=commit actor=project:agent
+- 2026-08-30T14:35:04.957268Z | tool.running | run=tool-20260830t14351788111304z actor=project:agent
+- 2026-08-30T14:35:04.969932Z | tool.completed | run=tool-20260830t14351788111304z exit-code=0
+- 2026-08-30T14:38:16.345868Z | tool.prepared | run=tool-20260830t14381788111496z tool=repository operation=commit actor=project:agent
+- 2026-08-30T14:38:16.346942Z | tool.running | run=tool-20260830t14381788111496z actor=project:agent
+- 2026-08-30T14:38:16.359331Z | tool.completed | run=tool-20260830t14381788111496z exit-code=0
+- 2026-08-30T14:43:43.392554Z | tool.prepared | run=tool-20260830t14431788111823z tool=repository operation=commit actor=project:agent
+- 2026-08-30T14:43:43.393637Z | tool.running | run=tool-20260830t14431788111823z actor=project:agent
+- 2026-08-30T14:43:43.416168Z | tool.completed | run=tool-20260830t14431788111823z exit-code=0

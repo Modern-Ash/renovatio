@@ -39,3 +39,13 @@
 - 2026-08-30T14:22:58.297054Z | tool.completed | run=tool-20260830t14221788110578z exit-code=0
 - 2026-08-30T14:23:28.985918Z | artifact.added | kind=test-report uri=renovatio-cobol-ir/target/surefire-reports actor=project:agent
 - 2026-08-30T14:23:36.540629Z | evidence.added | id=evidence-000002 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-30T14:25:32.053593Z | tool.prepared | run=tool-20260830t14251788110732z tool=repository operation=commit actor=project:agent
+- 2026-08-30T14:25:32.054589Z | tool.running | run=tool-20260830t14251788110732z actor=project:agent
+- 2026-08-30T14:25:32.067028Z | tool.completed | run=tool-20260830t14251788110732z exit-code=0
+- 2026-08-30T14:29:27.047244Z | work.criterion-stage-marked | criterion=pictype-parse actor=project:owner stage=accepted
+- 2026-08-30T14:29:27.305770Z | work.criterion-stage-marked | criterion=decimal-semantics actor=project:owner stage=accepted
+- 2026-08-30T14:29:27.573962Z | work.criterion-stage-marked | criterion=move-semantics actor=project:owner stage=accepted
+- 2026-08-30T14:29:27.833538Z | work.criterion-stage-marked | criterion=typemapper-compat actor=project:owner stage=accepted
+- 2026-08-30T14:29:28.094494Z | work.criterion-stage-marked | criterion=tests-first actor=project:owner stage=accepted
+- 2026-08-30T14:29:34.452626Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-30T14:29:43.212016Z | work.transitioned | from=verifying to=completed actor=project:owner

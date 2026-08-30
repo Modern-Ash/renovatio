@@ -30,3 +30,9 @@
 - 2026-08-30T14:23:41.512089Z | work.criterion-stage-marked | criterion=ac-002 actor=project:agent stage=verified
 - 2026-08-30T14:23:41.800435Z | work.criterion-stage-marked | criterion=ac-003 actor=project:agent stage=verified
 - 2026-08-30T14:23:42.089060Z | work.criterion-stage-marked | criterion=ac-004 actor=project:agent stage=verified
+- 2026-08-30T14:29:28.353767Z | work.criterion-stage-marked | criterion=ac-001 actor=project:owner stage=accepted
+- 2026-08-30T14:29:28.612035Z | work.criterion-stage-marked | criterion=ac-002 actor=project:owner stage=accepted
+- 2026-08-30T14:29:28.877613Z | work.criterion-stage-marked | criterion=ac-003 actor=project:owner stage=accepted
+- 2026-08-30T14:29:29.131316Z | work.criterion-stage-marked | criterion=ac-004 actor=project:owner stage=accepted
+- 2026-08-30T14:29:34.708937Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-30T14:29:43.473011Z | work.transitioned | from=verifying to=completed actor=project:owner

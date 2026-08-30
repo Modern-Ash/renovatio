@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "delivery"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/delivery"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
