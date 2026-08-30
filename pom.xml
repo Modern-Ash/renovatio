@@ -44,6 +44,7 @@
         <module>renovatio-mcp-server</module>
         <module>renovatio-cobol-runtime</module>
         <module>renovatio-cobol-ir</module>
+        <module>renovatio-llm</module>
         <module>cobol-openrewrite-recipes</module>
     </modules>
 
@@ -73,6 +74,11 @@
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-cobol-ir</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-llm</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

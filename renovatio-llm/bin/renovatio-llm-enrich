@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+PROJECT_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
+M2_ROOT=${M2_REPO:-${HOME}/.m2/repository}
+CLASSPATH="$PROJECT_ROOT/renovatio-llm/target/classes:$PROJECT_ROOT/renovatio-cobol-ir/target/classes"
+CLASSPATH="$CLASSPATH:$M2_ROOT/com/fasterxml/jackson/core/jackson-annotations/2.15.4/jackson-annotations-2.15.4.jar"
+CLASSPATH="$CLASSPATH:$M2_ROOT/com/fasterxml/jackson/core/jackson-core/2.15.4/jackson-core-2.15.4.jar"
+CLASSPATH="$CLASSPATH:$M2_ROOT/com/fasterxml/jackson/core/jackson-databind/2.15.4/jackson-databind-2.15.4.jar"
+CLASSPATH="$CLASSPATH:$M2_ROOT/com/fasterxml/jackson/dataformat/jackson-dataformat-yaml/2.15.4/jackson-dataformat-yaml-2.15.4.jar"
+CLASSPATH="$CLASSPATH:$M2_ROOT/org/yaml/snakeyaml/2.0/snakeyaml-2.0.jar"
+
+if [ ! -f "$PROJECT_ROOT/renovatio-llm/target/classes/org/shark/renovatio/llm/cli/LlmEnrichmentCli.class" ]; then
+    echo "renovatio-llm-enrich: compile renovatio-llm before invocation" >&2
+    exit 1
+fi
+
+exec java -cp "$CLASSPATH" org.shark.renovatio.llm.cli.LlmEnrichmentCli "$@"

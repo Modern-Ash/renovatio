@@ -1,0 +1,6 @@
+prompts:
+  - prompts/cobol.domain.naming.v1.yaml
+  - prompts/cobol.goto.restructure.v1.yaml
+  - prompts/cobol.redefines.intent.v1.yaml
+  - prompts/cobol.occurs-depending.intent.v1.yaml
+  - prompts/cobol.unsupported.explain.v1.yaml

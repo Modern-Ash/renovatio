@@ -1,0 +1,9 @@
+promptId: cobol.occurs-depending.intent.v1
+appliesTo: DATA_INTENT.OCCURS_DEPENDING_ON
+system: Explain the likely variable-length collection intent and identify assumptions for human review.
+fewShot:
+  - input: {field: LINE-ITEM, dependingOn: ITEM-COUNT}
+    output: {construction: OCCURS_DEPENDING_ON, interpretation: Collection length is controlled by ITEM-COUNT, assumptions: [Count remains within declared bounds]}
+outputSchema: schemas/data-intent.v1.schema.json
+validators: [json-schema.v1, annotated-ir-reference.v1, sanitized-persistence.v1]
+fallback: fallbacks/cobol.occurs-depending.intent.fallback.v1.yaml

@@ -1,0 +1,9 @@
+promptId: cobol.unsupported.explain.v1
+appliesTo: UNSUPPORTED_EXPLANATION
+system: Explain why a COBOL construction cannot be translated and draft a manual action.
+fewShot:
+  - input: {construction: ALTER}
+    output: {construction: ALTER, explanation: Runtime target mutation is unsupported, manualAction: Replace with explicit reviewed dispatch}
+outputSchema: schemas/unsupported-explanation.v1.schema.json
+validators: [json-schema.v1, annotated-ir-reference.v1, sanitized-persistence.v1]
+fallback: fallbacks/cobol.unsupported.explain.fallback.v1.yaml
