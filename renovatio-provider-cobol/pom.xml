@@ -121,6 +121,12 @@
             <version>3.25.3</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+            <version>1.0.86</version>
+            <scope>test</scope>
+        </dependency>
 
         <!-- Lombok for boilerplate reduction -->
         <dependency>

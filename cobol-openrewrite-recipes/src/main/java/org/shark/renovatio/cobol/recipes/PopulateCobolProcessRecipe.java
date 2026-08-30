@@ -8,6 +8,7 @@ import org.openrewrite.internal.lang.NonNull;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
+import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.shark.renovatio.cobol.ir.model.*;
 
 import java.util.*;
@@ -15,6 +16,7 @@ import java.util.*;
 public class PopulateCobolProcessRecipe extends Recipe {
 
     public static final String CONTEXT_KEY = "renovatio.cobol.ir";
+    public static final String ANNOTATED_CONTEXT_KEY = AnnotatedCobolContext.CONTEXT_KEY;
 
     @Option(displayName = "Method name",
             description = "Name of the method to populate with COBOL logic.",
@@ -55,7 +57,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
     private class PopulateVisitor extends JavaIsoVisitor<ExecutionContext> {
         @Override
         public @NonNull J.MethodDeclaration visitMethodDeclaration(@NonNull J.MethodDeclaration method, @NonNull ExecutionContext ctx) {
-            CobolIntermediateModel model = ctx.getMessage(CONTEXT_KEY);
+            CobolIntermediateModel model = resolveModel(ctx);
             if (model == null) {
                 return method;
             }
@@ -103,6 +105,17 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
             String bodyTemplate = buildBody(rendered, dtoType, dtoVarName);
             return JavaTemplateSupport.replaceMethodBody(getCursor(), method, bodyTemplate);
+        }
+
+        private CobolIntermediateModel resolveModel(ExecutionContext ctx) {
+            CobolIntermediateModel legacy = ctx.getMessage(CONTEXT_KEY);
+            AnnotatedCobolContext annotated = ctx.getMessage(ANNOTATED_CONTEXT_KEY);
+            if (annotated == null) return legacy;
+            if (legacy != annotated.baseModel()) {
+                // Invalid or independently reconstructed wrappers are ignored; orchestration owns diagnostics.
+                return legacy;
+            }
+            return annotated.baseModel();
         }
 
         private CobolParagraph findParagraphForMethod(J.MethodDeclaration method, CobolIntermediateModel model) {
