@@ -88,14 +88,18 @@ produces schema-valid projections; arbitrary default Jackson serialization is no
 Normatively, `nodeIdentityProjection` is an RFC 8785 canonical object with required fields
 `baseIrVersion`, `nodeKind`, `path`, and `semanticContent`, plus `sourceSpan` only when present.
 `semanticContent` is the node serialized according to the base IR schema with annotations and
-derived identities excluded. Enums use their exact names, absent optional fields are omitted, and
-arrays preserve source order.
+derived identities excluded. It also excludes `sourceSpan`, which appears at most once as the
+optional top-level projection field. Enums use their exact names, absent optional fields are omitted,
+and arrays preserve source order.
 
 Identity-bearing nodes are data items, their level-88 conditions and values, paragraphs, recursively
 nested statements, and typed expressions/conditions. Document metadata, execution context,
 diagnostics, and derived control-flow views are not annotation targets. Arrays use source-order
 indices. Maps use RFC 6901-escaped semantic keys and are enumerated in lexicographic key order; the
 pointer addresses the key itself and therefore does not depend on map iteration order.
+
+For a map, the member value is the identity-bearing node and its pointer is the containing property
+plus the escaped member key, for example `/paragraphs/MAIN`. Map keys are not separate nodes.
 
 The closed `nodeKind` set is `DATA_ITEM`, `LEVEL_88_CONDITION`, `LEVEL_88_VALUE`, `PARAGRAPH`,
 `MOVE_STATEMENT`, `COMPUTE_STATEMENT`, `IF_STATEMENT`, `EVALUATE_STATEMENT`, `EVALUATE_BRANCH`,
@@ -188,7 +192,9 @@ that legacy value and adds `renovatio.cobol.annotated-ir` for a validated contex
 The provider performs loading and validation before recipe execution. Recipes only read the context
 value. The sidecar model and IR modules must not depend on provider SDKs, HTTP clients, credential
 resolution, prompt catalogs, or network APIs. Missing, stale, or invalid sidecars are not placed in
-the recipe context.
+the recipe context. The provider continues the deterministic legacy lane with only
+`renovatio.cobol.ir` and emits a stable validation diagnostic or manual action item at orchestration;
+recipes never receive an invalid annotated wrapper.
 
 ## 8. Failure behavior
 

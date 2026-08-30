@@ -3,11 +3,11 @@ schema: "agora/clarifications/v1"
 swarm: "ai-modernization"
 work: "annotated-ir-contract"
 created-at: "2026-08-30T17:01:12.304300Z"
-last-run-input-sha256: "696eb3d9df8c48f28faa853eef92925e50fefaffe3295a9d90b6e363c46aecbb"
+last-run-input-sha256: "087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845"
 last-run-question-count: 5
 last-run-unanswered-count: 0
 last-run-by: "project:owner"
-last-run-at: "2026-08-30T17:14:37.983409Z"
+last-run-at: "2026-08-30T17:15:52.985782Z"
 ---
 
 # Clarifications for annotated-ir-contract
@@ -44,3 +44,8 @@ last-run-at: "2026-08-30T17:14:37.983409Z"
 | What exact compatibility changes are permitted by “schema evolution is additive within a version,” given the fixed `cobol-annotated-ir.v1` identifier, strict `additionalProperties: false`, and rejection of unknown fields? | None to the published contract. `cobol-annotated-ir.v1` is immutable: adding/removing fields, enum values, annotation families, constraints, or identity inputs requires a new schema version. Only implementation bug fixes that preserve the accepted document set and identities remain within v1. | project:owner | 2026-08-30T17:14:37.983409Z | 696eb3d9df8c48f28faa853eef92925e50fefaffe3295a9d90b6e363c46aecbb |
 | Has `repo://docs/specs/annotated-ir-contract.md` been registered as the required `spec` artifact for the `spec-clarified` gate? | Yes. It is registered and the initial specification checkpoint is commit `f41de04`. | project:owner | 2026-08-30T17:14:37.983409Z | 696eb3d9df8c48f28faa853eef92925e50fefaffe3295a9d90b6e363c46aecbb |
 | Does the assigned Spec Owner (`project:owner`) confirm that all four acceptance criteria are satisfied by this specification and authorize the transition from `drafting` to `clarified`? | Yes. The Spec Owner confirms all four criteria at `specified` and authorizes the transition once this final clarification checkpoint is durable. | project:owner | 2026-08-30T17:14:37.983409Z | 696eb3d9df8c48f28faa853eef92925e50fefaffe3295a9d90b6e363c46aecbb |
+| Has the Spec Owner formally registered `repo://docs/specs/annotated-ir-contract.md` as the required `spec` artifact and confirmed that every clarification is resolved for the `spec-clarified` gate? | Yes. The spec is registered and durable in commit `f41de04`, with subsequent normative clarifications in `9d2ae27`; the owner confirms all questions resolved after this checkpoint. | project:owner | 2026-08-30T17:15:52.985782Z | 087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845 |
+| Must `sourceSpan` be excluded from `semanticContent` when it is already included as the optional top-level field of `nodeIdentityProjection`, preventing it from affecting the node hash twice? | Yes. The dedicated canonicalizer removes `sourceSpan` from `semanticContent`; it appears at most once as the optional top-level projection field. | project:owner | 2026-08-30T17:15:52.985782Z | 087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845 |
+| What exact canonical JSON Pointer is assigned to identity-bearing nodes stored in maps, given that RFC 6901 addresses member values rather than a map key as a separate node? | The map value is the node. Its pointer is the containing property plus the RFC 6901-escaped member key, for example `/paragraphs/MAIN`. Map keys are not separate identity-bearing nodes. | project:owner | 2026-08-30T17:15:52.985782Z | 087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845 |
+| When a sidecar is missing, stale, or invalid, must the provider fail before recipe invocation, or continue with only the legacy `renovatio.cobol.ir` context value? | Continue the deterministic legacy lane with only `renovatio.cobol.ir`; omit the annotated key and emit a stable validation diagnostic/manual action item at orchestration. Recipes never see an invalid wrapper. | project:owner | 2026-08-30T17:15:52.985782Z | 087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845 |
+| For the `content-identity` acceptance criterion, are the detailed normative projections in section 4 authoritative—so annotation and cache identities bind node ID, family, prompt ID/version, output schema version, and input hash, rather than only canonical node hashes and prompt versions? | Yes; section 4 explicitly defines those projections as normative and treats the acceptance-criterion wording as a summary. | project:owner | 2026-08-30T17:15:52.985782Z | 087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845 |
