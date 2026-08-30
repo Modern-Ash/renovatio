@@ -3,11 +3,11 @@ schema: "agora/clarifications/v1"
 swarm: "ai-modernization"
 work: "annotated-ir-contract"
 created-at: "2026-08-30T17:01:12.304300Z"
-last-run-input-sha256: "087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845"
+last-run-input-sha256: "5cfa08d983bb633bfa5be75732d61f3de7afc23da3a00753beffe15cec49df8b"
 last-run-question-count: 5
 last-run-unanswered-count: 0
 last-run-by: "project:owner"
-last-run-at: "2026-08-30T17:15:52.985782Z"
+last-run-at: "2026-08-30T17:17:24.711484Z"
 ---
 
 # Clarifications for annotated-ir-contract
@@ -49,3 +49,8 @@ last-run-at: "2026-08-30T17:15:52.985782Z"
 | What exact canonical JSON Pointer is assigned to identity-bearing nodes stored in maps, given that RFC 6901 addresses member values rather than a map key as a separate node? | The map value is the node. Its pointer is the containing property plus the RFC 6901-escaped member key, for example `/paragraphs/MAIN`. Map keys are not separate identity-bearing nodes. | project:owner | 2026-08-30T17:15:52.985782Z | 087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845 |
 | When a sidecar is missing, stale, or invalid, must the provider fail before recipe invocation, or continue with only the legacy `renovatio.cobol.ir` context value? | Continue the deterministic legacy lane with only `renovatio.cobol.ir`; omit the annotated key and emit a stable validation diagnostic/manual action item at orchestration. Recipes never see an invalid wrapper. | project:owner | 2026-08-30T17:15:52.985782Z | 087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845 |
 | For the `content-identity` acceptance criterion, are the detailed normative projections in section 4 authoritative—so annotation and cache identities bind node ID, family, prompt ID/version, output schema version, and input hash, rather than only canonical node hashes and prompt versions? | Yes; section 4 explicitly defines those projections as normative and treats the acceptance-criterion wording as a summary. | project:owner | 2026-08-30T17:15:52.985782Z | 087b502929246899050bd229e40e1f3b0a9f728284c6c6f5ba0733de9b1d8845 |
+| Is `repo://docs/specs/annotated-ir-contract.md` registered as the governed `spec` artifact, and has `project:owner` confirmed that all clarification-gate questions are resolved? | Yes. The artifact is registered and durable; the owner confirms all clarification decisions through this run. | project:owner | 2026-08-30T17:17:24.711484Z | 5cfa08d983bb633bfa5be75732d61f3de7afc23da3a00753beffe15cec49df8b |
+| Should the `content-identity` criterion follow §4.2’s proposal identity—where `annotationId` excludes payload and `outputHash` separately addresses validated output—despite the criterion’s broader phrase “content-addressed identities”? | Use the normative §4.2 definition: `annotationId` identifies the proposal inputs, while `outputHash` identifies the validated typed output. | project:owner | 2026-08-30T17:17:24.711484Z | 5cfa08d983bb633bfa5be75732d61f3de7afc23da3a00753beffe15cec49df8b |
+| May an in-memory `AnnotatedCobolModel` contain zero annotations, even though persisted enriched `*.annotated.json` sidecars must contain at least one? | Yes. Empty is valid in memory only; persisted sidecars require at least one annotation. | project:owner | 2026-08-30T17:17:24.711484Z | 5cfa08d983bb633bfa5be75732d61f3de7afc23da3a00753beffe15cec49df8b |
+| For `ACCEPTED` and `REJECTED` review states, must `assignedReviewer` be absent, or may it remain alongside the required `reviewedBy` and `reviewedAt` fields? | It must be absent in both final states; only `reviewedBy` and `reviewedAt` are present. | project:owner | 2026-08-30T17:17:24.711484Z | 5cfa08d983bb633bfa5be75732d61f3de7afc23da3a00753beffe15cec49df8b |
+| Which stable semantic-validation diagnostic codes and JSON Pointer conventions are acceptance-required for base-hash, unresolved-node, kind-mismatch, duplicate-identity, unsupported-version, and nondeterminism failures? | Required codes/pointers are `ANNOTATED_IR_BASE_HASH_MISMATCH` at `/baseIrHash`, `ANNOTATED_IR_NODE_UNRESOLVED` at `/annotations/{i}/nodeId` or `/annotations/{i}/payload/affectedNodeIds/{j}`, `ANNOTATED_IR_NODE_KIND_MISMATCH` at `/annotations/{i}/nodeKind`, `ANNOTATED_IR_DUPLICATE_IDENTITY` at the later `/annotations/{i}/annotationId`, `ANNOTATED_IR_UNSUPPORTED_VERSION` at `/schemaVersion`, and `ANNOTATED_IR_NONDETERMINISTIC_OUTPUT` at the conflicting `/annotations/{i}/provenance/outputHash`. | project:owner | 2026-08-30T17:17:24.711484Z | 5cfa08d983bb633bfa5be75732d61f3de7afc23da3a00753beffe15cec49df8b |

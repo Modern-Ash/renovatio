@@ -154,7 +154,8 @@ and node IDs, provenance, review metadata, timestamps, and cache disposition.
 `ACCEPTED` and `REJECTED` require nonblank `reviewedBy` and an RFC 3339 UTC `reviewedAt` timestamp.
 `PROPOSED` must not contain `assignedReviewer`, `reviewedBy`, or `reviewedAt`. `NEEDS_REVIEW` may
 contain an optional nonblank `assignedReviewer`, but `reviewedBy` and `reviewedAt` must be absent.
-Provider or agent execution alone cannot create an accepted state.
+Final states must not retain `assignedReviewer`. Provider or agent execution alone cannot create an
+accepted state.
 
 Version 1 validates these review-state snapshot invariants only. It does not encode or infer review
 history or authorize transitions between states.
@@ -174,6 +175,15 @@ The schema uses JSON Schema 2020-12 and must:
 JSON Schema validates document shape. A deterministic semantic validator additionally verifies
 hashes, unique IDs, base-document identity, node resolution, and node-kind agreement. Validation
 returns stable diagnostics ordered by JSON pointer and diagnostic code.
+
+| Required semantic code | JSON Pointer |
+| --- | --- |
+| `ANNOTATED_IR_BASE_HASH_MISMATCH` | `/baseIrHash` |
+| `ANNOTATED_IR_NODE_UNRESOLVED` | `/annotations/{i}/nodeId` or `/annotations/{i}/payload/affectedNodeIds/{j}` |
+| `ANNOTATED_IR_NODE_KIND_MISMATCH` | `/annotations/{i}/nodeKind` |
+| `ANNOTATED_IR_DUPLICATE_IDENTITY` | Later `/annotations/{i}/annotationId` occurrence |
+| `ANNOTATED_IR_UNSUPPORTED_VERSION` | `/schemaVersion` |
+| `ANNOTATED_IR_NONDETERMINISTIC_OUTPUT` | Conflicting `/annotations/{i}/provenance/outputHash` |
 
 The published `cobol-annotated-ir.v1` contract is immutable. Adding or removing fields, enum values,
 annotation families, constraints, identity inputs, or payload meaning requires a new schema version.
