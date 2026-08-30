@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /** Strict loader for the immutable v1 prompt catalog. */
 public final class PromptCatalogLoader {
@@ -23,7 +24,7 @@ public final class PromptCatalogLoader {
             "DATA_INTENT.OCCURS_DEPENDING_ON", "UNSUPPORTED_EXPLANATION");
     private static final Set<String> VALIDATORS = Set.of(
             "json-schema.v1", "annotated-ir-reference.v1", "public-signature-preservation.v1",
-            "deterministic-fallback.v1", "sanitized-persistence.v1");
+            "sanitized-persistence.v1");
 
     private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory())
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -41,7 +42,13 @@ public final class PromptCatalogLoader {
                     entries.add(yaml.readValue(promptInput, PromptDefinition.class));
                 }
             }
-            return validate(entries, resource -> classLoader.getResource(resource) != null);
+            PromptCatalog catalog = validate(entries, resource -> classLoader.getResource(resource) != null);
+            for (PromptDefinition entry : entries) {
+                try (InputStream fallback = required(classLoader, entry.fallback())) {
+                    validateFallback(entry, yaml.readTree(fallback));
+                }
+            }
+            return catalog;
         } catch (PromptCatalogException exception) {
             throw exception;
         } catch (IOException exception) {
@@ -80,6 +87,27 @@ public final class PromptCatalogLoader {
                     "PROMPT_FALLBACK_MISSING", "Fallback resource is missing");
         }
         return new PromptCatalog(entries);
+    }
+
+    private void validateFallback(PromptDefinition entry, JsonNode fallback) {
+        require(fallback.isObject() && fallback.size() == 4,
+                "PROMPT_FALLBACK_INVALID", "Fallback must use the strict v1 contract");
+        require("renovatio-llm-fallback.v1".equals(fallback.path("fallbackVersion").asText()),
+                "PROMPT_FALLBACK_VERSION_INVALID", "Fallback version is invalid");
+        require("MANUAL_ACTION".equals(fallback.path("type").asText()),
+                "PROMPT_FALLBACK_TYPE_INVALID", "Fallback type is invalid");
+        require(fallback.path("diagnosticCode").asText().matches("LLM_[A-Z0-9_]+"),
+                "PROMPT_FALLBACK_DIAGNOSTIC_INVALID", "Fallback diagnostic code is invalid");
+        require(!fallback.path("manualAction").asText().isBlank(),
+                "PROMPT_FALLBACK_ACTION_EMPTY", "Fallback manual action is required");
+    }
+
+    void validateFallbackResource(String content) {
+        try {
+            validateFallback(null, yaml.readTree(content));
+        } catch (IOException exception) {
+            throw error("PROMPT_FALLBACK_INVALID", "Fallback YAML is invalid");
+        }
     }
 
     private static InputStream required(ClassLoader loader, String resource) {

@@ -65,6 +65,9 @@ public final class GovernedEnrichmentService {
     private EnrichmentResult miss(PreparedEnrichment prepared, JsonNode deterministicResult, String cacheKey) {
         CacheIdentity identity = prepared.identity();
         String inputHash = hash(identity.canonicalInput());
+        // Provider construction is configuration preflight. It must happen after the cache lookup
+        // but before Agora attribution so invalid credentials/model cannot create a miss record.
+        LlmProvider resolvedProvider = Objects.requireNonNull(provider.get());
         String runReference;
         try {
             runReference = attribution.begin(new AttributionInput(identity.promptId(), identity.provider(),
@@ -79,7 +82,7 @@ public final class GovernedEnrichmentService {
         String failureCategory = null;
         JsonNode sanitized;
         try {
-            LlmResponse response = Objects.requireNonNull(provider.get()).complete(prepared.request());
+            LlmResponse response = resolvedProvider.complete(prepared.request());
             sanitized = outputValidator.validate(prepared, response.content());
             disposition = ResultDisposition.MODEL_SUCCESS;
         } catch (ProviderException exception) {

@@ -54,6 +54,28 @@ class GovernedEnrichmentServiceTest {
     }
 
     @Test
+    void providerConfigurationPreflightHappensBeforeAttributionInitialization() {
+        AtomicInteger attributionCalls = new AtomicInteger();
+        AttributionGateway gateway = new AttributionGateway() {
+            @Override public String begin(AttributionInput input) {
+                attributionCalls.incrementAndGet();
+                return "tool-test";
+            }
+            @Override public void complete(String runReference, AttributionResult result) { }
+        };
+        GovernedEnrichmentService service = new GovernedEnrichmentService(() -> {
+            throw new ProviderException(ProviderFailure.PROVIDER_CONFIGURATION_INVALID);
+        }, cache(), gateway, new PersistenceSanitizer(), runtime());
+
+        ProviderException exception = assertThrows(ProviderException.class,
+                () -> enrich(service, emptyIndex()));
+
+        assertEquals(ProviderFailure.PROVIDER_CONFIGURATION_INVALID, exception.failure());
+        assertEquals(0, attributionCalls.get());
+        assertFalse(Files.exists(cacheRoot()));
+    }
+
+    @Test
     void successfulMissIsAttributedAndWritesPendingCandidate() {
         CapturingGateway gateway = new CapturingGateway(false);
         EnrichmentResult result = enrich(service(request -> success(), gateway), emptyIndex());

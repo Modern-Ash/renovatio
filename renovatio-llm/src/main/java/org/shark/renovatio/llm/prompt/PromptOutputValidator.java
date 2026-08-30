@@ -26,7 +26,6 @@ public final class PromptOutputValidator {
                 case "annotated-ir-reference.v1" -> semanticValidator.validate(prepared, output);
                 case "public-signature-preservation.v1" -> rejectSignatureMutation(output);
                 case "sanitized-persistence.v1" -> sanitizer.sanitize(output);
-                case "deterministic-fallback.v1" -> { /* Applied only by CatalogFallbackFactory. */ }
                 default -> throw new OutputValidationException(ProviderFailure.VALIDATOR_REJECTED);
             }
         }

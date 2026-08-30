@@ -1,2 +1,4 @@
+fallbackVersion: renovatio-llm-fallback.v1
+type: MANUAL_ACTION
 diagnosticCode: LLM_MANUAL_CONTROL_FLOW_REVIEW_REQUIRED
 manualAction: Retain deterministic transliteration and characterize every control-flow path before restructuring.

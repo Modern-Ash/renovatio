@@ -36,3 +36,11 @@ artifact-kinds: ["spec","implementation-plan","threat-model","prompt-catalog","t
 | spec | repo://docs/specs/llm-runtime-catalog-cache.md | dc62a3dbd60f56e97e8b263cc6398b4237ccc17f40aff38eb69f69e67560aaa0 | project:owner | 2026-08-30T19:59:28.753489Z |
 | test-report | repo://docs/reports/llm-attribution-reconciliation-20260830.md | f206fa7392d8ad4de27554b207f8eb1a4728083c674fe23f2dfda34db7a79624 | project:agent | 2026-08-30T19:59:32.196089Z |
 | test-report | repo://docs/reports/llm-runtime-full-verification-20260830.md | 237f5c764441761547180612483a73ee09c553ade237fb2d3e54971dd3990aef | project:agent | 2026-08-30T20:01:35.272377Z |
+| consistency-report | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t20061788131213z.md | none | project:agent | 2026-08-30T20:06:54.000119Z |
+| spec | repo://docs/specs/llm-runtime-catalog-cache.md | 3ceb2272e2ef6aa45baf02833e0400776a77b81a0257111c3d62f4627f0fe34a | project:owner | 2026-08-30T20:09:26.001934Z |
+| implementation-plan | repo://docs/plans/llm-runtime-catalog-cache-plan.md | 220b985c2840d66509d624e6d9348ce7427bfea4ea8f275ed2ee548695f94195 | project:agent | 2026-08-30T20:09:29.116178Z |
+| threat-model | repo://docs/security/llm-runtime-threat-model.md | 2d6d4adf881f4acc04ba41f0065ae93bd615a5c3fe4fee8994ec26b5e24aaf45 | project:agent | 2026-08-30T20:09:32.015548Z |
+| test-report | repo://docs/reports/llm-consistency-rework-verification-20260830.md | 58a47bee338b043a194ede57fd3617e738d2f7b558cf776748bd30075b20f7d0 | project:agent | 2026-08-30T20:09:36.902435Z |
+| test-report | repo://docs/reports/llm-cache-hit-evidence-correction-20260830.md | 90b4e6ce2b48645cb951f84ac2529394dc930a6d02f2375e5ab0304ea91cc060 | project:agent | 2026-08-30T20:09:41.301551Z |
+| spec | repo://docs/specs/llm-runtime-catalog-cache.md | 13096005cf34e691f8b2efb2ec9beb0d2e0b75e55974d8182d355c68dbcb6072 | project:owner | 2026-08-30T20:10:09.802510Z |
+| test-report | repo://docs/reports/llm-cache-hit-evidence-correction-v2-20260830.md | 766118790578a7ed2b5cb9b7f70539ec688e1c4b29baecc1461f44f1663907ef | project:agent | 2026-08-30T20:10:12.793254Z |

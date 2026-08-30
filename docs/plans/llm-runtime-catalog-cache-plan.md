@@ -38,9 +38,9 @@
      operation wraps the full cache-miss lifecycle.
    - Record only reviewed identifiers, hashes, dispositions, sanitized diagnostics, and artifact
      URIs.
-   - Implement promotion checks for envelope Commit A, index Commit B, and approval/evidence Commit
-     C; reconcile the candidate against the durable completed Agora run/result and ensure runtime
-     consumes only the build-verified manifest.
+   - Implement promotion checks for envelope Commit A, index Commit B, approval/evidence Commit C,
+     and generated-manifest Commit D; reconcile the candidate against the durable completed Agora
+     run/result and ensure runtime consumes only the build-verified manifest.
    - Test attribution initialization failures, observable in-process finalization failures,
      retrospective persistence absence/mismatch, and secret exclusion.
 

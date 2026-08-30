@@ -49,9 +49,10 @@ published; semantic changes require a new prompt version.
 
 The initial closed selector vocabulary is `DOMAIN_NAMING`, `CONTROL_FLOW_PLAN`,
 `DATA_INTENT.REDEFINES`, `DATA_INTENT.OCCURS_DEPENDING_ON`, and
-`UNSUPPORTED_EXPLANATION`. The initial closed validator vocabulary is `json-schema.v1`,
-`annotated-ir-reference.v1`, `public-signature-preservation.v1`,
-`deterministic-fallback.v1`, and `sanitized-persistence.v1`. Adding or changing selector or
+`UNSUPPORTED_EXPLANATION`. The initial closed model-output validator vocabulary is `json-schema.v1`,
+`annotated-ir-reference.v1`, `public-signature-preservation.v1`, and
+`sanitized-persistence.v1`. Deterministic fallback rendering is a separate failure-path contract,
+not a no-op model-output validator. Adding or changing selector or
 validator semantics requires a versioned contract change.
 
 The v1 catalog contains exactly these initial selector mappings:
@@ -64,8 +65,11 @@ The v1 catalog contains exactly these initial selector mappings:
 | `cobol.occurs-depending.intent.v1` | `DATA_INTENT.OCCURS_DEPENDING_ON` | `data-intent.v1.schema.json` | `cobol.occurs-depending.intent.fallback.v1` |
 | `cobol.unsupported.explain.v1` | `UNSUPPORTED_EXPLANATION` | `unsupported-explanation.v1.schema.json` | `cobol.unsupported.explain.fallback.v1` |
 
-Each fallback template is a versioned catalog resource that produces the deterministic fallback
-shape defined in section 6 and cannot emit a model-authored proposal.
+Each fallback template is a strict versioned catalog resource with exactly
+`fallbackVersion: renovatio-llm-fallback.v1`, `type: MANUAL_ACTION`, a stable `diagnosticCode`, and
+a nonblank `manualAction`. Unknown fields, versions, types, empty actions, and malformed diagnostic
+codes fail catalog startup. The template produces the deterministic fallback shape defined in
+section 6 and cannot emit a model-authored proposal.
 
 Runtime requests use temperature zero. This reduces variability but is not treated as a guarantee
 of determinism; validated outputs and cache identities provide the reproducible boundary.
@@ -215,8 +219,11 @@ message, and a configured maximum character count. If sanitization cannot be pro
 persists only non-sensitive fallback metadata and hashes; sensitive content is neither cached nor
 placed in Agora records.
 
-Cache hits do not call the provider. They remain auditable from the committed envelope and may emit
-a local `HIT` event, but they do not masquerade as cache-miss tool-runs.
+Cache hits do not call the provider or initialize/finalize runtime miss attribution. When an operator
+invokes the shared `llm-enrichment/enrich` executable to verify a hit, Agora may retain that outer
+dispatch record; an empty result proves that the runtime returned before `AttributionGateway.begin`.
+Such an outer record is verification history, not successfully finalized cache-miss attribution and
+cannot satisfy `agora-attribution`; only a nonempty result that passes durable reconciliation counts.
 
 If the in-process attribution sink fails while the runtime can still act on the candidate, the
 runtime moves the sanitized candidate out of the cache lookup tree into a local quarantine and marks
@@ -240,7 +247,7 @@ failure yields only quarantined `INVALID_ATTRIBUTION` diagnostic evidence; retro
 failure leaves only an ineligible pending candidate. None counts as successful attribution.
 
 Cache promotion is executed by `project:agent` through the governed repository tool and accepted by
-`project:owner`. Promotion uses three governed commits and keeps approval references out of the
+`project:owner`. Promotion uses four governed commits and keeps approval references out of the
 technical index, eliminating self-reference:
 
 1. Commit A validates the candidate, changes it to `COMMITTED`, recalculates its envelope hash, and
@@ -250,12 +257,14 @@ technical index, eliminating self-reference:
 3. After Commit B exists, `project:owner` approves promotion and Agora registers `cache-promotion`
    evidence binding both commit SHAs, envelope hash, path, and index hash. `project:agent` then uses
    the governed repository tool to create Commit C, which persists only that approval and evidence.
+4. The build verifies A/B/C and generates the digest-bound promotion manifest. Commit D persists
+   only that generated manifest. Runtime lookup eligibility begins at Commit D or a descendant.
 
-During a build on Commit C or a descendant, the evidence and approval must match registered
+During the Commit-D build, the evidence and approval must match registered
 `.agora/` records and the referenced Git objects; otherwise the build fails. The build emits a
 digest-bound verified promotion manifest alongside the index. Runtime lookup does not re-query
 Agora: it validates the envelope, index entry, and packaged verified manifest as one set. Lookup
-eligibility begins only after Commit C and successful manifest generation.
+eligibility begins only after Commit D contains the successfully generated manifest.
 
 ## 8. Service naming and module boundaries
 
@@ -301,8 +310,8 @@ implementation.
   with `git ls-tree HEAD`.
 - The build rejects promotion references or digests that do not match owner approval and Agora
   evidence; runtime accepts only the resulting digest-bound verified manifest.
-- Promotion becomes lookup-eligible only after envelope Commit A, technical-index Commit B, and
-  approval/evidence Commit C are present and mutually verified.
+- Promotion becomes lookup-eligible only after envelope Commit A, technical-index Commit B,
+  approval/evidence Commit C, and generated-manifest Commit D are present and mutually verified.
 - An in-process attribution-finalization failure quarantines the candidate as
   `INVALID_ATTRIBUTION`; a retrospective Agora persistence failure leaves it `PENDING_PROMOTION`
   and ineligible until durable reconciliation succeeds.

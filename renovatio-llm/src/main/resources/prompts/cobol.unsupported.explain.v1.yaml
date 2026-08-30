@@ -5,5 +5,5 @@ fewShot:
   - input: {construction: ALTER}
     output: {construction: ALTER, explanation: Runtime target mutation is unsupported, manualAction: Replace with explicit reviewed dispatch}
 outputSchema: schemas/unsupported-explanation.v1.schema.json
-validators: [json-schema.v1, annotated-ir-reference.v1, deterministic-fallback.v1, sanitized-persistence.v1]
+validators: [json-schema.v1, annotated-ir-reference.v1, sanitized-persistence.v1]
 fallback: fallbacks/cobol.unsupported.explain.fallback.v1.yaml

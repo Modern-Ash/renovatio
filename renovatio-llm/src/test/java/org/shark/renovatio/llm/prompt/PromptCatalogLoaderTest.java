@@ -46,6 +46,23 @@ class PromptCatalogLoaderTest {
         assertCode("PROMPT_FALLBACK_MISSING", validEntry().replace("fallback.yaml", "missing.yaml"));
     }
 
+    @Test
+    void rejectsMalformedUnversionedAndEmptyFallbackContracts() {
+        assertFallbackCode("PROMPT_FALLBACK_VERSION_INVALID", validFallback()
+                .replace("renovatio-llm-fallback.v1", "legacy"));
+        assertFallbackCode("PROMPT_FALLBACK_TYPE_INVALID", validFallback()
+                .replace("MANUAL_ACTION", "MODEL_OUTPUT"));
+        assertFallbackCode("PROMPT_FALLBACK_ACTION_EMPTY", validFallback()
+                .replace("Review manually.", "''"));
+        assertFallbackCode("PROMPT_FALLBACK_INVALID", validFallback() + "unknown: true\n");
+    }
+
+    private void assertFallbackCode(String code, String yaml) {
+        PromptCatalogException exception = assertThrows(PromptCatalogException.class,
+                () -> loader.validateFallbackResource(yaml));
+        assertEquals(code, exception.code());
+    }
+
     private void assertCode(String code, String yaml) {
         PromptCatalogException exception = assertThrows(PromptCatalogException.class,
                 () -> loader.loadEntry(yaml, resource -> resource.equals("schema.json")
@@ -64,6 +81,15 @@ class PromptCatalogLoaderTest {
                 outputSchema: schema.json
                 validators: [json-schema.v1]
                 fallback: fallback.yaml
+                """;
+    }
+
+    private static String validFallback() {
+        return """
+                fallbackVersion: renovatio-llm-fallback.v1
+                type: MANUAL_ACTION
+                diagnosticCode: LLM_MANUAL_REVIEW_REQUIRED
+                manualAction: Review manually.
                 """;
     }
 }
