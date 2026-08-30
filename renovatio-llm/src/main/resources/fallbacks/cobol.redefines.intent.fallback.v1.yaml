@@ -1,0 +1,2 @@
+diagnosticCode: LLM_MANUAL_REDEFINES_REVIEW_REQUIRED
+manualAction: Preserve the storage overlay and require human confirmation of the intended view.

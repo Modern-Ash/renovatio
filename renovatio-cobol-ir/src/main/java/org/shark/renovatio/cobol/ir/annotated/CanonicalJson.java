@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.Map;
 
 /** Minimal RFC 8785 writer for the closed annotated-IR identity projections. */
-final class CanonicalJson {
+public final class CanonicalJson {
 
     private CanonicalJson() {
     }
 
-    static String write(Object value) {
+    public static String write(Object value) {
         StringBuilder result = new StringBuilder();
         append(result, value);
         return result.toString();

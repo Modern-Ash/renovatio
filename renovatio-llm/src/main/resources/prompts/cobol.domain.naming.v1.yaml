@@ -1,0 +1,9 @@
+promptId: cobol.domain.naming.v1
+appliesTo: DOMAIN_NAMING
+system: Suggest a concise Java domain name without changing COBOL semantics.
+fewShot:
+  - input: {nodeName: 1000-CALC-INTEREST}
+    output: {suggestedName: calculateInterest, rationale: Describes the paragraph action.}
+outputSchema: schemas/domain-naming.v1.schema.json
+validators: [json-schema.v1, annotated-ir-reference.v1, sanitized-persistence.v1]
+fallback: fallbacks/cobol.domain.naming.fallback.v1.yaml

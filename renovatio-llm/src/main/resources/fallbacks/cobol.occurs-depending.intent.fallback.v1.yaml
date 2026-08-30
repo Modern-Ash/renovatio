@@ -1,0 +1,2 @@
+diagnosticCode: LLM_MANUAL_OCCURS_REVIEW_REQUIRED
+manualAction: Preserve declared bounds and require human confirmation of count semantics.
