@@ -48,6 +48,11 @@ Renovatio is a multi-language refactoring and migration platform, fully compatib
 - Prefer configuration via `application.yml`.
 - Document any new tool, endpoint, or module in the README and relevant documentation.
 
+## Lombok usage
+- Lombok is **mandatory** for all Java model, entity, and DTO classes. Always use Lombok annotations (e.g., `@Data`, `@Getter`, `@Setter`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@Builder`) to reduce boilerplate. Remove manual getters/setters, constructors, and `equals/hashCode/toString` if Lombok can generate them.
+- Ensure Lombok is present as a dependency in all Maven modules (`pom.xml`).
+- If you add a new Java class that could use Lombok, annotate it accordingly and do not write boilerplate code manually.
+
 ## Business Context
 
 - Renovatio provides unified APIs for refactoring, migration, and code generation to modernize legacy applications.
@@ -68,3 +73,25 @@ Renovatio is a multi-language refactoring and migration platform, fully compatib
 ---
 
 For more details on agent interoperability and best practices, see [agents.md](https://agents.md/).
+
+
+# Feature notes: 1-cobol-python-migration
+
+This repository contains a feature under `specs/1-cobol-python-migration` that implements a proof-of-concept pipeline to migrate COBOL programs to Python.
+
+Key artifacts for agents and copilot:
+- Spec: `specs/1-cobol-python-migration/spec.md`
+- Research: `specs/1-cobol-python-migration/research.md`
+- Data model: `specs/1-cobol-python-migration/data-model.md`
+- Templates & generator: `specs/1-cobol-python-migration/templates/` and `tools/generate.py`
+- Tests and examples: `specs/1-cobol-python-migration/examples/`, `tests/`
+- Tasks & plan: `specs/1-cobol-python-migration/tasks.md`, `specs/1-cobol-python-migration/plan.md`
+
+Agents should preserve manual notes and not overwrite these files unless explicitly instructed in a PR. When updating agent-context for this feature, prefer adding details to `specs/1-cobol-python-migration/agent-context-copilot.md`.
+
+## Active Technologies
+- Java 17+, Spring Boot 3.x + Spring Data JPA, Spring Web, Spring Test, JUnit 5, Mockito, RestAssured, OpenRewrite API, ProLeap/Koopa COBOL parser (001-cobol-python-migration)
+- PostgreSQL/DB2 via JPA/Hibernate (migrations with Flyway) (001-cobol-python-migration)
+
+## Recent Changes
+- 001-cobol-python-migration: Added Java 17+, Spring Boot 3.x + Spring Data JPA, Spring Web, Spring Test, JUnit 5, Mockito, RestAssured, OpenRewrite API, ProLeap/Koopa COBOL parser

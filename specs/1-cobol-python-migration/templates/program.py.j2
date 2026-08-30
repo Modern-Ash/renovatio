@@ -1,0 +1,33 @@
+# Generated from COBOL program: {{ program.name }}
+from decimal import Decimal
+import re
+
+
+def _coerce_value(value, picture):
+    """Preserve the decimal scale declared by a COBOL PIC clause."""
+    if value is None:
+        return None
+    scale_match = re.search(r"V(?:9\((\d+)\)|(\d+))", picture or "", re.IGNORECASE)
+    if not scale_match:
+        return value
+    scale = int(scale_match.group(1)) if scale_match.group(1) else len(scale_match.group(2))
+    quantum = Decimal(1).scaleb(-scale)
+    return Decimal(str(value)).quantize(quantum)
+
+
+def run_{{ program.name }}(input_record):
+    """Simple generated function for program {{ program.name }}
+    Expects input_record as a dict with keys matching field names.
+    """
+    # Example mapping from COBOL fields to Python variables
+    result = {}
+{% for field in program.records | default([]) %}
+    # field: {{ field.name }} (picture: {{ field.picture | default('') }})
+    result['{{ field.name }}'] = _coerce_value(input_record.get('{{ field.name }}'), '{{ field.picture | default('') }}')
+{% endfor %}
+    return result
+
+
+if __name__ == '__main__':
+    sample = { {% for field in program.records | default([]) %}'{{ field.name }}': None{% if not loop.last %}, {% endif %}{% endfor %} }
+    print(run_{{ program.name }}(sample))

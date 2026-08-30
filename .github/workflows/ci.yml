@@ -1,0 +1,53 @@
+name: Python COBOL→Python CI
+
+on:
+  push:
+    branches: [ '**' ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install system deps
+        run: |
+          python -m pip install --upgrade pip
+
+      - name: Install Python deps
+        run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install -r specs/1-cobol-python-migration/requirements.txt
+
+      - name: Run generator on examples
+        run: |
+          source .venv/bin/activate
+          python3 specs/1-cobol-python-migration/tools/generate.py --ir specs/1-cobol-python-migration/examples/p1/ir_prog1.json --templates specs/1-cobol-python-migration/templates --out specs/1-cobol-python-migration/generated
+
+      - name: Run pytest
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=specs/1-cobol-python-migration pytest -q
+
+      - name: Security scan (pip-audit)
+        run: |
+          source .venv/bin/activate
+          pip install pip-audit
+          pip-audit --progress-spinner never || true
+
+      - name: Upload generated artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-artifacts
+          path: specs/1-cobol-python-migration/generated
+

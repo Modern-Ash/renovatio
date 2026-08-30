@@ -1,0 +1,6 @@
+{
+  "programs": [
+    {"name": "prog2", "records": [ {"name":"FIELD1","picture":"X(5)"}, {"name":"FIELD2","picture":"9(5)"}, {"name":"FIELD1B","picture":"X(3)","redefines":"RECORD-A"} ] }
+  ]
+}
+

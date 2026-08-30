@@ -1,0 +1,6 @@
+{
+  "programs": [
+    {"name": "prog1", "records": [ {"name":"FIELD1","picture":"X(10)"}, {"name":"AMOUNT","picture":"9(7)V99"} ] }
+  ]
+}
+
