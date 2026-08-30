@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "deterministic-semantic-core"
 swarm: "ai-modernization"
 title: "Deterministic COBOL semantic core"
-state: "planned"
+state: "implementing"
 revision: 1
 operational-status: "active"
 status-reason: null
