@@ -44,3 +44,7 @@
 - 2026-08-30T17:21:38.172512Z | tool.prepared | run=tool-20260830t17211788121298z tool=repository operation=commit actor=project:agent
 - 2026-08-30T17:21:38.174197Z | tool.running | run=tool-20260830t17211788121298z actor=project:agent
 - 2026-08-30T17:21:38.197814Z | tool.completed | run=tool-20260830t17211788121298z exit-code=0
+- 2026-08-30T17:22:32.283061Z | tool.prepared | run=tool-20260830t17221788121352z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:22:32.284701Z | tool.running | run=tool-20260830t17221788121352z actor=project:agent
+- 2026-08-30T17:22:32.297511Z | tool.completed | run=tool-20260830t17221788121352z exit-code=0
+- 2026-08-30T17:27:32.922118Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-ir-contract.md actor=project:owner
