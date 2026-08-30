@@ -27,3 +27,13 @@
 - 2026-08-30T17:17:18.366552Z | tool.running | run=tool-20260830t17171788121038z actor=project:agent
 - 2026-08-30T17:17:18.390032Z | tool.completed | run=tool-20260830t17171788121038z exit-code=0
 - 2026-08-30T17:18:02.815744Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:19:13.709285Z | tool.prepared | run=tool-20260830t17191788121153z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:19:13.711051Z | tool.running | run=tool-20260830t17191788121153z actor=project:agent
+- 2026-08-30T17:19:13.723796Z | tool.completed | run=tool-20260830t17191788121153z exit-code=0
+- 2026-08-30T17:19:25.080060Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T17:19:50.718870Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/annotated-ir-contract.md actor=project:agent
+- 2026-08-30T17:19:50.939594Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=planned
+- 2026-08-30T17:19:51.170405Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=planned
+- 2026-08-30T17:19:51.382059Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=planned
+- 2026-08-30T17:19:51.608948Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=planned
+- 2026-08-30T17:19:55.651877Z | work.transitioned | from=clarified to=planned actor=project:agent
