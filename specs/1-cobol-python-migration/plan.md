@@ -175,6 +175,35 @@ Decision log
 - Se eligió Jinja2 para generate (fäcil pruebas con pytest).  
 - COMP-3 → Decimal como estrategia inicial; se requiere test coverage.  
 
+Addendum — Clarified decisions (2026-08-30, Agora `delivery/cobol-python-migration`)
+---------------------------------------------------------------------------------
+Resolución de NC1..NC3 y alineación con la estrategia acordada de migración:
+
+- **NC1 (fidelidad 1:1 vs idiomático):** dos fases. Fase 1 = transliteración fiel y
+  estructurada a través del IR neutro (`renovatio-cobol-ir`) apoyada en un runtime que
+  encapsula la semántica COBOL (para Java: `renovatio-cobol-runtime`, ya creado —
+  `PicType`/`PicClause`/`CobolDecimal`/`CobolMove`/`EbcdicCollator`; para
+  Python: paquete espejo `renovatio_python.cobol_runtime`, creado en
+  `renovatio-provider-python`). Fase 2 = refactor incremental
+  verificado hacia código idiomático. El objetivo final es Python legible y mantenible
+  (ya asumido en spec.md §Assumptions), no transpilación byte-for-byte.
+- **NC2 (validación):** golden fixtures / characterization testing. No se requiere
+  ejecutar COBOL legacy; se capturan pares entrada/salida (ver `examples/p1/golden/`)
+  y se comparan contra el módulo Python generado.
+- **NC3 (performance):** se acepta re-arquitectura en Python; sin requisito de paridad
+  de throughput en el MVP. Medición queda como _non-functional TBD_.
+- **Integraciones externas / JCL:** stub + action item manual en MVP (spec.md §Edge Cases,
+  research.md D1/D6).
+
+Alcance de criterios de aceptación (Agora):
+- ac-001 → US1: programa COBOL secuencial simple → módulo Python con salidas equivalentes.
+- ac-002 → copybooks locales + COMP-3 (`decimal.Decimal`) con limitaciones documentadas.
+- ac-003 → tests ejecutables + informe de transformación legible por artefacto.
+- ac-004 → invocación reproducible vía MCP tool / CLI, artefactos versionados y trazables.
+
+Dependencia: `cobol_runtime` (Python) reutiliza las reglas ya probadas en
+`renovatio-cobol-runtime` (misma tabla de tipos, mismo comportamiento de MOVE/decimal).
+
 Final notes
 -----------
 He generado este plan localmente dado que `setup-plan.sh` requirió una rama con prefijo numérico; el plan cubre Phases 0–2 y proporciona la lista priorizada de tareas (tasks.md).  

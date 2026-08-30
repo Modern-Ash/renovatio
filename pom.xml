@@ -42,6 +42,7 @@
         <module>renovatio-provider-java</module>
         <module>renovatio-provider-cobol</module>
         <module>renovatio-mcp-server</module>
+        <module>renovatio-cobol-runtime</module>
         <module>renovatio-cobol-ir</module>
         <module>cobol-openrewrite-recipes</module>
     </modules>
