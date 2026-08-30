@@ -9,6 +9,8 @@ import org.shark.renovatio.llm.cache.CommittedCacheArtifacts;
 import org.shark.renovatio.llm.cache.CommittedCacheArtifactsLoader;
 import org.shark.renovatio.llm.cache.ContentAddressedCache;
 import org.shark.renovatio.llm.cache.GitHeadRepositoryTree;
+import org.shark.renovatio.llm.cache.GitPromotionRepository;
+import org.shark.renovatio.llm.cache.GovernedPromotionVerifier;
 import org.shark.renovatio.llm.enrichment.AgoraToolRunAttributionGateway;
 import org.shark.renovatio.llm.enrichment.GovernedEnrichmentService;
 import org.shark.renovatio.llm.enrichment.PersistenceSanitizer;
@@ -62,7 +64,6 @@ public final class LlmEnrichmentCli {
         ContentAddressedCache cache = new ContentAddressedCache(
                 project.resolve("renovatio-llm/src/main/resources/llm-cache"),
                 project.resolve("renovatio-llm/target/llm-cache-quarantine"));
-        LlmProvider provider = provider(options, request, environment, properties);
         AgoraToolRunAttributionGateway gateway = new AgoraToolRunAttributionGateway(environment, result -> {
             try {
                 output.println(JSON.writeValueAsString(result));
@@ -72,7 +73,9 @@ public final class LlmEnrichmentCli {
         });
         CommittedCacheArtifacts authority = new CommittedCacheArtifactsLoader()
                 .load(new GitHeadRepositoryTree(project));
-        new GovernedEnrichmentService(provider, cache, gateway, new PersistenceSanitizer(), runtime)
+        new GovernedPromotionVerifier().verify(new GitPromotionRepository(project), authority);
+        new GovernedEnrichmentService(() -> provider(options, request, environment, properties),
+                cache, gateway, new PersistenceSanitizer(), runtime)
                 .enrich(options.get("prompt-id"), request.canonicalInput(), options.get("provider"),
                         options.get("model"), request.deterministicResult(), authority.index(),
                         authority.manifest());

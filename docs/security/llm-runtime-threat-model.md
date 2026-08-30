@@ -18,7 +18,7 @@ manifest.
 | Prompt injection through IR | Fixed versioned system prompts; typed selectors; strict output schema; deterministic validators | Discard output and produce deterministic fallback |
 | Sensitive source persistence | Versioned field allowlist, deterministic redaction, bounded diagnostic codes/messages | Persist only hashes and non-sensitive fallback metadata |
 | Cache poisoning | Complete canonical identity, envelope hash, committed index, Git-tree verification, owner-approved promotion manifest | Reject entry without provider fallback masquerading as a hit |
-| Unattributed provider call | Initialize `llm-enrichment/enrich` before network; one operation wraps completion | No call when initialization fails; quarantine on finalization failure |
+| Unattributed provider call | Initialize `llm-enrichment/enrich` before network; one operation wraps completion; reconcile durable run/result identity before promotion | No call when initialization fails; quarantine on observable in-process finalization failure; keep retrospective persistence failures pending and ineligible until reconciliation |
 | Model nondeterminism | Temperature zero, content-addressed cache, schema/semantic validators | Conflict or invalid output becomes deterministic fallback |
 | Retry amplification | Three total attempts; narrow retry classes; capped full jitter | Non-retryable errors fail immediately |
 | Malicious/oversized output | HTTP/body limits, strict JSON decoding/schema, bounded diagnostics | Reject without logging raw response |
@@ -42,4 +42,6 @@ field not explicitly declared by the versioned cache-envelope schema.
 - Unknown persistence fields and unredactable content fail closed.
 - Working-tree-only, digest-mismatched, unapproved, or quarantined entries never produce hits.
 - Provider calls are zero when attribution initialization or configuration preflight fails.
+- A pending candidate cannot be promoted unless its durable Agora run/result is completed and all
+  attribution identity fields match; failed reconciliation quarantines it before promotion.
 - Runtime does not require credentials to exercise the offline fake or committed cache-hit path.

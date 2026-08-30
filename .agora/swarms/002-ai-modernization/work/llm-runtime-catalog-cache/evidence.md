@@ -1,6 +1,6 @@
 ---
 schema: "agora/evidence/v2"
-results: ["success","failure","success","success","success","success","success","success","failure","success","success","success","success"]
+results: ["success","failure","success","success","success","success","success","success","failure","success","success","success","success","failure","success","success","success"]
 ---
 
 # Evidence
@@ -20,3 +20,7 @@ results: ["success","failure","success","success","success","success","success",
 | cache-promotion | success | repo://docs/reports/llm-cache-promotion-f13b4bf9-20260830.md | ee68d1a1ab23e698a7aec92e8f95e776f2df3a75656053679ef61a1b16ad88c2 | project:owner | 2026-08-30T19:35:32.200340Z |
 | integration | success | repo://docs/reports/llm-committed-cache-hit-20260830.md | 29435007df67449c6fed0e2db677ce8eca0bd788e08ea4f24ebf1cc76c911bc9 | project:agent | 2026-08-30T19:38:12.808268Z |
 | test | success | repo://docs/reports/llm-post-promotion-full-reactor-20260830.md | f7a1c85915f4cc4c743b9d45728219a64d8f31a4aa1e533fa785b94c88cd451d | project:agent | 2026-08-30T19:41:24.557178Z |
+| consistency-check | failure | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t19461788129984z.md | none | project:agent | 2026-08-30T19:46:24.158860Z |
+| test | success | repo://docs/reports/llm-promotion-history-verification-20260830.md | 963b62f5836ba718184dc1a1f7e2ac20c2125d282a4280022155604d5afa6655 | project:agent | 2026-08-30T19:49:21.022317Z |
+| test | success | repo://docs/reports/llm-annotated-ir-semantic-validation-20260830.md | c02a8d1eb18a80de0671e46dbb83b425bead81d8dc492c2bfae40763aca2cb61 | project:agent | 2026-08-30T19:56:25.861735Z |
+| test | success | repo://docs/reports/llm-attribution-reconciliation-20260830.md | f206fa7392d8ad4de27554b207f8eb1a4728083c674fe23f2dfda34db7a79624 | project:agent | 2026-08-30T19:59:36.226885Z |

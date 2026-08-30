@@ -20,11 +20,12 @@ import org.shark.renovatio.llm.prompt.PromptOutputValidator;
 import org.shark.renovatio.llm.prompt.PromptRuntime;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /** Cache-first enrichment whose miss path is fully enclosed by Agora attribution. */
 public final class GovernedEnrichmentService {
     private static final ObjectMapper JSON = new ObjectMapper();
-    private final LlmProvider provider;
+    private final Supplier<LlmProvider> provider;
     private final ContentAddressedCache cache;
     private final AttributionGateway attribution;
     private final PersistenceSanitizer sanitizer;
@@ -33,6 +34,12 @@ public final class GovernedEnrichmentService {
     private final CatalogFallbackFactory fallbackFactory;
 
     public GovernedEnrichmentService(LlmProvider provider, ContentAddressedCache cache,
+                                     AttributionGateway attribution, PersistenceSanitizer sanitizer,
+                                     PromptRuntime promptRuntime) {
+        this(() -> Objects.requireNonNull(provider), cache, attribution, sanitizer, promptRuntime);
+    }
+
+    public GovernedEnrichmentService(Supplier<LlmProvider> provider, ContentAddressedCache cache,
                                      AttributionGateway attribution, PersistenceSanitizer sanitizer,
                                      PromptRuntime promptRuntime) {
         this.provider = Objects.requireNonNull(provider);
@@ -72,7 +79,7 @@ public final class GovernedEnrichmentService {
         String failureCategory = null;
         JsonNode sanitized;
         try {
-            LlmResponse response = provider.complete(prepared.request());
+            LlmResponse response = Objects.requireNonNull(provider.get()).complete(prepared.request());
             sanitized = outputValidator.validate(prepared, response.content());
             disposition = ResultDisposition.MODEL_SUCCESS;
         } catch (ProviderException exception) {

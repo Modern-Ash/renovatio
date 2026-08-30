@@ -30,3 +30,8 @@ artifact-kinds: ["spec","implementation-plan","threat-model","prompt-catalog","t
 | test-report | repo://docs/reports/llm-cache-promotion-f13b4bf9-20260830.md | ee68d1a1ab23e698a7aec92e8f95e776f2df3a75656053679ef61a1b16ad88c2 | project:owner | 2026-08-30T19:35:31.975680Z |
 | test-report | repo://docs/reports/llm-committed-cache-hit-20260830.md | 29435007df67449c6fed0e2db677ce8eca0bd788e08ea4f24ebf1cc76c911bc9 | project:agent | 2026-08-30T19:38:04.746915Z |
 | test-report | repo://docs/reports/llm-post-promotion-full-reactor-20260830.md | f7a1c85915f4cc4c743b9d45728219a64d8f31a4aa1e533fa785b94c88cd451d | project:agent | 2026-08-30T19:41:24.340640Z |
+| consistency-report | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t19461788129984z.md | none | project:agent | 2026-08-30T19:46:24.156291Z |
+| test-report | repo://docs/reports/llm-promotion-history-verification-20260830.md | 963b62f5836ba718184dc1a1f7e2ac20c2125d282a4280022155604d5afa6655 | project:agent | 2026-08-30T19:49:20.804103Z |
+| test-report | repo://docs/reports/llm-annotated-ir-semantic-validation-20260830.md | c02a8d1eb18a80de0671e46dbb83b425bead81d8dc492c2bfae40763aca2cb61 | project:agent | 2026-08-30T19:56:25.619205Z |
+| spec | repo://docs/specs/llm-runtime-catalog-cache.md | dc62a3dbd60f56e97e8b263cc6398b4237ccc17f40aff38eb69f69e67560aaa0 | project:owner | 2026-08-30T19:59:28.753489Z |
+| test-report | repo://docs/reports/llm-attribution-reconciliation-20260830.md | f206fa7392d8ad4de27554b207f8eb1a4728083c674fe23f2dfda34db7a79624 | project:agent | 2026-08-30T19:59:32.196089Z |

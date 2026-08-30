@@ -9,11 +9,13 @@ public final class PromptOutputValidator {
     private final PromptRuntime runtime;
     private final StrictJsonSchemaValidator schemaValidator;
     private final PersistenceSanitizer sanitizer;
+    private final AnnotatedIrSemanticOutputValidator semanticValidator;
 
     public PromptOutputValidator(PromptRuntime runtime, PersistenceSanitizer sanitizer) {
         this.runtime = runtime;
         this.schemaValidator = new StrictJsonSchemaValidator();
         this.sanitizer = sanitizer;
+        this.semanticValidator = new AnnotatedIrSemanticOutputValidator();
     }
 
     public JsonNode validate(PreparedEnrichment prepared, JsonNode output) {
@@ -21,8 +23,7 @@ public final class PromptOutputValidator {
             switch (validator) {
                 case "json-schema.v1" -> schemaValidator.validate(output,
                         runtime.resource(prepared.definition().outputSchema()));
-                case "annotated-ir-reference.v1" -> validateReferences(output,
-                        prepared.identity().canonicalInput());
+                case "annotated-ir-reference.v1" -> semanticValidator.validate(prepared, output);
                 case "public-signature-preservation.v1" -> rejectSignatureMutation(output);
                 case "sanitized-persistence.v1" -> sanitizer.sanitize(output);
                 case "deterministic-fallback.v1" -> { /* Applied only by CatalogFallbackFactory. */ }
@@ -30,15 +31,6 @@ public final class PromptOutputValidator {
             }
         }
         return sanitizer.sanitize(output);
-    }
-
-    private static void validateReferences(JsonNode output, JsonNode input) {
-        output.fields().forEachRemaining(field -> {
-            if (field.getKey().endsWith("NodeId") && field.getValue().isTextual()
-                    && !input.toString().contains(field.getValue().textValue())) {
-                throw new OutputValidationException(ProviderFailure.VALIDATOR_REJECTED);
-            }
-        });
     }
 
     private static void rejectSignatureMutation(JsonNode output) {

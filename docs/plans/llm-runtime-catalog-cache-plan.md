@@ -39,8 +39,10 @@
    - Record only reviewed identifiers, hashes, dispositions, sanitized diagnostics, and artifact
      URIs.
    - Implement promotion checks for envelope Commit A, index Commit B, and approval/evidence Commit
-     C; ensure runtime consumes only the build-verified manifest.
-   - Test attribution initialization/finalization failures and secret exclusion.
+     C; reconcile the candidate against the durable completed Agora run/result and ensure runtime
+     consumes only the build-verified manifest.
+   - Test attribution initialization failures, observable in-process finalization failures,
+     retrospective persistence absence/mismatch, and secret exclusion.
 
 6. **Verification and handoff**
    - Run focused module/provider tests and the clean Java 17 Maven reactor.

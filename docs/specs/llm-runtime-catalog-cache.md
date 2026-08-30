@@ -218,13 +218,26 @@ placed in Agora records.
 Cache hits do not call the provider. They remain auditable from the committed envelope and may emit
 a local `HIT` event, but they do not masquerade as cache-miss tool-runs.
 
-If final attribution fails after a candidate was produced, the runtime moves the sanitized candidate
-out of the cache lookup tree into a local quarantine and marks it `INVALID_ATTRIBUTION`. Quarantined
-artifacts are diagnostic-only: they cannot be loaded as cache hits, registered as deliverable cache
-artifacts, or committed by the promotion workflow. The quarantine obeys the same sanitization rules.
-The `agora-attribution` criterion is satisfied only by successfully finalized cache-miss tool-runs.
-Initialization failure prevents the provider call; finalization failure yields only quarantined
-`INVALID_ATTRIBUTION` diagnostic evidence and never counts as successful attribution.
+If the in-process attribution sink fails while the runtime can still act on the candidate, the
+runtime moves the sanitized candidate out of the cache lookup tree into a local quarantine and marks
+it `INVALID_ATTRIBUTION`. Quarantined artifacts are diagnostic-only: they cannot be loaded as cache
+hits, registered as deliverable cache artifacts, or committed by the promotion workflow. The
+quarantine obeys the same sanitization rules.
+
+Agora persists the final tool result after the child process exits. A retrospective persistence
+failure therefore cannot be reported back to that terminated process. In this case the sanitized
+candidate remains `PENDING_PROMOTION`; that state is lookup-ineligible and promotion-ineligible until
+reconciliation. Reconciliation reads the durable Agora `RUN.md` and `RESULT.md`, requires the same
+tool-run to be `completed` with exit code zero, and binds its prompt, provider, model, input, output,
+schema, cache-key, runtime-contract, artifact URI, and dispositions to the candidate. A missing,
+failed, or mismatched record fails reconciliation and must be quarantined as `INVALID_ATTRIBUTION`
+before any later promotion attempt. Successful reconciliation is repeated by the build against the
+records present at Commit C, so a forged or subsequently missing attribution record blocks lookup.
+
+The `agora-attribution` criterion is satisfied only by cache-miss tool-runs whose durable
+reconciliation succeeds. Initialization failure prevents the provider call; in-process finalization
+failure yields only quarantined `INVALID_ATTRIBUTION` diagnostic evidence; retrospective persistence
+failure leaves only an ineligible pending candidate. None counts as successful attribution.
 
 Cache promotion is executed by `project:agent` through the governed repository tool and accepted by
 `project:owner`. Promotion uses three governed commits and keeps approval references out of the
@@ -290,8 +303,9 @@ implementation.
   evidence; runtime accepts only the resulting digest-bound verified manifest.
 - Promotion becomes lookup-eligible only after envelope Commit A, technical-index Commit B, and
   approval/evidence Commit C are present and mutually verified.
-- Failure to finalize attribution quarantines the candidate as `INVALID_ATTRIBUTION` outside the
-  cache lookup tree.
+- An in-process attribution-finalization failure quarantines the candidate as
+  `INVALID_ATTRIBUTION`; a retrospective Agora persistence failure leaves it `PENDING_PROMOTION`
+  and ineligible until durable reconciliation succeeds.
 - A failure to initialize `llm-enrichment/enrich` prevents the provider call and leaves no
   unattributed result.
 - A cache miss writes a reviewable working-tree artifact; only the separate governed repository

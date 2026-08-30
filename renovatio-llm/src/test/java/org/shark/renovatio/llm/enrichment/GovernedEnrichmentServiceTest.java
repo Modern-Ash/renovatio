@@ -92,6 +92,24 @@ class GovernedEnrichmentServiceTest {
     }
 
     @Test
+    void annotatedIrSemanticMismatchUsesDeterministicFallback() {
+        String nodeId = "a".repeat(64);
+        JsonNode mismatchedInput = JSON.createObjectNode()
+                .put("nodeId", nodeId)
+                .put("nodeKind", "PARAGRAPH")
+                .set("semanticNodes", JSON.createObjectNode().put(nodeId, "DATA_ITEM"));
+        CommittedCacheIndex index = emptyIndex();
+
+        EnrichmentResult result = service(request -> success(), new CapturingGateway(false)).enrich(
+                "cobol.domain.naming.v1", mismatchedInput, "anthropic", "model",
+                JSON.createObjectNode().put("rationale", "deterministic translation"), index,
+                new VerifiedPromotionManifest(VerifiedPromotionManifest.VERSION, index.digest(), Map.of()));
+
+        assertEquals(ResultDisposition.DETERMINISTIC_FALLBACK, result.envelope().resultDisposition());
+        assertEquals("VALIDATOR_REJECTED", result.envelope().failureCategory());
+    }
+
+    @Test
     void providerRequestIsBoundToCatalogSystemFewShotAndInput() {
         java.util.concurrent.atomic.AtomicReference<org.shark.renovatio.llm.provider.LlmRequest> captured =
                 new java.util.concurrent.atomic.AtomicReference<>();
@@ -137,10 +155,10 @@ class GovernedEnrichmentServiceTest {
                 attributionCalls.incrementAndGet();
             }
         };
-        GovernedEnrichmentService service = service(request -> {
+        GovernedEnrichmentService service = new GovernedEnrichmentService(() -> {
             providerCalls.incrementAndGet();
-            return success();
-        }, gateway);
+            throw new IllegalStateException("provider configuration must remain lazy on a hit");
+        }, cache(), gateway, new PersistenceSanitizer(), runtime());
 
         EnrichmentResult result = service.enrich("cobol.domain.naming.v1", input(), "anthropic", "model",
                 JSON.createObjectNode().put("rationale", "deterministic translation"), index, manifest);
