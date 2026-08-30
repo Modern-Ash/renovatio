@@ -7,10 +7,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
+import java.nio.charset.StandardCharsets;
 
 /** Production Anthropic Messages transport using the JDK HTTP client. */
 public final class AnthropicHttpTransport implements AnthropicTransport {
@@ -38,11 +40,15 @@ public final class AnthropicHttpTransport implements AnthropicTransport {
                 .POST(HttpRequest.BodyPublishers.ofString(body(request, configuration.model())))
                 .build();
         try {
-            HttpResponse<String> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new ProviderException(classifyStatus(response.statusCode()));
+            HttpResponse<InputStream> response = client.send(httpRequest,
+                    HttpResponse.BodyHandlers.ofInputStream());
+            try (InputStream body = response.body()) {
+                if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                    throw new ProviderException(classifyStatus(response.statusCode()));
+                }
+                return new LlmResponse("anthropic", configuration.model(),
+                        decodeContent(json, new String(readBounded(body), StandardCharsets.UTF_8)));
             }
-            return new LlmResponse("anthropic", configuration.model(), decodeContent(json, response.body()));
         } catch (HttpTimeoutException exception) {
             throw new ProviderException(ProviderFailure.PROVIDER_TIMEOUT);
         } catch (InterruptedException exception) {
@@ -93,6 +99,14 @@ public final class AnthropicHttpTransport implements AnthropicTransport {
         } catch (JsonProcessingException exception) {
             throw new ProviderException(ProviderFailure.OUTPUT_MALFORMED);
         }
+    }
+
+    static byte[] readBounded(InputStream input) throws IOException {
+        byte[] body = input.readNBytes(MAX_RESPONSE_BYTES + 1);
+        if (body.length > MAX_RESPONSE_BYTES) {
+            throw new ProviderException(ProviderFailure.OUTPUT_MALFORMED);
+        }
+        return body;
     }
 
     static ProviderFailure classifyStatus(int status) {

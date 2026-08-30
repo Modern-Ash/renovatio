@@ -211,6 +211,33 @@ class GovernedEnrichmentServiceTest {
     }
 
     @Test
+    void fallbackAcceptsDomainFieldsInsideDeterministicResult() {
+        EnrichmentResult result = service(request -> {
+            throw new ProviderException(ProviderFailure.PROVIDER_TIMEOUT);
+        }, new CapturingGateway(false)).enrich("cobol.domain.naming.v1", input(), "anthropic", "model",
+                JSON.createObjectNode().put("legacyCode", "A1")
+                        .set("nested", JSON.createObjectNode().put("calculatedAmount", 42)),
+                emptyIndex(), emptyManifest());
+
+        JsonNode deterministic = result.envelope().sanitizedResult().path("deterministicResult");
+        assertEquals("A1", deterministic.path("legacyCode").textValue());
+        assertEquals(42, deterministic.path("nested").path("calculatedAmount").intValue());
+        assertEquals(ResultDisposition.DETERMINISTIC_FALLBACK, result.envelope().resultDisposition());
+    }
+
+    @Test
+    void deterministicResultStillRejectsSecretsAndForbiddenFields() {
+        PersistenceSanitizer sanitizer = new PersistenceSanitizer();
+        assertThrows(PersistenceSanitizer.SanitizationException.class, () -> sanitizer.sanitize(
+                JSON.createObjectNode().put("diagnosticCode", "LLM_FALLBACK")
+                        .set("deterministicResult", JSON.createObjectNode().put("apiKey", "secret"))));
+        assertThrows(PersistenceSanitizer.SanitizationException.class, () -> sanitizer.sanitize(
+                JSON.createObjectNode().put("diagnosticCode", "LLM_FALLBACK")
+                        .set("deterministicResult", JSON.createObjectNode()
+                                .put("domainValue", "Bearer secret-token"))));
+    }
+
+    @Test
     void productionGatewayRequiresMatchingRunningAgoraToolRun() throws Exception {
         Path run = temporary.resolve("tool-abc123").resolve("RUN.md");
         Files.createDirectories(run.getParent());
@@ -278,6 +305,11 @@ class GovernedEnrichmentServiceTest {
 
     private static CommittedCacheIndex emptyIndex() {
         return new CommittedCacheIndex(CommittedCacheIndex.VERSION, Map.of());
+    }
+
+    private static VerifiedPromotionManifest emptyManifest() {
+        CommittedCacheIndex index = emptyIndex();
+        return new VerifiedPromotionManifest(VerifiedPromotionManifest.VERSION, index.digest(), Map.of());
     }
 
     private static final class CapturingGateway implements AttributionGateway {

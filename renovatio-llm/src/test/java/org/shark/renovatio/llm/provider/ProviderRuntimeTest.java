@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -120,6 +121,18 @@ class ProviderRuntimeTest {
         assertEquals(0, body.path("temperature").intValue());
         assertEquals("Return JSON", body.path("system").textValue());
         assertEquals(3, body.path("messages").size());
+    }
+
+    @Test
+    void anthropicResponseIsBoundedBeforeMaterialization() throws Exception {
+        byte[] maximum = new byte[AnthropicHttpTransport.MAX_RESPONSE_BYTES];
+        assertEquals(maximum.length, AnthropicHttpTransport.readBounded(
+                new ByteArrayInputStream(maximum)).length);
+
+        ProviderException exception = assertThrows(ProviderException.class,
+                () -> AnthropicHttpTransport.readBounded(new ByteArrayInputStream(
+                        new byte[AnthropicHttpTransport.MAX_RESPONSE_BYTES + 1])));
+        assertEquals(ProviderFailure.OUTPUT_MALFORMED, exception.failure());
     }
 
     private static LlmRequest request() {

@@ -35,22 +35,26 @@ public final class PersistenceSanitizer {
         if (value == null || (!value.isObject() && !value.isArray())) {
             throw new SanitizationException();
         }
-        validate(value);
+        validate(value, true);
         return value.deepCopy();
     }
 
-    private void validate(JsonNode node) {
+    private void validate(JsonNode node, boolean enforceLlmAllowlist) {
         if (node.isObject()) {
             Iterator<Map.Entry<String, JsonNode>> fields = node.fields();
             while (fields.hasNext()) {
                 Map.Entry<String, JsonNode> field = fields.next();
-                if (forbiddenFields.contains(field.getKey()) || !allowedFields.contains(field.getKey())) {
+                if (forbiddenFields.contains(field.getKey())
+                        || (enforceLlmAllowlist && !allowedFields.contains(field.getKey()))) {
                     throw new SanitizationException();
                 }
-                validate(field.getValue());
+                // deterministicResult is produced by the deterministic transpiler, not by the LLM.
+                // It has an open domain schema but still shares the secret, size and JSON-type boundary.
+                validate(field.getValue(), enforceLlmAllowlist
+                        && !"deterministicResult".equals(field.getKey()));
             }
         } else if (node.isArray()) {
-            for (JsonNode element : (ArrayNode) node) validate(element);
+            for (JsonNode element : (ArrayNode) node) validate(element, enforceLlmAllowlist);
         } else if (node.isTextual()) {
             String text = node.textValue();
             if (text.length() > maximumStringLength || SECRET.matcher(text).find()) {
