@@ -59,7 +59,7 @@ El equipo desea que la herramienta genere pruebas unitarias y un resumen del map
 
 ### Edge Cases
 
-- ¿Qué ocurre si el código COBOL usa llamadas a servicios externos o JCL? [NEEDS CLARIFICATION: cómo deben tratarse las integraciones externas en la migración]
+- **Integraciones externas y JCL** (resuelto — research.md D1/D6): en el MVP la herramienta NO convierte automáticamente transacciones CICS, sentencias EXEC SQL/DB2, colas MQ, `CALL` a subsistemas ni orquestación JCL. Detecta cada punto de contacto y genera un adaptador *stub* en Python (puerto de salida) más un action item en el informe de migración para intervención manual. La conversión asistida de estos casos se aborda en fases posteriores (User Story 2+).
 - Manejo de datos binarios o formatos no estándar (packed decimal, COMP-3): la herramienta debe detectar y documentar incompatibilidades.
 - Archivos de entrada con tamaños extremos: la migración debe documentar constraints de performance y límites aplicables.
 
@@ -112,7 +112,7 @@ El equipo desea que la herramienta genere pruebas unitarias y un resumen del map
 
 ## Next Steps
 
-1. Resolver las preguntas marcadas como [NEEDS CLARIFICATION] (máx 3) para acotar el alcance.
+1. ~~Resolver las preguntas [NEEDS CLARIFICATION]~~ — resueltas: integraciones externas/JCL → stub + action item manual en MVP (research.md D1/D6); COMP-3 → `decimal.Decimal` con tests de evidencia (D4); performance → límites razonables MVP, medición como _non-functional TBD_.
 2. Prototipar la conversión para un programa COBOL sencillo (P1) y validar el proceso end-to-end.
 3. Definir esquema MCP para invocación y resultados.
 

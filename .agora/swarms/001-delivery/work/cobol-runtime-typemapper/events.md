@@ -1,0 +1,36 @@
+# Work events
+
+- 2026-08-30T13:54:56.483086Z | work.created | state=drafting actor=project:owner
+- 2026-08-30T14:00:46.149059Z | artifact.added | kind=spec uri=specs/1-cobol-python-migration/spec.md actor=project:owner
+- 2026-08-30T14:00:46.450925Z | artifact.added | kind=implementation-plan uri=specs/cobol-runtime-typemapper/implementation-plan.md actor=project:owner
+- 2026-08-30T14:00:46.671389Z | work.criterion-stage-marked | criterion=pictype-parse actor=project:owner stage=specified
+- 2026-08-30T14:00:46.894322Z | work.criterion-stage-marked | criterion=decimal-semantics actor=project:owner stage=specified
+- 2026-08-30T14:00:47.121101Z | work.criterion-stage-marked | criterion=move-semantics actor=project:owner stage=specified
+- 2026-08-30T14:00:47.343457Z | work.criterion-stage-marked | criterion=typemapper-compat actor=project:owner stage=specified
+- 2026-08-30T14:00:47.568214Z | work.criterion-stage-marked | criterion=tests-first actor=project:owner stage=specified
+- 2026-08-30T14:00:47.805466Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T14:00:59.316814Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-30T14:00:59.522085Z | work.criterion-stage-marked | criterion=pictype-parse actor=project:owner stage=planned
+- 2026-08-30T14:00:59.748630Z | work.criterion-stage-marked | criterion=decimal-semantics actor=project:owner stage=planned
+- 2026-08-30T14:00:59.960719Z | work.criterion-stage-marked | criterion=move-semantics actor=project:owner stage=planned
+- 2026-08-30T14:01:00.174570Z | work.criterion-stage-marked | criterion=typemapper-compat actor=project:owner stage=planned
+- 2026-08-30T14:01:00.383529Z | work.criterion-stage-marked | criterion=tests-first actor=project:owner stage=planned
+- 2026-08-30T14:01:00.798810Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-30T14:05:10.246373Z | work.criterion-stage-marked | criterion=pictype-parse actor=project:agent stage=implemented
+- 2026-08-30T14:05:10.461652Z | work.criterion-stage-marked | criterion=decimal-semantics actor=project:agent stage=implemented
+- 2026-08-30T14:05:10.673530Z | work.criterion-stage-marked | criterion=move-semantics actor=project:agent stage=implemented
+- 2026-08-30T14:05:10.892693Z | work.criterion-stage-marked | criterion=typemapper-compat actor=project:agent stage=implemented
+- 2026-08-30T14:05:11.108238Z | work.criterion-stage-marked | criterion=tests-first actor=project:agent stage=implemented
+- 2026-08-30T14:05:11.538425Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-30T14:05:18.123581Z | artifact.added | kind=test-report uri=renovatio-cobol-runtime/target/surefire-reports actor=project:agent
+- 2026-08-30T14:05:25.041927Z | evidence.added | id=evidence-000001 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-30T14:05:25.257164Z | work.criterion-stage-marked | criterion=pictype-parse actor=project:agent stage=verified
+- 2026-08-30T14:05:25.474590Z | work.criterion-stage-marked | criterion=decimal-semantics actor=project:agent stage=verified
+- 2026-08-30T14:05:25.689969Z | work.criterion-stage-marked | criterion=move-semantics actor=project:agent stage=verified
+- 2026-08-30T14:05:25.905479Z | work.criterion-stage-marked | criterion=typemapper-compat actor=project:agent stage=verified
+- 2026-08-30T14:05:26.120629Z | work.criterion-stage-marked | criterion=tests-first actor=project:agent stage=verified
+- 2026-08-30T14:18:33.107799Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-08-30T14:22:17.258466Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-30T14:22:41.244547Z | tool.prepared | run=tool-20260830t14221788110561z tool=repository operation=commit actor=project:agent
+- 2026-08-30T14:22:41.246056Z | tool.running | run=tool-20260830t14221788110561z actor=project:agent
+- 2026-08-30T14:22:41.276496Z | tool.failed | run=tool-20260830t14221788110561z exit-code=128

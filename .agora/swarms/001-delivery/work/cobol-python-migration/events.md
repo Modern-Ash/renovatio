@@ -2,3 +2,24 @@
 
 - 2026-08-30T13:29:06.237699Z | work.created | state=drafting actor=project:owner
 - 2026-08-30T13:29:24.879387Z | artifact.added | kind=spec uri=specs/1-cobol-python-migration/spec.md actor=project:owner
+- 2026-08-30T13:42:32.834290Z | tool.prepared | run=tool-20260830t13421788108152z tool=repository operation=commit actor=project:agent
+- 2026-08-30T13:42:32.835902Z | tool.running | run=tool-20260830t13421788108152z actor=project:agent
+- 2026-08-30T13:42:32.864298Z | tool.completed | run=tool-20260830t13421788108152z exit-code=0
+- 2026-08-30T14:10:48.774445Z | artifact.added | kind=spec uri=specs/1-cobol-python-migration/spec.md actor=project:owner
+- 2026-08-30T14:10:48.998166Z | work.criterion-stage-marked | criterion=ac-001 actor=project:owner stage=specified
+- 2026-08-30T14:10:49.226420Z | work.criterion-stage-marked | criterion=ac-002 actor=project:owner stage=specified
+- 2026-08-30T14:10:49.442352Z | work.criterion-stage-marked | criterion=ac-003 actor=project:owner stage=specified
+- 2026-08-30T14:10:49.658692Z | work.criterion-stage-marked | criterion=ac-004 actor=project:owner stage=specified
+- 2026-08-30T14:10:49.874271Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T14:13:17.691224Z | artifact.added | kind=implementation-plan uri=specs/1-cobol-python-migration/plan.md actor=project:agent
+- 2026-08-30T14:13:17.909345Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-30T14:13:18.126999Z | work.criterion-stage-marked | criterion=ac-001 actor=project:owner stage=planned
+- 2026-08-30T14:13:18.346727Z | work.criterion-stage-marked | criterion=ac-002 actor=project:owner stage=planned
+- 2026-08-30T14:13:18.572932Z | work.criterion-stage-marked | criterion=ac-003 actor=project:owner stage=planned
+- 2026-08-30T14:13:18.800729Z | work.criterion-stage-marked | criterion=ac-004 actor=project:owner stage=planned
+- 2026-08-30T14:13:27.585638Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-30T14:22:12.110529Z | work.criterion-stage-marked | criterion=ac-001 actor=project:agent stage=implemented
+- 2026-08-30T14:22:12.628793Z | work.criterion-stage-marked | criterion=ac-002 actor=project:agent stage=implemented
+- 2026-08-30T14:22:13.137226Z | work.criterion-stage-marked | criterion=ac-003 actor=project:agent stage=implemented
+- 2026-08-30T14:22:13.666545Z | work.criterion-stage-marked | criterion=ac-004 actor=project:agent stage=implemented
+- 2026-08-30T14:22:17.819767Z | work.transitioned | from=implementing to=verifying actor=project:agent
