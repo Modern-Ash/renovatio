@@ -59,6 +59,13 @@ public class CobolProviderConfiguration {
         return new Db2MigrationService(parsingService);
     }
 
+    @Bean
+    public ControlBreakDecompositionService controlBreakDecompositionService(
+            org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService intermediateModelService,
+            CobolParsingService parsingService) {
+        return new ControlBreakDecompositionService(intermediateModelService, parsingService);
+    }
+
     // Enable CobolLanguageProvider when COBOL provider is enabled via either legacy or new property name
     @Bean
     @ConditionalOnProperty(
@@ -73,7 +80,8 @@ public class CobolProviderConfiguration {
             IndexingService indexingService,
             MetricsService metricsService,
             TemplateCodeGenerationService templateCodeGenerationService,
-            Db2MigrationService db2MigrationService) {
+            Db2MigrationService db2MigrationService,
+            ControlBreakDecompositionService decompositionService) {
         return new CobolLanguageProvider(
                 parsingService,
                 javaGenerationService,
@@ -81,7 +89,8 @@ public class CobolProviderConfiguration {
                 indexingService,
                 metricsService,
                 templateCodeGenerationService,
-                db2MigrationService
+                db2MigrationService,
+                decompositionService
         );
     }
 }
