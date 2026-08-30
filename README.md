@@ -294,6 +294,7 @@ If you introduce new POJOs, prefer Lombok annotations (e.g., `@Data`, or `@Gette
 - **[docs/specs/INDEX.md](./docs/specs/INDEX.md)** - 📚 Índice central de especificaciones y guías Spec Kit
 - **[docs/SPEC-KIT-QUICK-START.md](./docs/SPEC-KIT-QUICK-START.md)** - ⚡ Guía rápida: Empieza en 5 minutos
 - **[docs/EXPLICACION-SPEC-KIT.md](./docs/EXPLICACION-SPEC-KIT.md)** - 📖 Qué es @github/spec-kit y cómo mejora Renovatio
+- **[docs/JIRA-GITHUB-INTEGRATION.md](./docs/JIRA-GITHUB-INTEGRATION.md)** - 🆕 🎯 Integración Jira-GitHub en spec-driven workflow
 - **[docs/spec-kit-integracion.md](./docs/spec-kit-integracion.md)** - 🔧 Guía detallada de integración
 - **[docs/specs/ejemplos/](./docs/specs/ejemplos/)** - 🎯 Especificaciones de ejemplo listas para usar
 
