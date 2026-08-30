@@ -26,6 +26,13 @@
    - Buenas prácticas
    - Integración con MCP
 
+4. **[JIRA-GITHUB-INTEGRATION.md](../JIRA-GITHUB-INTEGRATION.md)** 🆕 🎯
+   - **Integración completa Jira-GitHub en spec-driven workflow**
+   - Cómo referenciar y usar tickets Jira en planning y tasks
+   - Smart commits y automatización
+   - Workflows y best practices
+   - Ejemplos prácticos con Renovatio
+
 ---
 
 ## 📝 Plantillas
@@ -58,6 +65,7 @@ spec-kit init --template docs/specs/renovatio-spec-template.md \
 | Ejemplo | Descripción | Complejidad | Herramientas MCP |
 |---------|-------------|-------------|------------------|
 | **[migracion-cobol-basica.md](./ejemplos/migracion-cobol-basica.md)** | Migración COBOL → Java Spring Boot básica, sin DB2/CICS | Básica | `cobol.analyze`, `cobol.metrics`, `cobol.plan`, `cobol.apply` |
+| **[migracion-cobol-jira.md](./ejemplos/migracion-cobol-jira.md)** 🆕 | Migración COBOL con DB2 → Java JPA + integración completa Jira | Alta | `cobol.analyze`, `cobol.migrate_db2`, `cobol.plan`, `cobol.apply` |
 
 ### Ver todos los ejemplos
 
