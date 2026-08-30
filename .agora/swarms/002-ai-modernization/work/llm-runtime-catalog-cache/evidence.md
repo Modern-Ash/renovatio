@@ -1,6 +1,6 @@
 ---
 schema: "agora/evidence/v2"
-results: ["success","failure","success","success","success","success","success","success","failure","success","success","success","success","failure","success","success","success"]
+results: ["success","failure","success","success","success","success","success","success","failure","success","success","success","success","failure","success","success","success","success"]
 ---
 
 # Evidence
@@ -24,3 +24,4 @@ results: ["success","failure","success","success","success","success","success",
 | test | success | repo://docs/reports/llm-promotion-history-verification-20260830.md | 963b62f5836ba718184dc1a1f7e2ac20c2125d282a4280022155604d5afa6655 | project:agent | 2026-08-30T19:49:21.022317Z |
 | test | success | repo://docs/reports/llm-annotated-ir-semantic-validation-20260830.md | c02a8d1eb18a80de0671e46dbb83b425bead81d8dc492c2bfae40763aca2cb61 | project:agent | 2026-08-30T19:56:25.861735Z |
 | test | success | repo://docs/reports/llm-attribution-reconciliation-20260830.md | f206fa7392d8ad4de27554b207f8eb1a4728083c674fe23f2dfda34db7a79624 | project:agent | 2026-08-30T19:59:36.226885Z |
+| test | success | repo://docs/reports/llm-runtime-full-verification-20260830.md | 237f5c764441761547180612483a73ee09c553ade237fb2d3e54971dd3990aef | project:agent | 2026-08-30T20:01:48.824056Z |

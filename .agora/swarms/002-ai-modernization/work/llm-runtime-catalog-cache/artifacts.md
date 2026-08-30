@@ -35,3 +35,4 @@ artifact-kinds: ["spec","implementation-plan","threat-model","prompt-catalog","t
 | test-report | repo://docs/reports/llm-annotated-ir-semantic-validation-20260830.md | c02a8d1eb18a80de0671e46dbb83b425bead81d8dc492c2bfae40763aca2cb61 | project:agent | 2026-08-30T19:56:25.619205Z |
 | spec | repo://docs/specs/llm-runtime-catalog-cache.md | dc62a3dbd60f56e97e8b263cc6398b4237ccc17f40aff38eb69f69e67560aaa0 | project:owner | 2026-08-30T19:59:28.753489Z |
 | test-report | repo://docs/reports/llm-attribution-reconciliation-20260830.md | f206fa7392d8ad4de27554b207f8eb1a4728083c674fe23f2dfda34db7a79624 | project:agent | 2026-08-30T19:59:32.196089Z |
+| test-report | repo://docs/reports/llm-runtime-full-verification-20260830.md | 237f5c764441761547180612483a73ee09c553ade237fb2d3e54971dd3990aef | project:agent | 2026-08-30T20:01:35.272377Z |
