@@ -1,9 +1,13 @@
 # Título del proyecto / iniciativa
 
+> **Jira Tracking**: [PROJ-123](https://your-jira-instance.atlassian.net/browse/PROJ-123)  
+> **GitHub Issue**: #123
+
 ## 1. Resumen ejecutivo
 - **Contexto**: ¿Qué problema del cliente o del producto aborda este trabajo?
 - **Estado actual**: breve descripción de la situación actual en Renovatio.
 - **Resultado esperado**: visión de éxito (qué cambiará cuando el trabajo finalice).
+- **Jira Epic/Story**: Enlace a la épica o historia principal en Jira (si aplica)
 
 ## 2. Objetivos y métricas
 - Objetivo 1 — _ejemplo_: Permitir migrar copybooks con DB2 embebido a entidades JPA automáticamente.
@@ -30,9 +34,24 @@
 - Configuraciones (`rewrite.yml`, `application.yml`).
 
 ## 4. Diseño y plan de ejecución
-1. Paso 1 — descripción, entradas, salidas, responsables.
-2. Paso 2 — …
-3. Paso 3 — …
+
+### Tareas planificadas (Jira Integration)
+| Tarea | Jira Ticket | Asignado | Estado | Estimación |
+|-------|-------------|----------|--------|------------|
+| Paso 1: Análisis inicial | [PROJ-124](https://your-jira.atlassian.net/browse/PROJ-124) | @usuario1 | To Do | 2d |
+| Paso 2: Implementación | [PROJ-125](https://your-jira.atlassian.net/browse/PROJ-125) | @usuario2 | In Progress | 5d |
+| Paso 3: Testing | [PROJ-126](https://your-jira.atlassian.net/browse/PROJ-126) | @usuario3 | To Do | 3d |
+
+### Detalles del plan
+1. **Paso 1** — descripción, entradas, salidas, responsables.
+   - Jira: [PROJ-124](https://your-jira.atlassian.net/browse/PROJ-124)
+   - GitHub PR: (to be created)
+2. **Paso 2** — descripción, entradas, salidas, responsables.
+   - Jira: [PROJ-125](https://your-jira.atlassian.net/browse/PROJ-125)
+   - GitHub PR: (to be created)
+3. **Paso 3** — descripción, entradas, salidas, responsables.
+   - Jira: [PROJ-126](https://your-jira.atlassian.net/browse/PROJ-126)
+   - GitHub PR: (to be created)
 
 > Incluye diagramas, pseudocódigo o referencias a archivos específicos cuando sea necesario.
 
@@ -47,11 +66,23 @@
 - **Monitoreo**: métricas a revisar después del despliegue.
 
 ## 7. Checklist de implementación
-- [ ] Issues creados / enlazados.
-- [ ] PRs asociadas a cada módulo.
-- [ ] Documentación actualizada.
-- [ ] Pipelines / MCP tools configurados.
-- [ ] Validaciones ejecutadas y documentadas.
+
+### Planning & Tracking
+- [ ] Jira epic/story creada: [PROJ-123](https://your-jira.atlassian.net/browse/PROJ-123)
+- [ ] Sub-tareas Jira creadas y enlazadas
+- [ ] GitHub issues creados y sincronizados con Jira
+- [ ] Sprint asignado en Jira
+
+### Implementación
+- [ ] PRs asociadas a cada módulo (con referencia Jira en título/descripción)
+- [ ] Documentación actualizada
+- [ ] Pipelines / MCP tools configurados
+- [ ] Validaciones ejecutadas y documentadas
+
+### Sincronización Jira-GitHub
+- [ ] Smart commits configurados (PROJ-XXX #comment, #time, etc.)
+- [ ] GitHub-Jira app integrada y funcionando
+- [ ] Estados sincronizados automáticamente
 
 ## 8. Seguimiento y comunicación
 - Stakeholders clave.
