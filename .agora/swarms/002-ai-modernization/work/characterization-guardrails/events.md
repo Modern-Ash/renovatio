@@ -33,3 +33,6 @@
 - 2026-08-30T16:06:48.383075Z | tool.running | run=tool-20260830t16061788116808z actor=project:agent
 - 2026-08-30T16:06:48.406189Z | tool.completed | run=tool-20260830t16061788116808z exit-code=0
 - 2026-08-30T16:07:33.851837Z | evidence.added | id=evidence-000002 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-30T16:07:46.705998Z | tool.prepared | run=tool-20260830t16071788116866z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:07:46.707439Z | tool.running | run=tool-20260830t16071788116866z actor=project:agent
+- 2026-08-30T16:07:46.730837Z | tool.completed | run=tool-20260830t16071788116866z exit-code=0
