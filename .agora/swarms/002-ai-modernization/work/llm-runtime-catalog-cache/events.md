@@ -73,3 +73,15 @@
 - 2026-08-30T19:22:09.833082Z | evidence.added | id=evidence-000009 type=consistency-check result=failure revision=1 actor=project:agent
 - 2026-08-30T19:26:14.191062Z | artifact.added | kind=test-report uri=repo://docs/reports/llm-runtime-cache-authority-loader-20260830.md actor=project:agent
 - 2026-08-30T19:26:14.408952Z | evidence.added | id=evidence-000010 type=test result=success revision=1 actor=project:agent
+- 2026-08-30T19:33:00.040133Z | tool.prepared | run=tool-20260830t19331788129180z tool=repository operation=commit actor=project:agent
+- 2026-08-30T19:33:00.041854Z | tool.running | run=tool-20260830t19331788129180z actor=project:agent
+- 2026-08-30T19:33:00.064829Z | tool.completed | run=tool-20260830t19331788129180z exit-code=0
+- 2026-08-30T19:33:42.439241Z | tool.prepared | run=tool-20260830t19331788129222z tool=repository operation=commit actor=project:agent
+- 2026-08-30T19:33:42.441199Z | tool.running | run=tool-20260830t19331788129222z actor=project:agent
+- 2026-08-30T19:33:42.454372Z | tool.completed | run=tool-20260830t19331788129222z exit-code=0
+- 2026-08-30T19:34:11.372639Z | tool.prepared | run=tool-20260830t19341788129251z tool=repository operation=commit actor=project:agent
+- 2026-08-30T19:34:11.374314Z | tool.running | run=tool-20260830t19341788129251z actor=project:agent
+- 2026-08-30T19:34:11.387046Z | tool.completed | run=tool-20260830t19341788129251z exit-code=0
+- 2026-08-30T19:35:13.391484Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-30T19:35:31.975755Z | artifact.added | kind=test-report uri=repo://docs/reports/llm-cache-promotion-f13b4bf9-20260830.md actor=project:owner
+- 2026-08-30T19:35:32.200592Z | evidence.added | id=evidence-000011 type=cache-promotion result=success revision=1 actor=project:owner

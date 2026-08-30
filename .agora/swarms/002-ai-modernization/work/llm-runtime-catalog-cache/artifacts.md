@@ -27,3 +27,4 @@ artifact-kinds: ["spec","implementation-plan","threat-model","prompt-catalog","t
 | test-report | repo://docs/reports/llm-runtime-catalog-cache-full-verification-20260830.md | 627b5b0c3aeab6c1cb06a4913add1b5ff3aa72f5b2d9063017785614eefaf25f | project:agent | 2026-08-30T19:18:14.444586Z |
 | consistency-report | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t19221788128529z.md | none | project:agent | 2026-08-30T19:22:09.829919Z |
 | test-report | repo://docs/reports/llm-runtime-cache-authority-loader-20260830.md | ce7088dfea3c5687c6663e1063040c9aa9215448de4885efa7a90d115e2164de | project:agent | 2026-08-30T19:26:14.190986Z |
+| test-report | repo://docs/reports/llm-cache-promotion-f13b4bf9-20260830.md | ee68d1a1ab23e698a7aec92e8f95e776f2df3a75656053679ef61a1b16ad88c2 | project:owner | 2026-08-30T19:35:31.975680Z |
