@@ -283,6 +283,13 @@ If you introduce new POJOs, prefer Lombok annotations (e.g., `@Data`, or `@Gette
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design principles
 - **[schemas/](./schemas/)** - JSON schemas for configuration validation
 
+### COBOL to Python Translation (NEW) 🐍
+- **[docs/COBOL-TO-PYTHON-README.md](./docs/COBOL-TO-PYTHON-README.md)** - 📚 Documentation index and quick overview
+- **[docs/RESUMEN-EJECUTIVO-COBOL-PYTHON.md](./docs/RESUMEN-EJECUTIVO-COBOL-PYTHON.md)** - 🎯 Executive summary (Spanish)
+- **[docs/COBOL-TO-PYTHON-IMPLEMENTATION-PLAN.md](./docs/COBOL-TO-PYTHON-IMPLEMENTATION-PLAN.md)** - 📋 Detailed implementation plan
+- **[docs/COBOL-TO-PYTHON-COMPONENT-ANALYSIS.md](./docs/COBOL-TO-PYTHON-COMPONENT-ANALYSIS.md)** - 🔍 Component reusability analysis
+- **[docs/COBOL-TO-PYTHON-TECHNICAL-SPEC.md](./docs/COBOL-TO-PYTHON-TECHNICAL-SPEC.md)** - 💻 Technical specification with code examples
+
 ### Planning & Specifications
 - **[docs/specs/INDEX.md](./docs/specs/INDEX.md)** - 📚 Índice central de especificaciones y guías Spec Kit
 - **[docs/SPEC-KIT-QUICK-START.md](./docs/SPEC-KIT-QUICK-START.md)** - ⚡ Guía rápida: Empieza en 5 minutos
