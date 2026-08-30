@@ -3,11 +3,11 @@ schema: "agora/clarifications/v1"
 swarm: "ai-modernization"
 work: "characterization-guardrails"
 created-at: "2026-08-30T14:48:47.092464Z"
-last-run-input-sha256: "9ea484b0d5d8e077df66e77b9fd4ea26bcfa4880cf54566b313aa5ab17bee13b"
-last-run-question-count: 5
-last-run-unanswered-count: 5
+last-run-input-sha256: "b5153c8d9e2a29c0a32f1266cf4a4b5f69a17743696679a98af2f3173b771eed"
+last-run-question-count: 0
+last-run-unanswered-count: 0
 last-run-by: "project:owner"
-last-run-at: "2026-08-30T14:59:29.337763Z"
+last-run-at: "2026-08-30T15:05:02.661958Z"
 ---
 
 # Clarifications for characterization-guardrails

@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "characterization-guardrails"
 swarm: "ai-modernization"
 title: "Characterization harness and non-negotiable gates"
-state: "drafting"
+state: "planned"
 revision: 1
 operational-status: "active"
 status-reason: null

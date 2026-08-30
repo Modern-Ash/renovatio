@@ -3,7 +3,7 @@
 ## Project
 
 - Name: renovatio
-- Root: `/tmp/renovatio-pr119.U4LFiH`
+- Root: `/home/faguero/dev/renovatio`
 
 ## Runtime
 

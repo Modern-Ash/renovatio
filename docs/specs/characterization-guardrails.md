@@ -61,6 +61,11 @@ non-empty `expected-ir.json`, `expected.java`, and `expected-behavior.json`, wit
 | `odo-invalid-count` | `OCCURS DEPENDING ON` outside declared bounds | Diagnostic and action item |
 | `unsupported-construct` | Recognized but non-translatable construction | Diagnostic and action item; no Java |
 
+For the `drafting` to `clarified` transition, defining this complete corpus and its file contracts
+is sufficient. The twelve directories and expected-output files are implementation deliverables and
+must exist before the corresponding criteria can advance beyond `specified`; they are not required
+to clarify the specification.
+
 Later issues may add fixtures, but they may not weaken or remove an existing expectation without a
 reviewed specification revision.
 
@@ -81,6 +86,12 @@ Every proposal runs through these gates, in order, stopping at the first failure
 4. **Review eligibility** — confirm all previous gates passed, outputs are byte-reproducible, the
    diff is bounded to declared targets, provenance and content hashes are present, no public
    signature changed unexpectedly, and no unsupported construct was silently translated.
+
+A proposal manifest must enumerate every file it may create, update, or delete. A bounded diff
+touches only those paths and the fixture-specific generated-output directory; any other path fails
+the gate. A public-signature change is expected only when the implementation plan lists the exact
+fully qualified type and member signature, explains the compatibility effect, and records explicit
+`project:owner` approval. Every other public API change is unexpected and fails closed.
 
 Provider availability, persuasive prose, or an LLM confidence score cannot replace a gate.
 
@@ -109,6 +120,12 @@ container invocation, a negative connectivity probe that attempts name resolutio
 connection and proves both fail, confirmation that no provider credential variables are present,
 the Maven `-o` execution log, and the resulting test report. A lane that merely avoids making a
 request without enforcing network isolation does not satisfy this requirement.
+
+The accepted toolchain baseline is Java 17 with Maven 3.9.12. The implementation plan must select a
+Java 17 container image, resolve its immutable multi-architecture digest, and commit that digest in
+the workflow before implementation begins. Selecting the registry digest is a planning artifact,
+not a prerequisite for this specification to become `clarified`; execution with a mutable tag is
+never acceptable.
 
 A cache miss in the offline lane must not call a provider. It must fail closed or select the
 deterministic fallback, according to the calling feature's contract.
@@ -143,10 +160,14 @@ no semantics-preserving translation exists.
 ## 8. Clarified dependency and artifact semantics
 
 - Multiple registrations of `repo://docs/specs/characterization-guardrails.md` are revisions of one
-  logical `spec` artifact. The latest registered content digest is authoritative.
+  logical `spec` artifact. The last row in the governed artifact ledger at evaluation time is the
+  authoritative content digest. The digest is intentionally not embedded in this file because doing
+  so would make the document hash self-referential.
 - This work may transition to `clarified` before issue #124 is delivered because it specifies the
   guardrail contract, not the annotated-model implementation. Annotated output remains categorically
   ineligible until `annotated-cobol-model.v1.schema.json` is committed and active.
+- On 2026-08-30, the human `project:owner` explicitly resolved the remaining drafting questions and
+  accepted this authoritative specification for the `drafting` to `clarified` decision.
 
 ## 9. Acceptance mapping
 

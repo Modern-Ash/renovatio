@@ -10,16 +10,16 @@ integration: "codex"
 provider: "openai"
 model: "configured-by-codex"
 status: "prepared"
-context: "/tmp/renovatio-pr119.U4LFiH/.agora/sessions/issue-122-specification/CONTEXT.md"
+context: "/home/faguero/dev/renovatio/.agora/sessions/issue-122-specification/CONTEXT.md"
 launch-command: ["codex","exec","Read the Agora session context from the path in AGORA_CONTEXT. Follow its operational Markdown, perform only the next action permitted for the assigned role, persist artifacts and evidence through Agora, and stop at human approval or unavailable authority."]
 runtime-available: true
-created-at: "2026-08-30T14:46:16.208640Z"
+created-at: "2026-08-30T15:02:50.858464Z"
 exit-code: null
 timeout-seconds: 3600
 max-output-bytes: 4194304
 output-bytes: 0
 termination-reason: null
-context-sha256: "53d6cfe62e725f92c92fb2343ff579184463cc99f6f887786ef700fe58e2808a"
+context-sha256: "e65239fec6c48653045587405c88db5b04c9441d11120c8938eca504781b9756"
 authentication-verified: false
 authentication-fingerprint: null
 authentication-public-key: null
