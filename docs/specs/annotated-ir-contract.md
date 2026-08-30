@@ -107,21 +107,22 @@ mapping and fails closed on an unmapped identity-bearing type.
 
 ### 4.2 Annotation and cache identity
 
-- `annotationId = sha256(nodeId + annotationFamily + promptId + promptVersion + outputSchemaVersion + inputHash)`.
+- `annotationId` is SHA-256 of the canonical identity projection defined below.
 - The downstream cache key additionally binds the canonical enrichment input hash.
 - Changing node content, prompt version, annotation family, or output schema version invalidates the
   identity. Changing review metadata does not rewrite the underlying proposal identity.
 
-Hash concatenation uses an unambiguous canonical JSON array, not raw string concatenation.
+Identity projections use canonical JSON objects with domain separation, never raw concatenation.
 
 For one complete annotation identity, a different validated output is a nondeterminism conflict and
 is rejected rather than stored as a competing proposal. Payload, confidence, provider model, review
 state, and `outputHash` do not enter `annotationId`.
 
-Normatively, the cache-key projection is the RFC 8785 object with exactly `nodeId`,
-`annotationFamily`, `promptId`, `promptVersion`, `outputSchemaVersion`, and `inputHash`. Its lowercase
-SHA-256 digest is the cache key. Timestamps, provider model, review state, cache disposition, and
-tool-run identity are excluded.
+Normatively, the annotation projection is the RFC 8785 object with exactly
+`identityType: "annotation"`, `nodeId`, `annotationFamily`, `promptId`, `promptVersion`,
+`outputSchemaVersion`, and `inputHash`. The cache-key projection contains the same fields with
+`identityType: "cache"`. Their lowercase SHA-256 digests are intentionally distinct. Timestamps,
+provider model, review state, cache disposition, and tool-run identity are excluded.
 
 ## 5. Provenance and review
 
@@ -170,9 +171,10 @@ JSON Schema validates document shape. A deterministic semantic validator additio
 hashes, unique IDs, base-document identity, node resolution, and node-kind agreement. Validation
 returns stable diagnostics ordered by JSON pointer and diagnostic code.
 
-Schema evolution is additive within a version. Removing/renaming a field, changing identity inputs,
-or changing payload meaning requires a new schema version. Readers reject unknown major versions;
-no best-effort interpretation is permitted.
+The published `cobol-annotated-ir.v1` contract is immutable. Adding or removing fields, enum values,
+annotation families, constraints, identity inputs, or payload meaning requires a new schema version.
+Only implementation bug fixes that preserve the accepted document set and identities remain within
+v1. Readers reject unknown versions; no best-effort interpretation is permitted.
 
 ## 7. ExecutionContext seam
 
