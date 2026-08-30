@@ -16,3 +16,12 @@
 - 2026-08-30T16:41:55.335958Z | work.criterion-stage-marked | criterion=pure-recipes actor=project:owner stage=specified
 - 2026-08-30T16:41:55.636013Z | work.criterion-stage-marked | criterion=characterized actor=project:owner stage=specified
 - 2026-08-30T16:41:59.081528Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T16:42:16.405453Z | tool.prepared | run=tool-20260830t16421788118936z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:42:16.407960Z | tool.running | run=tool-20260830t16421788118936z actor=project:agent
+- 2026-08-30T16:42:16.431992Z | tool.completed | run=tool-20260830t16421788118936z exit-code=0
+- 2026-08-30T16:42:52.578937Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/deterministic-semantic-core.md actor=project:agent
+- 2026-08-30T16:43:27.596693Z | work.criterion-stage-marked | criterion=statements actor=project:owner stage=planned
+- 2026-08-30T16:43:27.920528Z | work.criterion-stage-marked | criterion=data-model actor=project:owner stage=planned
+- 2026-08-30T16:43:28.236381Z | work.criterion-stage-marked | criterion=pure-recipes actor=project:owner stage=planned
+- 2026-08-30T16:43:28.539064Z | work.criterion-stage-marked | criterion=characterized actor=project:owner stage=planned
+- 2026-08-30T16:43:28.848159Z | work.transitioned | from=clarified to=planned actor=project:agent
