@@ -37,3 +37,7 @@
 - 2026-08-30T17:19:51.382059Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=planned
 - 2026-08-30T17:19:51.608948Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=planned
 - 2026-08-30T17:19:55.651877Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-30T17:20:11.371096Z | tool.prepared | run=tool-20260830t17201788121211z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:20:11.372895Z | tool.running | run=tool-20260830t17201788121211z actor=project:agent
+- 2026-08-30T17:20:11.395855Z | tool.completed | run=tool-20260830t17201788121211z exit-code=0
+- 2026-08-30T17:20:14.838780Z | work.transitioned | from=planned to=implementing actor=project:agent

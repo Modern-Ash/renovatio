@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "annotated-ir-contract"
 swarm: "ai-modernization"
 title: "Versioned annotated IR sidecar contract"
-state: "planned"
+state: "implementing"
 revision: 1
 operational-status: "active"
 status-reason: null
