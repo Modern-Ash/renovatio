@@ -2,3 +2,49 @@
 
 - 2026-08-30T14:33:30.944334Z | work.created | state=drafting actor=project:owner
 - 2026-08-30T14:33:30.944793Z | work.decomposition-linked | parent=ai-modernization/three-pass-modernization actor=project:owner
+- 2026-08-30T16:58:40.230556Z | tool.prepared | run=tool-20260830t16581788119920z tool=repository operation=create-branch actor=project:agent
+- 2026-08-30T16:58:40.232265Z | tool.running | run=tool-20260830t16581788119920z actor=project:agent
+- 2026-08-30T16:58:40.245049Z | tool.completed | run=tool-20260830t16581788119920z exit-code=0
+- 2026-08-30T17:01:21.914021Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:08:29.837826Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-ir-contract.md actor=project:owner
+- 2026-08-30T17:08:30.043773Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=specified
+- 2026-08-30T17:08:30.260718Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=specified
+- 2026-08-30T17:08:30.480345Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=specified
+- 2026-08-30T17:08:30.690212Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=specified
+- 2026-08-30T17:08:49.268427Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:10:50.436613Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:11:48.447659Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:12:51.798911Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:14:29.461896Z | tool.prepared | run=tool-20260830t17141788120869z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:14:29.463489Z | tool.running | run=tool-20260830t17141788120869z actor=project:agent
+- 2026-08-30T17:14:29.475828Z | tool.completed | run=tool-20260830t17141788120869z exit-code=0
+- 2026-08-30T17:14:53.752241Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:15:46.865043Z | tool.prepared | run=tool-20260830t17151788120946z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:15:46.866553Z | tool.running | run=tool-20260830t17151788120946z actor=project:agent
+- 2026-08-30T17:15:46.879444Z | tool.completed | run=tool-20260830t17151788120946z exit-code=0
+- 2026-08-30T17:16:13.672481Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:17:18.364730Z | tool.prepared | run=tool-20260830t17171788121038z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:17:18.366552Z | tool.running | run=tool-20260830t17171788121038z actor=project:agent
+- 2026-08-30T17:17:18.390032Z | tool.completed | run=tool-20260830t17171788121038z exit-code=0
+- 2026-08-30T17:18:02.815744Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:19:13.709285Z | tool.prepared | run=tool-20260830t17191788121153z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:19:13.711051Z | tool.running | run=tool-20260830t17191788121153z actor=project:agent
+- 2026-08-30T17:19:13.723796Z | tool.completed | run=tool-20260830t17191788121153z exit-code=0
+- 2026-08-30T17:19:25.080060Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T17:19:50.718870Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/annotated-ir-contract.md actor=project:agent
+- 2026-08-30T17:19:50.939594Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=planned
+- 2026-08-30T17:19:51.170405Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=planned
+- 2026-08-30T17:19:51.382059Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=planned
+- 2026-08-30T17:19:51.608948Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=planned
+- 2026-08-30T17:19:55.651877Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-30T17:20:11.371096Z | tool.prepared | run=tool-20260830t17201788121211z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:20:11.372895Z | tool.running | run=tool-20260830t17201788121211z actor=project:agent
+- 2026-08-30T17:20:11.395855Z | tool.completed | run=tool-20260830t17201788121211z exit-code=0
+- 2026-08-30T17:20:14.838780Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-30T17:21:38.172512Z | tool.prepared | run=tool-20260830t17211788121298z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:21:38.174197Z | tool.running | run=tool-20260830t17211788121298z actor=project:agent
+- 2026-08-30T17:21:38.197814Z | tool.completed | run=tool-20260830t17211788121298z exit-code=0
+- 2026-08-30T17:22:32.283061Z | tool.prepared | run=tool-20260830t17221788121352z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:22:32.284701Z | tool.running | run=tool-20260830t17221788121352z actor=project:agent
+- 2026-08-30T17:22:32.297511Z | tool.completed | run=tool-20260830t17221788121352z exit-code=0
+- 2026-08-30T17:27:32.922118Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-ir-contract.md actor=project:owner

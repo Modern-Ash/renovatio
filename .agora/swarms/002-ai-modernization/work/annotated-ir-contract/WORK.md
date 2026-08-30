@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "annotated-ir-contract"
 swarm: "ai-modernization"
 title: "Versioned annotated IR sidecar contract"
-state: "drafting"
+state: "implementing"
 revision: 1
 operational-status: "active"
 status-reason: null
@@ -11,7 +11,7 @@ status-by: null
 status-at: null
 acceptance-criteria: {"model":"AnnotatedCobolModel preserves the base IR and carries typed annotations without mutating source semantic nodes.","sidecar-schema":"A versioned strict schema validates committed *.annotated.json sidecars and rejects unknown or malformed annotations.","content-identity":"Canonical node hashes plus prompt versions define stable content-addressed identities for annotations and cache entries.","context-seam":"The existing ExecutionContext seam can carry the annotated model without introducing provider calls into recipes."}
 satisfied-criteria: []
-criterion-statuses: {"model":[],"sidecar-schema":[],"content-identity":[],"context-seam":[]}
+criterion-statuses: {"model":["specified","planned"],"sidecar-schema":["specified","planned"],"content-identity":["specified","planned"],"context-seam":["specified","planned"]}
 required-artifacts: ["spec","json-schema","architecture-decision-record"]
 child-work-refs: []
 budget-limits: null
@@ -26,10 +26,10 @@ Queue 3. May run in parallel with deterministic-semantic-core after fixture conv
 
 ## Acceptance criteria
 
-- [ ] **model:** AnnotatedCobolModel preserves the base IR and carries typed annotations without mutating source semantic nodes.; stages: none
-- [ ] **sidecar-schema:** A versioned strict schema validates committed *.annotated.json sidecars and rejects unknown or malformed annotations.; stages: none
-- [ ] **content-identity:** Canonical node hashes plus prompt versions define stable content-addressed identities for annotations and cache entries.; stages: none
-- [ ] **context-seam:** The existing ExecutionContext seam can carry the annotated model without introducing provider calls into recipes.; stages: none
+- [ ] **model:** AnnotatedCobolModel preserves the base IR and carries typed annotations without mutating source semantic nodes.; stages: specified, planned
+- [ ] **sidecar-schema:** A versioned strict schema validates committed *.annotated.json sidecars and rejects unknown or malformed annotations.; stages: specified, planned
+- [ ] **content-identity:** Canonical node hashes plus prompt versions define stable content-addressed identities for annotations and cache entries.; stages: specified, planned
+- [ ] **context-seam:** The existing ExecutionContext seam can carry the annotated model without introducing provider calls into recipes.; stages: specified, planned
 
 ## Required artifacts
 
