@@ -4,7 +4,7 @@
   "title": "Renovatio COBOL Intermediate Representation v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "programId", "paragraphs", "dataItems"],
+  "required": ["schemaVersion", "programId", "paragraphs", "dataItems", "diagnostics"],
   "properties": {
     "schemaVersion": { "const": "cobol-ir.v1" },
     "programId": { "$ref": "#/$defs/name" },
@@ -13,7 +13,8 @@
     "controlFlowGraph": { "$ref": "#/$defs/controlFlowGraph" },
     "executionContext": { "$ref": "#/$defs/executionContext" },
     "controlBreakPatterns": { "type": "array", "items": { "type": "object" } },
-    "decomposedLogic": { "type": ["object", "null"] }
+    "decomposedLogic": { "type": ["object", "null"] },
+    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
   },
   "$defs": {
     "name": { "type": "string", "minLength": 1 },
@@ -28,14 +29,66 @@
     },
     "dataItem": {
       "type": "object", "additionalProperties": false,
-      "required": ["name", "picture", "level", "occurs", "redefines", "javaType"],
+      "required": ["name", "picture", "level", "occurs", "redefines", "javaType", "picType", "level88Conditions"],
       "properties": {
         "name": { "$ref": "#/$defs/name" },
         "picture": { "type": ["string", "null"] },
         "level": { "type": "integer", "minimum": 1, "maximum": 88 },
         "occurs": { "type": ["integer", "null"], "minimum": 1 },
         "redefines": { "$ref": "#/$defs/nullableName" },
-        "javaType": { "$ref": "#/$defs/name" }
+        "javaType": { "$ref": "#/$defs/name" },
+        "picType": { "oneOf": [{ "$ref": "#/$defs/picType" }, { "type": "null" }] },
+        "level88Conditions": { "type": "array", "items": { "$ref": "#/$defs/level88Condition" } }
+      }
+    },
+    "picType": {
+      "type": "object", "additionalProperties": false,
+      "required": ["category", "digits", "scale", "signed", "usage"],
+      "properties": {
+        "category": { "enum": ["NUMERIC", "ALPHANUMERIC", "ALPHABETIC"] },
+        "digits": { "type": "integer", "minimum": 0 },
+        "scale": { "type": "integer", "minimum": 0 },
+        "signed": { "type": "boolean" },
+        "usage": { "enum": ["DISPLAY", "COMP", "COMP_3", "COMP_5"] }
+      }
+    },
+    "level88Condition": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "parentDataName", "values"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "parentDataName": { "$ref": "#/$defs/name" },
+        "values": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/level88Value" } }
+      }
+    },
+    "level88Value": {
+      "type": "object", "additionalProperties": false,
+      "required": ["value", "through"],
+      "properties": {
+        "value": { "type": "string" },
+        "through": { "type": ["string", "null"] }
+      }
+    },
+    "diagnostic": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "severity", "constructionFamily", "message", "sourceSpan"],
+      "properties": {
+        "code": { "$ref": "#/$defs/name" },
+        "severity": { "enum": ["WARNING", "ERROR"] },
+        "constructionFamily": { "$ref": "#/$defs/name" },
+        "message": { "$ref": "#/$defs/name" },
+        "sourceSpan": { "$ref": "#/$defs/sourceSpan" }
+      }
+    },
+    "sourceSpan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "startLine", "startColumn", "endLine", "endColumn"],
+      "properties": {
+        "source": { "$ref": "#/$defs/name" },
+        "startLine": { "type": "integer", "minimum": 1 },
+        "startColumn": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 }
       }
     },
     "statement": {

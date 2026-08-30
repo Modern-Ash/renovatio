@@ -37,6 +37,7 @@ public final class CobolIntermediateModel {
     private final CobolExecutionContext executionContext;
     private final List<ControlBreakPattern> controlBreakPatterns;
     private final DecomposedBusinessLogic decomposedLogic;
+    private final List<CobolDiagnostic> diagnostics;
 
     private CobolIntermediateModel(Builder builder) {
         this.programId = builder.programId;
@@ -46,6 +47,7 @@ public final class CobolIntermediateModel {
         this.executionContext = builder.executionContext;
         this.controlBreakPatterns = List.copyOf(builder.controlBreakPatterns);
         this.decomposedLogic = builder.decomposedLogic;
+        this.diagnostics = builder.diagnostics.stream().sorted().toList();
     }
 
     /**
@@ -88,6 +90,7 @@ public final class CobolIntermediateModel {
         private CobolExecutionContext executionContext = CobolExecutionContext.empty();
         private List<ControlBreakPattern> controlBreakPatterns = new ArrayList<>();
         private DecomposedBusinessLogic decomposedLogic;
+        private List<CobolDiagnostic> diagnostics = new ArrayList<>();
 
         private Builder() {
         }
@@ -132,6 +135,18 @@ public final class CobolIntermediateModel {
 
         public Builder decomposedLogic(DecomposedBusinessLogic decomposedLogic) {
             this.decomposedLogic = decomposedLogic;
+            return this;
+        }
+
+        public Builder diagnostics(List<CobolDiagnostic> diagnostics) {
+            this.diagnostics = diagnostics == null ? new ArrayList<>() : new ArrayList<>(diagnostics);
+            return this;
+        }
+
+        public Builder addDiagnostic(CobolDiagnostic diagnostic) {
+            if (diagnostic != null) {
+                this.diagnostics.add(diagnostic);
+            }
             return this;
         }
 
