@@ -7,12 +7,112 @@
   "required": ["schemaVersion", "programId", "paragraphs", "dataItems"],
   "properties": {
     "schemaVersion": { "const": "cobol-ir.v1" },
-    "programId": { "type": "string", "minLength": 1 },
-    "paragraphs": { "type": "object" },
-    "dataItems": { "type": "array" },
-    "controlFlowGraph": { "type": "object" },
-    "executionContext": { "type": "object" },
-    "controlBreakPatterns": { "type": "array" },
+    "programId": { "$ref": "#/$defs/name" },
+    "paragraphs": { "type": "object", "additionalProperties": { "$ref": "#/$defs/paragraph" } },
+    "dataItems": { "type": "array", "items": { "$ref": "#/$defs/dataItem" } },
+    "controlFlowGraph": { "$ref": "#/$defs/controlFlowGraph" },
+    "executionContext": { "$ref": "#/$defs/executionContext" },
+    "controlBreakPatterns": { "type": "array", "items": { "type": "object" } },
     "decomposedLogic": { "type": ["object", "null"] }
+  },
+  "$defs": {
+    "name": { "type": "string", "minLength": 1 },
+    "nullableName": { "type": ["string", "null"], "minLength": 1 },
+    "stringList": { "type": "array", "items": { "type": "string" } },
+    "paragraph": {
+      "type": "object", "additionalProperties": false, "required": ["name", "statements"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "statements": { "type": "array", "items": { "$ref": "#/$defs/statement" } }
+      }
+    },
+    "dataItem": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "picture", "level", "occurs", "redefines", "javaType"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "picture": { "type": ["string", "null"] },
+        "level": { "type": "integer", "minimum": 1, "maximum": 88 },
+        "occurs": { "type": ["integer", "null"], "minimum": 1 },
+        "redefines": { "$ref": "#/$defs/nullableName" },
+        "javaType": { "$ref": "#/$defs/name" }
+      }
+    },
+    "statement": {
+      "oneOf": [
+        { "$ref": "#/$defs/moveStatement" }, { "$ref": "#/$defs/computeStatement" },
+        { "$ref": "#/$defs/ifStatement" }, { "$ref": "#/$defs/evaluateStatement" },
+        { "$ref": "#/$defs/performStatement" }, { "$ref": "#/$defs/callStatement" },
+        { "$ref": "#/$defs/db2Statement" }, { "$ref": "#/$defs/fileOperationStatement" }
+      ]
+    },
+    "moveStatement": {
+      "type": "object", "additionalProperties": false, "required": ["source", "target"],
+      "properties": { "source": { "type": "string" }, "target": { "$ref": "#/$defs/name" } }
+    },
+    "computeStatement": {
+      "type": "object", "additionalProperties": false, "required": ["target", "expression"],
+      "properties": { "target": { "$ref": "#/$defs/name" }, "expression": { "type": "string" } }
+    },
+    "ifStatement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["condition", "thenStatements", "elseStatements"],
+      "properties": {
+        "condition": { "type": "string" },
+        "thenStatements": { "type": "array", "items": { "$ref": "#/$defs/statement" } },
+        "elseStatements": { "type": "array", "items": { "$ref": "#/$defs/statement" } }
+      }
+    },
+    "evaluateStatement": {
+      "type": "object", "additionalProperties": false, "required": ["expression", "branches"],
+      "properties": {
+        "expression": { "type": "string" },
+        "branches": { "type": "array", "items": { "$ref": "#/$defs/evaluateBranch" } }
+      }
+    },
+    "evaluateBranch": {
+      "type": "object", "additionalProperties": false, "required": ["condition", "statements"],
+      "properties": {
+        "condition": { "type": "string" },
+        "statements": { "type": "array", "items": { "$ref": "#/$defs/statement" } }
+      }
+    },
+    "performStatement": {
+      "type": "object", "additionalProperties": false, "required": ["paragraph", "throughParagraph"],
+      "properties": {
+        "paragraph": { "$ref": "#/$defs/name" },
+        "throughParagraph": { "$ref": "#/$defs/nullableName" }
+      }
+    },
+    "callStatement": {
+      "type": "object", "additionalProperties": false, "required": ["target", "arguments"],
+      "properties": { "target": { "$ref": "#/$defs/name" }, "arguments": { "$ref": "#/$defs/stringList" } }
+    },
+    "db2Statement": {
+      "type": "object", "additionalProperties": false, "required": ["sql"],
+      "properties": { "sql": { "type": "string" } }
+    },
+    "fileOperationStatement": {
+      "type": "object", "additionalProperties": false, "required": ["operationType", "fileName"],
+      "properties": {
+        "operationType": { "enum": ["READ", "WRITE", "REWRITE", "DELETE", "OPEN", "CLOSE"] },
+        "fileName": { "$ref": "#/$defs/name" }
+      }
+    },
+    "controlFlowGraph": {
+      "type": "object", "additionalProperties": false, "required": ["adjacency"],
+      "properties": {
+        "adjacency": { "type": "object", "additionalProperties": {
+          "type": "array", "items": { "$ref": "#/$defs/name" }, "uniqueItems": true
+        } }
+      }
+    },
+    "executionContext": {
+      "type": "object", "additionalProperties": false, "required": ["variableScopes", "attributes"],
+      "properties": {
+        "variableScopes": { "type": "object", "additionalProperties": { "type": "string" } },
+        "attributes": { "type": "object" }
+      }
+    }
   }
 }
