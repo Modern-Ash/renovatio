@@ -40,6 +40,19 @@ class CobolExpressionParserTest {
     }
 
     @Test
+    void parse_shouldConsumeDoubledCobolStringDelimiters() {
+        LiteralExpression apostrophe = assertInstanceOf(LiteralExpression.class,
+                CobolExpressionParser.parse("'DON''T'"));
+        LiteralExpression quote = assertInstanceOf(LiteralExpression.class,
+                CobolExpressionParser.parse("\"A\"\"B\""));
+
+        assertEquals("DON'T", apostrophe.value());
+        assertEquals("A\"B", quote.value());
+        assertEquals(8, apostrophe.sourceSpan().endColumn());
+        assertEquals(6, quote.sourceSpan().endColumn());
+    }
+
+    @Test
     void parse_shouldFailClosedOnUnsupportedOrMalformedInput() {
         assertThrows(CobolExpressionParser.ParseException.class,
                 () -> CobolExpressionParser.parse("A ** B"));

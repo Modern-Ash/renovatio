@@ -141,7 +141,7 @@ public final class CobolExpressionParser {
 
     private SourceSpan span(Token token) {
         int start = token.offset() + 1;
-        return new SourceSpan(sourceName, 1, start, 1, start + Math.max(0, token.lexeme().length() - 1));
+        return new SourceSpan(sourceName, 1, start, 1, start + Math.max(0, token.sourceLength() - 1));
     }
 
     private static List<Token> tokenize(String source) {
@@ -163,20 +163,34 @@ public final class CobolExpressionParser {
                 default -> null;
             };
             if (symbol != null) {
-                result.add(new Token(symbol, String.valueOf(c), index++));
+                result.add(new Token(symbol, String.valueOf(c), index++, 1));
                 continue;
             }
             if (c == '\'' || c == '"') {
                 int start = index++;
                 char quote = c;
-                while (index < source.length() && source.charAt(index) != quote) {
+                StringBuilder value = new StringBuilder();
+                boolean closed = false;
+                while (index < source.length()) {
+                    char current = source.charAt(index);
+                    if (current != quote) {
+                        value.append(current);
+                        index++;
+                        continue;
+                    }
+                    if (index + 1 < source.length() && source.charAt(index + 1) == quote) {
+                        value.append(quote);
+                        index += 2;
+                        continue;
+                    }
                     index++;
+                    closed = true;
+                    break;
                 }
-                if (index >= source.length()) {
+                if (!closed) {
                     throw new ParseException("unterminated string literal", start);
                 }
-                result.add(new Token(TokenType.STRING, source.substring(start + 1, index), start));
-                index++;
+                result.add(new Token(TokenType.STRING, value.toString(), start, index - start));
                 continue;
             }
             if (Character.isDigit(c)) {
@@ -189,7 +203,7 @@ public final class CobolExpressionParser {
                 if (number.chars().filter(ch -> ch == '.').count() > 1 || number.endsWith(".")) {
                     throw new ParseException("invalid numeric literal", start);
                 }
-                result.add(new Token(TokenType.NUMBER, number, start));
+                result.add(new Token(TokenType.NUMBER, number, start, index - start));
                 continue;
             }
             if (Character.isLetter(c)) {
@@ -198,18 +212,18 @@ public final class CobolExpressionParser {
                         && (Character.isLetterOrDigit(source.charAt(index)) || source.charAt(index) == '-')) {
                     index++;
                 }
-                result.add(new Token(TokenType.IDENTIFIER, source.substring(start, index), start));
+                result.add(new Token(TokenType.IDENTIFIER, source.substring(start, index), start, index - start));
                 continue;
             }
             throw new ParseException("unsupported character '" + c + "'", index);
         }
-        result.add(new Token(TokenType.END, "", source.length()));
+        result.add(new Token(TokenType.END, "", source.length(), 0));
         return List.copyOf(result);
     }
 
     private enum TokenType { NUMBER, STRING, IDENTIFIER, PLUS, MINUS, STAR, SLASH, LEFT_PAREN, RIGHT_PAREN, END }
 
-    private record Token(TokenType type, String lexeme, int offset) {}
+    private record Token(TokenType type, String lexeme, int offset, int sourceLength) {}
 
     public static final class ParseException extends IllegalArgumentException {
         private final int offset;

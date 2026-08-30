@@ -25,7 +25,7 @@ class SimpleCobolIrParserDataModelTest {
                 01 WS-AMOUNT PIC S9(7)V99 COMP-3.
                 01 WS-STATUS PIC X.
                    88 STATUS-ACTIVE VALUE 'A'.
-                   88 STATUS-CLOSED VALUES 'C' 'X'.
+                   88 STATUS-CLOSED VALUES 'C', 'X'.
                    88 STATUS-KNOWN VALUE 'A' THRU 'C'.
                    88 STATUS-OVERLAP VALUE 'B' THRU 'Z'.
                 01 WS-COUNT PIC 9(4) COMP.
@@ -51,6 +51,8 @@ class SimpleCobolIrParserDataModelTest {
         assertEquals("WS-STATUS", status.level88Conditions().get(0).parentDataName());
         assertEquals(Level88Value.exact("A"), status.level88Conditions().get(0).values().get(0));
         assertEquals(2, status.level88Conditions().get(1).values().size());
+        assertEquals(Level88Value.exact("C"), status.level88Conditions().get(1).values().get(0));
+        assertEquals(Level88Value.exact("X"), status.level88Conditions().get(1).values().get(1));
         assertEquals(Level88Value.range("A", "C"), status.level88Conditions().get(2).values().get(0));
         assertEquals(Level88Value.range("B", "Z"), status.level88Conditions().get(3).values().get(0));
 
@@ -58,6 +60,25 @@ class SimpleCobolIrParserDataModelTest {
         assertEquals("STATUS-OVERLAP", overlapping.name());
         assertTrue(items.get("WS-COUNT").level88Conditions().isEmpty());
         assertEquals(PicType.Usage.COMP, items.get("WS-COUNT").picType().usage());
+    }
+
+    @Test
+    void parse_shouldTreatCommasAsLevel88SeparatorsRatherThanValues() {
+        String cobol = """
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-CODE PIC 9.
+                   88 VALID-CODE VALUES 1, 2, 3.
+                PROCEDURE DIVISION.
+                MAIN.
+                    GOBACK.
+                """;
+
+        var values = new SimpleCobolIrParser().parse(cobol).getDataItems().get(0)
+                .level88Conditions().get(0).values();
+
+        assertEquals(java.util.List.of(
+                Level88Value.exact("1"), Level88Value.exact("2"), Level88Value.exact("3")), values);
     }
 
     @Test
