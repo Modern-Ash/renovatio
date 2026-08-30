@@ -26,6 +26,12 @@ public class SimpleCobolIrParser {
 
     private static final Pattern PROGRAM_ID_PATTERN = Pattern.compile("PROGRAM-ID\\.\\s*([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern DATA_ITEM_PATTERN = Pattern.compile("(?m)^\\s*(0[1-9]|[1-4][0-9])\\s+([A-Z0-9-]+)(?:\\s+REDEFINES\\s+([A-Z0-9-]+))?\\s+PIC\\s+([^.]+)\\.");
+    private static final Pattern LEVEL_88_PATTERN = Pattern.compile(
+            "(?m)^\\s*88\\s+([A-Z0-9-]+)\\s+VALUES?(?:\\s+(?:IS|ARE))?\\s+(.+)\\.",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern LEVEL_88_VALUE_PATTERN = Pattern.compile(
+            "(?:'([^']*)'|\"([^\"]*)\"|([^\\s]+))(?:\\s+THR(?:U|OUGH)\\s+(?:'([^']*)'|\"([^\"]*)\"|([^\\s]+)))?",
+            Pattern.CASE_INSENSITIVE);
     // Keep paragraph pattern for potential future use, but we'll prefer manual scan to avoid false positives
     @SuppressWarnings("unused")
     private static final Pattern PARAGRAPH_PATTERN = Pattern.compile(
@@ -206,6 +212,7 @@ public class SimpleCobolIrParser {
 
         Matcher matcher = DATA_ITEM_PATTERN.matcher(wsSection);
         Map<String, CobolDataItem> unique = new LinkedHashMap<>();
+        Map<String, Integer> declarationEnds = new LinkedHashMap<>();
         while (matcher.find()) {
             int level = Integer.parseInt(matcher.group(1));
             String name = matcher.group(2).toUpperCase(Locale.ROOT);
@@ -217,10 +224,63 @@ public class SimpleCobolIrParser {
             } else {
                 log.debug(Messages.WS_ITEM_DUPLICATE, name);
             }
-            unique.putIfAbsent(name, new CobolDataItem(name, pic, level, null, redefines, javaType));
+            if (!unique.containsKey(name)) {
+                unique.put(name, new CobolDataItem(name, pic, level, null, redefines, javaType,
+                        CobolTypeMapper.picType(pic), List.of()));
+                declarationEnds.put(name, matcher.end());
+            }
         }
+        attachLevel88Conditions(wsSection, unique, declarationEnds);
         log.debug(Messages.WS_TOTAL, unique.size());
         return new ArrayList<>(unique.values());
+    }
+
+    private void attachLevel88Conditions(String source, Map<String, CobolDataItem> items,
+                                         Map<String, Integer> declarationEnds) {
+        Matcher matcher = LEVEL_88_PATTERN.matcher(source);
+        while (matcher.find()) {
+            String parentName = null;
+            int closestDeclaration = -1;
+            for (Map.Entry<String, Integer> entry : declarationEnds.entrySet()) {
+                if (entry.getValue() < matcher.start() && entry.getValue() > closestDeclaration) {
+                    parentName = entry.getKey();
+                    closestDeclaration = entry.getValue();
+                }
+            }
+            if (parentName == null) {
+                continue;
+            }
+            List<Level88Value> values = parseLevel88Values(matcher.group(2));
+            if (values.isEmpty()) {
+                continue;
+            }
+            CobolDataItem parent = items.get(parentName);
+            List<Level88Condition> conditions = new ArrayList<>(parent.level88Conditions());
+            conditions.add(new Level88Condition(
+                    matcher.group(1).toUpperCase(Locale.ROOT), parentName, values));
+            items.put(parentName, new CobolDataItem(parent.name(), parent.picture(), parent.level(),
+                    parent.occurs(), parent.redefines(), parent.javaType(), parent.picType(), conditions));
+        }
+    }
+
+    private List<Level88Value> parseLevel88Values(String clause) {
+        List<Level88Value> values = new ArrayList<>();
+        Matcher matcher = LEVEL_88_VALUE_PATTERN.matcher(clause);
+        while (matcher.find()) {
+            String lower = firstNonNull(matcher.group(1), matcher.group(2), matcher.group(3));
+            String upper = firstNonNull(matcher.group(4), matcher.group(5), matcher.group(6));
+            values.add(upper == null ? Level88Value.exact(lower) : Level88Value.range(lower, upper));
+        }
+        return values;
+    }
+
+    private String firstNonNull(String... values) {
+        for (String value : values) {
+            if (value != null) {
+                return value;
+            }
+        }
+        return null;
     }
 
     private Map<String, CobolParagraph> extractParagraphs(String source) {
