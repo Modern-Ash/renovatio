@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renovatio.dev/schema/cobol-annotated-ir.v1.schema.json",
+  "title": "Renovatio annotated COBOL IR sidecar v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "baseIrVersion", "baseIrHash", "annotations"],
+  "properties": {
+    "schemaVersion": { "const": "cobol-annotated-ir.v1" },
+    "baseIrVersion": { "const": "cobol-ir.v1" },
+    "baseIrHash": { "$ref": "#/$defs/hash" },
+    "annotations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/annotation" }
+    }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "nonblank": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/nonblank" }
+    },
+    "nodeKind": {
+      "enum": ["DATA_ITEM", "LEVEL_88_CONDITION", "LEVEL_88_VALUE", "PARAGRAPH", "MOVE_STATEMENT", "COMPUTE_STATEMENT", "IF_STATEMENT", "EVALUATE_STATEMENT", "EVALUATE_BRANCH", "PERFORM_STATEMENT", "CALL_STATEMENT", "DB2_STATEMENT", "FILE_OPERATION_STATEMENT", "LITERAL_EXPRESSION", "DATA_REFERENCE_EXPRESSION", "UNARY_ARITHMETIC_EXPRESSION", "BINARY_ARITHMETIC_EXPRESSION", "COMPARISON_CONDITION", "BOOLEAN_CONDITION", "NEGATED_CONDITION", "LEVEL_88_CONDITION_REFERENCE"]
+    },
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["provider", "model", "promptId", "promptVersion", "outputSchemaVersion", "inputHash", "outputHash", "toolRunRef", "cacheDisposition"],
+      "properties": {
+        "provider": { "$ref": "#/$defs/nonblank" },
+        "model": { "$ref": "#/$defs/nonblank" },
+        "promptId": { "$ref": "#/$defs/nonblank" },
+        "promptVersion": { "$ref": "#/$defs/nonblank" },
+        "outputSchemaVersion": { "$ref": "#/$defs/nonblank" },
+        "inputHash": { "$ref": "#/$defs/hash" },
+        "outputHash": { "$ref": "#/$defs/hash" },
+        "toolRunRef": { "type": "string", "pattern": "^tool-[0-9]{8}t[0-9]{14}z$" },
+        "cacheDisposition": { "enum": ["HIT", "MISS"] }
+      }
+    },
+    "review": {
+      "oneOf": [
+        { "$ref": "#/$defs/proposedReview" },
+        { "$ref": "#/$defs/needsReview" },
+        { "$ref": "#/$defs/acceptedReview" },
+        { "$ref": "#/$defs/rejectedReview" }
+      ]
+    },
+    "proposedReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewState"],
+      "properties": { "reviewState": { "const": "PROPOSED" } }
+    },
+    "needsReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewState"],
+      "properties": {
+        "reviewState": { "const": "NEEDS_REVIEW" },
+        "assignedReviewer": { "$ref": "#/$defs/nonblank" }
+      }
+    },
+    "acceptedReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewState", "reviewedBy", "reviewedAt"],
+      "properties": {
+        "reviewState": { "const": "ACCEPTED" },
+        "reviewedBy": { "$ref": "#/$defs/nonblank" },
+        "reviewedAt": { "type": "string", "format": "date-time", "pattern": "Z$" }
+      }
+    },
+    "rejectedReview": {
+      "type": "object", "additionalProperties": false,
+      "required": ["reviewState", "reviewedBy", "reviewedAt"],
+      "properties": {
+        "reviewState": { "const": "REJECTED" },
+        "reviewedBy": { "$ref": "#/$defs/nonblank" },
+        "reviewedAt": { "type": "string", "format": "date-time", "pattern": "Z$" }
+      }
+    },
+    "annotationBase": {
+      "type": "object",
+      "required": ["annotationId", "nodeId", "nodeKind", "annotationFamily", "payload", "confidence", "provenance", "review"],
+      "properties": {
+        "annotationId": { "$ref": "#/$defs/hash" },
+        "nodeId": { "$ref": "#/$defs/hash" },
+        "nodeKind": { "$ref": "#/$defs/nodeKind" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "provenance": { "$ref": "#/$defs/provenance" },
+        "review": { "$ref": "#/$defs/review" }
+      }
+    },
+    "annotation": {
+      "oneOf": [
+        { "$ref": "#/$defs/domainNamingAnnotation" },
+        { "$ref": "#/$defs/controlFlowAnnotation" },
+        { "$ref": "#/$defs/dataIntentAnnotation" },
+        { "$ref": "#/$defs/unsupportedAnnotation" }
+      ]
+    },
+    "domainNamingAnnotation": {
+      "allOf": [
+        { "$ref": "#/$defs/annotationBase" },
+        { "type": "object", "additionalProperties": false,
+          "required": ["annotationId", "nodeId", "nodeKind", "annotationFamily", "payload", "confidence", "provenance", "review"],
+          "properties": {
+            "annotationId": { "$ref": "#/$defs/hash" }, "nodeId": { "$ref": "#/$defs/hash" }, "nodeKind": { "$ref": "#/$defs/nodeKind" },
+            "annotationFamily": { "const": "DOMAIN_NAMING" }, "payload": { "$ref": "#/$defs/domainNamingPayload" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 }, "provenance": { "$ref": "#/$defs/provenance" }, "review": { "$ref": "#/$defs/review" }
+          }
+        }
+      ]
+    },
+    "controlFlowAnnotation": {
+      "allOf": [
+        { "$ref": "#/$defs/annotationBase" },
+        { "type": "object", "additionalProperties": false,
+          "required": ["annotationId", "nodeId", "nodeKind", "annotationFamily", "payload", "confidence", "provenance", "review"],
+          "properties": {
+            "annotationId": { "$ref": "#/$defs/hash" }, "nodeId": { "$ref": "#/$defs/hash" }, "nodeKind": { "$ref": "#/$defs/nodeKind" },
+            "annotationFamily": { "const": "CONTROL_FLOW_PLAN" }, "payload": { "$ref": "#/$defs/controlFlowPayload" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 }, "provenance": { "$ref": "#/$defs/provenance" }, "review": { "$ref": "#/$defs/review" }
+          }
+        }
+      ]
+    },
+    "dataIntentAnnotation": {
+      "allOf": [
+        { "$ref": "#/$defs/annotationBase" },
+        { "type": "object", "additionalProperties": false,
+          "required": ["annotationId", "nodeId", "nodeKind", "annotationFamily", "payload", "confidence", "provenance", "review"],
+          "properties": {
+            "annotationId": { "$ref": "#/$defs/hash" }, "nodeId": { "$ref": "#/$defs/hash" }, "nodeKind": { "$ref": "#/$defs/nodeKind" },
+            "annotationFamily": { "const": "DATA_INTENT" }, "payload": { "$ref": "#/$defs/dataIntentPayload" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 }, "provenance": { "$ref": "#/$defs/provenance" }, "review": { "$ref": "#/$defs/review" }
+          }
+        }
+      ]
+    },
+    "unsupportedAnnotation": {
+      "allOf": [
+        { "$ref": "#/$defs/annotationBase" },
+        { "type": "object", "additionalProperties": false,
+          "required": ["annotationId", "nodeId", "nodeKind", "annotationFamily", "payload", "confidence", "provenance", "review"],
+          "properties": {
+            "annotationId": { "$ref": "#/$defs/hash" }, "nodeId": { "$ref": "#/$defs/hash" }, "nodeKind": { "$ref": "#/$defs/nodeKind" },
+            "annotationFamily": { "const": "UNSUPPORTED_EXPLANATION" }, "payload": { "$ref": "#/$defs/unsupportedPayload" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 }, "provenance": { "$ref": "#/$defs/provenance" }, "review": { "$ref": "#/$defs/review" }
+          }
+        }
+      ]
+    },
+    "domainNamingPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["suggestedName", "rationale"],
+      "properties": { "suggestedName": { "$ref": "#/$defs/nonblank" }, "rationale": { "$ref": "#/$defs/nonblank" }, "boundedContext": { "$ref": "#/$defs/nonblank" } }
+    },
+    "controlFlowPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["affectedNodeIds", "steps", "risks"],
+      "properties": {
+        "affectedNodeIds": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/hash" } },
+        "steps": { "$ref": "#/$defs/stringList" }, "risks": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "dataIntentPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["construction", "interpretation", "assumptions"],
+      "properties": {
+        "construction": { "enum": ["REDEFINES", "OCCURS_DEPENDING_ON"] },
+        "interpretation": { "$ref": "#/$defs/nonblank" }, "assumptions": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "unsupportedPayload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["construction", "explanation", "manualAction"],
+      "properties": {
+        "construction": { "$ref": "#/$defs/nonblank" }, "explanation": { "$ref": "#/$defs/nonblank" }, "manualAction": { "$ref": "#/$defs/nonblank" }
+      }
+    }
+  }
+}

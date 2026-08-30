@@ -1,8 +1,17 @@
 package org.shark.renovatio.provider.cobol.translation;
 
 import org.junit.jupiter.api.Test;
+import org.openrewrite.ExecutionContext;
+import org.openrewrite.Recipe;
+import org.openrewrite.SourceFile;
+import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
+import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipe;
+import org.shark.renovatio.provider.java.OpenRewriteRunResult;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -46,5 +55,31 @@ class CobolSemanticTranspilerTest {
 
         String enriched = transpiler.enrichServiceImplementation(JAVA_STUB, model);
         assertThat(enriched).contains("output.setCustomerName(\"JOHN\");");
+    }
+
+    @Test
+    void injectsValidatedAnnotatedContextWhilePreservingLegacyModelReference() {
+        CobolIntermediateModel model = new CobolIntermediateModelService().parse(COBOL_SAMPLE);
+        AnnotatedCobolModel sidecar = new AnnotatedCobolModel(AnnotatedCobolModel.SCHEMA_VERSION,
+                "cobol-ir.v1", "a".repeat(64), List.of());
+        AnnotatedCobolContext annotated = new AnnotatedCobolContext(model, sidecar);
+        CapturingRunner runner = new CapturingRunner();
+
+        new CobolSemanticTranspiler(runner).enrichServiceImplementation(JAVA_STUB, annotated);
+
+        CobolIntermediateModel legacyValue = runner.context.getMessage(PopulateCobolProcessRecipe.CONTEXT_KEY);
+        AnnotatedCobolContext annotatedValue = runner.context.getMessage(PopulateCobolProcessRecipe.ANNOTATED_CONTEXT_KEY);
+        assertThat(legacyValue).isSameAs(model);
+        assertThat(annotatedValue).isSameAs(annotated);
+    }
+
+    private static final class CapturingRunner extends OpenRewriteRunner {
+        private ExecutionContext context;
+
+        @Override
+        public OpenRewriteRunResult runRecipe(Recipe recipe, ExecutionContext ctx, List<SourceFile> sourceFiles) {
+            context = ctx;
+            return super.runRecipe(recipe, ctx, sourceFiles);
+        }
     }
 }

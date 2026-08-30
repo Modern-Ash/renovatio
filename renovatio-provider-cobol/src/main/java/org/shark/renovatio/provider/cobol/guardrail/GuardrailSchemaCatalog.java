@@ -13,6 +13,7 @@ public final class GuardrailSchemaCatalog {
 
     private static final Map<String, String> RESOURCES = Map.of(
             "cobol-ir.v1", "/schema/cobol-ir.v1.schema.json",
+            "cobol-annotated-ir.v1", "/schema/cobol-annotated-ir.v1.schema.json",
             "manual-action-item.v1", "/schema/manual-action-item.v1.schema.json");
 
     private final ObjectMapper objectMapper;

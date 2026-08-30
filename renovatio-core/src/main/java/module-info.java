@@ -1,6 +1,7 @@
 open module org.shark.renovatio.core {
     requires transitive org.shark.renovatio.shared;
     requires spring.context;
+    requires spring.core;
     requires spring.web;
     requires spring.beans;
     requires org.mapstruct;

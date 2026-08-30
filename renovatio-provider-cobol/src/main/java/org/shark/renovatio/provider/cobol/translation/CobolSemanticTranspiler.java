@@ -5,6 +5,7 @@ import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.Result;
 import org.openrewrite.SourceFile;
 import org.openrewrite.java.JavaParser;
+import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipe;
 import org.shark.renovatio.provider.java.OpenRewriteRunResult;
@@ -23,11 +24,24 @@ public class CobolSemanticTranspiler {
     }
 
     public String enrichServiceImplementation(String javaSource, CobolIntermediateModel model) {
+        return enrichServiceImplementation(javaSource, model, null);
+    }
+
+    public String enrichServiceImplementation(String javaSource, AnnotatedCobolContext annotatedContext) {
+        if (annotatedContext == null) return javaSource;
+        return enrichServiceImplementation(javaSource, annotatedContext.baseModel(), annotatedContext);
+    }
+
+    private String enrichServiceImplementation(String javaSource, CobolIntermediateModel model,
+                                                AnnotatedCobolContext annotatedContext) {
         if (javaSource == null || javaSource.isBlank() || model == null) {
             return javaSource;
         }
         ExecutionContext ctx = new InMemoryExecutionContext(Throwable::printStackTrace);
         ctx.putMessage(PopulateCobolProcessRecipe.CONTEXT_KEY, model);
+        if (annotatedContext != null && annotatedContext.baseModel() == model) {
+            ctx.putMessage(PopulateCobolProcessRecipe.ANNOTATED_CONTEXT_KEY, annotatedContext);
+        }
 
         JavaParser javaParser = JavaParser.fromJavaVersion()
                 .logCompilationWarningsAndErrors(false)
