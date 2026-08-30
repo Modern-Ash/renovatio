@@ -20,3 +20,13 @@
 - 2026-08-30T23:27:43.922084Z | work.clarified-advisory | questions=4 actor=project:owner
 - 2026-08-30T23:42:19.302128Z | work.clarified-advisory | questions=0 actor=project:owner
 - 2026-08-30T23:42:33.243410Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T23:42:47.088587Z | tool.prepared | run=tool-20260830t23421788144167z tool=repository operation=commit actor=project:agent
+- 2026-08-30T23:42:47.090825Z | tool.running | run=tool-20260830t23421788144167z actor=project:agent
+- 2026-08-30T23:42:47.114845Z | tool.completed | run=tool-20260830t23421788144167z exit-code=0
+- 2026-08-30T23:49:36.793792Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/residual-semantic-enrichment.md actor=project:agent
+- 2026-08-30T23:49:39.787170Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=planned
+- 2026-08-30T23:49:40.005248Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=planned
+- 2026-08-30T23:49:40.233279Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=planned
+- 2026-08-30T23:49:40.453694Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=planned
+- 2026-08-30T23:49:40.674632Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=planned
+- 2026-08-30T23:49:44.367543Z | work.transitioned | from=clarified to=planned actor=project:agent
