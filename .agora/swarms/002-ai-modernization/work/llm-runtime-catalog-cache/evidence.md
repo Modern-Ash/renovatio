@@ -1,6 +1,6 @@
 ---
 schema: "agora/evidence/v2"
-results: ["success","failure","success","success","success","success","success","success","failure","success","success","success"]
+results: ["success","failure","success","success","success","success","success","success","failure","success","success","success","success"]
 ---
 
 # Evidence
@@ -19,3 +19,4 @@ results: ["success","failure","success","success","success","success","success",
 | test | success | repo://docs/reports/llm-runtime-cache-authority-loader-20260830.md | ce7088dfea3c5687c6663e1063040c9aa9215448de4885efa7a90d115e2164de | project:agent | 2026-08-30T19:26:14.408701Z |
 | cache-promotion | success | repo://docs/reports/llm-cache-promotion-f13b4bf9-20260830.md | ee68d1a1ab23e698a7aec92e8f95e776f2df3a75656053679ef61a1b16ad88c2 | project:owner | 2026-08-30T19:35:32.200340Z |
 | integration | success | repo://docs/reports/llm-committed-cache-hit-20260830.md | 29435007df67449c6fed0e2db677ce8eca0bd788e08ea4f24ebf1cc76c911bc9 | project:agent | 2026-08-30T19:38:12.808268Z |
+| test | success | repo://docs/reports/llm-post-promotion-full-reactor-20260830.md | f7a1c85915f4cc4c743b9d45728219a64d8f31a4aa1e533fa785b94c88cd451d | project:agent | 2026-08-30T19:41:24.557178Z |

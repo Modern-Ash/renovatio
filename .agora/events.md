@@ -132,3 +132,6 @@
 - 2026-08-30T19:37:50.937068Z | tool.prepared | run=tool-20260830t19371788129470z tool=llm-enrichment operation=enrich actor=project:agent
 - 2026-08-30T19:37:50.940648Z | tool.running | run=tool-20260830t19371788129470z tool=llm-enrichment operation=enrich actor=project:agent
 - 2026-08-30T19:37:51.257541Z | tool.completed | run=tool-20260830t19371788129470z tool=llm-enrichment operation=enrich actor=project:agent
+- 2026-08-30T19:40:04.081177Z | tool.prepared | run=tool-20260830t19401788129604z tool=repository operation=commit actor=project:agent
+- 2026-08-30T19:40:04.083288Z | tool.running | run=tool-20260830t19401788129604z tool=repository operation=commit actor=project:agent
+- 2026-08-30T19:40:04.096378Z | tool.completed | run=tool-20260830t19401788129604z tool=repository operation=commit actor=project:agent

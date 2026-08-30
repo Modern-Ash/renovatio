@@ -96,3 +96,8 @@
 - 2026-08-30T19:37:51.257873Z | tool.completed | run=tool-20260830t19371788129470z exit-code=0
 - 2026-08-30T19:38:04.746989Z | artifact.added | kind=test-report uri=repo://docs/reports/llm-committed-cache-hit-20260830.md actor=project:agent
 - 2026-08-30T19:38:12.808501Z | evidence.added | id=evidence-000012 type=integration result=success revision=1 actor=project:agent
+- 2026-08-30T19:40:04.081656Z | tool.prepared | run=tool-20260830t19401788129604z tool=repository operation=commit actor=project:agent
+- 2026-08-30T19:40:04.083553Z | tool.running | run=tool-20260830t19401788129604z actor=project:agent
+- 2026-08-30T19:40:04.096732Z | tool.completed | run=tool-20260830t19401788129604z exit-code=0
+- 2026-08-30T19:41:24.340716Z | artifact.added | kind=test-report uri=repo://docs/reports/llm-post-promotion-full-reactor-20260830.md actor=project:agent
+- 2026-08-30T19:41:24.557431Z | evidence.added | id=evidence-000013 type=test result=success revision=1 actor=project:agent
