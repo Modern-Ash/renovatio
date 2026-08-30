@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renovatio.dev/schema/cobol-ir.v1.schema.json",
+  "title": "Renovatio COBOL Intermediate Representation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "programId", "paragraphs", "dataItems"],
+  "properties": {
+    "schemaVersion": { "const": "cobol-ir.v1" },
+    "programId": { "type": "string", "minLength": 1 },
+    "paragraphs": { "type": "object" },
+    "dataItems": { "type": "array" },
+    "controlFlowGraph": { "type": "object" },
+    "executionContext": { "type": "object" },
+    "controlBreakPatterns": { "type": "array" },
+    "decomposedLogic": { "type": ["object", "null"] }
+  }
+}

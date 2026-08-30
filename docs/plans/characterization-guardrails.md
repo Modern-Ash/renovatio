@@ -15,8 +15,10 @@ the semantic expansion tracked by later issues.
 
 ### Step 1 — Pin the test environment and schemas
 
-- Pin Java 17, Maven 3.9.12, and an immutable digest for the selected Java 17 Maven container in the
-  CI workflow.
+- Pin Java 17, Maven 3.9.12, and the official multi-architecture container index
+  `docker.io/library/maven:3.9.12-eclipse-temurin-17@sha256:a0603aab698040d9c94259f379ec0487da1678560748d6c7508483034033c53d`
+  in the CI workflow. The approved Linux/amd64 manifest is
+  `sha256:22e5056a4cd1e09d0373044e1a8f5f47711878cb5803b11c97729b856571a52e`.
 - Add `cobol-ir.v1.schema.json` and `manual-action-item.v1.schema.json` in versioned schema resource
   directories owned by the COBOL IR and provider modules.
 - Add a schema resolver that rejects unknown versions and fails closed.
