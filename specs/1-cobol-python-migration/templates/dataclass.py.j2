@@ -1,0 +1,10 @@
+from dataclasses import dataclass
+
+{% for record in program.records %}
+@dataclass
+class {{ record.name|capitalize }}:
+{% for field in record.fields %}
+    {{ field.name|lower|replace('-','_') }}: {% if field.type=='numeric' %}float{% else %}str{% endif %}
+{% endfor %}
+
+{% endfor %}

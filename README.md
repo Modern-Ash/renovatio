@@ -284,6 +284,22 @@ If you introduce new POJOs, prefer Lombok annotations (e.g., `@Data`, or `@Gette
 - **[schemas/](./schemas/)** - JSON schemas for configuration validation
 
 ### Planning & Specifications
+
+**Start here for Spec-Driven Development (SDD) in Renovatio:**
+- **[docs/SPEC_DRIVEN_DEVELOPMENT.md](./docs/SPEC_DRIVEN_DEVELOPMENT.md)** - 🎯 Complete guide to spec-driven development in Renovatio (Java/Spring Boot/Maven)
+  - Workflow (4 phases: Specification, Design, Implementation, Validation)
+  - Constitutional compliance (5 core principles)
+  - Real examples and patterns
+  - Test-first development with JUnit 5
+  - MCP tool design and exposure
+
+**Additional Resources:**
+- **[.specify/README.md](./.specify/README.md)** - SDD framework overview and quick start
+- **[.specify/memory/constitution.md](./.specify/memory/constitution.md)** - Renovatio SDD principles and governance
+- **[.specify/memory/jira-mapping.md](./.specify/memory/jira-mapping.md)** - Example epic mapping (Java Recipe Framework)
+- **[SDD_CHANGES_SUMMARY.md](./SDD_CHANGES_SUMMARY.md)** - Summary of SDD adaptation to Renovatio stack
+
+**Legacy Spec Kit Documentation** (in Spanish, original framework):
 - **[docs/specs/INDEX.md](./docs/specs/INDEX.md)** - 📚 Índice central de especificaciones y guías Spec Kit
 - **[docs/SPEC-KIT-QUICK-START.md](./docs/SPEC-KIT-QUICK-START.md)** - ⚡ Guía rápida: Empieza en 5 minutos
 - **[docs/EXPLICACION-SPEC-KIT.md](./docs/EXPLICACION-SPEC-KIT.md)** - 📖 Qué es @github/spec-kit y cómo mejora Renovatio

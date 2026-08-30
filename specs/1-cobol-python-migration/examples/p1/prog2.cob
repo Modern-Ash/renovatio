@@ -1,0 +1,13 @@
+* Sample COBOL program 2 - with REDEFINES
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SAMPLE2.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 RECORD-A.
+          05 FIELD1 PIC X(5).
+          05 FIELD2 PIC 9(5).
+       01 RECORD-B REDEFINES RECORD-A.
+          05 FIELD1B PIC X(3).
+       PROCEDURE DIVISION.
+       STOP RUN.
+

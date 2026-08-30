@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP Migration Tool Schema",
+  "type": "object",
+  "properties": {
+    "input": {
+      "type": "object",
+      "properties": {
+        "artifacts": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Rutas a archivos fuente COBOL y copybooks"
+        },
+        "options": {
+          "type": "object",
+          "properties": {
+            "target_python_version": { "type": "string" },
+            "encoding": { "type": "string", "default": "CP037" },
+            "include_copybooks": { "type": "boolean", "default": true }
+          }
+        }
+      },
+      "required": ["artifacts"]
+    },
+    "output": {
+      "type": "object",
+      "properties": {
+        "artifacts": { "type": "array", "items": { "type": "string" } },
+        "report": { "type": "string", "description": "Ruta al informe de migración" }
+      },
+      "required": ["artifacts","report"]
+    }
+  },
+  "required": ["input","output"]
+}
+

@@ -1,7 +1,8 @@
 package org.shark.renovatio.mcp.server.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Objects;
@@ -9,13 +10,20 @@ import java.util.Objects;
 /**
  * Wrapper for tool execution results returned to MCP clients.
  */
-public record ToolCallResult(@JsonProperty("content") List<TextContent> content,
-                             @JsonProperty("structuredContent") Object structuredContent,
-                             @JsonProperty("isError") boolean isError) {
+@Data
+@NoArgsConstructor
+public class ToolCallResult {
+    @JsonProperty("content")
+    private List<TextContent> content;
+    @JsonProperty("structuredContent")
+    private Object structuredContent;
+    @JsonProperty("isError")
+    private boolean isError;
 
-    @JsonCreator
-    public ToolCallResult {
-        content = Objects.requireNonNullElse(content, List.of(new TextContent("")));
+    public ToolCallResult(List<TextContent> content, Object structuredContent, boolean isError) {
+        this.content = Objects.requireNonNullElse(content, List.of(new TextContent("")));
+        this.structuredContent = structuredContent;
+        this.isError = isError;
     }
 
     public static ToolCallResult ok(String summary, Object structured) {

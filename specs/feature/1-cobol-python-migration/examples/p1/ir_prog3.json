@@ -1,0 +1,6 @@
+{
+  "programs": [
+    {"name": "prog3", "io_definitions": [ {"name":"IN-FILE","type":"SEQUENTIAL_FILE","record_layout":[{"name":"NAME","picture":"X(20)"},{"name":"VALUE","picture":"9(5)"}]} ] }
+  ]
+}
+

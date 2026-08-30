@@ -1,0 +1,271 @@
+═══════════════════════════════════════════════════════════════════════════════
+  RENOVATIO SPEC-DRIVEN DEVELOPMENT (SDD) - QUICK REFERENCE
+═══════════════════════════════════════════════════════════════════════════════
+
+🎯 WHAT IS SDD?
+───────────────────────────────────────────────────────────────────────────────
+A structured 4-phase workflow for building features:
+  1. SPECIFICATION   - Write WHAT you're building (user stories, requirements)
+  2. DESIGN         - Design HOW you'll build it (data model, API contracts)
+  3. IMPLEMENTATION - Code using TEST-FIRST approach (tests before code)
+  4. VALIDATION     - Verify it meets spec and constitutional compliance
+
+
+📦 RENOVATIO STACK
+───────────────────────────────────────────────────────────────────────────────
+  Language:     Java 17+
+  Framework:    Spring Boot 3.x
+  Build:        Maven
+  Testing:      JUnit 5, RestAssured, TestContainers
+  API:          REST (OpenAPI/Swagger) + MCP (JSON-RPC 2.0)
+  Database:     JPA/Hibernate, PostgreSQL/DB2, Flyway migrations
+  Modules:      renovatio-core, renovatio-provider-*, renovatio-shared,
+                renovatio-web, renovatio-mcp-server
+
+
+🚀 QUICK START
+───────────────────────────────────────────────────────────────────────────────
+
+1. Create feature branch:
+   $ bash .specify/scripts/bash/create-new-feature.sh "Your feature description"
+   → Creates: specs/005-feature-name/spec.md
+
+2. Write specification (user stories, requirements):
+   $ vim specs/005-feature-name/spec.md
+
+3. Plan design (data model, API contracts):
+   $ (outputs: research.md, data-model.md, contracts/, plan.md)
+
+4. Implement test-first:
+   a) Write failing tests in src/test/java/*Test.java
+   b) Implement code to make tests pass
+   c) Add observability (logging, metrics, error codes)
+   d) Run: mvn clean verify
+
+5. Verify compliance:
+   $ mvn clean verify
+   $ mvn dependency-check:check
+   $ mvn checkstyle:check
+
+
+📖 KEY DOCUMENTS
+───────────────────────────────────────────────────────────────────────────────
+  
+  Master Guide:
+  • docs/SPEC_DRIVEN_DEVELOPMENT.md        - Complete SDD tutorial (2000+ lines)
+  
+  Framework:
+  • .specify/README.md                     - SDD framework overview
+  • .specify/memory/constitution.md        - Core principles (5 gates)
+  • .specify/memory/jira-mapping.md        - Example epic with tasks
+  
+  Templates:
+  • .specify/templates/spec-template.md    - Feature specification
+  • .specify/templates/plan-template.md    - Implementation plan
+  • .specify/templates/tasks-template.md   - Task breakdown
+  
+  Reference:
+  • SDD_CHANGES_SUMMARY.md                 - What changed from TravelCBooster
+  • SDD_QUICK_REFERENCE.txt                - This file
+
+
+✅ FIVE CORE PRINCIPLES (CONSTITUTIONAL GATES)
+───────────────────────────────────────────────────────────────────────────────
+
+1. MODULE & PACKAGE FIRST
+   ✓ Code goes into appropriate Maven module
+   ✓ All modules have clear interfaces and Javadoc
+   ✓ Modules follow: renovatio-provider-*, renovatio-shared, renovatio-web, etc.
+
+2. TEST-FIRST (NON-NEGOTIABLE)
+   ✓ Write tests BEFORE implementation
+   ✓ JUnit 5 unit tests in src/test/java/*Test.java
+   ✓ RestAssured integration tests in src/test/java/*IntegrationTest.java
+   ✓ Tests must FAIL before implementation
+
+3. API / CONTRACT-FIRST
+   ✓ OpenAPI/Swagger specs for REST endpoints
+   ✓ JSON-RPC 2.0 schemas for MCP tools
+   ✓ Schemas defined BEFORE endpoint implementation
+
+4. OBSERVABILITY & ERROR HANDLING
+   ✓ Structured logging with @Slf4j + MDC correlation IDs
+   ✓ Documented error codes (enum classes)
+   ✓ Spring Boot Actuator metrics
+   ✓ Audit trail for all mutations
+
+5. VERSIONING & BACKWARD COMPATIBILITY
+   ✓ Semantic versioning in pom.xml (MAJOR.MINOR.PATCH)
+   ✓ Breaking changes require MAJOR version bump
+   ✓ Migration plans documented for breaking changes
+
+
+🛠️ TOOLS & SCRIPTS
+───────────────────────────────────────────────────────────────────────────────
+
+Create feature:
+  $ bash .specify/scripts/bash/create-new-feature.sh "Description"
+
+Maven build:
+  $ mvn clean package              # Build + tests
+  $ mvn test                       # Unit tests only
+  $ mvn verify                     # Unit + integration tests
+  $ mvn dependency-check:check     # CVE scanning
+  $ mvn checkstyle:check           # Code style
+
+Git workflow:
+  $ git checkout -b 005-my-feature
+  $ (write spec, plan, implement)
+  $ git commit -m "feat(module): description"
+  $ git push origin 005-my-feature
+
+
+📊 EXAMPLE: COMPLETE WORKFLOW
+───────────────────────────────────────────────────────────────────────────────
+
+Feature: COBOL to Java Migration Tool
+
+Step 1: Create feature
+  $ bash .specify/scripts/bash/create-new-feature.sh \
+    --short-name "cobol-migration" \
+    "Implement automated COBOL to Java migration"
+  → Branch: 005-cobol-migration
+  → Spec:   specs/005-cobol-migration/spec.md
+
+Step 2: Write specification
+  Spec includes:
+  • User Story 1 (P1): Parse COBOL → IR
+  • User Story 2 (P2): Generate Java from IR
+  • User Story 3 (P3): Expose via MCP tool
+  • Requirements: FR-001, FR-002, etc.
+  • Success criteria: SC-001, SC-002, etc.
+
+Step 3: Plan design
+  Outputs:
+  • research.md         - Technical decisions
+  • data-model.md       - CobolProgram, JavaGeneration entities
+  • contracts/          - OpenAPI + MCP schemas
+  • plan.md            - Implementation strategy
+
+Step 4: Implement (test-first)
+  For User Story 1 (Parse COBOL):
+  
+  a) Write test (must fail):
+     @Test
+     public void parsesCobolProgram() {
+       CobolParser parser = new CobolParser();
+       CobolIR result = parser.parse(cobolCode);
+       assertThat(result).isNotNull();
+     }
+  
+  b) Implement code (make test pass):
+     @Component @Slf4j
+     public class CobolParser {
+       public CobolIR parse(String code) {
+         MDC.put("correlationId", UUID.randomUUID().toString());
+         log.info("Parsing COBOL");
+         return parseUsingProLeap(code);
+       }
+     }
+  
+  c) Add error codes:
+     public enum CobolParseError {
+       INVALID_SYNTAX("COBOL_001", "Invalid COBOL syntax");
+     }
+  
+  d) Run tests:
+     $ mvn test
+     $ mvn verify
+
+Step 5: Create PR
+  ✓ All tests passing
+  ✓ Constitution compliance verified
+  ✓ Code reviewed by 2+ maintainers
+
+
+📚 LEARNING PATH
+───────────────────────────────────────────────────────────────────────────────
+
+1. (5 min)   Read this file (SDD_QUICK_REFERENCE.txt)
+2. (10 min)  Read .specify/memory/constitution.md
+3. (15 min)  Read .specify/memory/jira-mapping.md (example epic)
+4. (20 min)  Read docs/SPEC_DRIVEN_DEVELOPMENT.md (master guide)
+5. (30 min)  Create your first feature (bash create-new-feature.sh)
+6. (1-2 hrs) Write spec for your feature
+
+
+💡 KEY CONCEPTS
+───────────────────────────────────────────────────────────────────────────────
+
+USER STORIES:
+  Independent slices of functionality:
+  • P1 (Critical):    MVP - must deliver value
+  • P2 (Important):   Significant feature addition
+  • P3 (Nice-to-have): Polish and enhancements
+  
+  Example:
+  • P1: Parser that converts COBOL to IR
+  • P2: Code generator that produces Java from IR
+  • P3: MCP tool to expose migration via agents
+
+TEST-FIRST:
+  1. Write test (must fail initially)
+  2. Run test → FAILS ❌
+  3. Implement code
+  4. Run test → PASSES ✅
+
+OBSERVABILITY:
+  Every feature MUST include:
+  • Logging:    @Slf4j + MDC with correlation IDs
+  • Error codes: Documented enum (e.g., MigrationError.PARSE_ERROR)
+  • Metrics:    Spring Boot Actuator counters/timers
+
+MCP COMPLIANCE:
+  If exposing tools:
+  • JSON-RPC 2.0 schema (input/output specs)
+  • Tool discovery endpoint
+  • Error mapping to standard codes
+  • Documentation and examples
+
+
+❓ TROUBLESHOOTING
+───────────────────────────────────────────────────────────────────────────────
+
+Q: Tests are passing before I implement anything
+A: You're writing tests AFTER code. Remember: write test, it FAILS, then implement.
+
+Q: MCP schema validation fails
+A: Validate JSON syntax: cat schemas/MyTool.json | jq .
+   Check required fields: name, description, inputSchema, outputSchema
+
+Q: Maven build failing due to missing dependency
+A: Add to pom.xml and rebuild: mvn clean install
+
+Q: Don't understand which module to put code in
+A: See docs/SPEC_DRIVEN_DEVELOPMENT.md → "Renovatio-Specific Considerations"
+
+
+🔗 MORE INFORMATION
+───────────────────────────────────────────────────────────────────────────────
+
+Documentation:
+  • docs/SPEC_DRIVEN_DEVELOPMENT.md     - Master guide (comprehensive)
+  • .specify/README.md                  - Framework overview
+  • README.md                           - Main project README
+
+Principles:
+  • .specify/memory/constitution.md     - SDD constitution (5 gates)
+
+Examples:
+  • .specify/memory/jira-mapping.md     - Java Recipe Framework epic example
+
+Stack Info:
+  • .github/copilot-instructions.md     - Renovatio technology stack
+  • .github/git-commit-instructions.md  - Commit message format
+  • ARCHITECTURE.md                     - System architecture
+
+
+═══════════════════════════════════════════════════════════════════════════════
+  Ready to start? Run:
+  $ bash .specify/scripts/bash/create-new-feature.sh "Your feature description"
+═══════════════════════════════════════════════════════════════════════════════

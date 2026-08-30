@@ -1,0 +1,13 @@
+# Virtualenv
+.venv/
+
+# Generated code
+generated/
+
+# Bytecode
+__pycache__/
+*.pyc
+
+# Local test artifacts
+tmp/
+

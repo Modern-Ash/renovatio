@@ -1,0 +1,11 @@
+* Sample COBOL program 1 - simple fields
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SAMPLE1.
+       DATA DIVISION.
+       WORKING-STORAGE SECTION.
+       01 FIELD1 PIC X(10).
+       01 AMOUNT PIC 9(7)V99.
+       PROCEDURE DIVISION.
+       DISPLAY 'HELLO'.
+       STOP RUN.
+
