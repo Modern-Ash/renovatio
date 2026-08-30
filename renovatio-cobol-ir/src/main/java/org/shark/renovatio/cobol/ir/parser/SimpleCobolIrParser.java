@@ -167,7 +167,8 @@ public class SimpleCobolIrParser {
             throw new IllegalArgumentException("source must not be null");
         }
         String programId = extractProgramId(source);
-        List<CobolDataItem> dataItems = extractDataItems(source);
+        List<CobolDiagnostic> diagnostics = new ArrayList<>();
+        List<CobolDataItem> dataItems = extractDataItems(source, diagnostics);
         log.debug(Messages.MODEL_DATA_ITEMS, dataItems.size());
         Map<String, CobolParagraph> paragraphs = extractParagraphs(source);
         ControlFlowGraph flowGraph = buildControlFlowGraph(paragraphs);
@@ -184,7 +185,8 @@ public class SimpleCobolIrParser {
                 .programId(programId)
                 .dataItems(dataItems)
                 .controlFlowGraph(flowGraph)
-                .executionContext(contextBuilder.build());
+                .executionContext(contextBuilder.build())
+                .diagnostics(diagnostics);
         paragraphs.values().forEach(builder::addParagraph);
         return builder.build();
     }
@@ -197,7 +199,7 @@ public class SimpleCobolIrParser {
         return Defaults.PROGRAM_ID;
     }
 
-    private List<CobolDataItem> extractDataItems(String source) {
+    private List<CobolDataItem> extractDataItems(String source, List<CobolDiagnostic> diagnostics) {
         // Limit search to WORKING-STORAGE SECTION block
         int wsStart = StringUtils.indexOfIgnoreCase(source, Sections.WORKING_STORAGE);
         if (wsStart < 0) {
@@ -219,6 +221,11 @@ public class SimpleCobolIrParser {
             String redefines = matcher.group(3) != null ? matcher.group(3).toUpperCase(Locale.ROOT) : null;
             String pic = matcher.group(4).trim();
             String javaType = CobolTypeMapper.picToJavaType(pic);
+            var picType = CobolTypeMapper.picType(pic);
+            if (picType == null) {
+                diagnostics.add(error("COBOL-PIC-001", "DATA_ITEM",
+                        "Unsupported or malformed PIC clause for " + name, source, wsStart + matcher.start(4)));
+            }
             if (!unique.containsKey(name)) {
                 log.debug(Messages.WS_ITEM_FOUND, level, name, pic);
             } else {
@@ -226,13 +233,55 @@ public class SimpleCobolIrParser {
             }
             if (!unique.containsKey(name)) {
                 unique.put(name, new CobolDataItem(name, pic, level, null, redefines, javaType,
-                        CobolTypeMapper.picType(pic), List.of()));
+                        picType, List.of()));
                 declarationEnds.put(name, matcher.end());
             }
         }
         attachLevel88Conditions(wsSection, unique, declarationEnds);
+        detectJavaNameCollisions(unique.values(), diagnostics, source);
         log.debug(Messages.WS_TOTAL, unique.size());
         return new ArrayList<>(unique.values());
+    }
+
+    private void detectJavaNameCollisions(Collection<CobolDataItem> items,
+                                          List<CobolDiagnostic> diagnostics, String source) {
+        Map<String, String> owners = new LinkedHashMap<>();
+        for (CobolDataItem item : items) {
+            String javaName = toJavaIdentifier(item.name());
+            String previous = owners.putIfAbsent(javaName, item.name());
+            if (previous != null && !previous.equals(item.name())) {
+                int offset = Math.max(0, source.toUpperCase(Locale.ROOT).indexOf(item.name()));
+                diagnostics.add(error("COBOL-NAME-001", "DATA_ITEM",
+                        "Java name collision: " + previous + " and " + item.name()
+                                + " both map to " + javaName, source, offset));
+            }
+        }
+    }
+
+    private String toJavaIdentifier(String cobolName) {
+        String[] parts = cobolName.toLowerCase(Locale.ROOT).split("-+");
+        StringBuilder result = new StringBuilder(parts[0]);
+        for (int i = 1; i < parts.length; i++) {
+            if (!parts[i].isEmpty()) {
+                result.append(Character.toUpperCase(parts[i].charAt(0))).append(parts[i].substring(1));
+            }
+        }
+        return result.toString();
+    }
+
+    private CobolDiagnostic error(String code, String family, String message, String source, int offset) {
+        int line = 1;
+        int column = 1;
+        for (int i = 0; i < Math.min(offset, source.length()); i++) {
+            if (source.charAt(i) == '\n') {
+                line++;
+                column = 1;
+            } else {
+                column++;
+            }
+        }
+        return new CobolDiagnostic(code, CobolDiagnostic.Severity.ERROR, family, message,
+                new SourceSpan("<memory>", line, column, line, column));
     }
 
     private void attachLevel88Conditions(String source, Map<String, CobolDataItem> items,

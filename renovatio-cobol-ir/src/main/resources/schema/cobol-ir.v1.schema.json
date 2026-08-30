@@ -4,7 +4,7 @@
   "title": "Renovatio COBOL Intermediate Representation v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schemaVersion", "programId", "paragraphs", "dataItems"],
+  "required": ["schemaVersion", "programId", "paragraphs", "dataItems", "diagnostics"],
   "properties": {
     "schemaVersion": { "const": "cobol-ir.v1" },
     "programId": { "$ref": "#/$defs/name" },
@@ -13,7 +13,8 @@
     "controlFlowGraph": { "$ref": "#/$defs/controlFlowGraph" },
     "executionContext": { "$ref": "#/$defs/executionContext" },
     "controlBreakPatterns": { "type": "array", "items": { "type": "object" } },
-    "decomposedLogic": { "type": ["object", "null"] }
+    "decomposedLogic": { "type": ["object", "null"] },
+    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
   },
   "$defs": {
     "name": { "type": "string", "minLength": 1 },
@@ -66,6 +67,28 @@
       "properties": {
         "value": { "type": "string" },
         "through": { "type": ["string", "null"] }
+      }
+    },
+    "diagnostic": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "severity", "constructionFamily", "message", "sourceSpan"],
+      "properties": {
+        "code": { "$ref": "#/$defs/name" },
+        "severity": { "enum": ["WARNING", "ERROR"] },
+        "constructionFamily": { "$ref": "#/$defs/name" },
+        "message": { "$ref": "#/$defs/name" },
+        "sourceSpan": { "$ref": "#/$defs/sourceSpan" }
+      }
+    },
+    "sourceSpan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "startLine", "startColumn", "endLine", "endColumn"],
+      "properties": {
+        "source": { "$ref": "#/$defs/name" },
+        "startLine": { "type": "integer", "minimum": 1 },
+        "startColumn": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 }
       }
     },
     "statement": {

@@ -73,4 +73,29 @@ class SimpleCobolIrParserDataModelTest {
         assertThrows(NullPointerException.class, () -> Level88Value.exact(null));
         assertThrows(NullPointerException.class, () -> Level88Value.range("A", null));
     }
+
+    @Test
+    void parse_shouldDiagnoseMalformedPicAndJavaNameCollisionsInSourceOrder() {
+        String cobol = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. INVALID-DATA.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 A-B PIC X.
+                01 A--B PIC 9.
+                01 BAD-PIC PIC ???.
+                PROCEDURE DIVISION.
+                MAIN.
+                    GOBACK.
+                """;
+
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(cobol);
+
+        assertEquals(2, model.getDiagnostics().size());
+        assertEquals("COBOL-NAME-001", model.getDiagnostics().get(0).code());
+        assertEquals("COBOL-PIC-001", model.getDiagnostics().get(1).code());
+        assertTrue(model.getDataItems().stream()
+                .filter(item -> item.name().equals("BAD-PIC"))
+                .allMatch(item -> item.picType() == null));
+    }
 }
