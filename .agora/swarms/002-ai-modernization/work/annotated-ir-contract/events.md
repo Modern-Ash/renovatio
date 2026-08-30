@@ -105,3 +105,9 @@
 - 2026-08-30T18:12:16.071796Z | tool.prepared | run=tool-20260830t18121788124336z tool=repository operation=commit actor=project:agent
 - 2026-08-30T18:12:16.073805Z | tool.running | run=tool-20260830t18121788124336z actor=project:agent
 - 2026-08-30T18:12:16.096956Z | tool.completed | run=tool-20260830t18121788124336z exit-code=0
+- 2026-08-30T18:14:54.358283Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-30T18:14:54.580099Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=accepted
+- 2026-08-30T18:14:54.793675Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=accepted
+- 2026-08-30T18:14:55.008499Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=accepted
+- 2026-08-30T18:14:55.229412Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=accepted
+- 2026-08-30T18:14:55.440265Z | work.transitioned | from=verifying to=completed actor=project:owner
