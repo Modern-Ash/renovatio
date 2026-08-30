@@ -33,14 +33,38 @@ class ManualActionItemWriterTest {
         JsonNode report = objectMapper.readTree(first.toFile());
         assertThat(report.path("schemaVersion").asText()).isEqualTo("manual-action-item.v1");
         assertThat(report.path("items").get(0).path("id").asText()).isEqualTo(alpha.id());
+        assertThat(report.path("items").get(0).path("failedGate").asText())
+                .isEqualTo("characterization");
+        assertThat(report.path("items").get(0).path("severity").asText()).isEqualTo("error");
+        assertThat(report.path("items").get(0).path("reviewStatus").asText()).isEqualTo("pending");
+    }
+
+    @Test
+    void redactsCredentialsAcrossSerializedFields() throws Exception {
+        Path reportPath = temporaryDirectory.resolve("redacted.json");
+        ManualActionItem item = item("mai-000000000000000000000003",
+                "Provider failed Authorization: Bearer secret-token and api_key=sk-example123456");
+
+        new ManualActionItemWriter(objectMapper).write(reportPath, List.of(item));
+
+        String report = Files.readString(reportPath);
+        assertThat(report)
+                .contains("[REDACTED]")
+                .doesNotContain("secret-token")
+                .doesNotContain("sk-example123456");
     }
 
     private static ManualActionItem item(String id) {
+        return item(id, "Irreducible control flow");
+    }
+
+    private static ManualActionItem item(String id, String reason) {
         return new ManualActionItem(id, "input.cob", "SAMPLE", "PROCEDURE", null,
                 "1000-PROC", "10:1-10:20", null, "sha256:source", "GO_TO",
-                "Irreducible control flow", "characterization", "surefire:test",
+                reason, GuardrailGate.CHARACTERIZATION, "surefire:test",
                 "No transformed code emitted", "Review the control-flow plan",
-                "Characterization tests preserve behavior", "error", "pending",
+                "Characterization tests preserve behavior", ManualActionSeverity.ERROR,
+                ManualActionReviewStatus.PENDING,
                 "sha256:schema", null, null, null, null, null);
     }
 }

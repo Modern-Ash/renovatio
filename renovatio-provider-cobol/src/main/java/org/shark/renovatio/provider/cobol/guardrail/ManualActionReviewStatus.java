@@ -2,16 +2,15 @@ package org.shark.renovatio.provider.cobol.guardrail;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
-/** The immutable admission order for modernization proposals. */
-public enum GuardrailGate {
-    SCHEMA("schema"),
-    COMPILATION("compilation"),
-    CHARACTERIZATION("characterization"),
-    REVIEW_ELIGIBILITY("review-eligibility");
+public enum ManualActionReviewStatus {
+    PENDING("pending"),
+    ACCEPTED("accepted"),
+    REJECTED("rejected"),
+    RESOLVED("resolved");
 
     private final String externalName;
 
-    GuardrailGate(String externalName) {
+    ManualActionReviewStatus(String externalName) {
         this.externalName = externalName;
     }
 

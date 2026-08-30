@@ -1,9 +1,11 @@
 package org.shark.renovatio.provider.cobol.guardrail;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,6 +22,7 @@ public final class ManualActionItemWriter {
             Path.of("build", "reports", "renovatio", "manual-action-items.json");
 
     private final ObjectMapper objectMapper;
+    private final SensitiveValueRedactor redactor = new SensitiveValueRedactor();
 
     public ManualActionItemWriter(ObjectMapper objectMapper) {
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper").copy()
@@ -35,7 +38,7 @@ public final class ManualActionItemWriter {
         ObjectNode root = objectMapper.createObjectNode();
         root.put("schemaVersion", SCHEMA_VERSION);
         ArrayNode entries = root.putArray("items");
-        items.stream().sorted().forEach(item -> entries.add(objectMapper.valueToTree(item)));
+        items.stream().sorted().forEach(item -> entries.add(redact(objectMapper.valueToTree(item))));
 
         Path temporary = Files.createTempFile(absoluteReport.getParent(), ".manual-action-items-", ".json");
         try {
@@ -45,5 +48,19 @@ public final class ManualActionItemWriter {
         } finally {
             Files.deleteIfExists(temporary);
         }
+    }
+
+    private JsonNode redact(JsonNode node) {
+        if (node.isTextual()) {
+            return TextNode.valueOf(redactor.redact(node.textValue()));
+        }
+        if (node.isObject()) {
+            node.fields().forEachRemaining(entry -> entry.setValue(redact(entry.getValue())));
+        } else if (node.isArray()) {
+            for (int index = 0; index < node.size(); index++) {
+                ((ArrayNode) node).set(index, redact(node.get(index)));
+            }
+        }
+        return node;
     }
 }
