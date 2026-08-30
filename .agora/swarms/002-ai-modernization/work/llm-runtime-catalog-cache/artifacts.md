@@ -51,3 +51,4 @@ artifact-kinds: ["spec","implementation-plan","threat-model","prompt-catalog","t
 | prompt-catalog | repo://renovatio-llm/src/main/resources/prompts/catalog-v1.yaml | 6c9215292199dfbceec677ea3b5e808a4f5948cafc400939d0ee5397a8811489 | project:agent | 2026-08-30T21:31:19.324535Z |
 | test-report | repo://docs/reports/llm-promotion-lifecycle-correction-20260830.md | df26d3dc5249d4c8d79e0623f019738b2ba2eb627a662a9666fe0e6da97d4a6c | project:agent | 2026-08-30T21:31:24.043964Z |
 | test-report | repo://docs/reports/llm-commit-d-fallback-verification-20260830.md | 0647e5b88f6c3252cd582987116adc118fc2464c8127e4b65e2eacb09decda55 | project:agent | 2026-08-30T21:31:27.501722Z |
+| test-report | repo://docs/reports/llm-runtime-tip-full-verification-20260830.md | f58b438a28721c82b05f10853266336eb2805692f3c8ca530214dff17154c862 | project:agent | 2026-08-30T21:34:35.516432Z |
