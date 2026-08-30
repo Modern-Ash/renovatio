@@ -10,7 +10,11 @@ Returns a list of field dicts: {name, pic, type, length, scale}
 import re
 from typing import List, Dict
 
-FIELD_RE = re.compile(r"^\s*\d+\s+([A-Z0-9\-]+)\s+PIC\s+([X9]\([0-9]+\)(?:V[0-9]+)?)\.?", re.I)
+FIELD_RE = re.compile(
+    r"^\s*\d+\s+([A-Z0-9\-]+)\s+PIC\s+"
+    r"([X9]\([0-9]+\)(?:V(?:9\([0-9]+\)|[0-9]+))?)\.?",
+    re.I,
+)
 
 
 def resolve_copybook(path: str) -> List[Dict]:
@@ -31,10 +35,10 @@ def resolve_copybook(path: str) -> List[Dict]:
                         scale = 0
                     else:
                         ftype = 'numeric'
-                        m2 = re.search(r"9\(([0-9]+)\)(?:V([0-9]+))?", pic)
+                        m2 = re.search(r"9\(([0-9]+)\)(?:V(?:9\(([0-9]+)\)|([0-9]+)))?", pic)
                         if m2:
                             length = int(m2.group(1))
-                            scale = int(m2.group(2)) if m2.group(2) else 0
+                            scale = int(m2.group(2)) if m2.group(2) else len(m2.group(3) or "")
                         else:
                             length = 0
                             scale = 0
@@ -56,4 +60,3 @@ if __name__ == '__main__':
     p.add_argument('--copybook', required=True)
     args = p.parse_args()
     print(resolve_copybook(args.copybook))
-

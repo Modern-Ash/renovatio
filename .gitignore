@@ -66,6 +66,10 @@ renovatio
 coverage/
 .nyc_output/
 
+# Python bytecode
+__pycache__/
+*.py[cod]
+
 # Environment variables
 .env
 .env.local

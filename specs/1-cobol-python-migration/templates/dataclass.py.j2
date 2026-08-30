@@ -1,10 +1,23 @@
 from dataclasses import dataclass
 
-{% for record in program.records %}
+{% set records = program.records | default([]) %}
+{% if records and records[0].fields is defined %}
+{% for record in records %}
 @dataclass
 class {{ record.name|capitalize }}:
 {% for field in record.fields %}
     {{ field.name|lower|replace('-','_') }}: {% if field.type=='numeric' %}float{% else %}str{% endif %}
+{% else %}
+    pass
 {% endfor %}
 
 {% endfor %}
+{% else %}
+@dataclass
+class {{ program.name|capitalize }}Record:
+{% for field in records %}
+    {{ field.name|lower|replace('-','_') }}: {% if field.type|default('') == 'numeric' or field.picture|default('')|upper|first == '9' %}float{% else %}str{% endif %}
+{% else %}
+    pass
+{% endfor %}
+{% endif %}

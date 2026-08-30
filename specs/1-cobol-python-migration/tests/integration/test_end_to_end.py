@@ -39,14 +39,11 @@ def parse_output_module(module_path):
 
 
 def test_end_to_end(tmp_path):
-    # ensure clean out
-    if os.path.exists(OUT):
-        for f in os.listdir(OUT):
-            os.remove(os.path.join(OUT,f))
-    os.makedirs(OUT, exist_ok=True)
+    out_dir = tmp_path / 'generated'
+    out_dir.mkdir()
 
     # run generator
-    cmd = ['python3', os.path.join(ROOT,'..','tools','generate.py'), '--ir', IR, '--templates', TEMPLATES, '--out', OUT]
+    cmd = ['python3', os.path.join(ROOT,'..','tools','generate.py'), '--ir', IR, '--templates', TEMPLATES, '--out', str(out_dir)]
     proc = subprocess.run(cmd, capture_output=True, text=True)
     assert proc.returncode == 0
     res = json.loads(proc.stdout)
@@ -59,4 +56,3 @@ def test_end_to_end(tmp_path):
     golden = read_golden(GOLDEN)
     assert out['FIELD1'] == golden['FIELD1']
     assert str(out['AMOUNT']) == golden['AMOUNT']
-

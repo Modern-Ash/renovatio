@@ -1,5 +1,18 @@
 # Generated from COBOL program: {{ program.name }}
 from decimal import Decimal
+import re
+
+
+def _coerce_value(value, picture):
+    """Preserve the decimal scale declared by a COBOL PIC clause."""
+    if value is None:
+        return None
+    scale_match = re.search(r"V(?:9\((\d+)\)|(\d+))", picture or "", re.IGNORECASE)
+    if not scale_match:
+        return value
+    scale = int(scale_match.group(1)) if scale_match.group(1) else len(scale_match.group(2))
+    quantum = Decimal(1).scaleb(-scale)
+    return Decimal(str(value)).quantize(quantum)
 
 
 def run_{{ program.name }}(input_record):
@@ -10,7 +23,7 @@ def run_{{ program.name }}(input_record):
     result = {}
 {% for field in program.records | default([]) %}
     # field: {{ field.name }} (picture: {{ field.picture | default('') }})
-    result['{{ field.name }}'] = input_record.get('{{ field.name }}')
+    result['{{ field.name }}'] = _coerce_value(input_record.get('{{ field.name }}'), '{{ field.picture | default('') }}')
 {% endfor %}
     return result
 
