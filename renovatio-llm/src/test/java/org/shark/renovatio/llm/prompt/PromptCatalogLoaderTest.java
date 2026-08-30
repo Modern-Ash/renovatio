@@ -37,13 +37,24 @@ class PromptCatalogLoaderTest {
         assertCode("PROMPT_FEW_SHOT_EMPTY", validEntry().replace(
                 "fewShot:\n  - input: {name: A}\n    output: {name: B}", "fewShot: []"));
         assertCode("PROMPT_SELECTOR_UNKNOWN", validEntry().replace("DOMAIN_NAMING", "UNKNOWN"));
+        assertCode("PROMPT_SYSTEM_EMPTY", validEntry().replace("system: Name the node.", "system: ''"));
+        assertCode("PROMPT_FEW_SHOT_INVALID", validEntry().replace("input: {name: A}", "input:"));
     }
 
     @Test
     void rejectsUnknownValidatorAndMissingResources() {
         assertCode("PROMPT_VALIDATOR_UNKNOWN", validEntry().replace("json-schema.v1", "unknown.v1"));
-        assertCode("PROMPT_SCHEMA_MISSING", validEntry().replace("schema.json", "missing.json"));
+        assertCode("PROMPT_VALIDATOR_UNKNOWN", validEntry().replace("[json-schema.v1]", "[]"));
+        assertCode("PROMPT_SCHEMA_UNVERSIONED", validEntry().replace("schema.v1.schema.json", "schema.json"));
+        assertCode("PROMPT_SCHEMA_MISSING", validEntry().replace("schema.v1.schema.json", "missing.v1.schema.json"));
         assertCode("PROMPT_FALLBACK_MISSING", validEntry().replace("fallback.yaml", "missing.yaml"));
+    }
+
+    @Test
+    void rejectsDuplicatePromptIds() {
+        PromptCatalogException exception = assertThrows(PromptCatalogException.class,
+                () -> loader.loadEntries(List.of(validEntry(), validEntry()), this::resourceExists));
+        assertEquals("PROMPT_ID_DUPLICATE", exception.code());
     }
 
     @Test
@@ -54,6 +65,8 @@ class PromptCatalogLoaderTest {
                 .replace("MANUAL_ACTION", "MODEL_OUTPUT"));
         assertFallbackCode("PROMPT_FALLBACK_ACTION_EMPTY", validFallback()
                 .replace("Review manually.", "''"));
+        assertFallbackCode("PROMPT_FALLBACK_DIAGNOSTIC_INVALID", validFallback()
+                .replace("LLM_MANUAL_REVIEW_REQUIRED", "manual-review"));
         assertFallbackCode("PROMPT_FALLBACK_INVALID", validFallback() + "unknown: true\n");
     }
 
@@ -65,9 +78,12 @@ class PromptCatalogLoaderTest {
 
     private void assertCode(String code, String yaml) {
         PromptCatalogException exception = assertThrows(PromptCatalogException.class,
-                () -> loader.loadEntry(yaml, resource -> resource.equals("schema.json")
-                        || resource.equals("fallback.yaml")));
+                () -> loader.loadEntry(yaml, this::resourceExists));
         assertEquals(code, exception.code());
+    }
+
+    private boolean resourceExists(String resource) {
+        return resource.equals("schema.v1.schema.json") || resource.equals("fallback.yaml");
     }
 
     private static String validEntry() {
@@ -78,7 +94,7 @@ class PromptCatalogLoaderTest {
                 fewShot:
                   - input: {name: A}
                     output: {name: B}
-                outputSchema: schema.json
+                outputSchema: schema.v1.schema.json
                 validators: [json-schema.v1]
                 fallback: fallback.yaml
                 """;

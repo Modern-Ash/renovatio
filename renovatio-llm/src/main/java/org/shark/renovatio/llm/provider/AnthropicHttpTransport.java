@@ -53,7 +53,7 @@ public final class AnthropicHttpTransport implements AnthropicTransport {
         }
     }
 
-    private String body(LlmRequest request, String model) {
+    String body(LlmRequest request, String model) {
         ObjectNode root = json.createObjectNode();
         root.put("model", model);
         root.put("max_tokens", 4096);

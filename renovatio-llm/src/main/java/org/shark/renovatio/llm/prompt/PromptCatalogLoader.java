@@ -19,6 +19,8 @@ public final class PromptCatalogLoader {
     public static final String INDEX_RESOURCE = "prompts/catalog-v1.yaml";
 
     private static final Pattern VERSIONED_ID = Pattern.compile("[a-z0-9]+(?:[.-][a-z0-9]+)*\\.v[1-9][0-9]*");
+    private static final Pattern VERSIONED_SCHEMA = Pattern.compile(
+            "(?:[a-z0-9.-]+/)*[a-z0-9]+(?:[.-][a-z0-9]+)*\\.v[1-9][0-9]*\\.schema\\.json");
     private static final Set<String> SELECTORS = Set.of(
             "DOMAIN_NAMING", "CONTROL_FLOW_PLAN", "DATA_INTENT.REDEFINES",
             "DATA_INTENT.OCCURS_DEPENDING_ON", "UNSUPPORTED_EXPLANATION");
@@ -57,8 +59,16 @@ public final class PromptCatalogLoader {
     }
 
     PromptCatalog loadEntry(String content, Predicate<String> resourceExists) {
+        return loadEntries(List.of(content), resourceExists);
+    }
+
+    PromptCatalog loadEntries(List<String> contents, Predicate<String> resourceExists) {
         try {
-            return validate(List.of(yaml.readValue(content, PromptDefinition.class)), resourceExists);
+            List<PromptDefinition> entries = new ArrayList<>();
+            for (String content : contents) {
+                entries.add(yaml.readValue(content, PromptDefinition.class));
+            }
+            return validate(entries, resourceExists);
         } catch (PromptCatalogException exception) {
             throw exception;
         } catch (IOException exception) {
@@ -76,12 +86,15 @@ public final class PromptCatalogLoader {
             require(entry.system() != null && !entry.system().isBlank(), "PROMPT_SYSTEM_EMPTY", "system is required");
             require(entry.fewShot() != null && !entry.fewShot().isEmpty(),
                     "PROMPT_FEW_SHOT_EMPTY", "fewShot must not be empty");
-            require(entry.fewShot().stream().allMatch(example -> example.input() != null && example.output() != null),
+            require(entry.fewShot().stream().allMatch(example -> example.input() != null
+                            && !example.input().isNull() && example.output() != null && !example.output().isNull()),
                     "PROMPT_FEW_SHOT_INVALID", "fewShot examples require input and output");
             require(entry.validators() != null && !entry.validators().isEmpty()
                             && entry.validators().stream().allMatch(VALIDATORS::contains),
                     "PROMPT_VALIDATOR_UNKNOWN", "Unknown or empty validators");
-            require(entry.outputSchema() != null && resourceExists.test(entry.outputSchema()),
+            require(entry.outputSchema() != null && VERSIONED_SCHEMA.matcher(entry.outputSchema()).matches(),
+                    "PROMPT_SCHEMA_UNVERSIONED", "Output schema resource must have a vN.schema.json suffix");
+            require(resourceExists.test(entry.outputSchema()),
                     "PROMPT_SCHEMA_MISSING", "Output schema resource is missing");
             require(entry.fallback() != null && resourceExists.test(entry.fallback()),
                     "PROMPT_FALLBACK_MISSING", "Fallback resource is missing");

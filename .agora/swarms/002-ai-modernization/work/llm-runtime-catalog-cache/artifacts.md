@@ -56,3 +56,5 @@ artifact-kinds: ["spec","implementation-plan","threat-model","prompt-catalog","t
 | spec | repo://docs/specs/llm-runtime-catalog-cache.md | cdee72dd3e537cf3cb836e27f32ae12ff2ae364d9db9c89c642db9e694cbd3a7 | project:owner | 2026-08-30T21:39:10.459821Z |
 | test-report | repo://docs/reports/llm-cache-promotion-f13b4bf9-20260830.md | 8cbda2762ed49a786a72ce13408769b31a15968f7b927eeafabeb8f17b84be6c | project:agent | 2026-08-30T21:39:10.832053Z |
 | test-report | repo://docs/reports/llm-committed-cache-hit-20260830.md | 6f49e6410484499e1807b330b0b415462dcc3639ae9fb57e0e3daaed1530fa58 | project:agent | 2026-08-30T21:39:11.165118Z |
+| consistency-report | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t21421788136944z.md | none | project:agent | 2026-08-30T21:42:24.259329Z |
+| test-report | repo://docs/reports/llm-catalog-provider-policy-correction-20260830.md | 88c2217315d95d17973db8001111feff6983651db47171960a02b53b71985db7 | project:agent | 2026-08-30T21:44:15.571823Z |

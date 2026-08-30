@@ -1,6 +1,7 @@
 package org.shark.renovatio.llm.provider;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -108,6 +109,17 @@ class ProviderRuntimeTest {
         assertEquals("value", AnthropicHttpTransport.decodeContent(JSON,
                 "{\"content\":[{\"text\":\"{\\\"result\\\":\\\"value\\\"}\"}]}" )
                 .path("result").textValue());
+    }
+
+    @Test
+    void anthropicRequestEnforcesTemperatureZeroAndDeterministicPolicy() throws Exception {
+        JsonNode body = JSON.readTree(new AnthropicHttpTransport().body(request(), "model"));
+
+        assertEquals("model", body.path("model").textValue());
+        assertEquals(4096, body.path("max_tokens").intValue());
+        assertEquals(0, body.path("temperature").intValue());
+        assertEquals("Return JSON", body.path("system").textValue());
+        assertEquals(3, body.path("messages").size());
     }
 
     private static LlmRequest request() {
