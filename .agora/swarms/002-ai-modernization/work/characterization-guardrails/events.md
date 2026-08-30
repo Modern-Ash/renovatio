@@ -29,3 +29,7 @@
 - 2026-08-30T16:01:00.132341Z | work.transitioned | from=planned to=implementing actor=project:agent
 - 2026-08-30T16:05:35.959557Z | artifact.added | kind=test-plan uri=repo://docs/test-plans/characterization-guardrails.md actor=project:agent
 - 2026-08-30T16:05:43.381253Z | evidence.added | id=evidence-000001 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-30T16:06:48.381329Z | tool.prepared | run=tool-20260830t16061788116808z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:06:48.383075Z | tool.running | run=tool-20260830t16061788116808z actor=project:agent
+- 2026-08-30T16:06:48.406189Z | tool.completed | run=tool-20260830t16061788116808z exit-code=0
+- 2026-08-30T16:07:33.851837Z | evidence.added | id=evidence-000002 type=test-report result=success revision=1 actor=project:agent
