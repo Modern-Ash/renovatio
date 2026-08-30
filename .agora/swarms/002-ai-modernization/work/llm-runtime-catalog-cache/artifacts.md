@@ -52,3 +52,7 @@ artifact-kinds: ["spec","implementation-plan","threat-model","prompt-catalog","t
 | test-report | repo://docs/reports/llm-promotion-lifecycle-correction-20260830.md | df26d3dc5249d4c8d79e0623f019738b2ba2eb627a662a9666fe0e6da97d4a6c | project:agent | 2026-08-30T21:31:24.043964Z |
 | test-report | repo://docs/reports/llm-commit-d-fallback-verification-20260830.md | 0647e5b88f6c3252cd582987116adc118fc2464c8127e4b65e2eacb09decda55 | project:agent | 2026-08-30T21:31:27.501722Z |
 | test-report | repo://docs/reports/llm-runtime-tip-full-verification-20260830.md | f58b438a28721c82b05f10853266336eb2805692f3c8ca530214dff17154c862 | project:agent | 2026-08-30T21:34:35.516432Z |
+| consistency-report | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t21381788136685z.md | none | project:agent | 2026-08-30T21:38:05.665231Z |
+| spec | repo://docs/specs/llm-runtime-catalog-cache.md | cdee72dd3e537cf3cb836e27f32ae12ff2ae364d9db9c89c642db9e694cbd3a7 | project:owner | 2026-08-30T21:39:10.459821Z |
+| test-report | repo://docs/reports/llm-cache-promotion-f13b4bf9-20260830.md | 8cbda2762ed49a786a72ce13408769b31a15968f7b927eeafabeb8f17b84be6c | project:agent | 2026-08-30T21:39:10.832053Z |
+| test-report | repo://docs/reports/llm-committed-cache-hit-20260830.md | 6f49e6410484499e1807b330b0b415462dcc3639ae9fb57e0e3daaed1530fa58 | project:agent | 2026-08-30T21:39:11.165118Z |

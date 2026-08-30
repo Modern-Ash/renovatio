@@ -4,7 +4,7 @@ Date: 2026-08-30
 
 ## Result
 
-After promotion commits A/B/C and manifest commit `d547e8f`, Agora invoked the exact canonical
+After promotion commits A/B/C and manifest Commit D `d547e8f`, Agora invoked the exact canonical
 identity previously used to create cache key
 `f13b4bf91f60efadf4c87977b54d162cb5a370384ec2d9f86c93cf43e3eeffc5`.
 
