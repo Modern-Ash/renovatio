@@ -16,13 +16,27 @@ public final class GovernedPromotionVerifier {
     private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
 
     public void verify(PromotionRepository repository, CommittedCacheArtifacts authority) {
+        if (authority.manifest().entries().isEmpty() && authority.index().entries().isEmpty()) {
+            return;
+        }
+        String commitD = repository.commitIntroducing(CommittedCacheArtifactsLoader.MANIFEST_PATH);
+        require(repository.changedPaths(commitD).equals(java.util.List.of(
+                CommittedCacheArtifactsLoader.MANIFEST_PATH)));
+        require(repository.isAncestor(commitD, repository.head()));
+        try {
+            VerifiedPromotionManifest manifestAtD = json.readValue(repository.read(commitD,
+                    CommittedCacheArtifactsLoader.MANIFEST_PATH), VerifiedPromotionManifest.class);
+            require(manifestAtD.equals(authority.manifest()));
+        } catch (IOException exception) {
+            throw new IllegalStateException("CACHE_PROMOTION_MANIFEST_INVALID", exception);
+        }
         for (var item : authority.manifest().entries().entrySet()) {
             String key = item.getKey();
             VerifiedPromotionManifest.Entry proof = item.getValue();
             String envelopePath = CommittedCacheIndexGenerator.CACHE_PREFIX + proof.repositoryPath();
             require(repository.isAncestor(proof.commitA(), proof.commitB()));
             require(repository.isAncestor(proof.commitB(), proof.commitC()));
-            require(repository.isAncestor(proof.commitC(), repository.head()));
+            require(repository.isAncestor(proof.commitC(), commitD));
             require(repository.changedPaths(proof.commitA()).contains(envelopePath));
             require(repository.changedPaths(proof.commitB()).contains(INDEX_PATH));
 

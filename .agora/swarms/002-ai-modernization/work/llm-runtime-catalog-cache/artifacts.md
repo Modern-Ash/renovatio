@@ -44,3 +44,10 @@ artifact-kinds: ["spec","implementation-plan","threat-model","prompt-catalog","t
 | test-report | repo://docs/reports/llm-cache-hit-evidence-correction-20260830.md | 90b4e6ce2b48645cb951f84ac2529394dc930a6d02f2375e5ab0304ea91cc060 | project:agent | 2026-08-30T20:09:41.301551Z |
 | spec | repo://docs/specs/llm-runtime-catalog-cache.md | 13096005cf34e691f8b2efb2ec9beb0d2e0b75e55974d8182d355c68dbcb6072 | project:owner | 2026-08-30T20:10:09.802510Z |
 | test-report | repo://docs/reports/llm-cache-hit-evidence-correction-v2-20260830.md | 766118790578a7ed2b5cb9b7f70539ec688e1c4b29baecc1461f44f1663907ef | project:agent | 2026-08-30T20:10:12.793254Z |
+| consistency-report | repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t20131788131609z.md | none | project:agent | 2026-08-30T20:13:29.760580Z |
+| spec | repo://docs/specs/llm-runtime-catalog-cache-v2.md | c4e3b4b666ca8af4cd89938c75381c1a4bcdf4f08a35a613fc3955aca078cc50 | project:owner | 2026-08-30T21:31:09.985098Z |
+| implementation-plan | repo://docs/plans/llm-runtime-catalog-cache-plan.md | 0f3092d55e8df4025ba0a6c69b4bd92a6aef0b833b919cce1febef0e38c51c14 | project:agent | 2026-08-30T21:31:13.043525Z |
+| threat-model | repo://docs/security/llm-runtime-threat-model.md | 38bf926381ad5c63f7ec0d846a6f8e8d3bf4fe191e3760c57d9049167d5fdeec | project:agent | 2026-08-30T21:31:16.026349Z |
+| prompt-catalog | repo://renovatio-llm/src/main/resources/prompts/catalog-v1.yaml | 6c9215292199dfbceec677ea3b5e808a4f5948cafc400939d0ee5397a8811489 | project:agent | 2026-08-30T21:31:19.324535Z |
+| test-report | repo://docs/reports/llm-promotion-lifecycle-correction-20260830.md | df26d3dc5249d4c8d79e0623f019738b2ba2eb627a662a9666fe0e6da97d4a6c | project:agent | 2026-08-30T21:31:24.043964Z |
+| test-report | repo://docs/reports/llm-commit-d-fallback-verification-20260830.md | 0647e5b88f6c3252cd582987116adc118fc2464c8127e4b65e2eacb09decda55 | project:agent | 2026-08-30T21:31:27.501722Z |

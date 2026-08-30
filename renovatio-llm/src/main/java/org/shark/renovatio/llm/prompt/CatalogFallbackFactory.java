@@ -20,7 +20,7 @@ public final class CatalogFallbackFactory {
         try {
             JsonNode template = YAML.readTree(runtime.resource(definition.fallback()));
             return YAML.createObjectNode()
-                    .put("diagnosticCode", failure.diagnosticCode())
+                    .put("diagnosticCode", template.path("diagnosticCode").asText())
                     .put("manualAction", template.path("manualAction").asText())
                     .set("deterministicResult", deterministicResult.deepCopy());
         } catch (IOException exception) {

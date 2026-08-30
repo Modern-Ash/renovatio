@@ -8,4 +8,5 @@ public interface PromotionRepository {
     boolean isAncestor(String ancestor, String descendant);
     byte[] read(String revision, String repositoryPath);
     List<String> changedPaths(String revision);
+    String commitIntroducing(String repositoryPath);
 }

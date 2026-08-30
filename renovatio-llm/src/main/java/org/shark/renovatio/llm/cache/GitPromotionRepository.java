@@ -29,6 +29,12 @@ public final class GitPromotionRepository implements PromotionRepository {
         return value.lines().filter(line -> !line.isBlank()).toList();
     }
 
+    @Override public String commitIntroducing(String repositoryPath) {
+        String commits = text("log", "--diff-filter=A", "--format=%H", "--", repositoryPath);
+        return commits.lines().filter(line -> !line.isBlank()).findFirst()
+                .orElseThrow(() -> new IllegalStateException("CACHE_PROMOTION_MANIFEST_COMMIT_MISSING"));
+    }
+
     private String text(String... arguments) {
         return new String(successful(arguments), StandardCharsets.UTF_8);
     }

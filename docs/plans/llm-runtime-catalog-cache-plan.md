@@ -2,7 +2,7 @@
 
 > GitHub issue: [#125](https://github.com/Modern-Ash/renovatio/issues/125)
 > Agora work: `ai-modernization/llm-runtime-catalog-cache`
-> Authoritative spec: `docs/specs/llm-runtime-catalog-cache.md`
+> Authoritative spec: `docs/specs/llm-runtime-catalog-cache-v2.md`
 
 ## Delivery order
 

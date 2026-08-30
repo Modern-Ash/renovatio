@@ -108,7 +108,7 @@ class GovernedEnrichmentServiceTest {
 
         assertEquals(ResultDisposition.DETERMINISTIC_FALLBACK, result.envelope().resultDisposition());
         assertEquals("OUTPUT_SCHEMA_INVALID", result.envelope().failureCategory());
-        assertEquals("LLM_OUTPUT_SCHEMA_INVALID",
+        assertEquals("LLM_MANUAL_DOMAIN_NAMING_REQUIRED",
                 result.envelope().sanitizedResult().path("diagnosticCode").textValue());
         assertFalse(result.envelope().sanitizedResult().toString().contains("missing-rationale"));
     }

@@ -22,7 +22,7 @@ manifest.
 | Model nondeterminism | Temperature zero, content-addressed cache, schema/semantic validators | Conflict or invalid output becomes deterministic fallback |
 | Retry amplification | Three total attempts; narrow retry classes; capped full jitter | Non-retryable errors fail immediately |
 | Malicious/oversized output | HTTP/body limits, strict JSON decoding/schema, bounded diagnostics | Reject without logging raw response |
-| Forged promotion | Three-commit workflow, owner approval, Agora evidence, build-verified digest-bound manifest | Build fails and runtime rejects entry |
+| Forged promotion | Four-commit A/B/C/D workflow, owner approval, Agora evidence, and a manifest-only Commit D whose content and ancestry are verified | Build fails and runtime rejects entry |
 | Dependency boundary violation | Maven dependency tests/review; IR and recipe modules cannot depend on provider/HTTP code | Build/review blocks promotion |
 | Quarantine reuse | Separate non-lookup path and `INVALID_ATTRIBUTION` disposition | Loader rejects quarantined artifacts |
 

@@ -184,9 +184,10 @@ The closed failure-category vocabulary is `PROVIDER_TIMEOUT`, `PROVIDER_RATE_LIM
 `PROVIDER_SERVER_ERROR`, `PROVIDER_AUTHENTICATION`, `PROVIDER_REQUEST_REJECTED`,
 `PROVIDER_CONFIGURATION_INVALID`,
 `PROVIDER_UNAVAILABLE`, `OUTPUT_MALFORMED`, `OUTPUT_SCHEMA_INVALID`, `VALIDATOR_REJECTED`,
-`SANITIZATION_REJECTED`, `ATTRIBUTION_INIT_FAILED`, and `ATTRIBUTION_FINALIZE_FAILED`. Each maps
-one-to-one to a stable diagnostic code formed by prefixing the category with `LLM_`. New failure
-semantics require a versioned contract change.
+`SANITIZATION_REJECTED`, `ATTRIBUTION_INIT_FAILED`, and `ATTRIBUTION_FINALIZE_FAILED`. The envelope
+records this exact failure category. Its sanitized fallback uses the stable catalog-declared
+`diagnosticCode`, which identifies the required manual action independently of the provider or
+validator failure that triggered it. New failure semantics require a versioned contract change.
 
 ## 7. Agora attribution
 
