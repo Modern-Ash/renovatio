@@ -78,3 +78,30 @@
 - 2026-08-30T18:02:03.879092Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=accepted
 - 2026-08-30T18:02:04.099864Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=accepted
 - 2026-08-30T18:02:09.289594Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-08-30T18:09:16.051237Z | work.reopened | revision=2 source=github-pull-request-review actor=project:owner change=change-20260830t180916051126z
+- 2026-08-30T18:09:23.727519Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-08-30T18:11:45.860384Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-ir-contract.md actor=project:owner
+- 2026-08-30T18:11:46.069603Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/annotated-ir-contract.md actor=project:agent
+- 2026-08-30T18:11:46.278598Z | artifact.added | kind=json-schema uri=repo://renovatio-cobol-ir/src/main/resources/schema/cobol-annotated-ir.v1.schema.json actor=project:agent
+- 2026-08-30T18:11:46.488557Z | artifact.added | kind=architecture-decision-record uri=repo://docs/adr/0001-annotated-cobol-ir-sidecar.md actor=project:agent
+- 2026-08-30T18:11:46.713678Z | evidence.added | id=evidence-000007 type=test result=success revision=2 actor=project:agent
+- 2026-08-30T18:11:58.670068Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=specified
+- 2026-08-30T18:11:58.900130Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=planned
+- 2026-08-30T18:11:59.132704Z | work.criterion-stage-marked | criterion=model actor=project:agent stage=implemented
+- 2026-08-30T18:11:59.366949Z | work.criterion-stage-marked | criterion=model actor=project:agent stage=verified
+- 2026-08-30T18:11:59.598539Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=specified
+- 2026-08-30T18:11:59.826338Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=planned
+- 2026-08-30T18:12:00.063920Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:agent stage=implemented
+- 2026-08-30T18:12:00.290032Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:agent stage=verified
+- 2026-08-30T18:12:00.513401Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=specified
+- 2026-08-30T18:12:00.736881Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=planned
+- 2026-08-30T18:12:00.959055Z | work.criterion-stage-marked | criterion=content-identity actor=project:agent stage=implemented
+- 2026-08-30T18:12:01.180899Z | work.criterion-stage-marked | criterion=content-identity actor=project:agent stage=verified
+- 2026-08-30T18:12:01.400816Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=specified
+- 2026-08-30T18:12:01.627647Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=planned
+- 2026-08-30T18:12:01.854572Z | work.criterion-stage-marked | criterion=context-seam actor=project:agent stage=implemented
+- 2026-08-30T18:12:02.070671Z | work.criterion-stage-marked | criterion=context-seam actor=project:agent stage=verified
+- 2026-08-30T18:12:02.289274Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-30T18:12:16.071796Z | tool.prepared | run=tool-20260830t18121788124336z tool=repository operation=commit actor=project:agent
+- 2026-08-30T18:12:16.073805Z | tool.running | run=tool-20260830t18121788124336z actor=project:agent
+- 2026-08-30T18:12:16.096956Z | tool.completed | run=tool-20260830t18121788124336z exit-code=0

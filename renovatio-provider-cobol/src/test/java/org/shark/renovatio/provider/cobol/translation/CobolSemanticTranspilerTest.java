@@ -6,6 +6,7 @@ import org.openrewrite.Recipe;
 import org.openrewrite.SourceFile;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
+import org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipe;
 import org.shark.renovatio.provider.java.OpenRewriteRunResult;
@@ -61,7 +62,7 @@ class CobolSemanticTranspilerTest {
     void injectsValidatedAnnotatedContextWhilePreservingLegacyModelReference() {
         CobolIntermediateModel model = new CobolIntermediateModelService().parse(COBOL_SAMPLE);
         AnnotatedCobolModel sidecar = new AnnotatedCobolModel(AnnotatedCobolModel.SCHEMA_VERSION,
-                "cobol-ir.v1", "a".repeat(64), List.of());
+                "cobol-ir.v1", new CobolIrIdentityProjector().baseIrHash(model), List.of());
         AnnotatedCobolContext annotated = new AnnotatedCobolContext(model, sidecar);
         CapturingRunner runner = new CapturingRunner();
 
@@ -71,6 +72,22 @@ class CobolSemanticTranspilerTest {
         AnnotatedCobolContext annotatedValue = runner.context.getMessage(PopulateCobolProcessRecipe.ANNOTATED_CONTEXT_KEY);
         assertThat(legacyValue).isSameAs(model);
         assertThat(annotatedValue).isSameAs(annotated);
+    }
+
+    @Test
+    void omitsStaleAnnotatedContextWhilePreservingLegacyModel() {
+        CobolIntermediateModel model = new CobolIntermediateModelService().parse(COBOL_SAMPLE);
+        AnnotatedCobolContext stale = new AnnotatedCobolContext(model,
+                new AnnotatedCobolModel(AnnotatedCobolModel.SCHEMA_VERSION,
+                        "cobol-ir.v1", "a".repeat(64), List.of()));
+        CapturingRunner runner = new CapturingRunner();
+
+        new CobolSemanticTranspiler(runner).enrichServiceImplementation(JAVA_STUB, stale);
+
+        CobolIntermediateModel legacyValue = runner.context.getMessage(PopulateCobolProcessRecipe.CONTEXT_KEY);
+        AnnotatedCobolContext annotatedValue = runner.context.getMessage(PopulateCobolProcessRecipe.ANNOTATED_CONTEXT_KEY);
+        assertThat(legacyValue).isSameAs(model);
+        assertThat(annotatedValue).isNull();
     }
 
     private static final class CapturingRunner extends OpenRewriteRunner {

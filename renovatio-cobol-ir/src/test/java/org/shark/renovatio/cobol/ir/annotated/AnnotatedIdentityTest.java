@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -69,6 +70,19 @@ class AnnotatedIdentityTest {
                         "plainLow", 1e-6,
                         "plainHigh", 1e20,
                         "high", 1e21)));
+    }
+
+    @Test
+    void preservesIntegralAndDecimalPrecisionWithoutHashCollisions() {
+        assertEquals("{\"number\":9007199254740992}",
+                AnnotatedIdentity.canonical(Map.of("number", 9007199254740992L)));
+        assertEquals("{\"number\":9007199254740993}",
+                AnnotatedIdentity.canonical(Map.of("number", 9007199254740993L)));
+        assertNotEquals(
+                AnnotatedIdentity.hashCanonical(Map.of("number", 9007199254740992L)),
+                AnnotatedIdentity.hashCanonical(Map.of("number", 9007199254740993L)));
+        assertEquals("{\"number\":1234567890.123456789}",
+                AnnotatedIdentity.canonical(Map.of("number", new BigDecimal("1234567890.123456789"))));
     }
 
     private AnnotationProvenance provenance(String promptVersion) {

@@ -2,6 +2,7 @@ package org.shark.renovatio.cobol.ir.annotated;
 
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -74,6 +75,18 @@ final class CanonicalJson {
     }
 
     private static void appendNumber(StringBuilder target, Number number) {
+        if (number instanceof Byte || number instanceof Short || number instanceof Integer
+                || number instanceof Long || number instanceof BigInteger) {
+            target.append(number);
+            return;
+        }
+        if (number instanceof BigDecimal decimal) {
+            appendDecimal(target, decimal);
+            return;
+        }
+        if (!(number instanceof Float || number instanceof Double)) {
+            throw new IllegalArgumentException("Unsupported canonical JSON number: " + number.getClass().getName());
+        }
         double value = number.doubleValue();
         if (!Double.isFinite(value)) throw new IllegalArgumentException("Canonical JSON numbers must be finite");
         if (value == 0d) {
@@ -87,6 +100,26 @@ final class CanonicalJson {
                 : decimal.toString();
         text = text.replace("E+", "e+").replace("E-", "e-").replace("E", "e");
         target.append(text);
+    }
+
+    private static void appendDecimal(StringBuilder target, BigDecimal number) {
+        if (number.signum() == 0) {
+            target.append('0');
+            return;
+        }
+        BigDecimal decimal = number.stripTrailingZeros();
+        int exponent = decimal.precision() - decimal.scale() - 1;
+        if (exponent >= -6 && exponent < 21) {
+            target.append(decimal.toPlainString());
+            return;
+        }
+        String digits = decimal.unscaledValue().abs().toString();
+        if (decimal.signum() < 0) target.append('-');
+        target.append(digits.charAt(0));
+        if (digits.length() > 1) target.append('.').append(digits, 1, digits.length());
+        target.append('e');
+        if (exponent >= 0) target.append('+');
+        target.append(exponent);
     }
 
     private static void appendString(StringBuilder target, String value) {
