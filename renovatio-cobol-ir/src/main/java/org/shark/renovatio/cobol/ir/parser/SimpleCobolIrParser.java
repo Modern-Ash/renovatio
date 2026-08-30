@@ -30,7 +30,7 @@ public class SimpleCobolIrParser {
             "(?m)^\\s*88\\s+([A-Z0-9-]+)\\s+VALUES?(?:\\s+(?:IS|ARE))?\\s+(.+)\\.",
             Pattern.CASE_INSENSITIVE);
     private static final Pattern LEVEL_88_VALUE_PATTERN = Pattern.compile(
-            "(?:'([^']*)'|\"([^\"]*)\"|([^\\s]+))(?:\\s+THR(?:U|OUGH)\\s+(?:'([^']*)'|\"([^\"]*)\"|([^\\s]+)))?",
+            "(?:'([^']*)'|\"([^\"]*)\"|([^\\s,]+))(?:\\s+THR(?:U|OUGH)\\s+(?:'([^']*)'|\"([^\"]*)\"|([^\\s,]+)))?",
             Pattern.CASE_INSENSITIVE);
     // Keep paragraph pattern for potential future use, but we'll prefer manual scan to avoid false positives
     @SuppressWarnings("unused")
