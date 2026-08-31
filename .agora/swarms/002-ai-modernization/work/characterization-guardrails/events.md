@@ -37,3 +37,7 @@
 - 2026-08-30T16:07:46.707439Z | tool.running | run=tool-20260830t16071788116866z actor=project:agent
 - 2026-08-30T16:07:46.730837Z | tool.completed | run=tool-20260830t16071788116866z exit-code=0
 - 2026-08-30T16:25:06.058112Z | evidence.added | id=evidence-000003 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T01:42:19.369342Z | artifact.added | kind=test-report uri=repo://docs/test-reports/characterization-guardrails-local.md actor=project:agent
+- 2026-08-31T01:42:29.243822Z | evidence.added | id=evidence-000004 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T01:42:33.698235Z | work.block | from=active to=blocked actor=project:agent change=change-20260831t014233698133z
+- 2026-08-31T01:43:00.027462Z | work.resume | from=blocked to=active actor=project:agent change=change-20260831t014300027335z

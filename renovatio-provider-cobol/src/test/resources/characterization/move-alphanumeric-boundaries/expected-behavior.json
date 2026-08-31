@@ -1,0 +1,1 @@
+{"fixtureId":"move-alphanumeric-boundaries","status":"supported","observations":[{"target":"SHORT-TEXT","value":"AB"},{"target":"LONG-TEXT","value":"ABCD      "}]}

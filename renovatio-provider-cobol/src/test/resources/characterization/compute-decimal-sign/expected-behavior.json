@@ -1,0 +1,1 @@
+{"fixtureId":"compute-decimal-sign","status":"supported","observations":[{"target":"RESULT-AMOUNT","value":"-14.06","rounding":"scale-2"}]}
