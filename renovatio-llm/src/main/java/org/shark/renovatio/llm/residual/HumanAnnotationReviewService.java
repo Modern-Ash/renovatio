@@ -33,7 +33,8 @@ public final class HumanAnnotationReviewService {
         List<CobolAnnotation> annotations = new ArrayList<>(sidecar.annotations());
         int index = find(annotations, annotationId);
         CobolAnnotation existing = annotations.get(index);
-        if (existing.annotationFamily() != AnnotationFamily.DATA_INTENT
+        if (existing.annotationFamily() != AnnotationFamily.DOMAIN_NAMING
+                && existing.annotationFamily() != AnnotationFamily.DATA_INTENT
                 && existing.annotationFamily() != AnnotationFamily.CONTROL_FLOW_PLAN) {
             throw new IllegalArgumentException("annotation family does not require semantic confirmation");
         }
@@ -56,7 +57,8 @@ public final class HumanAnnotationReviewService {
     public boolean isConsumable(CobolAnnotation annotation) {
         Objects.requireNonNull(annotation, "annotation");
         return annotation.review().reviewState() == AnnotationReview.ReviewState.ACCEPTED
-                && (annotation.annotationFamily() == AnnotationFamily.DATA_INTENT
+                && (annotation.annotationFamily() == AnnotationFamily.DOMAIN_NAMING
+                || annotation.annotationFamily() == AnnotationFamily.DATA_INTENT
                 || annotation.annotationFamily() == AnnotationFamily.CONTROL_FLOW_PLAN);
     }
 

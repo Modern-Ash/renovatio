@@ -45,6 +45,11 @@ public final class ResidualAnnotationAssembler {
                 family, payload, context.confidence(), provenance, review);
 
         List<CobolAnnotation> annotations = new ArrayList<>(sidecar.annotations());
+        for (CobolAnnotation existing : annotations) {
+            if (!existing.annotationId().equals(annotationId)) continue;
+            if (existing.provenance().outputHash().equals(outputHash)) return sidecar;
+            throw new IllegalStateException("annotation identity conflicts with an existing proposal");
+        }
         annotations.add(annotation);
         return new AnnotatedCobolModel(sidecar.schemaVersion(), sidecar.baseIrVersion(),
                 sidecar.baseIrHash(), annotations);
@@ -95,7 +100,8 @@ public final class ResidualAnnotationAssembler {
     }
 
     private static AnnotationReview review(ResidualRoute route, String reviewer) {
-        if (route == ResidualRoute.CONTROL_FLOW_PLAN
+        if (route == ResidualRoute.DOMAIN_NAMING
+                || route == ResidualRoute.CONTROL_FLOW_PLAN
                 || route == ResidualRoute.REDEFINES_INTENT
                 || route == ResidualRoute.OCCURS_DEPENDING_ON_INTENT) {
             if (reviewer == null) throw new IllegalArgumentException("human reviewer is required for this route");

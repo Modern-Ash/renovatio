@@ -73,6 +73,16 @@ class ControlFlowPlanGateTest {
         }
     }
 
+    @Test
+    void evidenceFromAnotherBaselineIsRejected() {
+        ControlFlowPlanGate.Decision decision = gate.retainIfEligible(empty(), plan(), context(),
+                new CharacterizationEvidence("repo://evidence/other-baseline.json", true, true, true));
+
+        assertFalse(decision.proposalRetained());
+        assertEquals(ControlFlowPlanGate.DIAGNOSTIC, decision.diagnosticCode());
+        assertTrue(decision.sidecar().annotations().isEmpty());
+    }
+
     private static AnnotatedCobolModel empty() {
         return new AnnotatedCobolModel(AnnotatedCobolModel.SCHEMA_VERSION, "cobol-ir.v1", HASH, List.of());
     }
@@ -88,6 +98,7 @@ class ControlFlowPlanGateTest {
         return new ResidualAnnotationContext("cobol-ir.v1", HASH, NODE, AnnotatedNodeKind.PARAGRAPH,
                 "offline", "fake", "v1", "control-flow-plan.v1", HASH,
                 "tool-20260830t12345678901234z", AnnotationProvenance.CacheDisposition.MISS, 0.7,
-                "project:owner", List.of(NODE), List.of(), false);
+                "project:owner", List.of(NODE), "repo://evidence/characterization-green.json",
+                List.of(), false);
     }
 }

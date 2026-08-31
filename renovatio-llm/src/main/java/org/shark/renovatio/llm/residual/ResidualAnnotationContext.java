@@ -22,6 +22,7 @@ public record ResidualAnnotationContext(
         double confidence,
         String assignedHumanReviewer,
         List<String> affectedNodeIds,
+        String characterizationBaselineRef,
         List<String> collisionScope,
         boolean publicSignatureProtected) {
 
@@ -42,6 +43,9 @@ public record ResidualAnnotationContext(
         }
         if (assignedHumanReviewer != null) requireText(assignedHumanReviewer, "assignedHumanReviewer");
         affectedNodeIds = List.copyOf(affectedNodeIds == null ? List.of() : affectedNodeIds);
+        if (characterizationBaselineRef != null) {
+            requireText(characterizationBaselineRef, "characterizationBaselineRef");
+        }
         collisionScope = List.copyOf(collisionScope == null ? List.of() : collisionScope);
     }
 

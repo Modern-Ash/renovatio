@@ -76,17 +76,43 @@ class HumanAnnotationReviewServiceTest {
         assertFalse(service.isConsumable(pendingDataIntent().annotations().get(0)));
     }
 
+    @Test
+    void specOwnerCanReviewDomainNamingProposal() {
+        AnnotatedCobolModel pending = pendingDomainNaming();
+        var proposal = pending.annotations().get(0);
+
+        AnnotatedCobolModel accepted = service.review(pending, proposal.annotationId(),
+                HumanAnnotationReviewService.Decision.ACCEPT, "project:owner");
+
+        assertEquals(AnnotationReview.ReviewState.ACCEPTED,
+                accepted.annotations().get(0).review().reviewState());
+        assertTrue(service.isConsumable(accepted.annotations().get(0)));
+    }
+
     private static AnnotatedCobolModel pendingDataIntent() {
         AnnotatedCobolModel empty = new AnnotatedCobolModel(AnnotatedCobolModel.SCHEMA_VERSION,
                 "cobol-ir.v1", HASH, List.of());
         ResidualAnnotationContext context = new ResidualAnnotationContext("cobol-ir.v1", HASH, NODE,
                 AnnotatedNodeKind.DATA_ITEM, "offline", "fake", "v1", "data-intent.v1", HASH,
                 "tool-20260830t12345678901234z", AnnotationProvenance.CacheDisposition.MISS, 0.75,
-                "project:owner", List.of(), List.of(), false);
+                "project:owner", List.of(), null, List.of(), false);
         var output = JSON.createObjectNode().put("construction", "REDEFINES")
                 .put("interpretation", "Alternate view of the same storage");
         output.putArray("assumptions").add("Layouts intentionally overlap");
         return new ResidualAnnotationAssembler().append(empty, ResidualRoute.REDEFINES_INTENT,
+                output, context);
+    }
+
+    private static AnnotatedCobolModel pendingDomainNaming() {
+        AnnotatedCobolModel empty = new AnnotatedCobolModel(AnnotatedCobolModel.SCHEMA_VERSION,
+                "cobol-ir.v1", HASH, List.of());
+        ResidualAnnotationContext context = new ResidualAnnotationContext("cobol-ir.v1", HASH, NODE,
+                AnnotatedNodeKind.PARAGRAPH, "offline", "fake", "v1", "domain-naming.v1", HASH,
+                "tool-20260830t12345678901234z", AnnotationProvenance.CacheDisposition.MISS, 0.75,
+                "project:owner", List.of(), null, List.of(), false);
+        var output = JSON.createObjectNode().put("suggestedName", "calculateInterest")
+                .put("rationale", "Describes the paragraph action");
+        return new ResidualAnnotationAssembler().append(empty, ResidualRoute.DOMAIN_NAMING,
                 output, context);
     }
 }

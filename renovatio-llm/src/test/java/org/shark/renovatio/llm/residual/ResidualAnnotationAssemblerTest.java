@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -29,11 +30,11 @@ class ResidualAnnotationAssemblerTest {
         AnnotatedCobolModel result = assembler.append(empty(), ResidualRoute.DOMAIN_NAMING,
                 JSON.createObjectNode().put("suggestedName", "calculateInterest")
                         .put("boundedContext", "collections").put("rationale", "Paragraph calculates interest"),
-                context(AnnotatedNodeKind.PARAGRAPH, List.of(), null));
+                context(AnnotatedNodeKind.PARAGRAPH, List.of(), "project:owner"));
 
         var annotation = result.annotations().get(0);
         assertEquals(AnnotationFamily.DOMAIN_NAMING, annotation.annotationFamily());
-        assertEquals(AnnotationReview.ReviewState.PROPOSED, annotation.review().reviewState());
+        assertEquals(AnnotationReview.ReviewState.NEEDS_REVIEW, annotation.review().reviewState());
         assertEquals("cobol.domain.naming.v1", annotation.provenance().promptId());
         assertEquals(AnnotationProvenance.CacheDisposition.MISS, annotation.provenance().cacheDisposition());
         assertTrue(new AnnotatedCobolValidator().validate(result, HASH,
@@ -90,7 +91,7 @@ class ResidualAnnotationAssemblerTest {
         ResidualAnnotationContext wrongBase = new ResidualAnnotationContext("cobol-ir.v1", "c".repeat(64),
                 NODE, AnnotatedNodeKind.PARAGRAPH, "offline", "fake", "v1", "domain-naming.v1",
                 HASH, "tool-20260830t12345678901234z", AnnotationProvenance.CacheDisposition.MISS,
-                0.8, null, List.of(), List.of(), false);
+                0.8, "project:owner", List.of(), null, List.of(), false);
         assertThrows(IllegalArgumentException.class, () -> assembler.append(empty(),
                 ResidualRoute.DOMAIN_NAMING,
                 JSON.createObjectNode().put("suggestedName", "name").put("rationale", "reason"), wrongBase));
@@ -104,6 +105,23 @@ class ResidualAnnotationAssemblerTest {
                                                      String reviewer) {
         return new ResidualAnnotationContext("cobol-ir.v1", HASH, NODE, kind, "offline", "fake",
                 "v1", "annotated-output.v1", HASH, "tool-20260830t12345678901234z",
-                AnnotationProvenance.CacheDisposition.MISS, 0.8, reviewer, affected, List.of(), false);
+                AnnotationProvenance.CacheDisposition.MISS, 0.8, reviewer, affected,
+                null, List.of(), false);
+    }
+
+    @Test
+    void repeatedIdentityIsIdempotentAndConflictingOutputIsRejected() {
+        var context = context(AnnotatedNodeKind.PARAGRAPH, List.of(), "project:owner");
+        var firstOutput = JSON.createObjectNode().put("suggestedName", "calculateInterest")
+                .put("rationale", "Describes the paragraph action");
+        AnnotatedCobolModel first = assembler.append(empty(), ResidualRoute.DOMAIN_NAMING,
+                firstOutput, context);
+
+        assertSame(first, assembler.append(first, ResidualRoute.DOMAIN_NAMING, firstOutput, context));
+
+        var conflicting = JSON.createObjectNode().put("suggestedName", "calculatePenalty")
+                .put("rationale", "Different model output for the same identity");
+        assertThrows(IllegalStateException.class, () -> assembler.append(first,
+                ResidualRoute.DOMAIN_NAMING, conflicting, context));
     }
 }

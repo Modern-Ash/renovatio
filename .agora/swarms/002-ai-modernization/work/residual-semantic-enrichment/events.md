@@ -100,3 +100,4 @@
 - 2026-08-31T00:44:44.835988Z | tool.completed | run=tool-20260831t00441788147884z exit-code=0
 - 2026-08-31T00:47:06.090538Z | artifact.added | kind=test-report uri=repo://docs/reports/residual-semantic-enrichment-revalidation-20260830.md actor=project:agent
 - 2026-08-31T00:47:25.882627Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-08-31T00:53:47.801497Z | work.reopened | revision=2 source=github-pr-review actor=project:owner change=change-20260831t005347801392z

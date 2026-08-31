@@ -79,6 +79,7 @@ class ManualMigrationActionsTest {
     private static ResidualAnnotationContext context(AnnotatedNodeKind nodeKind) {
         return new ResidualAnnotationContext("cobol-ir.v1", HASH, NODE, nodeKind, "offline", "fake",
                 "v1", "unsupported-explanation.v1", HASH, "tool-20260830t12345678901234z",
-                AnnotationProvenance.CacheDisposition.MISS, 0.7, null, List.of(), List.of(), false);
+                AnnotationProvenance.CacheDisposition.MISS, 0.7, "project:owner", List.of(),
+                null, List.of(), false);
     }
 }

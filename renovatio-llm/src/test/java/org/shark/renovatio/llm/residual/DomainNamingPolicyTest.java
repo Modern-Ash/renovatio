@@ -49,7 +49,7 @@ class DomainNamingPolicyTest {
         ResidualAnnotationContext context = new ResidualAnnotationContext("cobol-ir.v1", HASH, NODE,
                 AnnotatedNodeKind.PARAGRAPH, "offline", "fake", "v1", "domain-naming.v1", HASH,
                 "tool-20260830t12345678901234z", AnnotationProvenance.CacheDisposition.MISS, 0.8,
-                null, List.of(), List.of("calculateInterest"), false);
+                "project:owner", List.of(), null, List.of("calculateInterest"), false);
 
         assertThrows(IllegalArgumentException.class, () -> new ResidualAnnotationAssembler().append(sidecar,
                 ResidualRoute.DOMAIN_NAMING,
@@ -65,7 +65,7 @@ class DomainNamingPolicyTest {
         ResidualAnnotationContext context = new ResidualAnnotationContext("cobol-ir.v1", HASH, NODE,
                 AnnotatedNodeKind.PARAGRAPH, "offline", "fake", "v1", "domain-naming.v1", HASH,
                 "tool-20260830t12345678901234z", AnnotationProvenance.CacheDisposition.MISS, 0.8,
-                null, List.of(), List.of("postPayment"), true);
+                "project:owner", List.of(), null, List.of("postPayment"), true);
 
         AnnotatedCobolModel result = new ResidualAnnotationAssembler().append(sidecar,
                 ResidualRoute.DOMAIN_NAMING,

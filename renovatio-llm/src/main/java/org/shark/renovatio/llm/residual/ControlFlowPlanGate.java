@@ -23,7 +23,9 @@ public final class ControlFlowPlanGate {
         Objects.requireNonNull(sidecar, "sidecar");
         Objects.requireNonNull(validatedPlan, "validatedPlan");
         Objects.requireNonNull(context, "context");
-        if (evidence == null || !evidence.isGreen()) {
+        if (evidence == null || !evidence.isGreen()
+                || context.characterizationBaselineRef() == null
+                || !context.characterizationBaselineRef().equals(evidence.baselineRef())) {
             return new Decision(sidecar, false, DIAGNOSTIC, MANUAL_ACTION,
                     evidence == null ? null : evidence.baselineRef());
         }
