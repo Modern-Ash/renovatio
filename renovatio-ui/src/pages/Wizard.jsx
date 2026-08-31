@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom'
 import StepFolder from '../wizard/StepFolder'
 import StepAnalyze from '../wizard/StepAnalyze'
 import StepMetrics from '../wizard/StepMetrics'
+import StepPlan from '../wizard/StepPlan'
+import StepApply from '../wizard/StepApply'
 
 const steps = [
   { id: 'folder', label: 'Select Folder' },
@@ -52,6 +54,18 @@ function Wizard() {
         )
       case 2:
         return <StepMetrics data={data} onNext={goNext} onBack={goBack} />
+      case 3:
+        return <StepPlan data={data} onChange={updateData} onNext={goNext} onBack={goBack} />
+      case 4:
+        return (
+          <StepApply
+            projectId={projectId}
+            data={data}
+            onChange={updateData}
+            onNext={goNext}
+            onBack={goBack}
+          />
+        )
       default:
         return (
           <div>
