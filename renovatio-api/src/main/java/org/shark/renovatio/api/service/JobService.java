@@ -201,6 +201,11 @@ public class JobService {
                 )
         ));
 
+        eventCollector.send(entity.getId(), "progress", Map.of(
+                "progress", 0.95,
+                "message", "Finalizing analysis..."
+        ));
+
         log.info("Analyzed COBOL workspace {}: {} source file(s), {} copybook(s), {} program(s) in {} ms (runId={})",
                 workspacePath, sourceCount, copybookCount, programCount, elapsedMs, result.getRunId());
 
