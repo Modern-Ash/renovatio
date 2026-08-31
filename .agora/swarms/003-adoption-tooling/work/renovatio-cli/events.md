@@ -27,3 +27,4 @@
 - 2026-08-31T16:38:26.579014Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-08-31T16:43:30.218585Z | evidence.added | id=evidence-000001 type=test-report result=success revision=1 actor=project:agent
 - 2026-08-31T16:44:34.453388Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T16:45:30.087110Z | work.transitioned | from=verifying to=completed actor=project:owner
