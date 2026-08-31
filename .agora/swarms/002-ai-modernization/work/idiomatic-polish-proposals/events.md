@@ -29,3 +29,19 @@
 - 2026-08-31T13:28:50.881817Z | work.criterion-stage-marked | criterion=human-gate actor=project:owner stage=planned
 - 2026-08-31T13:28:51.180818Z | work.criterion-stage-marked | criterion=discard-on-failure actor=project:owner stage=planned
 - 2026-08-31T13:28:51.474152Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-31T13:57:45.599169Z | tool.prepared | run=tool-20260831t13571788195465z tool=repository operation=commit actor=project:agent
+- 2026-08-31T13:57:45.601996Z | tool.running | run=tool-20260831t13571788195465z actor=project:agent
+- 2026-08-31T13:57:45.626024Z | tool.completed | run=tool-20260831t13571788195465z exit-code=0
+- 2026-08-31T13:59:26.209148Z | artifact.added | kind=test-report uri=repo://docs/reports/idiomatic-polish-proposals-test-report-20260831.md actor=project:agent
+- 2026-08-31T13:59:26.438937Z | evidence.added | id=evidence-000001 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T13:59:26.668178Z | evidence.added | id=evidence-000002 type=offline-characterization result=success revision=1 actor=project:agent
+- 2026-08-31T13:59:35.719178Z | work.criterion-stage-marked | criterion=diff-only actor=project:agent stage=implemented
+- 2026-08-31T13:59:35.948082Z | work.criterion-stage-marked | criterion=eligible-only actor=project:agent stage=implemented
+- 2026-08-31T13:59:36.182949Z | work.criterion-stage-marked | criterion=human-gate actor=project:agent stage=implemented
+- 2026-08-31T13:59:36.412570Z | work.criterion-stage-marked | criterion=discard-on-failure actor=project:agent stage=implemented
+- 2026-08-31T13:59:36.655265Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T13:59:36.878476Z | work.criterion-stage-marked | criterion=diff-only actor=project:agent stage=verified
+- 2026-08-31T13:59:37.092436Z | work.criterion-stage-marked | criterion=eligible-only actor=project:agent stage=verified
+- 2026-08-31T13:59:37.305615Z | work.criterion-stage-marked | criterion=human-gate actor=project:agent stage=verified
+- 2026-08-31T13:59:37.517602Z | work.criterion-stage-marked | criterion=discard-on-failure actor=project:agent stage=verified
+- 2026-08-31T14:00:23.127945Z | work.clarified-advisory | questions=5 actor=project:owner
