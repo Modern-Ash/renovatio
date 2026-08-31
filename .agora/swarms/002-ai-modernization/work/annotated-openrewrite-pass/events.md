@@ -47,3 +47,22 @@
 - 2026-08-31T12:07:09.147600Z | artifact.added | kind=test-report uri=repo://docs/reports/annotated-openrewrite-pass-test-report-20260831.md actor=project:agent
 - 2026-08-31T12:07:09.446058Z | evidence.added | id=evidence-000001 type=unit-tests result=success revision=1 actor=project:agent
 - 2026-08-31T12:07:09.772451Z | evidence.added | id=evidence-000002 type=offline-characterization result=success revision=1 actor=project:agent
+- 2026-08-31T12:14:14.288444Z | tool.prepared | run=tool-20260831t12141788189254z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:14:14.290933Z | tool.running | run=tool-20260831t12141788189254z actor=project:agent
+- 2026-08-31T12:14:14.334575Z | tool.completed | run=tool-20260831t12141788189254z exit-code=0
+- 2026-08-31T12:15:06.660568Z | evidence.added | id=evidence-000003 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T12:15:06.954844Z | evidence.added | id=evidence-000004 type=offline-characterization result=success revision=1 actor=project:agent
+- 2026-08-31T12:15:26.466615Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:agent stage=implemented
+- 2026-08-31T12:15:26.813887Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:agent stage=verified
+- 2026-08-31T12:15:27.150551Z | work.criterion-stage-marked | criterion=ast-safe actor=project:agent stage=implemented
+- 2026-08-31T12:15:27.464691Z | work.criterion-stage-marked | criterion=ast-safe actor=project:agent stage=verified
+- 2026-08-31T12:15:27.764214Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:agent stage=implemented
+- 2026-08-31T12:15:28.056663Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:agent stage=verified
+- 2026-08-31T12:15:28.348771Z | work.criterion-stage-marked | criterion=reproducible actor=project:agent stage=implemented
+- 2026-08-31T12:15:28.641277Z | work.criterion-stage-marked | criterion=reproducible actor=project:agent stage=verified
+- 2026-08-31T12:15:28.929403Z | work.criterion-stage-marked | criterion=fallback actor=project:agent stage=implemented
+- 2026-08-31T12:15:29.219997Z | work.criterion-stage-marked | criterion=fallback actor=project:agent stage=verified
+- 2026-08-31T12:15:34.939938Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T12:16:55.653916Z | artifact.added | kind=test-report uri=repo://docs/reports/annotated-openrewrite-pass-test-report-20260831-final.md actor=project:agent
+- 2026-08-31T12:17:06.828681Z | evidence.added | id=evidence-000005 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T12:17:07.127972Z | evidence.added | id=evidence-000006 type=offline-characterization result=success revision=1 actor=project:agent

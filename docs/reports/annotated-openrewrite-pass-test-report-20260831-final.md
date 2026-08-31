@@ -1,7 +1,7 @@
-# Annotated OpenRewrite Pass Test Report
+# Annotated OpenRewrite Pass Final Test Report
 
-Date: 2026-08-31  
-Agora work: `ai-modernization/annotated-openrewrite-pass`  
+Date: 2026-08-31
+Agora work: `ai-modernization/annotated-openrewrite-pass`
 GitHub issue: #127
 
 ## Scope
@@ -13,13 +13,13 @@ reproducibility, and the end-to-end generation/reporting path.
 
 ## Commands and results
 
-The focused implementation suites were run offline throughout development. Final verification used:
+Final verification used a clean copy of the source tree:
 
 ```text
-mvn -q -pl renovatio-cobol-annotations,cobol-openrewrite-recipes,renovatio-cobol-ir,renovatio-cobol-runtime,renovatio-provider-cobol test -o -Djacoco.skip=true
+mvn -q -pl renovatio-cobol-annotations,cobol-openrewrite-recipes,renovatio-cobol-ir,renovatio-cobol-runtime,renovatio-provider-cobol clean test -o -Djacoco.skip=true
 ```
 
-Result: success, 160 tests, 0 failures, 0 errors, 0 skipped.
+Result: success, 163 tests, 0 failures, 0 errors, 0 skipped.
 
 | Module | Tests | Failures | Errors | Skipped |
 | --- | ---: | ---: | ---: | ---: |
@@ -27,20 +27,17 @@ Result: success, 160 tests, 0 failures, 0 errors, 0 skipped.
 | `cobol-openrewrite-recipes` | 21 | 0 | 0 | 0 |
 | `renovatio-cobol-ir` | 55 | 0 | 0 | 0 |
 | `renovatio-cobol-runtime` | 23 | 0 | 0 | 0 |
-| `renovatio-provider-cobol` | 59 | 0 | 0 | 0 |
+| `renovatio-provider-cobol` | 62 | 0 | 0 | 0 |
 
-The CI isolation lane was then reproduced with the workflow's pinned Maven/Temurin 17 image,
+The CI isolation lane was reproduced with the workflow's pinned Maven/Temurin 17 image,
 `--network=none`, no provider credential variables, and a clean build:
 
 ```text
 mvn -B -o -pl renovatio-provider-cobol,cobol-openrewrite-recipes -am clean test -Djacoco.skip=true
 ```
 
-Result: `BUILD SUCCESS` for all nine reactor projects. DNS and direct TCP isolation checks failed
-closed as expected before Maven ran. The COBOL provider reported 59 passing tests, including the
-annotated characterization fixtures. An earlier host-Java-21 run encountered stale generated
-module output in `renovatio-shared`; the clean pinned-Java-17 CI reproduction eliminated that local
-artifact issue without any source change.
+Result: `BUILD SUCCESS` for all nine reactor projects. The COBOL provider reported 62 passing
+tests, including the annotated characterization fixtures and the stale-sidecar fallback regression.
 
 The recipe boundary and Maven Enforcer verification also passed offline:
 
@@ -91,12 +88,12 @@ after the probe was removed.
 - `AnnotationApplicatorEligibilityTest` covers stale hashes and non-accepted review states.
 - `AnnotationApplicatorDomainNamingTest` covers collision and invalid-name fallback.
 - `AnnotationActionItemFactoryTest` proves stable `manual-action-item.v1` mappings and severity/gate
-  selection.
+  selection for dropped annotations and invalid sidecar diagnostics.
 - `CobolSemanticTranspilerTest` proves dropped outcomes are drained to the reporting sink.
-- `JavaGenerationServiceAnnotatedTest` proves the report is emitted under
-  `build/reports/renovatio/manual-action-items.json` while deterministic translation continues.
+- `JavaGenerationServiceAnnotatedTest` proves deterministic base translation continues and emits
+  `COBOL-ANNOTATION-STALE` when a stale sidecar is rejected before annotation application.
 
 ## Follow-ups
 
-No acceptance blocker remains for issue #127. Optional idiomatic polish remains governed separately
-by issue #128 and is outside this work item.
+No implementation or verification blocker remains for issue #127. Optional idiomatic polish remains
+governed separately by issue #128 and is outside this work item.
