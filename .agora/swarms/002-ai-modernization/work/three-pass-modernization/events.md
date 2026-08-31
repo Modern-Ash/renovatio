@@ -40,3 +40,7 @@
 - 2026-08-31T15:37:59.047082Z | tool.prepared | run=tool-20260831t15371788201479z tool=repository operation=commit actor=project:agent
 - 2026-08-31T15:37:59.050532Z | tool.running | run=tool-20260831t15371788201479z actor=project:agent
 - 2026-08-31T15:37:59.064906Z | tool.failed | run=tool-20260831t15371788201479z exit-code=128
+- 2026-08-31T15:41:56.809510Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T15:42:26.438329Z | evidence.added | id=evidence-000001 type=completion result=success revision=1 actor=project:agent
+- 2026-08-31T15:42:35.940418Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T15:42:38.127987Z | work.transitioned | from=verifying to=completed actor=project:owner
