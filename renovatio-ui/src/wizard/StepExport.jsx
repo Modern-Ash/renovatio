@@ -238,9 +238,10 @@ function StepExport({ projectId, data, onBack }) {
               />
             </div>
           )}
-          {reportSummary && (
-            <div className="mt-3 border rounded-lg p-3 bg-gray-50">
-              <p className="font-semibold text-gray-700 mb-2">Resumen del reporte</p>
+              {reportSummary && (
+            <div className="mt-3 border rounded-lg p-3 bg-gray-50 space-y-3">
+              <p className="font-semibold text-gray-700">Resumen del reporte</p>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
                 <div>
                   <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Estados</p>
@@ -262,6 +263,47 @@ function StepExport({ projectId, data, onBack }) {
                     ))}
                   </ul>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="bg-white border rounded p-2">
+                  <p className="text-xs text-gray-500">Acciones habilitadas</p>
+                  <p className="text-lg font-semibold">
+                    {Array.isArray((data.dryRunResult && data.dryRunResult.selectedSteps) || [])
+                      ? (data.dryRunResult && data.dryRunResult.selectedSteps).length
+                      : 0}
+                  </p>
+                </div>
+                <div className="bg-white border rounded p-2">
+                  <p className="text-xs text-gray-500">Acciones omitidas</p>
+                  <p className="text-lg font-semibold">
+                    {Array.isArray((data.dryRunResult && data.dryRunResult.skippedSteps) || [])
+                      ? (data.dryRunResult && data.dryRunResult.skippedSteps).length
+                      : 0}
+                  </p>
+                </div>
+                <div className="bg-white border rounded p-2">
+                  <p className="text-xs text-gray-500">Action items pendientes</p>
+                  <p className="text-lg font-semibold">
+                    {Array.isArray((data.review && data.review.actionItems) || [])
+                      ? data.review.actionItems.length
+                      : 0}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Plan aplicado</p>
+                <p className="text-sm text-gray-700">
+                  Seleccionados: {Array.isArray(data.dryRunResult?.selectedSteps) && data.dryRunResult.selectedSteps.length > 0
+                    ? data.dryRunResult.selectedSteps.join(', ')
+                    : '—'}
+                </p>
+                <p className="text-sm text-gray-700">
+                  Omitidos: {Array.isArray(data.dryRunResult?.skippedSteps) && data.dryRunResult.skippedSteps.length > 0
+                    ? data.dryRunResult.skippedSteps.join(', ')
+                    : '—'}
+                </p>
               </div>
             </div>
           )}
