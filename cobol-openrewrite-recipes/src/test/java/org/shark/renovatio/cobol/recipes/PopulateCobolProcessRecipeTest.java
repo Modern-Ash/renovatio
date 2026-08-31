@@ -18,6 +18,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -156,17 +157,16 @@ class PopulateCobolProcessRecipeTest {
     @Test
     void productionBoundaryShouldContainNoNetworkOrLlmDependency() throws IOException {
         Path moduleRoot = locateModuleRoot();
-        String pom = Files.readString(moduleRoot.resolve("pom.xml"), StandardCharsets.UTF_8);
-        String productionSources;
-        try (Stream<Path> paths = Files.walk(moduleRoot.resolve("src/main/java"))) {
-            productionSources = paths
-                    .filter(path -> path.getFileName().toString().endsWith(".java"))
+        String productionBoundary;
+        try (Stream<Path> paths = Files.walk(moduleRoot.resolve("src/main"))) {
+            productionBoundary = paths
+                    .filter(Files::isRegularFile)
                     .sorted()
-                    .map(PopulateCobolProcessRecipeTest::readUtf8)
+                    .map(path -> inspectableProductionEntry(moduleRoot, path))
                     .reduce("", (left, right) -> left + "\n" + right);
         }
 
-        String boundary = (pom + "\n" + productionSources).toLowerCase(Locale.ROOT);
+        String boundary = productionBoundary.toLowerCase(Locale.ROOT);
         assertThat(boundary).doesNotContain(
                 "java.net.",
                 "java.net.http",
@@ -179,6 +179,19 @@ class PopulateCobolProcessRecipeTest {
                 "prompt catalog",
                 "api key",
                 "credential");
+    }
+
+    private static String inspectableProductionEntry(Path moduleRoot, Path path) {
+        String relativePath = moduleRoot.relativize(path).toString().replace('\\', '/');
+        String extension = extensionOf(path.getFileName().toString());
+        Set<String> textExtensions = Set.of(
+                "java", "json", "yaml", "yml", "xml", "properties", "txt", "md", "conf", "cfg");
+        return relativePath + (textExtensions.contains(extension) ? "\n" + readUtf8(path) : "");
+    }
+
+    private static String extensionOf(String fileName) {
+        int separator = fileName.lastIndexOf('.');
+        return separator < 0 ? "" : fileName.substring(separator + 1).toLowerCase(Locale.ROOT);
     }
 
     private String applyRecipe(String cobol) {

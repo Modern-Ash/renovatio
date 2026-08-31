@@ -13,3 +13,4 @@ artifact-kinds: ["spec","implementation-plan","test-report"]
 | implementation-plan | repo://docs/plans/deterministic-semantic-core.md | ea009c95c2a33ae59e7ec4055cf0ea0c72a7ebbb5720ea327cb50113abc0adf1 | project:agent | 2026-08-30T16:42:52.578851Z |
 | test-report | repo://docs/reports/deterministic-semantic-core-revalidation-20260831.md | 981214902d2c42004f2bb0751250567a437879aded29c96fa93386cff26098a5 | project:agent | 2026-08-31T01:12:18.543208Z |
 | test-report | repo://docs/reports/deterministic-semantic-core-recipe-boundary-20260831.md | b3145316c2fff60c20e9ce2a0ad46375c64c1108508124ed038a69e237f26561 | project:agent | 2026-08-31T01:18:47.053367Z |
+| test-report | repo://docs/reports/deterministic-semantic-core-recipe-boundary-review-20260831.md | 311753b8192fd34a3000d3e0829ed63f35ef68ad853d8b25973af962448d89a3 | project:agent | 2026-08-31T01:30:42.749603Z |
