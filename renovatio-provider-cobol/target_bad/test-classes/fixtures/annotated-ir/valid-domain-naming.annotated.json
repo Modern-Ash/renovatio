@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "cobol-annotated-ir.v1",
+  "baseIrVersion": "cobol-ir.v1",
+  "baseIrHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "annotations": [{
+    "annotationId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "nodeId": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "nodeKind": "PARAGRAPH",
+    "annotationFamily": "DOMAIN_NAMING",
+    "payload": {
+      "suggestedName": "calculateOverdueInterest",
+      "rationale": "Uses the collections domain terminology",
+      "boundedContext": "collections"
+    },
+    "confidence": 0.9,
+    "provenance": {
+      "provider": "offline",
+      "model": "fixture",
+      "promptId": "cobol.domain.naming.v1",
+      "promptVersion": "v1",
+      "outputSchemaVersion": "domain-naming.v1",
+      "inputHash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+      "outputHash": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "toolRunRef": "tool-20260830t12345678901234z",
+      "cacheDisposition": "MISS"
+    },
+    "review": { "reviewState": "PROPOSED" }
+  }]
+}

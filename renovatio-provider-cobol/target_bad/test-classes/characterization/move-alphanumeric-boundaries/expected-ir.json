@@ -1,0 +1,1 @@
+{"schemaVersion":"cobol-ir.v1","programId":"MOVE-ALPHA","paragraphs":{"MAIN":{"name":"MAIN","statements":[{"source":"SOURCE-TEXT","target":"SHORT-TEXT"},{"source":"SOURCE-TEXT","target":"LONG-TEXT"}]}},"dataItems":[],"diagnostics":[]}

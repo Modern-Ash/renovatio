@@ -1,0 +1,1 @@
+{"fixtureId":"goto-irreducible","status":"residual","observations":[{"generatedJava":false,"diagnostic":"irreducible-control-flow"}]}

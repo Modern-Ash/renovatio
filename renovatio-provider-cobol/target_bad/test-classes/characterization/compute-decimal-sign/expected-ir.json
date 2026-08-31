@@ -1,0 +1,1 @@
+{"schemaVersion":"cobol-ir.v1","programId":"COMPUTE-DECIMAL","paragraphs":{"MAIN":{"name":"MAIN","statements":[{"target":"RESULT-AMOUNT","expression":"AMOUNT * RATE"}]}},"dataItems":[],"diagnostics":[]}
