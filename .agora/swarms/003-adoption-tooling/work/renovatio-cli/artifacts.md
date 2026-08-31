@@ -1,6 +1,6 @@
 ---
 schema: "agora/artifacts/v2"
-artifact-kinds: ["spec","implementation-plan"]
+artifact-kinds: ["spec","implementation-plan","test-report"]
 ---
 
 # Artifacts
