@@ -11,7 +11,7 @@ status-by: null
 status-at: null
 acceptance-criteria: {"domain-language":"Paragraph and data names receive reviewable domain-name and bounded-context suggestions with provenance.","goto-plan":"Irreducible control flow receives a structured plan proposal that cannot apply unless characterization tests remain green.","human-confirmation":"REDEFINES and OCCURS DEPENDING ON interpretations remain suggestions requiring explicit human confirmation.","manual-actions":"Unsupported constructs produce precise explanations and actionable manual migration items.","residual-only":"Supported deterministic constructs never invoke the LLM enrichment path."}
 satisfied-criteria: []
-criterion-statuses: {"domain-language":["specified","planned","implemented"],"goto-plan":["specified","planned","implemented"],"human-confirmation":["specified","planned","implemented"],"manual-actions":["specified","planned","implemented"],"residual-only":["specified","planned","implemented"]}
+criterion-statuses: {"domain-language":["specified","planned","implemented","verified"],"goto-plan":["specified","planned","implemented","verified"],"human-confirmation":["specified","planned","implemented","verified"],"manual-actions":["specified","planned","implemented","verified"],"residual-only":["specified","planned","implemented","verified"]}
 required-artifacts: ["spec","prompt-catalog","test-report"]
 child-work-refs: []
 budget-limits: null
@@ -26,11 +26,11 @@ Queue 5. Depends on annotated-ir-contract, llm-runtime-catalog-cache, and charac
 
 ## Acceptance criteria
 
-- [ ] **domain-language:** Paragraph and data names receive reviewable domain-name and bounded-context suggestions with provenance.; stages: specified, planned, implemented
-- [ ] **goto-plan:** Irreducible control flow receives a structured plan proposal that cannot apply unless characterization tests remain green.; stages: specified, planned, implemented
-- [ ] **human-confirmation:** REDEFINES and OCCURS DEPENDING ON interpretations remain suggestions requiring explicit human confirmation.; stages: specified, planned, implemented
-- [ ] **manual-actions:** Unsupported constructs produce precise explanations and actionable manual migration items.; stages: specified, planned, implemented
-- [ ] **residual-only:** Supported deterministic constructs never invoke the LLM enrichment path.; stages: specified, planned, implemented
+- [ ] **domain-language:** Paragraph and data names receive reviewable domain-name and bounded-context suggestions with provenance.; stages: specified, planned, implemented, verified
+- [ ] **goto-plan:** Irreducible control flow receives a structured plan proposal that cannot apply unless characterization tests remain green.; stages: specified, planned, implemented, verified
+- [ ] **human-confirmation:** REDEFINES and OCCURS DEPENDING ON interpretations remain suggestions requiring explicit human confirmation.; stages: specified, planned, implemented, verified
+- [ ] **manual-actions:** Unsupported constructs produce precise explanations and actionable manual migration items.; stages: specified, planned, implemented, verified
+- [ ] **residual-only:** Supported deterministic constructs never invoke the LLM enrichment path.; stages: specified, planned, implemented, verified
 
 ## Required artifacts
 

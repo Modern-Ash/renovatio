@@ -79,3 +79,11 @@
 - 2026-08-31T00:40:42.473182Z | tool.prepared | run=tool-20260831t00401788147642z tool=repository operation=commit actor=project:agent
 - 2026-08-31T00:40:42.476224Z | tool.running | run=tool-20260831t00401788147642z actor=project:agent
 - 2026-08-31T00:40:42.489643Z | tool.failed | run=tool-20260831t00401788147642z exit-code=128
+- 2026-08-31T00:41:01.984037Z | tool.prepared | run=tool-20260831t00411788147661z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:41:01.986439Z | tool.running | run=tool-20260831t00411788147661z actor=project:agent
+- 2026-08-31T00:41:02.010360Z | tool.completed | run=tool-20260831t00411788147661z exit-code=0
+- 2026-08-31T00:42:28.809354Z | work.criterion-stage-marked | criterion=domain-language actor=project:agent stage=verified
+- 2026-08-31T00:42:29.105888Z | work.criterion-stage-marked | criterion=goto-plan actor=project:agent stage=verified
+- 2026-08-31T00:42:29.403274Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:agent stage=verified
+- 2026-08-31T00:42:29.695980Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=verified
+- 2026-08-31T00:42:29.996298Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=verified
