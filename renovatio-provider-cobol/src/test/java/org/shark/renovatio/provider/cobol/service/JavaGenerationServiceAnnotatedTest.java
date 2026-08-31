@@ -73,6 +73,36 @@ class JavaGenerationServiceAnnotatedTest {
         assertThat(Files.readString(report)).contains("COBOL-ANNOTATION-REJECTED");
     }
 
+    @Test
+    void staleSidecarFallsBackAndWritesDiagnosticReport(@TempDir Path workspacePath) throws Exception {
+        Path cobolPath = workspacePath.resolve("sample.cob");
+        Files.writeString(cobolPath, COBOL);
+        CobolIntermediateModelService modelService = new CobolIntermediateModelService();
+        CobolIntermediateModel model = modelService.parse(COBOL);
+        ObjectMapper mapper = new ObjectMapper().findAndRegisterModules()
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        AnnotatedCobolModel current = sidecar(model);
+        AnnotatedCobolModel stale = new AnnotatedCobolModel(current.schemaVersion(),
+                current.baseIrVersion(), "0".repeat(64), current.annotations());
+        mapper.writeValue(workspacePath.resolve("sample.annotated.json").toFile(), stale);
+        JavaGenerationService service = new JavaGenerationService(
+                new CobolParsingService(CobolParsingService.Dialect.IBM),
+                new TemplateCodeGenerationService(), modelService,
+                new CobolSemanticTranspiler(new OpenRewriteRunner()), mapper);
+        Workspace workspace = new Workspace("annotated", workspacePath.toString(), "main");
+
+        StubResult result = service.generateInterfaceStubs(new NqlQuery(), workspace);
+
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.getGeneratedCode().get("SampleDTO.java"))
+                .contains("private String customerName")
+                .doesNotContain("clientFullName");
+        Path report = workspacePath.resolve(ManualActionItemWriter.DEFAULT_REPORT);
+        assertThat(report).exists();
+        assertThat(Files.readString(report)).contains("COBOL-ANNOTATION-STALE");
+    }
+
     private AnnotatedCobolModel sidecar(CobolIntermediateModel model) {
         CobolIrIdentityProjector projector = new CobolIrIdentityProjector();
         String nodeId = projector.nodes(model).stream()

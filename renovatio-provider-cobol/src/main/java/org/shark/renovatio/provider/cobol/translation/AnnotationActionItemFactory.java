@@ -10,6 +10,24 @@ import org.shark.renovatio.provider.cobol.guardrail.ManualActionSeverity;
 /** Maps recipe-neutral annotation outcomes onto the versioned manual-action-item contract. */
 public final class AnnotationActionItemFactory {
 
+    public ManualActionItem toResolutionDiagnostic(String diagnostic, String sourceFile, String programId) {
+        boolean stale = diagnostic.contains("baseIrHash");
+        GuardrailGate gate = stale ? GuardrailGate.CHARACTERIZATION : GuardrailGate.SCHEMA;
+        String code = stale ? "COBOL-ANNOTATION-STALE" : "COBOL-ANNOTATED-SIDECAR-INVALID";
+        String reason = stale
+                ? "Annotated sidecar does not match current IR: " + diagnostic
+                : "Annotated sidecar failed validation: " + diagnostic;
+        String family = "ANNOTATED_SIDECAR";
+        String id = ManualActionItemIds.from(sourceFile, programId, diagnostic, family, reason);
+        return new ManualActionItem(id, sourceFile, programId, null, null, null, null,
+                null, null, family, reason, gate, code,
+                "Invalid annotated input ignored; deterministic base translation retained",
+                "Review the diagnostic and regenerate or repair the annotated sidecar",
+                "Sidecar passes schema and semantic validation and matches the current base IR",
+                ManualActionSeverity.ERROR, ManualActionReviewStatus.PENDING,
+                null, null, null, null, null, null);
+    }
+
     public ManualActionItem toActionItem(DroppedAnnotation dropped, String sourceFile, String programId) {
         Mapping mapping = switch (dropped.reason()) {
             case REJECTED -> new Mapping(GuardrailGate.REVIEW_ELIGIBILITY, ManualActionSeverity.WARNING,

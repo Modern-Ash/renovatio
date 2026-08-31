@@ -41,3 +41,9 @@
 - 2026-08-31T12:03:30.369842Z | tool.prepared | run=tool-20260831t12031788188610z tool=repository operation=commit actor=project:agent
 - 2026-08-31T12:03:30.372000Z | tool.running | run=tool-20260831t12031788188610z actor=project:agent
 - 2026-08-31T12:03:30.395469Z | tool.completed | run=tool-20260831t12031788188610z exit-code=0
+- 2026-08-31T12:06:23.461744Z | tool.prepared | run=tool-20260831t12061788188783z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:06:23.463982Z | tool.running | run=tool-20260831t12061788188783z actor=project:agent
+- 2026-08-31T12:06:23.487890Z | tool.completed | run=tool-20260831t12061788188783z exit-code=0
+- 2026-08-31T12:07:09.147600Z | artifact.added | kind=test-report uri=repo://docs/reports/annotated-openrewrite-pass-test-report-20260831.md actor=project:agent
+- 2026-08-31T12:07:09.446058Z | evidence.added | id=evidence-000001 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T12:07:09.772451Z | evidence.added | id=evidence-000002 type=offline-characterization result=success revision=1 actor=project:agent

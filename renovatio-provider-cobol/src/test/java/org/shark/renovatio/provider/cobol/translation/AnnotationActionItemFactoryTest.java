@@ -38,4 +38,27 @@ class AnnotationActionItemFactoryTest {
         assertThat(item.severity()).isEqualTo(ManualActionSeverity.ERROR);
         assertThat(item.diagnosticReference()).isEqualTo("COBOL-ANNOTATION-STALE");
     }
+
+    @Test
+    void mapsStaleResolutionDiagnosticToCharacterizationError() {
+        ManualActionItem item = factory.toResolutionDiagnostic(
+                "sample.annotated.json: baseIrHash does not match the current COBOL IR",
+                "sample.cob", "SAMPLE");
+
+        assertThat(item.failedGate()).isEqualTo(GuardrailGate.CHARACTERIZATION);
+        assertThat(item.severity()).isEqualTo(ManualActionSeverity.ERROR);
+        assertThat(item.diagnosticReference()).isEqualTo("COBOL-ANNOTATION-STALE");
+        assertThat(item.constructionFamily()).isEqualTo("ANNOTATED_SIDECAR");
+    }
+
+    @Test
+    void mapsInvalidResolutionDiagnosticToSchemaError() {
+        ManualActionItem item = factory.toResolutionDiagnostic(
+                "sample.annotated.json: schema: $.annotations is required",
+                "sample.cob", "SAMPLE");
+
+        assertThat(item.failedGate()).isEqualTo(GuardrailGate.SCHEMA);
+        assertThat(item.severity()).isEqualTo(ManualActionSeverity.ERROR);
+        assertThat(item.diagnosticReference()).isEqualTo("COBOL-ANNOTATED-SIDECAR-INVALID");
+    }
 }

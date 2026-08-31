@@ -7,6 +7,7 @@ import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 import org.shark.renovatio.provider.cobol.translation.AnnotatedContextResolver;
+import org.shark.renovatio.provider.cobol.translation.AnnotationActionItemFactory;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionItemWriter;
 import org.shark.renovatio.shared.domain.StubResult;
@@ -42,6 +43,7 @@ public class JavaGenerationService {
     private final CobolIntermediateModelService intermediateModelService;
     private final CobolSemanticTranspiler semanticTranspiler;
     private final AnnotatedContextResolver annotatedContextResolver;
+    private final AnnotationActionItemFactory annotationActionItemFactory;
     private final ManualActionItemWriter manualActionItemWriter;
 
     public JavaGenerationService(CobolParsingService parsingService,
@@ -62,6 +64,7 @@ public class JavaGenerationService {
         this.intermediateModelService = intermediateModelService;
         this.semanticTranspiler = semanticTranspiler;
         this.annotatedContextResolver = new AnnotatedContextResolver(objectMapper);
+        this.annotationActionItemFactory = new AnnotationActionItemFactory();
         this.manualActionItemWriter = new ManualActionItemWriter(objectMapper);
     }
 
@@ -98,6 +101,10 @@ public class JavaGenerationService {
                     Path cobolPath = Path.of(fileName);
                     AnnotatedContextResolver.Resolution annotatedResolution = annotatedContextResolver.resolve(
                             new AnnotatedContextResolver.Request(Optional.empty(), Optional.empty(), cobolPath), model);
+                    annotatedResolution.diagnostics().stream()
+                            .map(diagnostic -> annotationActionItemFactory.toResolutionDiagnostic(
+                                    diagnostic, fileName, model.getProgramId()))
+                            .forEach(item -> actionItems.putIfAbsent(item.id(), item));
 
                     // Generate DTO class for data structures
                     String dtoClass = generateDataTransferObject(classBase, metadata);

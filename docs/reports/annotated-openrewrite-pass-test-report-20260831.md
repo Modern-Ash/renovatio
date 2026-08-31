@@ -1,7 +1,7 @@
 # Annotated OpenRewrite Pass Test Report
 
-Date: 2026-08-31  
-Agora work: `ai-modernization/annotated-openrewrite-pass`  
+Date: 2026-08-31
+Agora work: `ai-modernization/annotated-openrewrite-pass`
 GitHub issue: #127
 
 ## Scope
@@ -19,7 +19,7 @@ The focused implementation suites were run offline throughout development. Final
 mvn -q -pl renovatio-cobol-annotations,cobol-openrewrite-recipes,renovatio-cobol-ir,renovatio-cobol-runtime,renovatio-provider-cobol test -o -Djacoco.skip=true
 ```
 
-Result: success, 160 tests, 0 failures, 0 errors, 0 skipped.
+Result: success, 163 tests, 0 failures, 0 errors, 0 skipped.
 
 | Module | Tests | Failures | Errors | Skipped |
 | --- | ---: | ---: | ---: | ---: |
@@ -27,7 +27,7 @@ Result: success, 160 tests, 0 failures, 0 errors, 0 skipped.
 | `cobol-openrewrite-recipes` | 21 | 0 | 0 | 0 |
 | `renovatio-cobol-ir` | 55 | 0 | 0 | 0 |
 | `renovatio-cobol-runtime` | 23 | 0 | 0 | 0 |
-| `renovatio-provider-cobol` | 59 | 0 | 0 | 0 |
+| `renovatio-provider-cobol` | 62 | 0 | 0 | 0 |
 
 The CI isolation lane was then reproduced with the workflow's pinned Maven/Temurin 17 image,
 `--network=none`, no provider credential variables, and a clean build:
@@ -37,7 +37,7 @@ mvn -B -o -pl renovatio-provider-cobol,cobol-openrewrite-recipes -am clean test 
 ```
 
 Result: `BUILD SUCCESS` for all nine reactor projects. DNS and direct TCP isolation checks failed
-closed as expected before Maven ran. The COBOL provider reported 59 passing tests, including the
+closed as expected before Maven ran. The COBOL provider reported 62 passing tests, including the
 annotated characterization fixtures. An earlier host-Java-21 run encountered stale generated
 module output in `renovatio-shared`; the clean pinned-Java-17 CI reproduction eliminated that local
 artifact issue without any source change.
@@ -94,7 +94,8 @@ after the probe was removed.
   selection.
 - `CobolSemanticTranspilerTest` proves dropped outcomes are drained to the reporting sink.
 - `JavaGenerationServiceAnnotatedTest` proves the report is emitted under
-  `build/reports/renovatio/manual-action-items.json` while deterministic translation continues.
+  `build/reports/renovatio/manual-action-items.json` while deterministic translation continues,
+  including when a stale sidecar is rejected before annotation application.
 
 ## Follow-ups
 
