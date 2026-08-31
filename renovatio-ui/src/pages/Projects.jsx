@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getProjects, createProject } from '../api/client'
 
@@ -6,7 +6,20 @@ function Projects() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [showCreate, setShowCreate] = useState(false)
-  const [newProject, setNewProject] = useState({ name: '', workspacePath: '', branch: 'main' })
+  const [newProject, setNewProject] = useState({
+    name: '',
+    workspacePath: '',
+    javaOutputPath: 'generated-java-stubs',
+    javaPackage: '',
+    javaArchitecture: 'flat'
+  })
+  const [folderMessage, setFolderMessage] = useState('')
+  const [createError, setCreateError] = useState('')
+  const [createInfo, setCreateInfo] = useState('')
+  const [pickedFolder, setPickedFolder] = useState('')
+  const [workspaceHint, setWorkspaceHint] = useState('')
+  const [workspaceHintAbsolute, setWorkspaceHintAbsolute] = useState(false)
+  const [isWorkspacePathValid, setIsWorkspacePathValid] = useState(true)
 
   const fetchProjects = async () => {
     try {
@@ -23,16 +36,139 @@ function Projects() {
     fetchProjects()
   }, [])
 
+  const resetCreateForm = () => {
+    setNewProject({
+      name: '',
+      workspacePath: '',
+      javaOutputPath: 'generated-java-stubs',
+      javaPackage: '',
+      javaArchitecture: 'flat'
+    })
+    setFolderMessage('')
+    setPickedFolder('')
+    setWorkspaceHint('')
+    setWorkspaceHintAbsolute(false)
+    setIsWorkspacePathValid(true)
+    setCreateError('')
+  }
+
+  const openCreateModal = () => {
+    resetCreateForm()
+    setShowCreate(true)
+  }
+
+  const closeCreateModal = () => {
+    setShowCreate(false)
+    resetCreateForm()
+  }
+
   const handleCreate = async (e) => {
     e.preventDefault()
+    setCreateError('')
+    setCreateInfo('')
     try {
-      await createProject(newProject)
+      if (!isWorkspacePathValid) {
+        throw new Error('Ingrese una ruta absoluta para el workspace antes de guardar.')
+      }
+      const created = await createProject(newProject)
       setShowCreate(false)
-      setNewProject({ name: '', workspacePath: '', branch: 'main' })
+      resetCreateForm()
+      setCreateInfo(`Proyecto creado. Ruta del workspace guardada: ${created?.workspacePath || newProject.workspacePath}`)
       fetchProjects()
     } catch (error) {
       console.error('Failed to create project:', error)
+      setCreateError(error.message || 'Failed to create project')
     }
+  }
+
+  const isAbsoluteWorkspacePath = (pathValue) => {
+    if (!pathValue || typeof pathValue !== 'string') {
+      return false
+    }
+    return /^(\/|[A-Za-z]:[\\/])/.test(pathValue.trim())
+  }
+
+  const validateWorkspacePath = (value) => {
+    const trimmed = (value || '').trim()
+    const valid = trimmed.length > 0 && isAbsoluteWorkspacePath(trimmed)
+    setIsWorkspacePathValid(valid)
+    return valid
+  }
+
+  const normalizeWorkspaceCandidate = (relativeOrAbsolutePath) => {
+    const filePath = (relativeOrAbsolutePath || '').replace(/\\/g, '/')
+    const lastSlash = filePath.lastIndexOf('/')
+    if (lastSlash <= 0) {
+      return { candidate: filePath, absolute: false }
+    }
+    const candidate = filePath.substring(0, lastSlash)
+    return {
+      candidate,
+      absolute: isAbsoluteWorkspacePath(candidate)
+    }
+  }
+
+  const isCobolWorkspaceSelection = (files) => {
+    const selectedFiles = Array.from(files || [])
+    if (selectedFiles.length === 0) {
+      return {
+        valid: false,
+        message: 'No se seleccionaron archivos'
+      }
+    }
+    const cobolExtensions = ['.cob', '.cbl', '.cobol', '.cpy']
+    const hasCobol = selectedFiles.some((file) => {
+      const name = (file.webkitRelativePath || file.name || '').toLowerCase()
+      return cobolExtensions.some((ext) => name.endsWith(ext))
+    })
+    if (!hasCobol) {
+      return {
+        valid: false,
+        message: 'La carpeta seleccionada no parece contener archivos COBOL (.cob, .cbl, .cobol, .cpy).'
+      }
+    }
+    return {
+      valid: true,
+      message: 'Carpeta inspeccionada correctamente.'
+    }
+  }
+
+  const handleFolderPick = (event) => {
+    const files = event.target.files || []
+    const result = isCobolWorkspaceSelection(files)
+    const firstPath = files[0]?.webkitRelativePath || files[0]?.name || ''
+    const absoluteGuess = normalizeWorkspaceCandidate(firstPath)
+    const folderName = files[0]?.name || ''
+    setPickedFolder(folderName)
+    setWorkspaceHint(absoluteGuess.candidate)
+    setWorkspaceHintAbsolute(absoluteGuess.absolute)
+    if (absoluteGuess.absolute && !newProject.workspacePath) {
+      setNewProject({ ...newProject, workspacePath: absoluteGuess.candidate })
+      setIsWorkspacePathValid(true)
+      setFolderMessage(`${result.message} Ruta candidata detectada: ${absoluteGuess.candidate}`)
+      return
+    }
+    setFolderMessage(
+      `${result.message} ` +
+      (absoluteGuess.absolute
+        ? `Ruta candidata detectada: ${absoluteGuess.candidate}`
+        : 'No se detectó ruta absoluta desde el navegador; completa la ruta completa manualmente.')
+    )
+    setIsWorkspacePathValid(false)
+    if (!absoluteGuess.absolute) {
+      setWorkspaceHint('')
+    }
+    if (!result.valid) {
+      return
+    }
+  }
+
+  const applyWorkspaceHint = () => {
+    if (!workspaceHint) {
+      return
+    }
+    setNewProject({ ...newProject, workspacePath: workspaceHint })
+    validateWorkspacePath(workspaceHint)
   }
 
   if (loading) {
@@ -43,7 +179,7 @@ function Projects() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Projects</h1>
-        <button onClick={() => setShowCreate(true)} className="btn btn-primary">
+          <button onClick={openCreateModal} className="btn btn-primary">
           New Project
         </button>
       </div>
@@ -52,41 +188,135 @@ function Projects() {
         <div className="card mb-6">
           <h2 className="text-lg font-semibold mb-4">Create Project</h2>
           <form onSubmit={handleCreate}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <input
-                type="text"
-                placeholder="Project Name"
-                value={newProject.name}
-                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
-                className="input"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Workspace Path"
-                value={newProject.workspacePath}
-                onChange={(e) => setNewProject({ ...newProject, workspacePath: e.target.value })}
-                className="input"
-                required
-              />
-              <input
-                type="text"
-                placeholder="Branch (optional)"
-                value={newProject.branch}
-                onChange={(e) => setNewProject({ ...newProject, branch: e.target.value })}
-                className="input"
-              />
+            <p className="text-sm text-gray-600 mb-2">
+              En este paso no se cargan fuentes aún: solo definimos nombre del proyecto y la carpeta donde vive el COBOL.
+              La lectura/análisis de COBOL ocurre al iniciar Analyze en el wizard.
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              En Workspace Path pegá una ruta absoluta (ej: <code>/home/usuario/proyecto</code> o <code>C:\proyecto</code>).
+              Podés validar la carpeta con <strong>Browse…</strong> para detectar si tiene COBOL.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="flex flex-col gap-1">
+                <span className="text-xs text-gray-600">Project Name</span>
+                <input
+                  type="text"
+                  placeholder="Project Name"
+                  value={newProject.name}
+                  onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                  className="input"
+                  required
+                />
+              </label>
+              <div className="col-span-2 flex gap-2">
+                <label className="flex-1 flex flex-col gap-1">
+                  <span className="text-xs text-gray-600">Workspace Path</span>
+                  <input
+                    type="text"
+                    placeholder="/ruta/absoluta/al/workspace"
+                    value={newProject.workspacePath}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setNewProject({ ...newProject, workspacePath: value })
+                      validateWorkspacePath(value)
+                    }}
+                    className="input flex-1"
+                    required
+                  />
+                </label>
+                <input
+                  id="project-folder-picker"
+                  type="file"
+                  className="hidden"
+                  webkitdirectory=""
+                  directory=""
+                  multiple
+                  onChange={handleFolderPick}
+                />
+                <label htmlFor="project-folder-picker" className="btn btn-secondary inline-flex items-center">
+                  Browse…
+                </label>
+              </div>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+              <label className="flex flex-col gap-1">
+                <span className="text-xs text-gray-600">Java output path</span>
+                <input
+                  type="text"
+                  placeholder="generated-java-stubs"
+                  value={newProject.javaOutputPath}
+                  onChange={(e) => setNewProject({ ...newProject, javaOutputPath: e.target.value })}
+                  className="input"
+                />
+                <p className="text-xs text-gray-500">
+                  Folder inside the workspace where generated Java files are written. Absolute paths are also supported.
+                </p>
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs text-gray-600">Base Java package</span>
+                <input
+                  type="text"
+                  placeholder="com.example.generated"
+                  value={newProject.javaPackage}
+                  onChange={(e) => setNewProject({ ...newProject, javaPackage: e.target.value })}
+                  className="input"
+                />
+                <p className="text-xs text-gray-500">
+                  Base package for generated sources (for example: com.mycompany.transformation).
+                </p>
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="text-xs text-gray-600">Java architecture</span>
+                <select
+                  value={newProject.javaArchitecture}
+                  onChange={(e) => setNewProject({ ...newProject, javaArchitecture: e.target.value })}
+                  className="input"
+                >
+                  <option value="flat">Flat package</option>
+                  <option value="layered">Layered (entity/service/repository)</option>
+                  <option value="program-package">Package per COBOL program</option>
+                  <option value="feature-package">Package by feature</option>
+                </select>
+                <p className="text-xs text-gray-500">
+                  Controls how generated classes are organized into Java packages (single package, layered, by program, or by feature).
+                </p>
+              </label>
+            </div>
+            {folderMessage && (
+              <p className="text-sm mt-2 text-gray-700">{folderMessage}</p>
+            )}
+            {pickedFolder && (
+              <p className="text-sm mt-1 text-gray-500">Última carpeta inspeccionada: {pickedFolder}</p>
+            )}
+            {workspaceHint && workspaceHintAbsolute && (
+              <button type="button" className="btn btn-secondary mt-2" onClick={applyWorkspaceHint}>
+                Usar ruta detectada
+              </button>
+            )}
+            <p className="text-sm mt-2 text-gray-600">
+              Al crear el proyecto, si la ruta no existe, Renovatio crea el directorio automáticamente.
+            </p>
+            <p className="text-sm mt-2 text-amber-700">
+              Tip: el navegador no siempre expone ruta absoluta al seleccionar carpeta.
+              Si el picker trae solo nombre, pegá la ruta completa manualmente antes de guardar.
+            </p>
+            {createError && (
+              <p className="text-sm text-red-700 mt-2">{createError}</p>
+            )}
             <div className="mt-4 flex gap-2">
-              <button type="submit" className="btn btn-primary">
+              <button type="submit" className="btn btn-primary" disabled={!isWorkspacePathValid}>
                 Create
               </button>
-              <button type="button" onClick={() => setShowCreate(false)} className="btn btn-secondary">
+              <button type="button" onClick={closeCreateModal} className="btn btn-secondary">
                 Cancel
               </button>
             </div>
           </form>
         </div>
+      )}
+
+      {createInfo && (
+        <p className="text-sm text-green-700 mb-4">{createInfo}</p>
       )}
 
       {projects.length === 0 ? (
@@ -103,8 +333,14 @@ function Projects() {
             >
               <h3 className="font-semibold">{project.name}</h3>
               <p className="text-sm text-gray-500 mt-1">{project.workspacePath}</p>
-              {project.branch && (
-                <p className="text-xs text-gray-400 mt-1">Branch: {project.branch}</p>
+              {project.javaOutputPath && (
+                <p className="text-xs text-gray-400 mt-1">Java output: {project.javaOutputPath}</p>
+              )}
+              {project.javaPackage && (
+                <p className="text-xs text-gray-400 mt-1">Package: {project.javaPackage}</p>
+              )}
+              {project.javaArchitecture && (
+                <p className="text-xs text-gray-400 mt-1">Architecture: {project.javaArchitecture}</p>
               )}
               <p className="text-xs text-gray-400 mt-2">
                 Created: {new Date(project.createdAt).toLocaleDateString()}
