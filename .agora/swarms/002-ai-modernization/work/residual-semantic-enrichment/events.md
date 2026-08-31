@@ -87,3 +87,11 @@
 - 2026-08-31T00:42:29.403274Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:agent stage=verified
 - 2026-08-31T00:42:29.695980Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=verified
 - 2026-08-31T00:42:29.996298Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=verified
+- 2026-08-31T00:42:46.913850Z | tool.prepared | run=tool-20260831t00421788147766z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:42:46.916258Z | tool.running | run=tool-20260831t00421788147766z actor=project:agent
+- 2026-08-31T00:42:46.939440Z | tool.completed | run=tool-20260831t00421788147766z exit-code=0
+- 2026-08-31T00:44:06.681459Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=accepted
+- 2026-08-31T00:44:06.980978Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=accepted
+- 2026-08-31T00:44:07.280086Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=accepted
+- 2026-08-31T00:44:07.593100Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=accepted
+- 2026-08-31T00:44:07.923283Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=accepted
