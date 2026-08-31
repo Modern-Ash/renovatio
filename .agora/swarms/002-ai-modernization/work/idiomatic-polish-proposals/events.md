@@ -45,3 +45,6 @@
 - 2026-08-31T13:59:37.305615Z | work.criterion-stage-marked | criterion=human-gate actor=project:agent stage=verified
 - 2026-08-31T13:59:37.517602Z | work.criterion-stage-marked | criterion=discard-on-failure actor=project:agent stage=verified
 - 2026-08-31T14:00:23.127945Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-31T14:02:16.238523Z | tool.prepared | run=tool-20260831t14021788195736z tool=repository operation=commit actor=project:agent
+- 2026-08-31T14:02:16.241533Z | tool.running | run=tool-20260831t14021788195736z actor=project:agent
+- 2026-08-31T14:02:16.266227Z | tool.completed | run=tool-20260831t14021788195736z exit-code=0

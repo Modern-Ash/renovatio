@@ -10,9 +10,14 @@ import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionReviewStatus;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionSeverity;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionItemWriter;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class IdiomaticPolishServiceTest {
 
     private static final String HASH = "a".repeat(64);
-    private static final String OUTPUT_HASH = "b".repeat(64);
+    private static final String SOURCE = "class Customer { String customerCode; }\n";
+    private static final String PROPOSED_SOURCE = "class Customer { String accountCode; }\n";
+    private static final String OUTPUT_HASH = PolishContracts.sha256(PROPOSED_SOURCE);
     private static final String PATH = "Customer.java";
 
     @TempDir
@@ -32,8 +39,9 @@ class IdiomaticPolishServiceTest {
     @Test
     void redPrerequisiteProducesNoGeneratorCallAndReplacesStaleReport() throws Exception {
         AtomicInteger calls = new AtomicInteger();
-        PolishProposalRequest request = request(PolishContractsTest.evidence(
+        PolishProposalRequest request = request(evidence(
                 true, false, true, true, false));
+        seedGeneratedSources(request, workspace);
         ManualActionItem unrelated = action("mai-000000000000000000000001", "current");
         ManualActionItem stale = action("mai-000000000000000000000002", "stale");
         new ManualActionItemWriter(new ObjectMapper()).write(
@@ -63,20 +71,22 @@ class IdiomaticPolishServiceTest {
     @Test
     void everyRedPrerequisiteSkipsCandidateGeneration() throws Exception {
         List<PolishPrerequisiteEvidence> redEvidence = List.of(
-                PolishContractsTest.evidence(false, true, true, true, false),
-                PolishContractsTest.evidence(true, false, true, true, false),
-                PolishContractsTest.evidence(true, true, false, true, false),
-                PolishContractsTest.evidence(true, true, true, false, false),
-                PolishContractsTest.evidence(true, true, true, true, true));
+                evidence(false, true, true, true, false),
+                evidence(true, false, true, true, false),
+                evidence(true, true, false, true, false),
+                evidence(true, true, true, false, false),
+                evidence(true, true, true, true, true));
         AtomicInteger calls = new AtomicInteger();
 
         for (int index = 0; index < redEvidence.size(); index++) {
             Path run = workspace.resolve("red-" + index);
+            PolishProposalRequest request = request(redEvidence.get(index));
+            seedGeneratedSources(request, run);
             IdiomaticPolishService service = new IdiomaticPolishService(new ObjectMapper(), run, ignored -> {
                 calls.incrementAndGet();
                 return candidate();
             }, passingChecks());
-            PolishProposalOutcome outcome = service.propose(request(redEvidence.get(index)), List.of());
+            PolishProposalOutcome outcome = service.propose(request, List.of());
 
             assertThat(outcome.disposition()).isEqualTo(PolishDisposition.INELIGIBLE);
             assertThat(outcome.artifactDirectory()).isNull();
@@ -88,7 +98,7 @@ class IdiomaticPolishServiceTest {
     void everyCandidateGateFailureStopsLaterGatesAndDiscardsPatch() throws Exception {
         List<GateFailure> failures = List.of(
                 new GateFailure(GuardrailGate.SCHEMA, "schema:forced",
-                        checks("schema:forced", null, null), candidate()),
+                checks("schema:forced", null, null), candidate()),
                 new GateFailure(GuardrailGate.COMPILATION, "compilation:forced",
                         checks(null, "compilation:forced", null), candidate()),
                 new GateFailure(GuardrailGate.CHARACTERIZATION, "characterization:forced",
@@ -100,10 +110,11 @@ class IdiomaticPolishServiceTest {
         for (int index = 0; index < failures.size(); index++) {
             GateFailure failure = failures.get(index);
             Path run = workspace.resolve("gate-" + index);
+            PolishProposalRequest request = request(evidence(true, true, true, true, false));
+            seedGeneratedSources(request, run);
             IdiomaticPolishService service = new IdiomaticPolishService(
                     new ObjectMapper(), run, ignored -> failure.candidate(), failure.checks());
-            PolishProposalOutcome outcome = service.propose(
-                    request(PolishContractsTest.evidence(true, true, true, true, false)), List.of());
+            PolishProposalOutcome outcome = service.propose(request, List.of());
 
             assertThat(outcome.disposition()).isEqualTo(PolishDisposition.FAILED);
             assertThat(outcome.failedGate()).isEqualTo(failure.gate());
@@ -132,9 +143,10 @@ class IdiomaticPolishServiceTest {
                 provenance(PolishProposalFamily.DOMAIN_NAMING_REFINEMENT),
                 new DomainNamingRefinement("node-1", "customerCode", "accountCode",
                         Set.of(PATH), true, false, false), true);
+        seedGeneratedSources(request(evidence(true, true, true, true, false)), workspace);
 
         PolishProposalOutcome outcome = service(ignored -> candidate, checks).propose(
-                request(PolishContractsTest.evidence(true, true, true, true, false)), List.of());
+                request(evidence(true, true, true, true, false)), List.of());
 
         assertThat(outcome.failedGate()).isEqualTo(GuardrailGate.SCHEMA);
         assertThat(outcome.diagnosticReference()).isEqualTo("schema:undeclared-changed-path");
@@ -146,11 +158,13 @@ class IdiomaticPolishServiceTest {
         IdiomaticPolishService service = service(ignored -> {
             throw new IllegalStateException("provider unavailable");
         }, passingChecks());
+        PolishProposalRequest request = request(evidence(true, true, true, true, false));
+        seedGeneratedSources(request, workspace);
 
         PolishProposalOutcome first = service.propose(
-                request(PolishContractsTest.evidence(true, true, true, true, false)), List.of());
+                request, List.of());
         PolishProposalOutcome second = service.propose(
-                request(PolishContractsTest.evidence(true, true, true, true, false)), List.of());
+                request, List.of());
 
         assertThat(first.disposition()).isEqualTo(PolishDisposition.FAILED);
         assertThat(first.diagnosticReference()).isEqualTo("polish:generation-failed");
@@ -161,8 +175,73 @@ class IdiomaticPolishServiceTest {
     }
 
     @Test
+    void candidateWithBadOutputHashesFailsBuiltInSchemaValidation() throws Exception {
+        PolishCandidate candidate = candidate(
+                Set.of(), Set.of(), true, Map.of(PATH, "b".repeat(64)),
+                Set.of(PATH));
+        PolishProposalRequest request = request(evidence(true, true, true, true, false));
+        seedGeneratedSources(request, workspace);
+
+        PolishProposalOutcome outcome = service(ignored -> candidate, passingChecks()).propose(
+                request, List.of());
+
+        assertThat(outcome.disposition()).isEqualTo(PolishDisposition.FAILED);
+        assertThat(outcome.failedGate()).isEqualTo(GuardrailGate.SCHEMA);
+        assertThat(outcome.diagnosticReference()).isEqualTo("schema:output-hash-mismatch");
+        assertThat(outcome.artifactDirectory()).isNull();
+    }
+
+    @Test
+    void generationMutationToGeneratedSourceIsIsolatedAndClassifiedAsSourceMutation() throws Exception {
+        PolishProposalRequest request = request(evidence(
+                true, true, true, true, false));
+        Map<String, String> original = request.generatedSources();
+        seedGeneratedSources(request, workspace);
+        Path generated = workspace.resolve("generated").resolve(PATH);
+
+        IdiomaticPolishService service = service(ignored -> {
+            try {
+                Files.writeString(generated, "class Customer { String badCode; }\n");
+            } catch (Exception error) {
+                throw new RuntimeException(error);
+            }
+            return candidate();
+        }, passingChecks());
+
+        PolishProposalOutcome outcome = service.propose(request, List.of());
+
+        assertThat(outcome.disposition()).isEqualTo(PolishDisposition.FAILED);
+        assertThat(outcome.failedGate()).isEqualTo(GuardrailGate.REVIEW_ELIGIBILITY);
+        assertThat(outcome.diagnosticReference()).isEqualTo("review:source-mutated");
+        assertThat(outcome.executedGates()).isEmpty();
+        assertThat(Files.readString(generated)).isEqualTo(original.get(PATH));
+    }
+
+    @Test
+    void successfulProposalReplacesStaleManualActionReport() throws Exception {
+        ManualActionItem stale = action("mai-000000000000000000000003", "stale");
+        new ManualActionItemWriter(new ObjectMapper()).write(
+                workspace.resolve(ManualActionItemWriter.DEFAULT_REPORT),
+                List.of(stale));
+
+        PolishProposalRequest request = request(evidence(
+                true, true, true, true, false));
+        Path generated = workspace.resolve("generated").resolve(PATH);
+        Files.createDirectories(generated.getParent());
+        Files.writeString(generated, SOURCE);
+
+        PolishProposalOutcome outcome = service(ignored -> candidate(), passingChecks()).propose(
+                request, List.of());
+
+        assertThat(outcome.disposition()).isEqualTo(PolishDisposition.ELIGIBLE_FOR_REVIEW);
+        JsonNode report = new ObjectMapper().readTree(
+                workspace.resolve(ManualActionItemWriter.DEFAULT_REPORT).toFile());
+        assertThat(report.path("items")).isEmpty();
+    }
+
+    @Test
     void successfulProposalEmitsOnlyStableReviewArtifactsAndNeverChangesInputs() throws Exception {
-        PolishProposalRequest request = request(PolishContractsTest.evidence(
+        PolishProposalRequest request = request(evidence(
                 true, true, true, true, false));
         Map<String, String> originalSources = request.generatedSources();
         Path generated = workspace.resolve("generated").resolve(PATH);
@@ -210,9 +289,12 @@ class IdiomaticPolishServiceTest {
             PolishCandidate candidate = candidate(payload, Set.of(), Set.of(), true);
             IdiomaticPolishService service = new IdiomaticPolishService(
                     new ObjectMapper(), run, ignored -> candidate, passingChecks());
+            PolishProposalRequest request = request(payload, evidence(
+                    true, true, true, true, false));
+            seedGeneratedSources(request, run);
 
             PolishProposalOutcome outcome = service.propose(
-                    request(payload, PolishContractsTest.evidence(true, true, true, true, false)),
+                    request,
                     List.of());
 
             assertThat(outcome.disposition()).isEqualTo(PolishDisposition.ELIGIBLE_FOR_REVIEW);
@@ -228,13 +310,27 @@ class IdiomaticPolishServiceTest {
         assertThat(List.of(IdiomaticPolishService.class.getDeclaredMethods()))
                 .extracting(method -> method.getName().toLowerCase())
                 .contains("propose")
-                .noneMatch(name -> name.contains("apply") || name.contains("accept")
-                        || name.contains("commit") || name.contains("merge"));
+                .noneMatch(name -> Set.of("apply", "accept", "commit", "merge").contains(name));
     }
 
     private IdiomaticPolishService service(PolishCandidateGenerator generator,
                                            PolishValidationChecks checks) {
         return new IdiomaticPolishService(new ObjectMapper(), workspace, generator, checks);
+    }
+
+    private PolishPrerequisiteEvidence evidence(boolean schema, boolean compilation,
+                                               boolean characterization, boolean stable,
+                                               boolean unresolvedErrors) {
+        WorkspaceCommitState commitState = workspaceCommitState();
+        String repositoryCommit = commitState == null ? "abc123" : commitState.repositoryCommit();
+        String baselineRef = commitState == null ? "baseline-1" : commitState.baselineRef();
+        return new PolishPrerequisiteEvidence(
+                repositoryCommit, baselineRef, List.of("move-numeric"),
+                "mvn -B -pl renovatio-provider-cobol -am test", "17", "3.9.12",
+                Map.of("Customer.java", PolishContracts.sha256(SOURCE)),
+                Map.of("node-1", PolishContracts.canonicalJsonHash(PolishContractsTest.projection())),
+                Map.of("move-numeric", HASH),
+                schema, compilation, characterization, stable, unresolvedErrors);
     }
 
     private PolishProposalRequest request(PolishPrerequisiteEvidence evidence) {
@@ -246,7 +342,7 @@ class IdiomaticPolishServiceTest {
     private PolishProposalRequest request(PolishFamilyPayload payload,
                                            PolishPrerequisiteEvidence evidence) {
         return new PolishProposalRequest(payload.family(), "input.cob", "SAMPLE", HASH,
-                "generated", Map.of(PATH, "class Customer { String customerCode; }\n"),
+                "generated", Map.of(PATH, SOURCE),
                 Map.of("node-1", PolishContractsTest.projection()),
                 Map.of(PATH, "move-numeric"), Map.of("node-1", "move-numeric"), evidence);
     }
@@ -266,11 +362,24 @@ class IdiomaticPolishServiceTest {
                                       Set<String> approvals, boolean reproducible) {
         return new PolishCandidate(
                 "--- a/Customer.java\n+++ b/Customer.java\n@@ -1 +1 @@\n"
-                        + "-class Customer { String customerCode; }\n"
-                        + "+class Customer { String accountCode; }\n",
+                        + "-" + SOURCE
+                        + "+" + PROPOSED_SOURCE,
                 Set.of(PATH), Map.of(PATH, OUTPUT_HASH), signatures, approvals,
                 provenance(payload.family()),
                 payload, reproducible);
+    }
+
+    private PolishCandidate candidate(Set<String> signatures, Set<String> approvals,
+                                      boolean reproducible, Map<String, String> outputHashes,
+                                      Set<String> changedPaths) {
+        return new PolishCandidate(
+                "--- a/Customer.java\n+++ b/Customer.java\n@@ -1 +1 @@\n"
+                        + "-" + SOURCE
+                        + "+" + PROPOSED_SOURCE,
+                changedPaths, outputHashes, signatures, approvals,
+                provenance(PolishProposalFamily.DOMAIN_NAMING_REFINEMENT),
+                new DomainNamingRefinement("node-1", "customerCode", "accountCode",
+                        Set.of(PATH), true, false, false), reproducible);
     }
 
     private Map<String, String> provenance(PolishProposalFamily family) {
@@ -317,4 +426,38 @@ class IdiomaticPolishServiceTest {
 
     private record GateFailure(GuardrailGate gate, String diagnostic,
                                PolishValidationChecks checks, PolishCandidate candidate) { }
+
+    private void seedGeneratedSources(PolishProposalRequest request, Path targetWorkspace) {
+        request.generatedSources().forEach((path, content) -> {
+            try {
+                Path output = targetWorkspace.resolve(request.generatedRoot()).resolve(path);
+                Files.createDirectories(output.getParent());
+                Files.writeString(output, content, StandardOpenOption.TRUNCATE_EXISTING,
+                        StandardOpenOption.CREATE);
+            } catch (Exception error) {
+                throw new RuntimeException(error);
+            }
+        });
+    }
+
+    private WorkspaceCommitState workspaceCommitState() {
+        try (Repository repository = new FileRepositoryBuilder()
+                .setWorkTree(workspace.toFile())
+                .readEnvironment()
+                .findGitDir()
+                .build()) {
+            if (repository.getDirectory() == null) {
+                return null;
+            }
+            ObjectId head = repository.resolve(Constants.HEAD);
+            if (head == null) {
+                return null;
+            }
+            return new WorkspaceCommitState(head.name(), repository.getFullBranch());
+        } catch (Exception error) {
+            return null;
+        }
+    }
+
+    private record WorkspaceCommitState(String repositoryCommit, String baselineRef) { }
 }
