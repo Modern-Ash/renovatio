@@ -101,3 +101,33 @@
 - 2026-08-31T00:47:06.090538Z | artifact.added | kind=test-report uri=repo://docs/reports/residual-semantic-enrichment-revalidation-20260830.md actor=project:agent
 - 2026-08-31T00:47:25.882627Z | work.transitioned | from=verifying to=completed actor=project:owner
 - 2026-08-31T00:53:47.801497Z | work.reopened | revision=2 source=github-pr-review actor=project:owner change=change-20260831t005347801392z
+- 2026-08-31T01:00:19.971095Z | tool.prepared | run=tool-20260831t01001788148819z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:00:19.973514Z | tool.running | run=tool-20260831t01001788148819z actor=project:agent
+- 2026-08-31T01:00:19.997380Z | tool.completed | run=tool-20260831t01001788148819z exit-code=0
+- 2026-08-31T01:02:08.162437Z | artifact.added | kind=spec uri=repo://docs/specs/residual-semantic-enrichment.md actor=project:owner
+- 2026-08-31T01:02:08.457284Z | artifact.added | kind=prompt-catalog uri=repo://renovatio-llm/src/main/resources/prompts/catalog-v1.yaml actor=project:owner
+- 2026-08-31T01:02:08.762525Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/residual-semantic-enrichment.md actor=project:agent
+- 2026-08-31T01:02:09.052558Z | artifact.added | kind=test-report uri=repo://docs/reports/residual-semantic-enrichment-pr136-review-20260830.md actor=project:agent
+- 2026-08-31T01:02:17.865225Z | evidence.added | id=evidence-000005 type=test-report result=success revision=2 actor=project:agent
+- 2026-08-31T01:02:18.163549Z | evidence.added | id=evidence-000006 type=test-report result=success revision=2 actor=project:agent
+- 2026-08-31T01:02:28.569280Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=specified
+- 2026-08-31T01:02:49.741400Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=specified
+- 2026-08-31T01:02:50.034246Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=planned
+- 2026-08-31T01:02:50.332361Z | work.criterion-stage-marked | criterion=domain-language actor=project:agent stage=implemented
+- 2026-08-31T01:02:50.629806Z | work.criterion-stage-marked | criterion=domain-language actor=project:agent stage=verified
+- 2026-08-31T01:02:50.940716Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=specified
+- 2026-08-31T01:02:51.257215Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=planned
+- 2026-08-31T01:02:51.568839Z | work.criterion-stage-marked | criterion=goto-plan actor=project:agent stage=implemented
+- 2026-08-31T01:02:51.881695Z | work.criterion-stage-marked | criterion=goto-plan actor=project:agent stage=verified
+- 2026-08-31T01:02:52.192906Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=specified
+- 2026-08-31T01:02:52.480432Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=planned
+- 2026-08-31T01:02:52.773984Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:agent stage=implemented
+- 2026-08-31T01:02:53.081478Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:agent stage=verified
+- 2026-08-31T01:02:53.385706Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=specified
+- 2026-08-31T01:02:53.693674Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=planned
+- 2026-08-31T01:02:54.005531Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=implemented
+- 2026-08-31T01:02:54.313237Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=verified
+- 2026-08-31T01:02:54.614539Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=specified
+- 2026-08-31T01:02:54.918059Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=planned
+- 2026-08-31T01:02:55.223889Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=implemented
+- 2026-08-31T01:02:55.536914Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=verified
