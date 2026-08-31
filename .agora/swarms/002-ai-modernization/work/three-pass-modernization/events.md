@@ -21,3 +21,22 @@
 - 2026-08-30T14:43:43.392554Z | tool.prepared | run=tool-20260830t14431788111823z tool=repository operation=commit actor=project:agent
 - 2026-08-30T14:43:43.393637Z | tool.running | run=tool-20260830t14431788111823z actor=project:agent
 - 2026-08-30T14:43:43.416168Z | tool.completed | run=tool-20260830t14431788111823z exit-code=0
+- 2026-08-31T15:37:09.046088Z | artifact.added | kind=spec uri=specs/ai-modernization/spec.md actor=project:owner
+- 2026-08-31T15:37:09.288379Z | artifact.added | kind=implementation-plan uri=specs/ai-modernization/implementation-plan.md actor=project:owner
+- 2026-08-31T15:37:11.016991Z | work.criterion-satisfied | criterion=deterministic-boundary actor=project:owner
+- 2026-08-31T15:37:11.224255Z | work.criterion-satisfied | criterion=annotated-ir actor=project:owner
+- 2026-08-31T15:37:11.432745Z | work.criterion-satisfied | criterion=governed-residual actor=project:owner
+- 2026-08-31T15:37:11.639661Z | work.criterion-satisfied | criterion=guardrails actor=project:owner
+- 2026-08-31T15:37:11.847160Z | work.criterion-satisfied | criterion=review-only-polish actor=project:owner
+- 2026-08-31T15:37:15.435890Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-31T15:37:23.724396Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-31T15:37:28.095423Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-31T15:37:46.808912Z | tool.prepared | run=tool-20260831t15371788201466z tool=repository operation=commit actor=project:agent
+- 2026-08-31T15:37:46.812154Z | tool.running | run=tool-20260831t15371788201466z actor=project:agent
+- 2026-08-31T15:37:46.827401Z | tool.failed | run=tool-20260831t15371788201466z exit-code=128
+- 2026-08-31T15:37:49.070671Z | tool.prepared | run=tool-20260831t15371788201469z tool=repository operation=commit actor=project:agent
+- 2026-08-31T15:37:49.075845Z | tool.running | run=tool-20260831t15371788201469z actor=project:agent
+- 2026-08-31T15:37:49.090487Z | tool.failed | run=tool-20260831t15371788201469z exit-code=128
+- 2026-08-31T15:37:59.047082Z | tool.prepared | run=tool-20260831t15371788201479z tool=repository operation=commit actor=project:agent
+- 2026-08-31T15:37:59.050532Z | tool.running | run=tool-20260831t15371788201479z actor=project:agent
+- 2026-08-31T15:37:59.064906Z | tool.failed | run=tool-20260831t15371788201479z exit-code=128
