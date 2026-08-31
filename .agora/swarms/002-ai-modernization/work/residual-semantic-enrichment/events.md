@@ -55,3 +55,10 @@
 - 2026-08-31T00:28:27.501195Z | tool.running | run=tool-20260831t00281788146907z actor=project:agent
 - 2026-08-31T00:28:27.525065Z | tool.completed | run=tool-20260831t00281788146907z exit-code=0
 - 2026-08-31T00:29:45.749178Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=implemented
+- 2026-08-31T00:30:12.415167Z | tool.prepared | run=tool-20260831t00301788147012z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:30:12.417324Z | tool.running | run=tool-20260831t00301788147012z actor=project:agent
+- 2026-08-31T00:30:12.440316Z | tool.completed | run=tool-20260831t00301788147012z exit-code=0
+- 2026-08-31T00:32:37.171160Z | artifact.added | kind=test-report uri=repo://docs/reports/residual-semantic-enrichment-test-report.md actor=project:agent
+- 2026-08-31T00:32:44.483185Z | evidence.added | id=evidence-000001 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T00:32:44.709295Z | evidence.added | id=evidence-000002 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T00:33:07.016898Z | work.transitioned | from=implementing to=verifying actor=project:agent

@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "residual-semantic-enrichment"
 swarm: "ai-modernization"
 title: "Residual LLM semantic enrichment"
-state: "implementing"
+state: "verifying"
 revision: 1
 operational-status: "active"
 status-reason: null

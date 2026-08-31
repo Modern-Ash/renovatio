@@ -1,6 +1,6 @@
 ---
 schema: "agora/artifacts/v2"
-artifact-kinds: ["spec","prompt-catalog","implementation-plan"]
+artifact-kinds: ["spec","prompt-catalog","implementation-plan","test-report"]
 ---
 
 # Artifacts
@@ -12,3 +12,4 @@ artifact-kinds: ["spec","prompt-catalog","implementation-plan"]
 | spec | repo://docs/specs/residual-semantic-enrichment.md | 8daa31e9c39f92f31409c767445a874603780146f25b1de31aa4fad8eca2039c | project:owner | 2026-08-30T23:26:19.975193Z |
 | spec | repo://docs/specs/residual-semantic-enrichment.md | a08b7d2d60425c826a8e8bc0f7bbb4cf62bce9b6f223db456f81d51c8f615911 | project:owner | 2026-08-30T23:27:20.340521Z |
 | implementation-plan | repo://docs/plans/residual-semantic-enrichment.md | df50255cafde4854d39e8d68ce5e4006856b2a7e777e2175232e12e5a7f2643d | project:agent | 2026-08-30T23:49:36.793721Z |
+| test-report | repo://docs/reports/residual-semantic-enrichment-test-report.md | f3224cc6c753f65ed532c8abf66238794da74383dc0d122b06633a99ebe95def | project:agent | 2026-08-31T00:32:37.171068Z |
