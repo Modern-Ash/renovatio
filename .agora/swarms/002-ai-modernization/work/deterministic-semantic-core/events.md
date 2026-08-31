@@ -58,3 +58,10 @@
 - 2026-08-31T01:31:05.475214Z | tool.prepared | run=tool-20260831t01311788150665z tool=repository operation=commit actor=project:agent
 - 2026-08-31T01:31:05.477774Z | tool.running | run=tool-20260831t01311788150665z actor=project:agent
 - 2026-08-31T01:31:05.501266Z | tool.completed | run=tool-20260831t01311788150665z exit-code=0
+- 2026-08-31T10:23:06.554491Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T10:23:08.542788Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T10:23:14.829107Z | work.criterion-satisfied | criterion=statements actor=project:owner
+- 2026-08-31T10:23:15.083769Z | work.criterion-satisfied | criterion=data-model actor=project:owner
+- 2026-08-31T10:23:15.301425Z | work.criterion-satisfied | criterion=pure-recipes actor=project:owner
+- 2026-08-31T10:23:15.529061Z | work.criterion-satisfied | criterion=characterized actor=project:owner
+- 2026-08-31T10:23:43.731506Z | work.transitioned | from=verifying to=completed actor=project:owner
