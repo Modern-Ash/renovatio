@@ -62,6 +62,9 @@ renovatio
 !*/src/**/renovatio/**
 *.class
 
+# CLI workspace state
+.renovatio/
+
 # Test coverage
 coverage/
 .nyc_output/
