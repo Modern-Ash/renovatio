@@ -44,3 +44,15 @@
 - 2026-08-31T15:42:26.438329Z | evidence.added | id=evidence-000001 type=completion result=success revision=1 actor=project:agent
 - 2026-08-31T15:42:35.940418Z | approval.added | role=spec-owner actor=project:owner delegation=none
 - 2026-08-31T15:42:38.127987Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-08-31T15:49:25.932465Z | work.reopened | revision=2 source=manual actor=project:owner change=change-20260831t154925932363z
+- 2026-08-31T15:50:22.070922Z | artifact.added | kind=architecture-decision-record uri=specs/ai-modernization/ADR-001-three-pass-llm-architecture.md actor=project:owner
+- 2026-08-31T15:50:22.280387Z | artifact.added | kind=spec uri=specs/ai-modernization/spec.md actor=project:owner
+- 2026-08-31T15:50:22.505818Z | artifact.added | kind=implementation-plan uri=specs/ai-modernization/implementation-plan.md actor=project:owner
+- 2026-08-31T15:50:24.372493Z | evidence.added | id=evidence-000002 type=completion result=success revision=2 actor=project:owner
+- 2026-08-31T15:50:26.305323Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T15:50:28.429846Z | work.criterion-satisfied | criterion=deterministic-boundary actor=project:owner
+- 2026-08-31T15:50:28.653707Z | work.criterion-satisfied | criterion=annotated-ir actor=project:owner
+- 2026-08-31T15:50:28.887339Z | work.criterion-satisfied | criterion=governed-residual actor=project:owner
+- 2026-08-31T15:50:29.102377Z | work.criterion-satisfied | criterion=guardrails actor=project:owner
+- 2026-08-31T15:50:29.326704Z | work.criterion-satisfied | criterion=review-only-polish actor=project:owner
+- 2026-08-31T15:50:33.835291Z | work.transitioned | from=verifying to=completed actor=project:owner
