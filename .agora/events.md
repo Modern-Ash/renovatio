@@ -231,3 +231,6 @@
 - 2026-08-31T01:00:19.970343Z | tool.prepared | run=tool-20260831t01001788148819z tool=repository operation=commit actor=project:agent
 - 2026-08-31T01:00:19.973141Z | tool.running | run=tool-20260831t01001788148819z tool=repository operation=commit actor=project:agent
 - 2026-08-31T01:00:19.996878Z | tool.completed | run=tool-20260831t01001788148819z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:26:07.923966Z | session.prepared | session=issue-122-implementation actor=project:agent executor=project:agent swarm=ai-modernization
+- 2026-08-31T01:26:18.391500Z | session.running | session=issue-122-implementation
+- 2026-08-31T01:28:57.298672Z | session.failed | session=issue-122-implementation exit-code=unavailable
