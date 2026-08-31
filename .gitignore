@@ -82,3 +82,9 @@ __pycache__/
 renovatio-api/src/main/resources/static/
 renovatio-ui/node_modules/
 *.bak
+
+# CLI workspace state in specs
+specs/**/generated-java-stubs/
+specs/**/generated-decomposed/
+specs/**/build/
+specs/**/.renovatio/
