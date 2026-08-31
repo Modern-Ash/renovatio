@@ -3,11 +3,11 @@ schema: "agora/clarifications/v1"
 swarm: "ai-modernization"
 work: "idiomatic-polish-proposals"
 created-at: "2026-08-31T13:10:58.974546Z"
-last-run-input-sha256: "e70ec0916ec5f918d83108b47bb39c6a28ed07d5739a1569863fb8b5ef47df0e"
-last-run-question-count: 5
-last-run-unanswered-count: 5
+last-run-input-sha256: "cf550d40cdfcd89f6c83944ba960163c6f17c1ebd6c129b7c62a6c1445e35ccf"
+last-run-question-count: 0
+last-run-unanswered-count: 0
 last-run-by: "project:owner"
-last-run-at: "2026-08-31T13:15:35.355536Z"
+last-run-at: "2026-08-31T13:23:49.127263Z"
 ---
 
 # Clarifications for idiomatic-polish-proposals

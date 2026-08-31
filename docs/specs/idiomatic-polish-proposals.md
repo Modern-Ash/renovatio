@@ -46,6 +46,24 @@ family are ineligible and produce no proposal.
 | `STRATEGY_EXTRACTION` | Suggest a strategy boundary for already characterized conditional behavior. |
 | `FLAG_COLLAPSE` | Suggest replacing a characterized family of related flags with a typed state representation. |
 
+Each family has a closed, schema-enforceable contract:
+
+- `DOMAIN_NAMING_REFINEMENT` identifies one exact IR node and current Java symbol, proposes one
+  legal non-keyword identifier, enumerates every same-compilation-unit reference to rename, and
+  proves the target does not collide in scope. An unapproved public-signature rename is invalid.
+- `PORT_EXTRACTION` identifies one existing concrete external-dependency boundary, proposes one
+  interface plus bounded generated-Java call-site updates, and preserves argument order, return
+  type, declared exceptions, invocation count, and observable error behavior. It cannot add a
+  dependency, configuration key, transport, retry, or business rule.
+- `STRATEGY_EXTRACTION` identifies one characterized conditional region, proposes an interface and
+  exhaustive implementations for its existing branches, and preserves predicate meaning, branch
+  order, default behavior, state mutation order, and observable errors. No branch may be invented,
+  combined, dropped, or made reachable under a new condition.
+- `FLAG_COLLAPSE` identifies the exact related fields and every observed combination, and is valid
+  only when characterization and deterministic data-flow facts prove the flags form one mutually
+  exclusive, exhaustive state. Its typed representation maps every valid combination one-to-one;
+  independent, overlapping, unknown, or invalid combinations make the request ineligible.
+
 The service must not propose new business rules, alter COBOL arithmetic or data-layout semantics,
 restructure uncharacterized control flow, resolve an unsupported construct speculatively, change
 annotation review state, or claim behavioral equivalence without the required evidence.
@@ -70,6 +88,13 @@ hashes and repository commit, proves all of the following:
 All four checks occur before prompt lookup, cache-miss attribution, provider construction, or
 provider execution. An ineligible request returns a stable diagnostic and action item without
 creating a candidate patch.
+
+The request names the exact affected characterization scope as an ordered nonempty set of fixture
+IDs and/or fully qualified test selectors. Its evidence records the repository commit, baseline
+reference, exact command and Java/Maven environment, generated-input hashes, expected-behavior
+artifact hashes, and successful result for every named selector. Candidate validation must rerun
+that same scope; broader evidence may supplement but cannot replace an omitted affected selector.
+Every declared changed path and affected IR node must map to at least one named selector.
 
 ## 5. Inspection and file boundaries
 
@@ -168,6 +193,12 @@ Discard evidence includes the original generated-tree hash before the request, t
 failure, absence of a retained proposal directory, the action-report hash, the executed-gate list,
 and a test proving that no workspace writer or automatic apply path was invoked.
 
+The report represents the complete current orchestration run. Failure handling upserts the one
+stable item for the same proposal ID into the run's in-memory action-item collection, preserves
+unrelated items produced by that current run, sorts the complete collection deterministically, and
+atomically replaces the report. It must not merge disk-only items from an earlier run, so obsolete
+warnings cannot survive a clean rerun.
+
 ## 9. Human review policy
 
 Automation may report only `ineligible`, `failed`, or `eligible-for-review`. It cannot report
@@ -217,6 +248,11 @@ The test report must bind the final implementation commit, Java/Maven environmen
 per-module totals, forced failures for every prerequisite and candidate gate, reproducibility
 hashes, provider-call sentinels, workspace before/after hashes, and the network-disabled offline
 lane. Focused and full affected reactors must pass with Java 17 and no failed or skipped gate tests.
+
+The human actor assigned the swarm's `spec-owner` role, `project:owner`, confirmed on 2026-08-31
+that the specification URI is registered, all clarification questions are resolved, and all four
+acceptance criteria are sufficiently specified for the `spec-clarified` gate. This confirmation is
+scope acceptance only; it is not implementation acceptance and does not approve any future patch.
 
 ## 12. Acceptance mapping
 

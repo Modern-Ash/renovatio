@@ -8,3 +8,16 @@
 - 2026-08-31T13:11:56.400670Z | tool.completed | run=tool-20260831t13111788192716z exit-code=0
 - 2026-08-31T13:15:31.207515Z | artifact.added | kind=spec uri=repo://docs/specs/idiomatic-polish-proposals.md actor=project:owner
 - 2026-08-31T13:15:56.592773Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-31T13:16:32.231899Z | tool.prepared | run=tool-20260831t13161788192992z tool=repository operation=commit actor=project:agent
+- 2026-08-31T13:16:32.234547Z | tool.running | run=tool-20260831t13161788192992z actor=project:agent
+- 2026-08-31T13:16:32.258594Z | tool.completed | run=tool-20260831t13161788192992z exit-code=0
+- 2026-08-31T13:23:46.111378Z | artifact.added | kind=spec uri=repo://docs/specs/idiomatic-polish-proposals.md actor=project:owner
+- 2026-08-31T13:23:56.541310Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-08-31T13:24:07.119336Z | work.criterion-stage-marked | criterion=diff-only actor=project:owner stage=specified
+- 2026-08-31T13:24:07.409994Z | work.criterion-stage-marked | criterion=eligible-only actor=project:owner stage=specified
+- 2026-08-31T13:24:07.698872Z | work.criterion-stage-marked | criterion=human-gate actor=project:owner stage=specified
+- 2026-08-31T13:24:07.988028Z | work.criterion-stage-marked | criterion=discard-on-failure actor=project:owner stage=specified
+- 2026-08-31T13:24:08.272128Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-31T13:26:17.531641Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/idiomatic-polish-proposals.md actor=project:agent
+- 2026-08-31T13:26:17.822474Z | artifact.added | kind=review-policy uri=repo://docs/policies/idiomatic-polish-review-policy.md actor=project:agent
+- 2026-08-31T13:26:18.105141Z | work.transitioned | from=clarified to=planned actor=project:agent
