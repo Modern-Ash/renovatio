@@ -832,9 +832,7 @@ public class JavaGenerationService {
      */
     private String writeGeneratedFilesToDisk(Map<String, String> generatedFiles, Workspace workspace) {
         try {
-            // Crear directorio de salida dentro del workspace
-            Path workspacePath = Paths.get(workspace.getPath());
-            Path outputDir = workspacePath.resolve("generated-java-stubs");
+            Path outputDir = resolveOutputDir(workspace);
 
             // Crear directorio si no existe
             if (!java.nio.file.Files.exists(outputDir)) {
@@ -859,5 +857,20 @@ public class JavaGenerationService {
             e.printStackTrace();
             return "Error: No se pudieron escribir los archivos - " + e.getMessage();
         }
+    }
+
+    private Path resolveOutputDir(Workspace workspace) {
+        Path workspacePath = Paths.get(workspace.getPath());
+        if (workspace.getMetadata() != null) {
+            Object outputDir = workspace.getMetadata().get("outputDir");
+            if (outputDir != null && !outputDir.toString().isBlank()) {
+                Path requested = Paths.get(outputDir.toString());
+                if (requested.isAbsolute()) {
+                    return requested.normalize();
+                }
+                return workspacePath.resolve(requested).normalize();
+            }
+        }
+        return workspacePath.resolve("generated-java-stubs").normalize();
     }
 }

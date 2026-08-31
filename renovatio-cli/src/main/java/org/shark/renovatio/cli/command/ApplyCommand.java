@@ -65,6 +65,8 @@ public final class ApplyCommand extends AbstractCoreCommand {
         Path planWorkspace = Path.of(plan.workspacePath());
         Path executionWorkspace = planWorkspace;
         Path tempWorkspace = null;
+        Path requestedOutputDir = hasOut() ? Path.of(out).toAbsolutePath().normalize() : null;
+        String executionOutputDir = (!dryRun && hasOut()) ? requestedOutputDir.toString() : null;
 
         try {
             if (dryRun || hasOut()) {
@@ -73,17 +75,19 @@ public final class ApplyCommand extends AbstractCoreCommand {
                 executionWorkspace = tempWorkspace;
             }
 
-            MigrationChain.Step applied = chain.apply(planned.engineId(), executionWorkspace.toString(), dryRun, out);
+            MigrationChain.Step applied = chain.apply(planned.engineId(), executionWorkspace.toString(), dryRun,
+                    executionOutputDir);
             if (!applied.ok()) {
                 return output().render(applied.result(), r -> { });
             }
 
             if (!dryRun && hasOut()) {
-                copyDirectory(executionWorkspace.resolve("generated-java-stubs"), Path.of(out).toAbsolutePath().normalize());
+                copyDirectory(executionWorkspace.resolve("generated-java-stubs"), requestedOutputDir);
             }
 
             String cliRunId = UUID.randomUUID().toString();
-            store.saveRun(new RunDescriptor(cliRunId, planId, plan.workspacePath(), dryRun, out,
+            store.saveRun(new RunDescriptor(cliRunId, planId, plan.workspacePath(), dryRun,
+                    requestedOutputDir == null ? null : requestedOutputDir.toString(),
                     WorkspaceStateStore.now()));
 
             Map<String, Object> view = new LinkedHashMap<>(applied.result());
@@ -91,7 +95,7 @@ public final class ApplyCommand extends AbstractCoreCommand {
             view.put("engineRunId", applied.engineId());
             view.put("planId", planId);
             if (!dryRun && hasOut()) {
-                view.put("outputDir", Path.of(out).toAbsolutePath().normalize().toString());
+                view.put("outputDir", requestedOutputDir.toString());
             }
             return output().render(view, r -> {
                 System.out.println("runId: " + cliRunId);
@@ -101,7 +105,7 @@ public final class ApplyCommand extends AbstractCoreCommand {
                     c.forEach((k, v) -> System.out.println("  " + k + ": " + v));
                 }
                 if (!dryRun && hasOut()) {
-                    System.out.println("output: " + Path.of(out).toAbsolutePath().normalize());
+                    System.out.println("output: " + requestedOutputDir);
                 }
                 System.out.println();
                 System.out.println("next: renovatio diff " + cliRunId);
