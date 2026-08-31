@@ -131,3 +131,13 @@
 - 2026-08-31T01:02:54.918059Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=planned
 - 2026-08-31T01:02:55.223889Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=implemented
 - 2026-08-31T01:02:55.536914Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=verified
+- 2026-08-31T01:03:37.779843Z | tool.prepared | run=tool-20260831t01031788149017z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:03:37.781991Z | tool.running | run=tool-20260831t01031788149017z actor=project:agent
+- 2026-08-31T01:03:37.805769Z | tool.completed | run=tool-20260831t01031788149017z exit-code=0
+- 2026-08-31T01:05:08.591010Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=accepted
+- 2026-08-31T01:05:08.899819Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=accepted
+- 2026-08-31T01:05:09.203331Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=accepted
+- 2026-08-31T01:05:09.518925Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=accepted
+- 2026-08-31T01:05:09.833963Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=accepted
+- 2026-08-31T01:05:24.559737Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T01:05:28.879941Z | work.transitioned | from=verifying to=completed actor=project:owner
