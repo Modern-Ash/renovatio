@@ -1,23 +1,43 @@
 import { useState } from 'react'
 import { createJob, getJobStatus, subscribeToJob } from '../api/client'
 
-function StepApply({ projectId, data, onNext, onBack }) {
+function StepApply({ projectId, data, onChange, onNext, onBack }) {
   const [jobId, setJobId] = useState(null)
   const [status, setStatus] = useState('idle')
   const [progress, setProgress] = useState(0)
   const [message, setMessage] = useState('')
 
-  const completionMessage = (event) => {
-    if (event?.message && event.message.trim()) {
-      return event.message
+  const completionResult = (event) => {
+    if (event?.result && typeof event.result === 'object') {
+      return event.result
     }
-    if (event?.result?.message && event.result.message.trim()) {
-      return event.result.message
+    if (event?.data && typeof event.data === 'object') {
+      return event.data
     }
-    if (event?.result?.data?.message && event.result.data.message.trim()) {
-      return event.result.data.message
+    return {}
+  }
+
+  const completionMessage = (result) => {
+    if (result?.message && result.message.trim()) {
+      return result.message
+    }
+    if (result?.preview && result.preview.trim()) {
+      return 'Dry run preview generated successfully!'
     }
     return 'Dry run completed successfully!'
+  }
+
+  const persistDryRunState = (result, fallbackId) => {
+    if (typeof onChange !== 'function') {
+      return
+    }
+
+    onChange({
+      dryRunRunId: result.runId || fallbackId || null,
+      dryRunResult: result,
+      dryRunPreview: result.preview || result.diff || '',
+      dryRunMessage: completionMessage(result)
+    })
   }
 
   const startDryRun = async () => {
@@ -53,10 +73,12 @@ function StepApply({ projectId, data, onNext, onBack }) {
           return
         }
         settled = true
+        const result = completionResult(event)
         stopSubscription()
         setStatus('completed')
         setProgress(100)
-        setMessage(completionMessage(event))
+        setMessage(completionMessage(result))
+        persistDryRunState(result, job.id)
       }
       const fail = (messageText) => {
         if (settled) {

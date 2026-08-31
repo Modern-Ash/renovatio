@@ -256,12 +256,53 @@ public class JobService {
 
     private Object executeApply(JobEntity entity) {
         Map<String, Object> params = parseParams(entity.getParamsJson());
-        eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.5, "message", "Applying plan (dry run)..."));
-        eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.9, "message", "Finalizing dry run..."));
+        List<Map<String, Object>> planSteps = extractPlanSteps(params.get("planSteps"));
+        eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.5, "message", "Building dry run preview..."));
+        eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.9, "message", "Finalizing dry run preview..."));
+
+        List<String> enabledSteps = new ArrayList<>();
+        List<String> disabledSteps = new ArrayList<>();
+        for (Map<String, Object> step : planSteps) {
+            String label = String.valueOf(step.getOrDefault("description", step.getOrDefault("type", "Unknown step")));
+            boolean enabled = Boolean.parseBoolean(String.valueOf(step.getOrDefault("enabled", Boolean.FALSE)));
+            if (enabled) {
+                enabledSteps.add(label);
+            } else {
+                disabledSteps.add(label);
+            }
+        }
+
+        StringBuilder preview = new StringBuilder();
+        preview.append("Dry run preview\n");
+        preview.append("Selected migration steps:\n");
+        if (enabledSteps.isEmpty()) {
+            preview.append("- No migration steps were enabled\n");
+        } else {
+            for (String step : enabledSteps) {
+                preview.append("- ").append(step).append("\n");
+            }
+        }
+        if (!disabledSteps.isEmpty()) {
+            preview.append("\nSkipped steps:\n");
+            for (String step : disabledSteps) {
+                preview.append("- ").append(step).append("\n");
+            }
+        }
+
         Map<String, Object> result = new java.util.LinkedHashMap<>();
         result.put("status", "completed");
         result.put("operation", "apply");
         result.put("dryRun", Boolean.parseBoolean(String.valueOf(params.getOrDefault("dryRun", Boolean.TRUE))));
+        result.put("message", "Dry run completed successfully!");
+        result.put("preview", preview.toString().trim());
+        result.put("selectedSteps", enabledSteps);
+        result.put("skippedSteps", disabledSteps);
+        result.put("planSteps", planSteps);
+        Map<String, Object> changes = new java.util.LinkedHashMap<>();
+        changes.put("enabledSteps", enabledSteps.size());
+        changes.put("skippedSteps", disabledSteps.size());
+        changes.put("dryRun", Boolean.TRUE);
+        result.put("changes", changes);
         return result;
     }
 
@@ -277,6 +318,23 @@ public class JobService {
         } catch (Exception e) {
             return Map.of();
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> extractPlanSteps(Object rawPlanSteps) {
+        if (!(rawPlanSteps instanceof List<?> list)) {
+            return List.of();
+        }
+
+        List<Map<String, Object>> steps = new ArrayList<>();
+        for (Object item : list) {
+            if (item instanceof Map<?, ?> map) {
+                Map<String, Object> step = new java.util.LinkedHashMap<>();
+                map.forEach((key, value) -> step.put(String.valueOf(key), value));
+                steps.add(step);
+            }
+        }
+        return steps;
     }
 
     private String resolveWorkspacePath(String projectId, Map<String, Object> params) {

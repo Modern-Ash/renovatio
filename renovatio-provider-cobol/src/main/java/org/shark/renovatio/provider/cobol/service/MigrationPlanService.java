@@ -127,6 +127,10 @@ public class MigrationPlanService {
             changes.put("dryRun", dryRun);
             changes.put("performance", BenchmarkUtils.compare(baseline, migrated));
             result.setChanges(changes);
+            DiffResult diffResult = generateDiff(runId, workspace);
+            if (diffResult.isSuccess()) {
+                result.setDiff(diffResult.getUnifiedDiff());
+            }
 
             return result;
 
