@@ -70,19 +70,87 @@ export function getMetrics(projectId) {
 }
 
 export function subscribeToJob(jobId, onEvent, onError) {
-  const eventSource = new EventSource(`${API_BASE}/jobs/${jobId}/events`);
-  
-  eventSource.addEventListener('progress', (e) => {
-    onEvent(JSON.parse(e.data));
-  });
-  
-  eventSource.addEventListener('status', (e) => {
-    onEvent(JSON.parse(e.data));
-  });
-  
-  eventSource.addEventListener('error', (e) => {
-    if (onError) onError(e);
-  });
-  
-  return () => eventSource.close();
+  const controller = new AbortController()
+  const role = localStorage.getItem('userRole') || 'ADMIN'
+
+  const parseChunk = (chunk, state) => {
+    state.buffer += chunk
+
+    let newlineIndex = state.buffer.indexOf('\n')
+    while (newlineIndex !== -1) {
+      const rawLine = state.buffer.slice(0, newlineIndex)
+      state.buffer = state.buffer.slice(newlineIndex + 1)
+      const line = rawLine.replace(/\r$/, '')
+
+      if (line === '') {
+        if (state.dataLines.length > 0) {
+          const payload = state.dataLines.join('\n')
+          state.dataLines = []
+          state.eventName = 'message'
+          try {
+            onEvent(JSON.parse(payload))
+          } catch {
+            onEvent({ raw: payload })
+          }
+        }
+      } else if (line.startsWith('event:')) {
+        state.eventName = line.slice('event:'.length).trim()
+      } else if (line.startsWith('data:')) {
+        state.dataLines.push(line.slice('data:'.length).replace(/^ /, ''))
+      }
+
+      newlineIndex = state.buffer.indexOf('\n')
+    }
+  }
+
+  ;(async () => {
+    try {
+      const response = await fetch(`${API_BASE}/jobs/${jobId}/events`, {
+        method: 'GET',
+        headers: {
+          'X-Role': role,
+          Accept: 'text/event-stream'
+        },
+        signal: controller.signal
+      })
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
+      }
+
+      if (!response.body) {
+        throw new Error('Streaming response unavailable')
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      const state = { buffer: '', dataLines: [], eventName: 'message' }
+
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) {
+          break
+        }
+        parseChunk(decoder.decode(value, { stream: true }), state)
+      }
+
+      if (state.dataLines.length > 0) {
+        const payload = state.dataLines.join('\n')
+        try {
+          onEvent(JSON.parse(payload))
+        } catch {
+          onEvent({ raw: payload })
+        }
+      }
+    } catch (error) {
+      if (error?.name === 'AbortError') {
+        return
+      }
+      if (onError) {
+        onError(error)
+      }
+    }
+  })()
+
+  return () => controller.abort()
 }

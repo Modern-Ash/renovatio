@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -116,6 +119,11 @@ public class JobService {
         String workspacePath = resolveWorkspacePath(entity.getProjectId(), params);
         if (workspacePath == null || workspacePath.isBlank()) {
             throw new IllegalArgumentException("workspacePath is required for analyze jobs");
+        }
+
+        Path workspaceRoot = Paths.get(workspacePath);
+        if (!Files.isDirectory(workspaceRoot)) {
+            throw new IllegalArgumentException("Workspace directory not found or inaccessible: " + workspacePath);
         }
 
         long startedAt = System.nanoTime();

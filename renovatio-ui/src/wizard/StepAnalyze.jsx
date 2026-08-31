@@ -43,8 +43,27 @@ function StepAnalyze({ projectId, data, onNext, onBack }) {
     return null
   }
 
+  const isAbsoluteWorkspacePath = (value) => {
+    if (!value || typeof value !== 'string') {
+      return false
+    }
+    return /^(\/|[A-Za-z]:[\\/])/.test(value)
+  }
+
   const startAnalysis = async () => {
     try {
+      if (!isAbsoluteWorkspacePath(data.workspacePath)) {
+        setStatus('failed')
+        setProgress(0)
+        setSummary(null)
+        setMessage(
+          data.workspaceSelectionMode === 'browser'
+            ? `The browser-selected folder "${data.workspaceFolderName || data.workspacePath}" does not provide an absolute filesystem path. Paste the full path in the field above, then retry analysis.`
+            : 'Please enter the absolute filesystem path to the COBOL workspace before starting analysis.'
+        )
+        return
+      }
+
       setStatus('starting')
       const job = await createJob(projectId || 'default', 'analyze', {
         workspacePath: data.workspacePath
