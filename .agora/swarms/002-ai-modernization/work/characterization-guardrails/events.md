@@ -62,3 +62,10 @@
 - 2026-08-31T01:51:30.172883Z | tool.running | run=tool-20260831t01511788151890z actor=project:agent
 - 2026-08-31T01:51:30.185847Z | tool.completed | run=tool-20260831t01511788151890z exit-code=0
 - 2026-08-31T01:54:20.267702Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-08-31T10:18:54.815480Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T10:19:11.748212Z | work.criterion-stage-marked | criterion=golden-fixtures actor=project:owner stage=accepted
+- 2026-08-31T10:19:11.990243Z | work.criterion-stage-marked | criterion=gate-order actor=project:owner stage=accepted
+- 2026-08-31T10:19:12.220344Z | work.criterion-stage-marked | criterion=safe-fallback actor=project:owner stage=accepted
+- 2026-08-31T10:19:12.463196Z | work.criterion-stage-marked | criterion=offline-ci actor=project:owner stage=accepted
+- 2026-08-31T10:19:32.940953Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T10:19:36.921143Z | work.transitioned | from=verifying to=completed actor=project:owner
