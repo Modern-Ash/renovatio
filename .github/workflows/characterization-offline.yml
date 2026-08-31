@@ -26,7 +26,8 @@ jobs:
             -v "$RUNNER_TEMP/renovatio-m2:/root/.m2" \
             -w /workspace \
             "$MAVEN_IMAGE" \
-            mvn -B -pl renovatio-provider-cobol,cobol-openrewrite-recipes -am dependency:go-offline
+            mvn -B -pl renovatio-provider-cobol,cobol-openrewrite-recipes -am \
+              dependency:go-offline test
 
       - name: Prove isolation and run deterministic lanes offline
         run: |

@@ -41,3 +41,17 @@
 - 2026-08-31T01:42:29.243822Z | evidence.added | id=evidence-000004 type=test-report result=success revision=1 actor=project:agent
 - 2026-08-31T01:42:33.698235Z | work.block | from=active to=blocked actor=project:agent change=change-20260831t014233698133z
 - 2026-08-31T01:43:00.027462Z | work.resume | from=blocked to=active actor=project:agent change=change-20260831t014300027335z
+- 2026-08-31T01:43:15.010494Z | tool.prepared | run=tool-20260831t01431788151395z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:43:15.013156Z | tool.running | run=tool-20260831t01431788151395z actor=project:agent
+- 2026-08-31T01:43:15.047054Z | tool.completed | run=tool-20260831t01431788151395z exit-code=0
+- 2026-08-31T01:46:59.002934Z | artifact.added | kind=test-report uri=repo://docs/test-reports/characterization-guardrails-offline.md actor=project:agent
+- 2026-08-31T01:47:09.434150Z | evidence.added | id=evidence-000005 type=offline-ci result=success revision=1 actor=project:agent
+- 2026-08-31T01:47:23.159540Z | work.criterion-stage-marked | criterion=golden-fixtures actor=project:agent stage=implemented
+- 2026-08-31T01:47:23.372684Z | work.criterion-stage-marked | criterion=gate-order actor=project:agent stage=implemented
+- 2026-08-31T01:47:23.612407Z | work.criterion-stage-marked | criterion=safe-fallback actor=project:agent stage=implemented
+- 2026-08-31T01:47:23.835798Z | work.criterion-stage-marked | criterion=offline-ci actor=project:agent stage=implemented
+- 2026-08-31T01:47:24.049272Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T01:47:24.263439Z | work.criterion-stage-marked | criterion=golden-fixtures actor=project:agent stage=verified
+- 2026-08-31T01:47:24.484494Z | work.criterion-stage-marked | criterion=gate-order actor=project:agent stage=verified
+- 2026-08-31T01:47:24.699732Z | work.criterion-stage-marked | criterion=safe-fallback actor=project:agent stage=verified
+- 2026-08-31T01:47:24.912645Z | work.criterion-stage-marked | criterion=offline-ci actor=project:agent stage=verified
