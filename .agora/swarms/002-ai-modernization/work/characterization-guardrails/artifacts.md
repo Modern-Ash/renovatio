@@ -1,6 +1,6 @@
 ---
 schema: "agora/artifacts/v2"
-artifact-kinds: ["spec","implementation-plan","test-plan"]
+artifact-kinds: ["spec","implementation-plan","test-plan","test-report"]
 ---
 
 # Artifacts
@@ -14,3 +14,5 @@ artifact-kinds: ["spec","implementation-plan","test-plan"]
 | implementation-plan | repo://docs/plans/characterization-guardrails.md | 1401f882f081995b67c80fb39414d29ba7eeca1c370b2690284b0c4b0625ab82 | project:agent | 2026-08-30T15:06:11.872814Z |
 | implementation-plan | repo://docs/plans/characterization-guardrails.md | 162b1844d0f98619e7e2266a2db69a92c0d6951e70206b894c212c3565319315 | project:agent | 2026-08-30T16:00:58.852145Z |
 | test-plan | repo://docs/test-plans/characterization-guardrails.md | 4e56b0ac475615a40609109593d75c69e8ae1c1e70dc80be72514172aaf2b925 | project:agent | 2026-08-30T16:05:35.959460Z |
+| test-report | repo://docs/test-reports/characterization-guardrails-local.md | e25688ae1810c59b8eb0d46386de4578c1e4e97fd1045b4f924d8f757bcdc5e6 | project:agent | 2026-08-31T01:42:19.369262Z |
+| test-report | repo://docs/test-reports/characterization-guardrails-offline.md | 9eb8ed465f1b0f9dc8e5e1a26615cdd4058792c38537ea67d4b3e742d6c927fe | project:agent | 2026-08-31T01:46:59.002849Z |

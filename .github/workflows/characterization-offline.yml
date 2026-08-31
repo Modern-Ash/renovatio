@@ -1,0 +1,56 @@
+name: Characterization guardrails (offline)
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+permissions:
+  contents: read
+
+jobs:
+  characterization-offline:
+    runs-on: ubuntu-latest
+    env:
+      MAVEN_IMAGE: docker.io/library/maven:3.9.12-eclipse-temurin-17@sha256:a0603aab698040d9c94259f379ec0487da1678560748d6c7508483034033c53d
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare Maven cache without provider credentials
+        run: |
+          mkdir -p "$RUNNER_TEMP/renovatio-m2"
+          docker run --rm \
+            -v "$PWD:/workspace" \
+            -v "$RUNNER_TEMP/renovatio-m2:/root/.m2" \
+            -w /workspace \
+            "$MAVEN_IMAGE" \
+            mvn -B -pl renovatio-provider-cobol,cobol-openrewrite-recipes -am \
+              dependency:go-offline test
+
+      - name: Prove isolation and run deterministic lanes offline
+        run: |
+          docker run --rm --network=none \
+            -v "$PWD:/workspace" \
+            -v "$RUNNER_TEMP/renovatio-m2:/root/.m2" \
+            -w /workspace \
+            "$MAVEN_IMAGE" \
+            bash -euo pipefail -c '
+              if getent hosts example.com; then exit 21; fi
+              if timeout 3 bash -c "</dev/tcp/1.1.1.1/443"; then exit 22; fi
+              for name in OPENAI_API_KEY ANTHROPIC_API_KEY GEMINI_API_KEY GOOGLE_API_KEY AZURE_OPENAI_API_KEY; do
+                if printenv "$name" >/dev/null; then exit 23; fi
+              done
+              mvn -B -o -pl renovatio-provider-cobol,cobol-openrewrite-recipes -am test
+            ' 2>&1 | tee characterization-offline.log
+
+      - name: Upload characterization evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: characterization-offline-evidence
+          path: |
+            characterization-offline.log
+            **/target/surefire-reports/**
+            **/build/reports/renovatio/**

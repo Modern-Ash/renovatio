@@ -1,0 +1,1 @@
+{"schemaVersion":"cobol-ir.v1","programId":"GOTO-REDUCIBLE","paragraphs":{"MAIN":{"name":"MAIN","statements":[]},"EXIT-PARA":{"name":"EXIT-PARA","statements":[{"source":"'Y'","target":"DONE-FLAG"}]}},"dataItems":[],"diagnostics":[]}

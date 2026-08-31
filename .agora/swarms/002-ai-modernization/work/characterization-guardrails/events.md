@@ -37,3 +37,28 @@
 - 2026-08-30T16:07:46.707439Z | tool.running | run=tool-20260830t16071788116866z actor=project:agent
 - 2026-08-30T16:07:46.730837Z | tool.completed | run=tool-20260830t16071788116866z exit-code=0
 - 2026-08-30T16:25:06.058112Z | evidence.added | id=evidence-000003 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T01:42:19.369342Z | artifact.added | kind=test-report uri=repo://docs/test-reports/characterization-guardrails-local.md actor=project:agent
+- 2026-08-31T01:42:29.243822Z | evidence.added | id=evidence-000004 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T01:42:33.698235Z | work.block | from=active to=blocked actor=project:agent change=change-20260831t014233698133z
+- 2026-08-31T01:43:00.027462Z | work.resume | from=blocked to=active actor=project:agent change=change-20260831t014300027335z
+- 2026-08-31T01:43:15.010494Z | tool.prepared | run=tool-20260831t01431788151395z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:43:15.013156Z | tool.running | run=tool-20260831t01431788151395z actor=project:agent
+- 2026-08-31T01:43:15.047054Z | tool.completed | run=tool-20260831t01431788151395z exit-code=0
+- 2026-08-31T01:46:59.002934Z | artifact.added | kind=test-report uri=repo://docs/test-reports/characterization-guardrails-offline.md actor=project:agent
+- 2026-08-31T01:47:09.434150Z | evidence.added | id=evidence-000005 type=offline-ci result=success revision=1 actor=project:agent
+- 2026-08-31T01:47:23.159540Z | work.criterion-stage-marked | criterion=golden-fixtures actor=project:agent stage=implemented
+- 2026-08-31T01:47:23.372684Z | work.criterion-stage-marked | criterion=gate-order actor=project:agent stage=implemented
+- 2026-08-31T01:47:23.612407Z | work.criterion-stage-marked | criterion=safe-fallback actor=project:agent stage=implemented
+- 2026-08-31T01:47:23.835798Z | work.criterion-stage-marked | criterion=offline-ci actor=project:agent stage=implemented
+- 2026-08-31T01:47:24.049272Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T01:47:24.263439Z | work.criterion-stage-marked | criterion=golden-fixtures actor=project:agent stage=verified
+- 2026-08-31T01:47:24.484494Z | work.criterion-stage-marked | criterion=gate-order actor=project:agent stage=verified
+- 2026-08-31T01:47:24.699732Z | work.criterion-stage-marked | criterion=safe-fallback actor=project:agent stage=verified
+- 2026-08-31T01:47:24.912645Z | work.criterion-stage-marked | criterion=offline-ci actor=project:agent stage=verified
+- 2026-08-31T01:47:37.879994Z | tool.prepared | run=tool-20260831t01471788151657z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:47:37.882432Z | tool.running | run=tool-20260831t01471788151657z actor=project:agent
+- 2026-08-31T01:47:37.906530Z | tool.completed | run=tool-20260831t01471788151657z exit-code=0
+- 2026-08-31T01:51:30.170693Z | tool.prepared | run=tool-20260831t01511788151890z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:51:30.172883Z | tool.running | run=tool-20260831t01511788151890z actor=project:agent
+- 2026-08-31T01:51:30.185847Z | tool.completed | run=tool-20260831t01511788151890z exit-code=0
+- 2026-08-31T01:54:20.267702Z | work.transitioned | from=verifying to=implementing actor=project:agent
