@@ -9,6 +9,7 @@ function StepExport({ projectId, data, onBack }) {
   const [reportPreviewLoading, setReportPreviewLoading] = useState(false)
   const [reportPreviewError, setReportPreviewError] = useState('')
   const [reportPreviewLoaded, setReportPreviewLoaded] = useState(false)
+  const [reportSummary, setReportSummary] = useState(null)
 
   const handleApply = async () => {
     setApplying(true)
@@ -134,17 +135,29 @@ function StepExport({ projectId, data, onBack }) {
     setReportPreviewLoading(true)
     setReportPreviewError('')
     try {
-      const response = await fetch(`/api/projects/${projectId}/report/html`, {
-        headers: { 'X-Role': 'ADMIN' }
-      })
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
+      const [htmlResponse, summaryResponse] = await Promise.all([
+        fetch(`/api/projects/${projectId}/report/html`, { headers: { 'X-Role': 'ADMIN' } }),
+        fetch(`/api/projects/${projectId}/report/json`, { headers: { 'X-Role': 'ADMIN' } })
+      ])
+
+      if (!htmlResponse.ok) {
+        throw new Error(`API error: ${htmlResponse.status}`)
       }
-      const html = await response.text()
+      if (!summaryResponse.ok) {
+        throw new Error(`API error: ${summaryResponse.status}`)
+      }
+
+      const [html, summary] = await Promise.all([
+        htmlResponse.text(),
+        summaryResponse.json()
+      ])
+
       setReportHtmlPreview(html)
+      setReportSummary(summary)
       setReportPreviewLoaded(true)
     } catch (error) {
       setReportHtmlPreview('')
+      setReportSummary(null)
       setReportPreviewLoaded(false)
       setReportPreviewError(error.message || 'No se pudo generar el preview del reporte.')
     } finally {
@@ -223,6 +236,33 @@ function StepExport({ projectId, data, onBack }) {
                 className="w-full border rounded"
                 style={{ height: '260px' }}
               />
+            </div>
+          )}
+          {reportSummary && (
+            <div className="mt-3 border rounded-lg p-3 bg-gray-50">
+              <p className="font-semibold text-gray-700 mb-2">Resumen del reporte</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Estados</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {Object.entries(reportSummary.statuses || {}).map(([name, value]) => (
+                      <li key={name}>
+                        {name}: <span className="font-medium">{String(value)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Métricas</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    {Object.entries(reportSummary.metrics || {}).map(([name, value]) => (
+                      <li key={name}>
+                        {name}: <span className="font-medium">{typeof value === 'number' ? value.toFixed(2) : String(value)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
             </div>
           )}
         </div>
