@@ -6,9 +6,9 @@ title: "Deterministic COBOL semantic core"
 state: "implementing"
 revision: 1
 operational-status: "active"
-status-reason: null
-status-by: null
-status-at: null
+status-reason: "Repository write authority is available in the supervising Agora session; the #122 characterization dependency remains a verification gate, not an implementation blocker."
+status-by: "project:agent"
+status-at: "2026-08-31T01:19:58.121296Z"
 acceptance-criteria: {"statements":"MOVE, COMPUTE, IF, EVALUATE, and simple PERFORM have deterministic IR and translation coverage.","data-model":"Basic PIC mapping uses the rich type model and level-88 conditions map to typed enum or equivalent deterministic constructs.","pure-recipes":"OpenRewrite recipes make no network or LLM calls and produce byte-stable output for identical inputs.","characterized":"Unit and characterization tests prove observable behavior for every supported construct."}
 satisfied-criteria: []
 criterion-statuses: {"statements":["specified","planned"],"data-model":["specified","planned"],"pure-recipes":["specified","planned"],"characterized":["specified","planned"]}

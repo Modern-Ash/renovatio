@@ -54,6 +54,40 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-enforcer-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>ban-network-and-llm-runtime-dependencies</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>enforce</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <bannedDependencies>
+                                    <searchTransitive>true</searchTransitive>
+                                    <excludes>
+                                        <exclude>org.apache.httpcomponents:*</exclude>
+                                        <exclude>org.apache.httpcomponents.client5:*</exclude>
+                                        <exclude>com.squareup.okhttp3:*</exclude>
+                                        <exclude>com.squareup.retrofit2:*</exclude>
+                                        <exclude>io.github.openfeign:*</exclude>
+                                        <exclude>com.anthropic:*</exclude>
+                                        <exclude>com.openai:*</exclude>
+                                        <exclude>software.amazon.awssdk:bedrockruntime</exclude>
+                                        <exclude>com.google.cloud:google-cloud-vertexai</exclude>
+                                        <exclude>com.google.genai:*</exclude>
+                                    </excludes>
+                                    <message>The deterministic COBOL recipe runtime must not contain HTTP clients or LLM provider SDKs.</message>
+                                </bannedDependencies>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
                     <useModulePath>false</useModulePath>
