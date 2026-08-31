@@ -4,13 +4,16 @@ import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.ChangeFieldName;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.JavaType;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
 import org.shark.renovatio.cobol.ir.annotated.AnnotationFamily;
 import org.shark.renovatio.cobol.ir.annotated.AnnotationReview;
 import org.shark.renovatio.cobol.ir.annotated.CobolAnnotation;
 import org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
 import org.shark.renovatio.cobol.ir.annotated.DataIntentPayload;
+import org.shark.renovatio.cobol.ir.annotated.DomainNamingPayload;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 
 import java.util.ArrayList;
@@ -18,6 +21,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -31,6 +37,7 @@ import java.util.stream.Collectors;
 public final class AnnotationApplicator {
 
     private static final String DATA_INTENT_FQN = "org.shark.renovatio.cobol.annotations.CobolDataIntent";
+    private static final Pattern JAVA_IDENTIFIER = Pattern.compile("[A-Za-z_$][A-Za-z0-9_$]*");
 
     private final AnnotatedCobolModel sidecar;
     private final NodeIdentityIndex index;
@@ -85,11 +92,116 @@ public final class AnnotationApplicator {
                 if (a.annotationFamily() == AnnotationFamily.DATA_INTENT) {
                     tree = applyDataIntent(tree, ctx, a,
                             NodeIdentityIndex.toJavaFieldName(resolved.cobolName()));
+                } else if (a.annotationFamily() == AnnotationFamily.DOMAIN_NAMING) {
+                    tree = applyDomainNaming(tree, ctx, a, resolved, dropped);
                 }
-                // DOMAIN_NAMING application is added in Task 5.
             }
         }
         return new AnnotationApplicationOutcome(tree, dropped);
+    }
+
+    private J.CompilationUnit applyDomainNaming(J.CompilationUnit cu, ExecutionContext ctx,
+                                                CobolAnnotation annotation,
+                                                NodeIdentityIndex.Resolved resolved,
+                                                List<DroppedAnnotation> dropped) {
+        DomainNamingPayload payload = (DomainNamingPayload) annotation.payload();
+        String target = payload.suggestedName();
+        if (!JAVA_IDENTIFIER.matcher(target).matches() || identifierInUse(cu, target)) {
+            dropped.add(new DroppedAnnotation(annotation.nodeId(), annotation.annotationId(),
+                    annotation.annotationFamily(), DroppedAnnotation.DropReason.NAME_COLLISION,
+                    payload.rationale()));
+            return cu;
+        }
+
+        if (resolved.kind() == org.shark.renovatio.cobol.ir.annotated.AnnotatedNodeKind.PARAGRAPH) {
+            return renameMethods(cu, ctx, NodeIdentityIndex.toJavaMethodName(resolved.cobolName()), target);
+        }
+
+        String currentField = NodeIdentityIndex.toJavaFieldName(resolved.cobolName());
+        String declaringType = declaringType(cu, currentField);
+        if (declaringType == null) {
+            dropped.add(new DroppedAnnotation(annotation.nodeId(), annotation.annotationId(),
+                    annotation.annotationFamily(), DroppedAnnotation.DropReason.NODE_UNRESOLVED,
+                    "Generated field " + currentField + " was not found"));
+            return cu;
+        }
+
+        String oldStem = accessorStem(currentField);
+        String newStem = accessorStem(target);
+        J.CompilationUnit renamed = (J.CompilationUnit) new ChangeFieldName<ExecutionContext>(
+                declaringType, currentField, target).visit(cu, ctx);
+        renamed = renameMethods(renamed, ctx, "get" + oldStem, "get" + newStem);
+        return renameMethods(renamed, ctx, "set" + oldStem, "set" + newStem);
+    }
+
+    private static String accessorStem(String javaIdentifier) {
+        return Character.toUpperCase(javaIdentifier.charAt(0)) + javaIdentifier.substring(1);
+    }
+
+    private static boolean identifierInUse(J.CompilationUnit cu, String candidate) {
+        AtomicBoolean found = new AtomicBoolean();
+        new JavaIsoVisitor<AtomicBoolean>() {
+            @Override
+            public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean state) {
+                J.Identifier visited = super.visitIdentifier(identifier, state);
+                if (visited.getSimpleName().equals(candidate)) {
+                    state.set(true);
+                }
+                return visited;
+            }
+        }.visit(cu, found);
+        return found.get();
+    }
+
+    private static String declaringType(J.CompilationUnit cu, String fieldName) {
+        AtomicReference<String> result = new AtomicReference<>();
+        new JavaIsoVisitor<AtomicReference<String>>() {
+            @Override
+            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations declarations,
+                                                                    AtomicReference<String> state) {
+                J.VariableDeclarations visited = super.visitVariableDeclarations(declarations, state);
+                boolean field = getCursor().firstEnclosing(J.ClassDeclaration.class) != null
+                        && getCursor().firstEnclosing(J.MethodDeclaration.class) == null;
+                if (field && visited.getVariables().stream()
+                        .anyMatch(variable -> variable.getSimpleName().equals(fieldName))) {
+                    J.ClassDeclaration owner = getCursor().firstEnclosing(J.ClassDeclaration.class);
+                    if (owner != null && owner.getType() != null) {
+                        state.compareAndSet(null, owner.getType().getFullyQualifiedName());
+                    }
+                }
+                return visited;
+            }
+        }.visit(cu, result);
+        return result.get();
+    }
+
+    private static J.CompilationUnit renameMethods(J.CompilationUnit cu, ExecutionContext ctx,
+                                                   String from, String to) {
+        return (J.CompilationUnit) new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method,
+                                                              ExecutionContext context) {
+                J.MethodDeclaration visited = super.visitMethodDeclaration(method, context);
+                if (!visited.getSimpleName().equals(from)) {
+                    return visited;
+                }
+                JavaType.Method type = visited.getMethodType();
+                return visited.withName(visited.getName().withSimpleName(to))
+                        .withMethodType(type == null ? null : type.withName(to));
+            }
+
+            @Override
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation invocation,
+                                                            ExecutionContext context) {
+                J.MethodInvocation visited = super.visitMethodInvocation(invocation, context);
+                if (!visited.getSimpleName().equals(from)) {
+                    return visited;
+                }
+                JavaType.Method type = visited.getMethodType();
+                return visited.withName(visited.getName().withSimpleName(to))
+                        .withMethodType(type == null ? null : type.withName(to));
+            }
+        }.visit(cu, ctx);
     }
 
     private J.CompilationUnit applyDataIntent(J.CompilationUnit cu, ExecutionContext ctx,
