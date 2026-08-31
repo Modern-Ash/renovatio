@@ -36,3 +36,6 @@
 - 2026-08-31T00:12:07.414828Z | approval.added | role=spec-owner actor=project:owner delegation=none
 - 2026-08-31T00:12:07.667727Z | work.transitioned | from=planned to=implementing actor=project:agent
 - 2026-08-31T00:13:23.655862Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=implemented
+- 2026-08-31T00:13:38.719830Z | tool.prepared | run=tool-20260831t00131788146018z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:13:38.722088Z | tool.running | run=tool-20260831t00131788146018z actor=project:agent
+- 2026-08-31T00:13:38.745696Z | tool.completed | run=tool-20260831t00131788146018z exit-code=0
