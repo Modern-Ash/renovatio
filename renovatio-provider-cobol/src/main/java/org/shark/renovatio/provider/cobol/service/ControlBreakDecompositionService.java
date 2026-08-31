@@ -66,7 +66,7 @@ public class ControlBreakDecompositionService {
         Path workspacePath = Paths.get(workspace.getPath());
         List<Path> cobolFiles;
         try {
-            cobolFiles = parsingService.findCobolFiles(workspacePath);
+            cobolFiles = parsingService.findCobolSourceFiles(workspacePath);
         } catch (IOException e) {
             DecompositionResult errorResult = new DecompositionResult();
             errorResult.addError(workspacePath.toString(), "Failed to scan workspace: " + e.getMessage());

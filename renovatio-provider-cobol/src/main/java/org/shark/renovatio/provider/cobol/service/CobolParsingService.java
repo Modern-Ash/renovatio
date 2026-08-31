@@ -86,7 +86,7 @@ public class CobolParsingService {
     /**
      * Locate COBOL source files inside a workspace.
      */
-    public List<Path> findCobolFiles(Path workspacePath) throws IOException {
+    public List<Path> findCobolSourceFiles(Path workspacePath) throws IOException {
         List<Path> cobolFiles = new ArrayList<>();
         try (Stream<Path> walkStream = Files.walk(workspacePath)) {
             walkStream
@@ -95,12 +95,18 @@ public class CobolParsingService {
                         String name = path.getFileName().toString().toLowerCase(Locale.ROOT);
                         return name.endsWith(EXT_COB) ||
                                 name.endsWith(EXT_COBOL) ||
-                                name.endsWith(EXT_CBL) ||
-                                name.endsWith(EXT_CPY);
+                                name.endsWith(EXT_CBL);
                     })
                     .forEach(cobolFiles::add);
         }
         return cobolFiles;
+    }
+
+    /**
+     * Backwards-compatible alias for source COBOL files.
+     */
+    public List<Path> findCobolFiles(Path workspacePath) throws IOException {
+        return findCobolSourceFiles(workspacePath);
     }
 
     public List<Path> findCopybooks(Path workspacePath) throws IOException {
@@ -147,10 +153,11 @@ public class CobolParsingService {
 
         Dialect dialect = resolveDialect(query, workspace);
         Path root = Paths.get(workspace.getPath());
-        List<Path> cobolFiles = findCobolFiles(root);
+        List<Path> sourceFiles = findCobolSourceFiles(root);
+        List<Path> copybooks = findCopybooks(root);
 
         List<CobolProgram> programs = new ArrayList<>();
-        for (Path cobolFile : cobolFiles) {
+        for (Path cobolFile : sourceFiles) {
             Map<String, Object> metadata = parseCobolFile(cobolFile, dialect);
             metadata.put(KEY_FILE_PATH, cobolFile.toString());
             CobolProgram program = new CobolProgram();
@@ -161,9 +168,20 @@ public class CobolParsingService {
         }
 
         Map<String, Object> data = new HashMap<>();
+        data.put("sourceFiles", toRelativePaths(root, sourceFiles));
+        data.put("copybooks", toRelativePaths(root, copybooks));
         data.put(KEY_PROGRAMS, programs);
+        data.put("summary", Map.of(
+                "sourceFiles", sourceFiles.size(),
+                "copybooks", copybooks.size(),
+                "programs", programs.size()
+        ));
 
-        AnalyzeResult result = new AnalyzeResult(true, String.format("Parsed %d COBOL files", programs.size()));
+        AnalyzeResult result = new AnalyzeResult(true, String.format(
+                "Parsed %d COBOL source file(s) and %d copybook(s)",
+                sourceFiles.size(),
+                copybooks.size()
+        ));
         result.setData(data);
 
         long elapsed = System.nanoTime() - start;
@@ -187,6 +205,18 @@ public class CobolParsingService {
         }
 
         return Dialect.fromString(dialectStr);
+    }
+
+    private List<String> toRelativePaths(Path root, List<Path> paths) {
+        List<String> relativePaths = new ArrayList<>();
+        for (Path path : paths) {
+            try {
+                relativePaths.add(root.relativize(path).toString());
+            } catch (Exception e) {
+                relativePaths.add(path.toString());
+            }
+        }
+        return relativePaths;
     }
 
     /**

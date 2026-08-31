@@ -21,6 +21,11 @@ function JobTimeline({ jobs }) {
                 <p className="text-sm text-gray-500">
                   {new Date(job.createdAt).toLocaleString()}
                 </p>
+                {job.projectId && (
+                  <p className="text-xs text-gray-400">
+                    Project: {job.projectId}
+                  </p>
+                )}
               </div>
               <span className="text-sm text-gray-600">{job.status}</span>
             </div>

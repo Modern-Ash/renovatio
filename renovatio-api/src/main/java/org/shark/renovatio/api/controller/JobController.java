@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import jakarta.validation.Valid;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -51,6 +52,27 @@ public class JobController {
         return jobService.getJob(jobId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/api/jobs")
+    public ResponseEntity<List<JobDto>> listJobs(
+            @RequestHeader(value = "X-Role", required = false) String roleHeader) {
+        AccessRole role = AccessRole.fromString(roleHeader);
+        if (!accessService.canView(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(jobService.listRecentJobs());
+    }
+
+    @GetMapping("/api/projects/{projectId}/jobs")
+    public ResponseEntity<List<JobDto>> listProjectJobs(
+            @PathVariable String projectId,
+            @RequestHeader(value = "X-Role", required = false) String roleHeader) {
+        AccessRole role = AccessRole.fromString(roleHeader);
+        if (!accessService.canView(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(jobService.listJobsForProject(projectId));
     }
 
     @GetMapping(value = "/api/jobs/{jobId}/events", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

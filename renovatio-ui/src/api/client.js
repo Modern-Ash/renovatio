@@ -42,6 +42,18 @@ export function getJob(jobId) {
   return apiCall(`/jobs/${jobId}`);
 }
 
+export function getJobs() {
+  return apiCall('/jobs');
+}
+
+export function getProjectJobs(projectId) {
+  return apiCall(`/projects/${projectId}/jobs`);
+}
+
+export async function getJobStatus(jobId) {
+  return getJob(jobId);
+}
+
 export function getActionItems(projectId) {
   return apiCall(`/projects/${projectId}/action-items`);
 }

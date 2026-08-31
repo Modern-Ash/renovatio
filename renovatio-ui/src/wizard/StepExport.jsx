@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createJob, subscribeToJob } from '../api/client'
+import { createJob, getJobStatus, subscribeToJob } from '../api/client'
 
 function StepExport({ projectId, data, onBack }) {
   const [applying, setApplying] = useState(false)
@@ -27,7 +27,23 @@ function StepExport({ projectId, data, onBack }) {
             unsubscribe()
           }
         },
-        (error) => {
+        async () => {
+          try {
+            const current = await getJobStatus(job.id)
+            if (current.status === 'COMPLETED') {
+              setStatus('applied')
+              setApplying(false)
+              return
+            }
+            if (current.status === 'FAILED') {
+              setStatus('failed')
+              setApplying(false)
+              return
+            }
+          } catch (error) {
+            // Fall through to the generic connection error below.
+          }
+
           setStatus('failed')
           setApplying(false)
         }

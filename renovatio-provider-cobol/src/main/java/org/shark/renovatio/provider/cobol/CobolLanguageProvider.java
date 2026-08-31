@@ -236,7 +236,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
             }
             final String finalProgramName = programName;
             Path root = Paths.get(workspace.getPath());
-            java.util.List<Path> cobolFiles = parsingService.findCobolFiles(root);
+            java.util.List<Path> cobolFiles = parsingService.findCobolSourceFiles(root);
             Optional<Path> programPath = cobolFiles.stream()
                     .filter(p -> p.getFileName().toString().equalsIgnoreCase(finalProgramName))
                     .findFirst();

@@ -10,4 +10,6 @@ import java.util.List;
 public interface JobRepository extends JpaRepository<JobEntity, String> {
     List<JobEntity> findByProjectId(String projectId);
     List<JobEntity> findByProjectIdAndStatus(String projectId, String status);
+    List<JobEntity> findByProjectIdOrderByCreatedAtDesc(String projectId);
+    List<JobEntity> findAllByOrderByCreatedAtDesc();
 }

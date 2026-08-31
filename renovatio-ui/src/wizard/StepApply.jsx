@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createJob, subscribeToJob } from '../api/client'
+import { createJob, getJobStatus, subscribeToJob } from '../api/client'
 
 function StepApply({ projectId, data, onNext, onBack }) {
   const [jobId, setJobId] = useState(null)
@@ -22,6 +22,8 @@ function StepApply({ projectId, data, onNext, onBack }) {
         (event) => {
           if (event.status === 'COMPLETED') {
             setStatus('completed')
+            setProgress(100)
+            setMessage('Dry run completed successfully!')
             unsubscribe()
           } else if (event.status === 'FAILED') {
             setStatus('failed')
@@ -32,9 +34,26 @@ function StepApply({ projectId, data, onNext, onBack }) {
             setMessage(event.message || 'Applying plan (dry run)...')
           }
         },
-        (error) => {
+        async () => {
+          try {
+            const current = await getJobStatus(job.id)
+            if (current.status === 'COMPLETED') {
+              setStatus('completed')
+              setProgress(100)
+              setMessage('Dry run completed successfully!')
+              return
+            }
+            if (current.status === 'FAILED') {
+              setStatus('failed')
+              setMessage(current.error || 'Dry run failed')
+              return
+            }
+          } catch (error) {
+            // Fall through to the generic connection error below.
+          }
+
           setStatus('failed')
-          setMessage('Connection lost')
+          setMessage('Connection lost while waiting for apply updates')
         }
       )
     } catch (error) {
