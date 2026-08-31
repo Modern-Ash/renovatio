@@ -133,12 +133,15 @@ public class JobService {
             entity.setStatus("COMPLETED");
             entity.setResultJson(objectMapper.writeValueAsString(result));
             entity.setProgress(1.0);
-            eventCollector.send(jobId, "status", Map.of(
-                    "status", "COMPLETED",
-                    "progress", 1.0,
-                    "message", extractCompletionMessage(result),
-                    "result", result
-            ));
+            Map<String, Object> completionEvent = new java.util.LinkedHashMap<>();
+            completionEvent.put("status", "COMPLETED");
+            completionEvent.put("progress", 1.0);
+            String completionMessage = extractCompletionMessage(result);
+            if (completionMessage != null && !completionMessage.isBlank()) {
+                completionEvent.put("message", completionMessage);
+            }
+            completionEvent.put("result", result);
+            eventCollector.send(jobId, "status", completionEvent);
         } catch (Exception e) {
             log.error("Job execution failed: {}", jobId, e);
             entity.setStatus("FAILED");
@@ -253,8 +256,13 @@ public class JobService {
 
     private Object executeApply(JobEntity entity) {
         Map<String, Object> params = parseParams(entity.getParamsJson());
-        eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.5, "message", "Applying..."));
-        return Map.of("status", "completed", "operation", "apply");
+        eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.5, "message", "Applying plan (dry run)..."));
+        eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.9, "message", "Finalizing dry run..."));
+        Map<String, Object> result = new java.util.LinkedHashMap<>();
+        result.put("status", "completed");
+        result.put("operation", "apply");
+        result.put("dryRun", Boolean.parseBoolean(String.valueOf(params.getOrDefault("dryRun", Boolean.TRUE))));
+        return result;
     }
 
     private Object executeDiff(JobEntity entity) {
