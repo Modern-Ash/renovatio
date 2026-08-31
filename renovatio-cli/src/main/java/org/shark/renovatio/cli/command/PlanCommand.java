@@ -62,7 +62,7 @@ public final class PlanCommand extends AbstractCoreCommand {
                 s.forEach((k, v) -> System.out.println("  " + k + ": " + v));
             }
             System.out.println();
-            System.out.println("next: renovatio apply " + cliPlanId + " --dry-run");
+            System.out.println("next: renovatio apply " + cliPlanId + " --workspace \"" + workspacePath + "\" --dry-run");
         });
     }
 }
