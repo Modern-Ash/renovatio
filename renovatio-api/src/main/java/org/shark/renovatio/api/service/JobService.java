@@ -143,7 +143,7 @@ public class JobService {
             log.error("Job execution failed: {}", jobId, e);
             entity.setStatus("FAILED");
             entity.setError(e.getMessage());
-            eventCollector.send(jobId, "error", Map.of("error", e.getMessage()));
+            eventCollector.send(jobId, "error", Map.of("error", String.valueOf(e.getMessage())));
         } finally {
             entity.setCompletedAt(LocalDateTime.now());
             jobRepo.save(entity);
@@ -210,23 +210,34 @@ public class JobService {
                 "programs", programCount
         );
 
-        return Map.of(
-                "status", "completed",
-                "operation", "analyze",
-                "runId", result.getRunId(),
-                "workspacePath", workspaceDisplay,
-                "workspaceResolvedPath", workspacePath,
-                "summary", summary,
-                "analysis", result.getData(),
-                "message", String.format(
+        Map<String, Object> response = new java.util.LinkedHashMap<>();
+        response.put("status", "completed");
+        response.put("operation", "analyze");
+        if (result.getRunId() != null && !result.getRunId().isBlank()) {
+            response.put("runId", result.getRunId());
+        }
+        response.put("workspacePath", workspaceDisplay);
+        response.put("workspaceResolvedPath", workspacePath);
+        response.put("summary", summary);
+        response.put("analysis", result.getData());
+        response.put(
+                "message",
+                String.format(
                         "Parsed %d COBOL source file(s) and %d copybook(s) from %s",
                         sourceCount,
                         copybookCount,
                         workspaceDisplay
-                ),
-                "elapsedMs", elapsedMs,
-                "metrics", result.getPerformance() != null ? Map.of("elapsedMs", result.getPerformance().getExecutionTimeMs()) : Map.of()
+                )
         );
+        response.put("elapsedMs", elapsedMs);
+        if (result.getPerformance() != null) {
+            Map<String, Object> metrics = new java.util.LinkedHashMap<>();
+            metrics.put("elapsedMs", result.getPerformance().getExecutionTimeMs());
+            response.put("metrics", metrics);
+        } else {
+            response.put("metrics", Map.of());
+        }
+        return response;
     }
 
     private Object executePlan(JobEntity entity) {
