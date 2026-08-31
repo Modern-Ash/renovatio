@@ -5,6 +5,9 @@ import StepAnalyze from '../wizard/StepAnalyze'
 import StepMetrics from '../wizard/StepMetrics'
 import StepPlan from '../wizard/StepPlan'
 import StepApply from '../wizard/StepApply'
+import StepDiff from '../wizard/StepDiff'
+import StepReview from '../wizard/StepReview'
+import StepExport from '../wizard/StepExport'
 
 const steps = [
   { id: 'folder', label: 'Select Folder' },
@@ -63,6 +66,25 @@ function Wizard() {
             data={data}
             onChange={updateData}
             onNext={goNext}
+            onBack={goBack}
+          />
+        )
+      case 5:
+        return <StepDiff data={data} onNext={goNext} onBack={goBack} />
+      case 6:
+        return (
+          <StepReview
+            projectId={projectId}
+            data={data}
+            onNext={goNext}
+            onBack={goBack}
+          />
+        )
+      case 7:
+        return (
+          <StepExport
+            projectId={projectId}
+            data={data}
             onBack={goBack}
           />
         )
