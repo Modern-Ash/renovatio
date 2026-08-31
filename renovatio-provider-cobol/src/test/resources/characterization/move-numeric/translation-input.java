@@ -19,10 +19,7 @@ class NumericDto {
 
 class NumericService {
     public NumericDto process(NumericDto input) {
-        {
-            NumericDto output = new NumericDto();
-            output.setTargetNum(input.getSourceNum());
-            return output;
-        }
+        NumericDto output = new NumericDto();
+        return output;
     }
 }

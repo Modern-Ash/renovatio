@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "characterization-guardrails"
 swarm: "ai-modernization"
 title: "Characterization harness and non-negotiable gates"
-state: "verifying"
+state: "implementing"
 revision: 1
 operational-status: "active"
 status-reason: "Repository index write authority is available in the supervising Agora session; preserve the passing 201-test implementation before running the pending offline lane."
