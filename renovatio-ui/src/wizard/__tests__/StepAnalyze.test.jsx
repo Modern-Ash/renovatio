@@ -3,11 +3,13 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import StepAnalyze from '../StepAnalyze'
 
 const createJobMock = vi.fn()
+const createBrowserAnalyzeJobMock = vi.fn()
 const subscribeToJobMock = vi.fn()
 const getJobStatusMock = vi.fn()
 
 vi.mock('../../api/client', () => ({
   createJob: (...args) => createJobMock(...args),
+  createBrowserAnalyzeJob: (...args) => createBrowserAnalyzeJobMock(...args),
   subscribeToJob: (...args) => subscribeToJobMock(...args),
   getJobStatus: (...args) => getJobStatusMock(...args)
 }))
@@ -16,6 +18,7 @@ describe('StepAnalyze', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     createJobMock.mockResolvedValue({ id: 'job-1' })
+    createBrowserAnalyzeJobMock.mockResolvedValue({ id: 'job-browser' })
     getJobStatusMock.mockResolvedValue({ status: 'COMPLETED' })
     subscribeToJobMock.mockImplementation((_jobId, _onEvent, onError) => {
       onError(new Event('error'))
@@ -76,14 +79,22 @@ describe('StepAnalyze', () => {
     expect(summaryBlock?.textContent).toContain('parsed program(s)')
   })
 
-  it('explains why a browser-selected folder still needs an absolute path', async () => {
+  it('uploads a browser-selected folder and analyzes the uploaded subdirectory tree', async () => {
+    const file = new File(
+      ['       IDENTIFICATION DIVISION.\n       PROGRAM-ID. SAMPLE.\n'],
+      'sample.cbl'
+    )
+    Object.defineProperty(file, 'webkitRelativePath', {
+      value: 'app/src/cbl/sample.cbl'
+    })
+
     render(
       <StepAnalyze
         projectId="project-1"
         data={{
-          workspacePath: '',
           workspaceSelectionMode: 'browser',
-          workspaceFolderName: 'demo-workspace'
+          workspaceFolderName: 'app',
+          workspaceFiles: [file]
         }}
         onNext={vi.fn()}
         onBack={vi.fn()}
@@ -92,11 +103,8 @@ describe('StepAnalyze', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /start analysis/i }))
 
-    expect(
-      await screen.findByText(
-        /browser-selected folder "demo-workspace" does not provide an absolute filesystem path/i
-      )
-    ).toBeTruthy()
+    expect(await screen.findByText(/analysis completed successfully/i)).toBeTruthy()
+    expect(createBrowserAnalyzeJobMock).toHaveBeenCalledWith('project-1', [file], 'app')
     expect(createJobMock).not.toHaveBeenCalled()
   })
 })

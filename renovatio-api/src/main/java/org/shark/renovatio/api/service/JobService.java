@@ -12,22 +12,29 @@ import org.shark.renovatio.shared.nql.NqlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.stream.Stream;
 
 @Service
 public class JobService {
     private static final Logger log = LoggerFactory.getLogger(JobService.class);
+    private static final String KEY_BROWSER_WORKSPACE = "browserWorkspace";
+    private static final String KEY_WORKSPACE_LABEL = "workspaceLabel";
 
     private final JobRepository jobRepo;
     private final Executor jobExecutor;
@@ -72,6 +79,36 @@ public class JobService {
         }
     }
 
+    public JobDto createBrowserAnalyzeJob(String projectId, List<MultipartFile> files, String workspaceLabel) {
+        Path browserWorkspaceRoot = null;
+        try {
+            if (files == null || files.isEmpty()) {
+                throw new IllegalArgumentException("No files were uploaded");
+            }
+
+            browserWorkspaceRoot = Files.createTempDirectory("renovatio-browser-workspace-");
+            int writtenFiles = writeUploadedWorkspace(browserWorkspaceRoot, files);
+            if (writtenFiles == 0) {
+                throw new IllegalArgumentException("No files were uploaded");
+            }
+
+            Map<String, Object> params = new java.util.LinkedHashMap<>();
+            params.put("workspacePath", browserWorkspaceRoot.toString());
+            params.put(KEY_BROWSER_WORKSPACE, true);
+            if (workspaceLabel != null && !workspaceLabel.isBlank()) {
+                params.put(KEY_WORKSPACE_LABEL, workspaceLabel);
+            }
+            params.put("uploadedFiles", writtenFiles);
+            return createJob(projectId, "analyze", params);
+        } catch (IOException e) {
+            cleanupWorkspace(browserWorkspaceRoot);
+            throw new RuntimeException("Failed to prepare browser workspace", e);
+        } catch (RuntimeException e) {
+            cleanupWorkspace(browserWorkspaceRoot);
+            throw e;
+        }
+    }
+
     private void executeJob(String jobId) {
         JobEntity entity = jobRepo.findById(jobId).orElse(null);
         if (entity == null) {
@@ -110,6 +147,7 @@ public class JobService {
         } finally {
             entity.setCompletedAt(LocalDateTime.now());
             jobRepo.save(entity);
+            cleanupBrowserWorkspace(entity);
             eventCollector.complete(jobId);
         }
     }
@@ -127,6 +165,7 @@ public class JobService {
         }
 
         long startedAt = System.nanoTime();
+        String workspaceDisplay = workspaceDisplayName(params, workspacePath);
         eventCollector.send(entity.getId(), "progress", Map.of(
                 "progress", 0.1,
                 "message", "Validating COBOL workspace..."
@@ -175,14 +214,15 @@ public class JobService {
                 "status", "completed",
                 "operation", "analyze",
                 "runId", result.getRunId(),
-                "workspacePath", workspacePath,
+                "workspacePath", workspaceDisplay,
+                "workspaceResolvedPath", workspacePath,
                 "summary", summary,
                 "analysis", result.getData(),
                 "message", String.format(
                         "Parsed %d COBOL source file(s) and %d copybook(s) from %s",
                         sourceCount,
                         copybookCount,
-                        workspacePath
+                        workspaceDisplay
                 ),
                 "elapsedMs", elapsedMs,
                 "metrics", result.getPerformance() != null ? Map.of("elapsedMs", result.getPerformance().getExecutionTimeMs()) : Map.of()
@@ -223,6 +263,82 @@ public class JobService {
 
         Optional<ProjectDto> project = projectService.getProject(projectId);
         return project.map(ProjectDto::getWorkspacePath).orElse(null);
+    }
+
+    private String workspaceDisplayName(Map<String, Object> params, String fallbackWorkspacePath) {
+        Object workspaceLabel = params.get(KEY_WORKSPACE_LABEL);
+        if (workspaceLabel != null && !workspaceLabel.toString().isBlank()) {
+            return workspaceLabel.toString();
+        }
+        return fallbackWorkspacePath;
+    }
+
+    private int writeUploadedWorkspace(Path targetRoot, List<MultipartFile> files) throws IOException {
+        int writtenFiles = 0;
+        for (MultipartFile file : files) {
+            if (file == null || file.isEmpty()) {
+                continue;
+            }
+
+            String uploadedName = file.getOriginalFilename();
+            if (uploadedName == null || uploadedName.isBlank()) {
+                uploadedName = file.getName();
+            }
+
+            Path relativePath = Paths.get(uploadedName).normalize();
+            if (relativePath.isAbsolute() || relativePath.startsWith("..")) {
+                throw new IllegalArgumentException("Invalid uploaded file path: " + uploadedName);
+            }
+
+            Path target = targetRoot.resolve(relativePath).normalize();
+            if (!target.startsWith(targetRoot)) {
+                throw new IllegalArgumentException("Invalid uploaded file path: " + uploadedName);
+            }
+
+            Path parent = target.getParent();
+            if (parent != null) {
+                Files.createDirectories(parent);
+            }
+            try (InputStream inputStream = file.getInputStream()) {
+                Files.copy(inputStream, target, StandardCopyOption.REPLACE_EXISTING);
+            }
+            writtenFiles++;
+        }
+        return writtenFiles;
+    }
+
+    private void cleanupBrowserWorkspace(JobEntity entity) {
+        if (entity == null) {
+            return;
+        }
+        Map<String, Object> params = parseParams(entity.getParamsJson());
+        Object browserWorkspace = params.get(KEY_BROWSER_WORKSPACE);
+        Object workspacePath = params.get("workspacePath");
+        if (!(browserWorkspace instanceof Boolean isBrowserWorkspace) || !isBrowserWorkspace) {
+            return;
+        }
+        if (workspacePath == null || workspacePath.toString().isBlank()) {
+            return;
+        }
+        cleanupWorkspace(Paths.get(workspacePath.toString()));
+    }
+
+    private void cleanupWorkspace(Path root) {
+        if (root == null) {
+            return;
+        }
+        try (Stream<Path> walk = Files.walk(root)) {
+            walk.sorted(Comparator.reverseOrder())
+                    .forEach(path -> {
+                        try {
+                            Files.deleteIfExists(path);
+                        } catch (IOException ignored) {
+                            // Best-effort cleanup.
+                        }
+                    });
+        } catch (IOException ignored) {
+            // Best-effort cleanup.
+        }
     }
 
     private int extractProgramCount(AnalyzeResult result) {

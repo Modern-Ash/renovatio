@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 import java.util.List;
@@ -38,6 +39,20 @@ public class JobController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         JobDto job = jobService.createJob(projectId, request.getOperation(), request.getParams());
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(job);
+    }
+
+    @PostMapping(value = "/api/projects/{projectId}/jobs/browser-analyze", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<JobDto> createBrowserAnalyzeJob(
+            @PathVariable String projectId,
+            @RequestPart("files") List<MultipartFile> files,
+            @RequestParam(value = "workspaceLabel", required = false) String workspaceLabel,
+            @RequestHeader(value = "X-Role", required = false) String roleHeader) {
+        AccessRole role = AccessRole.fromString(roleHeader);
+        if (!accessService.canCreate(role)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        JobDto job = jobService.createBrowserAnalyzeJob(projectId, files, workspaceLabel);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(job);
     }
 

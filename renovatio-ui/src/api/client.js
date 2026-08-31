@@ -38,6 +38,34 @@ export function createJob(projectId, operation, params = {}) {
   });
 }
 
+export async function createBrowserAnalyzeJob(projectId, files, workspaceLabel = '') {
+  const role = localStorage.getItem('userRole') || 'ADMIN';
+  const formData = new FormData();
+
+  Array.from(files || []).forEach((file) => {
+    const filename = file.webkitRelativePath || file.name;
+    formData.append('files', file, filename);
+  });
+
+  if (workspaceLabel) {
+    formData.append('workspaceLabel', workspaceLabel);
+  }
+
+  const response = await fetch(`${API_BASE}/projects/${projectId}/jobs/browser-analyze`, {
+    method: 'POST',
+    headers: {
+      'X-Role': role
+    },
+    body: formData
+  });
+
+  if (!response.ok) {
+    throw new Error(`API error: ${response.status}`);
+  }
+
+  return response.json();
+}
+
 export function getJob(jobId) {
   return apiCall(`/jobs/${jobId}`);
 }

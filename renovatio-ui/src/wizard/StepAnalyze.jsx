@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { createJob, getJobStatus, subscribeToJob } from '../api/client'
+import { createBrowserAnalyzeJob, createJob, getJobStatus, subscribeToJob } from '../api/client'
 
 function StepAnalyze({ projectId, data, onNext, onBack }) {
   const [jobId, setJobId] = useState(null)
@@ -52,25 +52,39 @@ function StepAnalyze({ projectId, data, onNext, onBack }) {
 
   const startAnalysis = async () => {
     try {
-      if (!isAbsoluteWorkspacePath(data.workspacePath)) {
-        setStatus('failed')
-        setProgress(0)
-        setSummary(null)
-        setMessage(
-          data.workspaceSelectionMode === 'browser'
-            ? `The browser-selected folder "${data.workspaceFolderName || data.workspacePath}" does not provide an absolute filesystem path. Paste the full path in the field above, then retry analysis.`
-            : 'Please enter the absolute filesystem path to the COBOL workspace before starting analysis.'
+      setStatus('starting')
+      setProgress(0)
+      setSummary(null)
+
+      let job
+      if (data.workspaceSelectionMode === 'browser') {
+        if (!Array.isArray(data.workspaceFiles) || data.workspaceFiles.length === 0) {
+          setStatus('failed')
+          setMessage('Please browse a folder with COBOL files before starting analysis.')
+          return
+        }
+
+        setMessage('Uploading selected folder and scanning subdirectories...')
+        job = await createBrowserAnalyzeJob(
+          projectId || 'default',
+          data.workspaceFiles,
+          data.workspaceFolderName || 'selected folder'
         )
-        return
+      } else {
+        if (!isAbsoluteWorkspacePath(data.workspacePath)) {
+          setStatus('failed')
+          setMessage('Please enter the absolute filesystem path to the COBOL workspace before starting analysis.')
+          return
+        }
+
+        setMessage('Starting analysis...')
+        job = await createJob(projectId || 'default', 'analyze', {
+          workspacePath: data.workspacePath
+        })
       }
 
-      setStatus('starting')
-      const job = await createJob(projectId || 'default', 'analyze', {
-        workspacePath: data.workspacePath
-      })
       setJobId(job.id)
       setStatus('running')
-      setSummary(null)
 
       let unsubscribe = () => {}
       unsubscribe = subscribeToJob(
@@ -131,7 +145,16 @@ function StepAnalyze({ projectId, data, onNext, onBack }) {
       {status === 'idle' && (
         <div>
           <p className="text-gray-600 mb-4">
-            Ready to analyze COBOL programs in: <code>{data.workspacePath}</code>
+            {data.workspaceSelectionMode === 'browser' ? (
+              <>
+                Ready to analyze the selected folder tree:{' '}
+                <code>{data.workspaceFolderName || 'selected folder'}</code>
+              </>
+            ) : (
+              <>
+                Ready to analyze COBOL programs in: <code>{data.workspacePath}</code>
+              </>
+            )}
           </p>
           <div className="flex justify-between">
             <button onClick={onBack} className="btn btn-secondary">

@@ -124,6 +124,7 @@ function StepFolder({ data, onChange, onNext }) {
     onChange({
       workspacePath: currentWorkspacePath,
       workspaceFolderName: pickedFolder,
+      workspaceFiles: files,
       workspaceSelectionMode: 'browser',
       workspaceValidationStatus: result.status,
       workspaceValidationMessage: result.message
@@ -134,7 +135,7 @@ function StepFolder({ data, onChange, onNext }) {
     <div>
       <h2 className="text-xl font-semibold mb-4">Select COBOL Workspace</h2>
       <p className="text-gray-600 mb-4">
-        Enter the absolute path to your COBOL workspace folder, or browse it to validate the folder contents first.
+        Enter the absolute path to your COBOL workspace folder, or browse it and we&apos;ll inspect the folder tree for COBOL files.
       </p>
       <div className="flex gap-2 mb-3">
         <input
@@ -145,6 +146,8 @@ function StepFolder({ data, onChange, onNext }) {
             onChange({
               workspacePath: e.target.value,
               workspaceSelectionMode: 'manual',
+              workspaceFiles: [],
+              workspaceFolderName: '',
               workspaceValidationStatus: 'idle',
               workspaceValidationMessage: ''
             })
@@ -183,9 +186,9 @@ function StepFolder({ data, onChange, onNext }) {
           {validation.message}
         </p>
       )}
-      {data.workspaceSelectionMode === 'browser' && !isAbsoluteWorkspacePath(data.workspacePath) && (
+      {data.workspaceSelectionMode === 'browser' && (
         <p className="text-sm text-amber-700 mb-4">
-          Folder browsing checks whether the contents look like COBOL, but analysis runs on the backend and still needs the full absolute filesystem path.
+          Folder browsing scans the selected folder and all its subdirectories for COBOL sources and copybooks.
         </p>
       )}
       <div className="flex justify-end">

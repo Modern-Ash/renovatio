@@ -28,21 +28,28 @@ describe('StepFolder', () => {
     const { container } = render(<Harness />)
 
     const folderInput = container.querySelector('input[type="file"]')
-    const file = makeSelectedFile(
-      'sample.cbl',
-      '       IDENTIFICATION DIVISION.\n       PROGRAM-ID. SAMPLE.\n',
-      'demo-workspace/sample.cbl'
-    )
+    const files = [
+      makeSelectedFile(
+        'sample.cbl',
+        '       IDENTIFICATION DIVISION.\n       PROGRAM-ID. SAMPLE.\n',
+        'demo-workspace/src/cbl/sample.cbl'
+      ),
+      makeSelectedFile(
+        'copybook.cpy',
+        '       01  SAMPLE-ITEM PIC X(10).\n',
+        'demo-workspace/includes/copybook.cpy'
+      )
+    ]
 
     fireEvent.change(folderInput, {
-      target: { files: [file] }
+      target: { files }
     })
 
     expect(
-      await screen.findByText(/Found 1 COBOL program file\(s\) and 0 copybook\(s\)\./i)
+      await screen.findByText(/Found 1 COBOL program file\(s\) and 1 copybook\(s\)\./i)
     ).toBeTruthy()
     expect(
-      await screen.findByText(/Folder browsing checks whether the contents look like COBOL/i)
+      await screen.findByText(/Folder browsing scans the selected folder and all its subdirectories/i)
     ).toBeTruthy()
     expect(screen.getByPlaceholderText('/path/to/cobol/workspace').value).toBe('')
 
