@@ -43,3 +43,7 @@
 - 2026-08-31T00:16:11.937588Z | tool.running | run=tool-20260831t00161788146171z actor=project:agent
 - 2026-08-31T00:16:11.962033Z | tool.completed | run=tool-20260831t00161788146171z exit-code=0
 - 2026-08-31T00:21:27.987135Z | work.criterion-stage-marked | criterion=domain-language actor=project:agent stage=implemented
+- 2026-08-31T00:21:37.704184Z | tool.prepared | run=tool-20260831t00211788146497z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:21:37.706222Z | tool.running | run=tool-20260831t00211788146497z actor=project:agent
+- 2026-08-31T00:21:37.729820Z | tool.completed | run=tool-20260831t00211788146497z exit-code=0
+- 2026-08-31T00:23:53.702298Z | work.criterion-stage-marked | criterion=goto-plan actor=project:agent stage=implemented
