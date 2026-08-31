@@ -55,3 +55,6 @@
 - 2026-08-31T01:22:27.959511Z | tool.completed | run=tool-20260831t01221788150147z exit-code=0
 - 2026-08-31T01:30:42.749677Z | artifact.added | kind=test-report uri=repo://docs/reports/deterministic-semantic-core-recipe-boundary-review-20260831.md actor=project:agent
 - 2026-08-31T01:30:48.038594Z | evidence.added | id=evidence-000003 type=review-revalidation result=success revision=1 actor=project:agent
+- 2026-08-31T01:31:05.475214Z | tool.prepared | run=tool-20260831t01311788150665z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:31:05.477774Z | tool.running | run=tool-20260831t01311788150665z actor=project:agent
+- 2026-08-31T01:31:05.501266Z | tool.completed | run=tool-20260831t01311788150665z exit-code=0
