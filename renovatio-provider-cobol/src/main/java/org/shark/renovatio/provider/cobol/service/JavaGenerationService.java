@@ -1,10 +1,15 @@
 package org.shark.renovatio.provider.cobol.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.javapoet.*;
 import org.shark.renovatio.cobol.ir.model.CobolDataItem;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
+import org.shark.renovatio.provider.cobol.translation.AnnotatedContextResolver;
+import org.shark.renovatio.provider.cobol.translation.AnnotationActionItemFactory;
+import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;
+import org.shark.renovatio.provider.cobol.guardrail.ManualActionItemWriter;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
@@ -21,6 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,15 +42,30 @@ public class JavaGenerationService {
     private final TemplateCodeGenerationService templateService;
     private final CobolIntermediateModelService intermediateModelService;
     private final CobolSemanticTranspiler semanticTranspiler;
+    private final AnnotatedContextResolver annotatedContextResolver;
+    private final AnnotationActionItemFactory annotationActionItemFactory;
+    private final ManualActionItemWriter manualActionItemWriter;
 
     public JavaGenerationService(CobolParsingService parsingService,
                                  TemplateCodeGenerationService templateService,
                                  CobolIntermediateModelService intermediateModelService,
                                  CobolSemanticTranspiler semanticTranspiler) {
+        this(parsingService, templateService, intermediateModelService, semanticTranspiler,
+                new ObjectMapper().findAndRegisterModules());
+    }
+
+    public JavaGenerationService(CobolParsingService parsingService,
+                                 TemplateCodeGenerationService templateService,
+                                 CobolIntermediateModelService intermediateModelService,
+                                 CobolSemanticTranspiler semanticTranspiler,
+                                 ObjectMapper objectMapper) {
         this.parsingService = parsingService;
         this.templateService = templateService;
         this.intermediateModelService = intermediateModelService;
         this.semanticTranspiler = semanticTranspiler;
+        this.annotatedContextResolver = new AnnotatedContextResolver(objectMapper);
+        this.annotationActionItemFactory = new AnnotationActionItemFactory();
+        this.manualActionItemWriter = new ManualActionItemWriter(objectMapper);
     }
 
     /**
@@ -63,6 +84,7 @@ public class JavaGenerationService {
                     ((Map<String, Object>) analyzeResult.getData()).get("programs");
 
             Map<String, String> generatedFiles = new HashMap<>();
+            Map<String, ManualActionItem> actionItems = new LinkedHashMap<>();
 
             for (org.shark.renovatio.provider.cobol.domain.CobolProgram program : programs) {
                 Map<String, Object> metadata = program.getMetadata();
@@ -75,16 +97,37 @@ public class JavaGenerationService {
                 System.out.println("DEBUG: Generated classBase: " + classBase);
 
                 try {
+                    CobolIntermediateModel model = resolveIntermediateModel(metadata);
+                    Path cobolPath = Path.of(fileName);
+                    AnnotatedContextResolver.Resolution annotatedResolution = annotatedContextResolver.resolve(
+                            new AnnotatedContextResolver.Request(Optional.empty(), Optional.empty(), cobolPath), model);
+                    annotatedResolution.diagnostics().stream()
+                            .map(diagnostic -> annotationActionItemFactory.toResolutionDiagnostic(
+                                    diagnostic, fileName, model.getProgramId()))
+                            .forEach(item -> actionItems.putIfAbsent(item.id(), item));
+
                     // Generate DTO class for data structures
                     String dtoClass = generateDataTransferObject(classBase, metadata);
+                    if (annotatedResolution.context().isPresent()) {
+                        dtoClass = semanticTranspiler.enrichServiceImplementation(dtoClass,
+                                annotatedResolution.context().orElseThrow(),
+                                fileName,
+                                items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)));
+                    }
                     generatedFiles.put(classBase + "DTO.java", dtoClass);
                     // Generate service interface
                     String serviceInterface = generateServiceInterface(classBase, metadata);
                     generatedFiles.put(classBase + "Service.java", serviceInterface);
                     // Generate implementation template
-                    CobolIntermediateModel model = resolveIntermediateModel(metadata);
                     String serviceImpl = generateServiceImplementation(classBase, metadata);
-                    serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl, model);
+                    if (annotatedResolution.context().isPresent()) {
+                        serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl,
+                                annotatedResolution.context().orElseThrow(),
+                                fileName,
+                                items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)));
+                    } else {
+                        serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl, model);
+                    }
                     // DEBUG: print generated service implementation for verification
                     System.out.println("Generated Service Implementation (" + classBase + "):\n" + serviceImpl);
                     generatedFiles.put(classBase + "ServiceImpl.java", serviceImpl);
@@ -103,6 +146,9 @@ public class JavaGenerationService {
                     throw e;
                 }
             }
+
+            manualActionItemWriter.write(Paths.get(workspace.getPath())
+                    .resolve(ManualActionItemWriter.DEFAULT_REPORT), actionItems.values());
 
             // Write generated files to disk
             String outputPath = writeGeneratedFilesToDisk(generatedFiles, workspace);
@@ -363,7 +409,7 @@ public class JavaGenerationService {
     }
 
     private void addValidationStatements(MethodSpec.Builder methodBuilder, FieldValidation field) {
-        String accessor = "input." + getterName(field.fieldName);
+        String accessor = "input." + getterName(field.fieldName) + "()";
         switch (field.javaType) {
             case "String" -> addStringValidation(methodBuilder, field, accessor);
             case "Integer", "Long" -> addIntegerValidation(methodBuilder, field, accessor);
@@ -590,7 +636,7 @@ public class JavaGenerationService {
                 .build();
         classBuilder.addField(field);
         // Add getter
-        String getterName = "get" + toPascalCase(fieldName);
+        String getterName = getterName(fieldName);
         MethodSpec getter = MethodSpec.methodBuilder(getterName)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(fieldType)
@@ -598,7 +644,7 @@ public class JavaGenerationService {
                 .build();
         classBuilder.addMethod(getter);
         // Add setter
-        String setterName = "set" + toPascalCase(fieldName);
+        String setterName = "set" + capitalizeForAccessor(fieldName);
         MethodSpec setter = MethodSpec.methodBuilder(setterName)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(fieldType, fieldName)

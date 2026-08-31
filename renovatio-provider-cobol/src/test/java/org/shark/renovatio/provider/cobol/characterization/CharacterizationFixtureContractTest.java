@@ -10,6 +10,7 @@ import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.provider.cobol.guardrail.GuardrailSchemaCatalog;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
+import org.shark.renovatio.provider.cobol.translation.AnnotatedContextResolver;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
 
 import javax.tools.ToolProvider;
@@ -18,6 +19,8 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,9 +29,10 @@ class CharacterizationFixtureContractTest {
     private static final List<String> FIXTURES = List.of(
             "move-numeric", "move-alphanumeric-boundaries", "compute-decimal-sign", "if-nested",
             "evaluate-level-88", "perform-simple-nested", "goto-reducible", "goto-irreducible",
-            "redefines-overlap", "odo-valid-boundary", "odo-invalid-count", "unsupported-construct");
+            "redefines-overlap", "odo-valid-boundary", "odo-invalid-count", "unsupported-construct",
+            "data-intent-redefines");
     /* Only fixtures exercised end-to-end by today's production translator may be admitted here. */
-    private static final Set<String> SUPPORTED = Set.of("move-numeric");
+    private static final Set<String> SUPPORTED = Set.of("move-numeric", "data-intent-redefines");
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final CobolIntermediateModelService modelService = new CobolIntermediateModelService();
@@ -63,6 +67,22 @@ class CharacterizationFixtureContractTest {
                 Path output = compilationOutput.resolve(fixtureId);
                 assertCompiles(first, output);
                 assertBehavior(output, behavior);
+                Path annotatedSidecar = fixture.resolve(fixtureId + ".annotated.json");
+                if (Files.exists(annotatedSidecar)) {
+                    String annotatedFirst = translateAnnotated(cobol,
+                            fixture.resolve("translation-input.java"), annotatedSidecar);
+                    String annotatedSecond = translateAnnotated(cobol,
+                            fixture.resolve("translation-input.java"), annotatedSidecar);
+                    assertThat(annotatedFirst)
+                            .as("independent annotated translations for %s", fixtureId)
+                            .isEqualTo(annotatedSecond);
+                    assertThat(annotatedFirst)
+                            .as("committed annotated golden for %s", fixtureId)
+                            .isEqualTo(Files.readString(fixture.resolve("expected-annotated.java")));
+                    Path annotatedOutput = compilationOutput.resolve(fixtureId + "-annotated");
+                    assertCompiles(annotatedFirst, annotatedOutput);
+                    assertBehavior(annotatedOutput, behavior);
+                }
             } else {
                 assertThat(actionCount).isPositive();
                 assertThat(fixture.resolve("expected.java")).doesNotExist();
@@ -74,6 +94,17 @@ class CharacterizationFixtureContractTest {
     private String translate(Path cobol, Path javaStub) throws Exception {
         CobolIntermediateModel model = modelService.parse(Files.readString(cobol));
         return transpiler.enrichServiceImplementation(Files.readString(javaStub), model);
+    }
+
+    private String translateAnnotated(Path cobol, Path javaStub, Path sidecar) throws Exception {
+        CobolIntermediateModel model = modelService.parse(Files.readString(cobol));
+        AnnotatedContextResolver.Resolution resolution = new AnnotatedContextResolver(mapper).resolve(
+                new AnnotatedContextResolver.Request(Optional.empty(), Optional.of(sidecar), cobol), model);
+        assertThat(resolution.diagnostics()).as("sidecar diagnostics for %s", sidecar).isEmpty();
+        assertThat(resolution.context()).as("sidecar %s must be valid", sidecar).isPresent();
+        var ignored = new ArrayList<org.shark.renovatio.provider.cobol.guardrail.ManualActionItem>();
+        return transpiler.enrichServiceImplementation(Files.readString(javaStub),
+                resolution.context().orElseThrow(), ignored::addAll);
     }
 
     private void assertBehavior(Path output, JsonNode behavior) throws Exception {

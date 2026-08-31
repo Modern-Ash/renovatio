@@ -20,6 +20,10 @@
             <artifactId>renovatio-cobol-ir</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-cobol-annotations</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.openrewrite</groupId>
             <artifactId>rewrite-java</artifactId>
             <version>${openrewrite.version}</version>
@@ -78,6 +82,7 @@
                                         <exclude>software.amazon.awssdk:bedrockruntime</exclude>
                                         <exclude>com.google.cloud:google-cloud-vertexai</exclude>
                                         <exclude>com.google.genai:*</exclude>
+                                        <exclude>org.shark.renovatio:renovatio-provider-*</exclude>
                                     </excludes>
                                     <message>The deterministic COBOL recipe runtime must not contain HTTP clients or LLM provider SDKs.</message>
                                 </bannedDependencies>

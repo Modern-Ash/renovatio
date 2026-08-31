@@ -46,6 +46,7 @@
         <module>renovatio-cobol-ir</module>
         <module>renovatio-llm</module>
         <module>cobol-openrewrite-recipes</module>
+        <module>renovatio-cobol-annotations</module>
     </modules>
 
     <dependencyManagement>
@@ -84,6 +85,11 @@
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>cobol-openrewrite-recipes</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-cobol-annotations</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

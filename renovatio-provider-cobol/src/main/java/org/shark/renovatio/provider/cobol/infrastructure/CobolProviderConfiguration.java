@@ -1,5 +1,6 @@
 package org.shark.renovatio.provider.cobol.infrastructure;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.provider.cobol.service.*;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,8 +27,10 @@ public class CobolProviderConfiguration {
             CobolParsingService parsingService,
             TemplateCodeGenerationService templateCodeGenerationService,
             org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService intermediateModelService,
-            org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler semanticTranspiler) {
-        return new JavaGenerationService(parsingService, templateCodeGenerationService, intermediateModelService, semanticTranspiler);
+            org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler semanticTranspiler,
+            ObjectMapper objectMapper) {
+        return new JavaGenerationService(parsingService, templateCodeGenerationService,
+                intermediateModelService, semanticTranspiler, objectMapper);
     }
 
     @Bean

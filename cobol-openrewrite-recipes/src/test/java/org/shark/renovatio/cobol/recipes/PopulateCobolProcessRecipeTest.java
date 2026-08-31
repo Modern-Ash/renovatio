@@ -157,17 +157,16 @@ class PopulateCobolProcessRecipeTest {
     @Test
     void productionBoundaryShouldContainNoNetworkOrLlmDependency() throws IOException {
         Path moduleRoot = locateModuleRoot();
-        String productionBoundary;
-        try (Stream<Path> paths = Files.walk(moduleRoot.resolve("src/main"))) {
-            productionBoundary = paths
-                    .filter(Files::isRegularFile)
-                    .sorted()
-                    .map(path -> inspectableProductionEntry(moduleRoot, path))
-                    .reduce("", (left, right) -> left + "\n" + right);
-        }
+        Path annotationsRoot = moduleRoot.resolveSibling("renovatio-cobol-annotations");
+        String productionBoundary = productionBoundary(moduleRoot) + "\n"
+                + productionBoundary(annotationsRoot);
 
         String boundary = productionBoundary.toLowerCase(Locale.ROOT);
         assertThat(boundary).doesNotContain(
+                "org.shark.renovatio.provider",
+                "org.shark.renovatio.llm",
+                ".prompt.",
+                "promptcatalog",
                 "java.net.",
                 "java.net.http",
                 "okhttp",
@@ -179,6 +178,15 @@ class PopulateCobolProcessRecipeTest {
                 "prompt catalog",
                 "api key",
                 "credential");
+    }
+
+    private static String productionBoundary(Path moduleRoot) throws IOException {
+        try (Stream<Path> paths = Files.walk(moduleRoot.resolve("src/main"))) {
+            return paths.filter(Files::isRegularFile)
+                    .sorted()
+                    .map(path -> inspectableProductionEntry(moduleRoot, path))
+                    .reduce("", (left, right) -> left + "\n" + right);
+        }
     }
 
     private static String inspectableProductionEntry(Path moduleRoot, Path path) {

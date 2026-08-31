@@ -10,6 +10,10 @@ import org.openrewrite.java.JavaIsoVisitor;
 import org.openrewrite.java.tree.J;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.shark.renovatio.cobol.ir.model.*;
+import org.shark.renovatio.cobol.recipes.annotate.AnnotationApplicationOutcome;
+import org.shark.renovatio.cobol.recipes.annotate.AnnotationApplicator;
+import org.shark.renovatio.cobol.recipes.annotate.AnnotationOutcomeKey;
+import org.shark.renovatio.cobol.recipes.annotate.DroppedAnnotation;
 
 import java.util.*;
 
@@ -55,6 +59,27 @@ public class PopulateCobolProcessRecipe extends Recipe {
     }
 
     private class PopulateVisitor extends JavaIsoVisitor<ExecutionContext> {
+        @Override
+        public @NonNull J.CompilationUnit visitCompilationUnit(@NonNull J.CompilationUnit compilationUnit,
+                                                              @NonNull ExecutionContext ctx) {
+            J.CompilationUnit populated = super.visitCompilationUnit(compilationUnit, ctx);
+            AnnotatedCobolContext annotated = ctx.getMessage(ANNOTATED_CONTEXT_KEY);
+            CobolIntermediateModel model = resolveModel(ctx);
+            if (annotated == null || model == null || annotated.baseModel() != model) {
+                return populated;
+            }
+
+            AnnotationApplicationOutcome outcome = new AnnotationApplicator(model, annotated.sidecar())
+                    .apply(populated, ctx);
+            List<DroppedAnnotation> accumulated = ctx.getMessage(AnnotationOutcomeKey.ANNOTATION_OUTCOMES_KEY);
+            if (accumulated == null) {
+                accumulated = new ArrayList<>();
+                ctx.putMessage(AnnotationOutcomeKey.ANNOTATION_OUTCOMES_KEY, accumulated);
+            }
+            accumulated.addAll(outcome.dropped());
+            return outcome.tree();
+        }
+
         @Override
         public @NonNull J.MethodDeclaration visitMethodDeclaration(@NonNull J.MethodDeclaration method, @NonNull ExecutionContext ctx) {
             CobolIntermediateModel model = resolveModel(ctx);

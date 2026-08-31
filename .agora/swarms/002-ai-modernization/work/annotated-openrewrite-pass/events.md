@@ -2,3 +2,109 @@
 
 - 2026-08-30T14:33:31.738787Z | work.created | state=drafting actor=project:owner
 - 2026-08-30T14:33:31.739210Z | work.decomposition-linked | parent=ai-modernization/three-pass-modernization actor=project:owner
+- 2026-08-31T10:33:42.473551Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-openrewrite-pass.md actor=project:agent
+- 2026-08-31T10:33:48.010695Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=specified
+- 2026-08-31T10:33:48.227115Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=specified
+- 2026-08-31T10:33:48.437164Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=specified
+- 2026-08-31T10:33:48.653693Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=specified
+- 2026-08-31T10:33:48.861912Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=specified
+- 2026-08-31T10:35:35.257625Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-31T10:42:06.277803Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/annotated-openrewrite-pass.md actor=project:agent
+- 2026-08-31T10:42:07.441010Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-31T10:42:23.770735Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=planned
+- 2026-08-31T10:42:23.976353Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=planned
+- 2026-08-31T10:42:24.175166Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=planned
+- 2026-08-31T10:42:24.378494Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=planned
+- 2026-08-31T10:42:24.581204Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=planned
+- 2026-08-31T10:42:24.785368Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-31T11:45:31.874387Z | tool.prepared | run=tool-20260831t11451788187531z tool=repository operation=commit actor=project:agent
+- 2026-08-31T11:45:31.877127Z | tool.running | run=tool-20260831t11451788187531z actor=project:agent
+- 2026-08-31T11:45:31.890639Z | tool.failed | run=tool-20260831t11451788187531z exit-code=128
+- 2026-08-31T11:45:43.814673Z | tool.prepared | run=tool-20260831t11451788187543z tool=repository operation=commit actor=project:agent
+- 2026-08-31T11:45:43.816805Z | tool.running | run=tool-20260831t11451788187543z actor=project:agent
+- 2026-08-31T11:45:43.840464Z | tool.completed | run=tool-20260831t11451788187543z exit-code=0
+- 2026-08-31T11:47:22.194366Z | tool.prepared | run=tool-20260831t11471788187642z tool=repository operation=commit actor=project:agent
+- 2026-08-31T11:47:22.196560Z | tool.running | run=tool-20260831t11471788187642z actor=project:agent
+- 2026-08-31T11:47:22.219835Z | tool.completed | run=tool-20260831t11471788187642z exit-code=0
+- 2026-08-31T11:50:18.308905Z | tool.prepared | run=tool-20260831t11501788187818z tool=repository operation=commit actor=project:agent
+- 2026-08-31T11:50:18.311984Z | tool.running | run=tool-20260831t11501788187818z actor=project:agent
+- 2026-08-31T11:50:18.335777Z | tool.completed | run=tool-20260831t11501788187818z exit-code=0
+- 2026-08-31T11:52:13.039305Z | tool.prepared | run=tool-20260831t11521788187933z tool=repository operation=commit actor=project:agent
+- 2026-08-31T11:52:13.041441Z | tool.running | run=tool-20260831t11521788187933z actor=project:agent
+- 2026-08-31T11:52:13.069026Z | tool.completed | run=tool-20260831t11521788187933z exit-code=0
+- 2026-08-31T11:57:04.683462Z | tool.prepared | run=tool-20260831t11571788188224z tool=repository operation=commit actor=project:agent
+- 2026-08-31T11:57:04.685644Z | tool.running | run=tool-20260831t11571788188224z actor=project:agent
+- 2026-08-31T11:57:04.708791Z | tool.completed | run=tool-20260831t11571788188224z exit-code=0
+- 2026-08-31T12:02:02.865224Z | tool.prepared | run=tool-20260831t12021788188522z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:02:02.867753Z | tool.running | run=tool-20260831t12021788188522z actor=project:agent
+- 2026-08-31T12:02:02.891424Z | tool.completed | run=tool-20260831t12021788188522z exit-code=0
+- 2026-08-31T12:03:30.369842Z | tool.prepared | run=tool-20260831t12031788188610z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:03:30.372000Z | tool.running | run=tool-20260831t12031788188610z actor=project:agent
+- 2026-08-31T12:03:30.395469Z | tool.completed | run=tool-20260831t12031788188610z exit-code=0
+- 2026-08-31T12:06:23.461744Z | tool.prepared | run=tool-20260831t12061788188783z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:06:23.463982Z | tool.running | run=tool-20260831t12061788188783z actor=project:agent
+- 2026-08-31T12:06:23.487890Z | tool.completed | run=tool-20260831t12061788188783z exit-code=0
+- 2026-08-31T12:07:09.147600Z | artifact.added | kind=test-report uri=repo://docs/reports/annotated-openrewrite-pass-test-report-20260831.md actor=project:agent
+- 2026-08-31T12:07:09.446058Z | evidence.added | id=evidence-000001 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T12:07:09.772451Z | evidence.added | id=evidence-000002 type=offline-characterization result=success revision=1 actor=project:agent
+- 2026-08-31T12:14:14.288444Z | tool.prepared | run=tool-20260831t12141788189254z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:14:14.290933Z | tool.running | run=tool-20260831t12141788189254z actor=project:agent
+- 2026-08-31T12:14:14.334575Z | tool.completed | run=tool-20260831t12141788189254z exit-code=0
+- 2026-08-31T12:15:06.660568Z | evidence.added | id=evidence-000003 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T12:15:06.954844Z | evidence.added | id=evidence-000004 type=offline-characterization result=success revision=1 actor=project:agent
+- 2026-08-31T12:15:26.466615Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:agent stage=implemented
+- 2026-08-31T12:15:26.813887Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:agent stage=verified
+- 2026-08-31T12:15:27.150551Z | work.criterion-stage-marked | criterion=ast-safe actor=project:agent stage=implemented
+- 2026-08-31T12:15:27.464691Z | work.criterion-stage-marked | criterion=ast-safe actor=project:agent stage=verified
+- 2026-08-31T12:15:27.764214Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:agent stage=implemented
+- 2026-08-31T12:15:28.056663Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:agent stage=verified
+- 2026-08-31T12:15:28.348771Z | work.criterion-stage-marked | criterion=reproducible actor=project:agent stage=implemented
+- 2026-08-31T12:15:28.641277Z | work.criterion-stage-marked | criterion=reproducible actor=project:agent stage=verified
+- 2026-08-31T12:15:28.929403Z | work.criterion-stage-marked | criterion=fallback actor=project:agent stage=implemented
+- 2026-08-31T12:15:29.219997Z | work.criterion-stage-marked | criterion=fallback actor=project:agent stage=verified
+- 2026-08-31T12:15:34.939938Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T12:16:55.653916Z | artifact.added | kind=test-report uri=repo://docs/reports/annotated-openrewrite-pass-test-report-20260831-final.md actor=project:agent
+- 2026-08-31T12:17:06.828681Z | evidence.added | id=evidence-000005 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T12:17:07.127972Z | evidence.added | id=evidence-000006 type=offline-characterization result=success revision=1 actor=project:agent
+- 2026-08-31T12:17:37.309627Z | tool.prepared | run=tool-20260831t12171788189457z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:17:37.312276Z | tool.running | run=tool-20260831t12171788189457z actor=project:agent
+- 2026-08-31T12:17:37.336111Z | tool.completed | run=tool-20260831t12171788189457z exit-code=0
+- 2026-08-31T12:31:32.546763Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=accepted
+- 2026-08-31T12:31:32.841026Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=accepted
+- 2026-08-31T12:31:33.126640Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=accepted
+- 2026-08-31T12:31:33.419219Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=accepted
+- 2026-08-31T12:31:33.722489Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=accepted
+- 2026-08-31T12:31:37.944102Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T12:31:48.702490Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-08-31T12:44:59.859970Z | work.reopened | revision=2 source=github-pr-review actor=project:owner change=change-20260831t124459859878z
+- 2026-08-31T12:49:40.679334Z | tool.prepared | run=tool-20260831t12491788191380z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:49:40.682753Z | tool.running | run=tool-20260831t12491788191380z actor=project:agent
+- 2026-08-31T12:49:40.706706Z | tool.completed | run=tool-20260831t12491788191380z exit-code=0
+- 2026-08-31T12:50:03.180732Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-openrewrite-pass.md actor=project:agent
+- 2026-08-31T12:50:03.495734Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/annotated-openrewrite-pass.md actor=project:agent
+- 2026-08-31T12:50:03.819418Z | artifact.added | kind=test-report uri=repo://docs/reports/annotated-openrewrite-pass-pr139-review-20260831.md actor=project:agent
+- 2026-08-31T12:50:15.767088Z | evidence.added | id=evidence-000007 type=unit-tests result=success revision=2 actor=project:agent
+- 2026-08-31T12:50:16.068775Z | evidence.added | id=evidence-000008 type=offline-characterization result=success revision=2 actor=project:agent
+- 2026-08-31T12:50:42.429004Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=specified
+- 2026-08-31T12:50:42.721886Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=planned
+- 2026-08-31T12:50:43.021353Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=specified
+- 2026-08-31T12:50:43.314255Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=planned
+- 2026-08-31T12:50:43.608625Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=specified
+- 2026-08-31T12:50:43.911355Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=planned
+- 2026-08-31T12:50:44.201546Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=specified
+- 2026-08-31T12:50:44.485241Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=planned
+- 2026-08-31T12:50:44.770774Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=specified
+- 2026-08-31T12:50:45.062930Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=planned
+- 2026-08-31T12:51:36.552597Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:agent stage=implemented
+- 2026-08-31T12:51:36.849071Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:agent stage=verified
+- 2026-08-31T12:51:37.146649Z | work.criterion-stage-marked | criterion=ast-safe actor=project:agent stage=implemented
+- 2026-08-31T12:51:37.451145Z | work.criterion-stage-marked | criterion=ast-safe actor=project:agent stage=verified
+- 2026-08-31T12:51:37.768094Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:agent stage=implemented
+- 2026-08-31T12:51:38.072854Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:agent stage=verified
+- 2026-08-31T12:51:38.399270Z | work.criterion-stage-marked | criterion=reproducible actor=project:agent stage=implemented
+- 2026-08-31T12:51:38.697000Z | work.criterion-stage-marked | criterion=reproducible actor=project:agent stage=verified
+- 2026-08-31T12:51:38.996281Z | work.criterion-stage-marked | criterion=fallback actor=project:agent stage=implemented
+- 2026-08-31T12:51:39.283616Z | work.criterion-stage-marked | criterion=fallback actor=project:agent stage=verified
+- 2026-08-31T12:52:17.087279Z | tool.prepared | run=tool-20260831t12521788191537z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:52:17.090235Z | tool.running | run=tool-20260831t12521788191537z actor=project:agent
+- 2026-08-31T12:52:17.104696Z | tool.failed | run=tool-20260831t12521788191537z exit-code=128
