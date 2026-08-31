@@ -20,6 +20,10 @@
             <artifactId>renovatio-cobol-ir</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-cobol-annotations</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.openrewrite</groupId>
             <artifactId>rewrite-java</artifactId>
             <version>${openrewrite.version}</version>
