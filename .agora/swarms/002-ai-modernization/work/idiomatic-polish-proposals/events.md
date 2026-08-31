@@ -21,3 +21,11 @@
 - 2026-08-31T13:26:17.531641Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/idiomatic-polish-proposals.md actor=project:agent
 - 2026-08-31T13:26:17.822474Z | artifact.added | kind=review-policy uri=repo://docs/policies/idiomatic-polish-review-policy.md actor=project:agent
 - 2026-08-31T13:26:18.105141Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-31T13:26:36.035888Z | tool.prepared | run=tool-20260831t13261788193596z tool=repository operation=commit actor=project:agent
+- 2026-08-31T13:26:36.038620Z | tool.running | run=tool-20260831t13261788193596z actor=project:agent
+- 2026-08-31T13:26:36.063255Z | tool.completed | run=tool-20260831t13261788193596z exit-code=0
+- 2026-08-31T13:28:50.284836Z | work.criterion-stage-marked | criterion=diff-only actor=project:owner stage=planned
+- 2026-08-31T13:28:50.582555Z | work.criterion-stage-marked | criterion=eligible-only actor=project:owner stage=planned
+- 2026-08-31T13:28:50.881817Z | work.criterion-stage-marked | criterion=human-gate actor=project:owner stage=planned
+- 2026-08-31T13:28:51.180818Z | work.criterion-stage-marked | criterion=discard-on-failure actor=project:owner stage=planned
+- 2026-08-31T13:28:51.474152Z | work.transitioned | from=planned to=implementing actor=project:agent
