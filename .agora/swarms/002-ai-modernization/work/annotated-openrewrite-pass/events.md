@@ -77,3 +77,34 @@
 - 2026-08-31T12:31:37.944102Z | approval.added | role=spec-owner actor=project:owner delegation=none
 - 2026-08-31T12:31:48.702490Z | work.transitioned | from=verifying to=completed actor=project:owner
 - 2026-08-31T12:44:59.859970Z | work.reopened | revision=2 source=github-pr-review actor=project:owner change=change-20260831t124459859878z
+- 2026-08-31T12:49:40.679334Z | tool.prepared | run=tool-20260831t12491788191380z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:49:40.682753Z | tool.running | run=tool-20260831t12491788191380z actor=project:agent
+- 2026-08-31T12:49:40.706706Z | tool.completed | run=tool-20260831t12491788191380z exit-code=0
+- 2026-08-31T12:50:03.180732Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-openrewrite-pass.md actor=project:agent
+- 2026-08-31T12:50:03.495734Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/annotated-openrewrite-pass.md actor=project:agent
+- 2026-08-31T12:50:03.819418Z | artifact.added | kind=test-report uri=repo://docs/reports/annotated-openrewrite-pass-pr139-review-20260831.md actor=project:agent
+- 2026-08-31T12:50:15.767088Z | evidence.added | id=evidence-000007 type=unit-tests result=success revision=2 actor=project:agent
+- 2026-08-31T12:50:16.068775Z | evidence.added | id=evidence-000008 type=offline-characterization result=success revision=2 actor=project:agent
+- 2026-08-31T12:50:42.429004Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=specified
+- 2026-08-31T12:50:42.721886Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=planned
+- 2026-08-31T12:50:43.021353Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=specified
+- 2026-08-31T12:50:43.314255Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=planned
+- 2026-08-31T12:50:43.608625Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=specified
+- 2026-08-31T12:50:43.911355Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=planned
+- 2026-08-31T12:50:44.201546Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=specified
+- 2026-08-31T12:50:44.485241Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=planned
+- 2026-08-31T12:50:44.770774Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=specified
+- 2026-08-31T12:50:45.062930Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=planned
+- 2026-08-31T12:51:36.552597Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:agent stage=implemented
+- 2026-08-31T12:51:36.849071Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:agent stage=verified
+- 2026-08-31T12:51:37.146649Z | work.criterion-stage-marked | criterion=ast-safe actor=project:agent stage=implemented
+- 2026-08-31T12:51:37.451145Z | work.criterion-stage-marked | criterion=ast-safe actor=project:agent stage=verified
+- 2026-08-31T12:51:37.768094Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:agent stage=implemented
+- 2026-08-31T12:51:38.072854Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:agent stage=verified
+- 2026-08-31T12:51:38.399270Z | work.criterion-stage-marked | criterion=reproducible actor=project:agent stage=implemented
+- 2026-08-31T12:51:38.697000Z | work.criterion-stage-marked | criterion=reproducible actor=project:agent stage=verified
+- 2026-08-31T12:51:38.996281Z | work.criterion-stage-marked | criterion=fallback actor=project:agent stage=implemented
+- 2026-08-31T12:51:39.283616Z | work.criterion-stage-marked | criterion=fallback actor=project:agent stage=verified
+- 2026-08-31T12:52:17.087279Z | tool.prepared | run=tool-20260831t12521788191537z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:52:17.090235Z | tool.running | run=tool-20260831t12521788191537z actor=project:agent
+- 2026-08-31T12:52:17.104696Z | tool.failed | run=tool-20260831t12521788191537z exit-code=128

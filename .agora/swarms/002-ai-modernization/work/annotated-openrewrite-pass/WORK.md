@@ -11,7 +11,7 @@ status-by: "project:owner"
 status-at: "2026-08-31T12:44:59.859602Z"
 acceptance-criteria: {"annotated-consumption":"CobolSemanticTranspiler injects the validated annotated model and recipes read it through the existing context key seam.","ast-safe":"Recipes apply only schema-approved annotations using AST-safe deterministic transformations.","no-provider-call":"Recipe execution contains no provider client, credential, network, or prompt dependency.","reproducible":"Committed sidecars and cache artifacts reproduce identical generated sources in offline CI.","fallback":"Missing, rejected, or stale annotations use deterministic translation and emit action items."}
 satisfied-criteria: []
-criterion-statuses: {"annotated-consumption":[],"ast-safe":[],"no-provider-call":[],"reproducible":[],"fallback":[]}
+criterion-statuses: {"annotated-consumption":["specified","planned","implemented","verified"],"ast-safe":["specified","planned","implemented","verified"],"no-provider-call":["specified","planned","implemented","verified"],"reproducible":["specified","planned","implemented","verified"],"fallback":["specified","planned","implemented","verified"]}
 required-artifacts: ["implementation-plan","test-report"]
 child-work-refs: []
 budget-limits: null
@@ -26,11 +26,11 @@ Queue 6. Depends on deterministic-semantic-core, annotated-ir-contract, and resi
 
 ## Acceptance criteria
 
-- [ ] **annotated-consumption:** CobolSemanticTranspiler injects the validated annotated model and recipes read it through the existing context key seam.; stages: none
-- [ ] **ast-safe:** Recipes apply only schema-approved annotations using AST-safe deterministic transformations.; stages: none
-- [ ] **no-provider-call:** Recipe execution contains no provider client, credential, network, or prompt dependency.; stages: none
-- [ ] **reproducible:** Committed sidecars and cache artifacts reproduce identical generated sources in offline CI.; stages: none
-- [ ] **fallback:** Missing, rejected, or stale annotations use deterministic translation and emit action items.; stages: none
+- [ ] **annotated-consumption:** CobolSemanticTranspiler injects the validated annotated model and recipes read it through the existing context key seam.; stages: specified, planned, implemented, verified
+- [ ] **ast-safe:** Recipes apply only schema-approved annotations using AST-safe deterministic transformations.; stages: specified, planned, implemented, verified
+- [ ] **no-provider-call:** Recipe execution contains no provider client, credential, network, or prompt dependency.; stages: specified, planned, implemented, verified
+- [ ] **reproducible:** Committed sidecars and cache artifacts reproduce identical generated sources in offline CI.; stages: specified, planned, implemented, verified
+- [ ] **fallback:** Missing, rejected, or stale annotations use deterministic translation and emit action items.; stages: specified, planned, implemented, verified
 
 ## Required artifacts
 
