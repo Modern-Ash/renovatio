@@ -35,6 +35,19 @@ class AnnotationApplicatorDomainNamingTest {
     }
 
     @Test
+    void repeatedApplicationTreatsCompletedRenameAsIdempotent() {
+        ExecutionContext ctx = new InMemoryExecutionContext(Throwable::printStackTrace);
+        AnnotatedFixtures.Fixture fixture = AnnotatedFixtures.domainNaming("clientFullName");
+        AnnotationApplicator applicator = new AnnotationApplicator(fixture.model(), fixture.sidecar());
+
+        AnnotationApplicationOutcome first = applicator.apply(parse(ctx, DTO), ctx);
+        AnnotationApplicationOutcome second = applicator.apply(first.tree(), ctx);
+
+        assertThat(second.tree().printAll()).isEqualTo(first.tree().printAll());
+        assertThat(second.dropped()).isEmpty();
+    }
+
+    @Test
     void dropsRenameOnCollisionAndLeavesSourceUnchanged() {
         ExecutionContext ctx = new InMemoryExecutionContext(Throwable::printStackTrace);
         String dtoWithClash = DTO.replace("private String customerName;",

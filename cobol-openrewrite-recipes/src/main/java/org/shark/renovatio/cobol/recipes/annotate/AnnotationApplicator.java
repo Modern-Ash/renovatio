@@ -77,7 +77,14 @@ public final class AnnotationApplicator {
             }
             out.add(a);
         }
+        out.sort(Comparator.comparing(CobolAnnotation::nodeId)
+                .thenComparingInt(a -> applicationPriority(a.annotationFamily()))
+                .thenComparing(CobolAnnotation::annotationId));
         return out;
+    }
+
+    private static int applicationPriority(AnnotationFamily family) {
+        return family == AnnotationFamily.DATA_INTENT ? 0 : 1;
     }
 
     public AnnotationApplicationOutcome apply(J.CompilationUnit cu, ExecutionContext ctx) {
@@ -106,7 +113,16 @@ public final class AnnotationApplicator {
                                                 List<DroppedAnnotation> dropped) {
         DomainNamingPayload payload = (DomainNamingPayload) annotation.payload();
         String target = payload.suggestedName();
-        if (!JAVA_IDENTIFIER.matcher(target).matches() || identifierInUse(cu, target)) {
+        if (!JAVA_IDENTIFIER.matcher(target).matches()) {
+            dropped.add(new DroppedAnnotation(annotation.nodeId(), annotation.annotationId(),
+                    annotation.annotationFamily(), DroppedAnnotation.DropReason.NAME_COLLISION,
+                    payload.rationale()));
+            return cu;
+        }
+        if (domainNamingAlreadyApplied(cu, resolved, target)) {
+            return cu;
+        }
+        if (identifierInUse(cu, target)) {
             dropped.add(new DroppedAnnotation(annotation.nodeId(), annotation.annotationId(),
                     annotation.annotationFamily(), DroppedAnnotation.DropReason.NAME_COLLISION,
                     payload.rationale()));
@@ -136,6 +152,34 @@ public final class AnnotationApplicator {
                 declaringType, currentField, target).visit(cu, ctx);
         renamed = renameMethods(renamed, ctx, "get" + oldStem, "get" + newStem);
         return renameMethods(renamed, ctx, "set" + oldStem, "set" + newStem);
+    }
+
+    private static boolean domainNamingAlreadyApplied(J.CompilationUnit cu,
+                                                       NodeIdentityIndex.Resolved resolved,
+                                                       String target) {
+        if (resolved.kind() == org.shark.renovatio.cobol.ir.annotated.AnnotatedNodeKind.PARAGRAPH) {
+            String current = NodeIdentityIndex.toJavaMethodName(resolved.cobolName());
+            return target.equals(current)
+                    || (!methodNameInUse(cu, current) && methodNameInUse(cu, target));
+        }
+
+        String currentField = NodeIdentityIndex.toJavaFieldName(resolved.cobolName());
+        if (target.equals(currentField)) {
+            return true;
+        }
+        if (declaringType(cu, currentField) != null) {
+            return false;
+        }
+        if (declaringType(cu, target) != null) {
+            return true;
+        }
+        String oldStem = accessorStem(currentField);
+        String newStem = accessorStem(target);
+        boolean originalAccessorPresent = methodNameInUse(cu, "get" + oldStem)
+                || methodNameInUse(cu, "set" + oldStem);
+        boolean targetAccessorPresent = methodNameInUse(cu, "get" + newStem)
+                || methodNameInUse(cu, "set" + newStem);
+        return !originalAccessorPresent && targetAccessorPresent;
     }
 
     private static String accessorStem(String javaIdentifier) {
@@ -261,7 +305,27 @@ public final class AnnotationApplicator {
     }
 
     private static String quote(String value) {
-        return '"' + value.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
+        StringBuilder escaped = new StringBuilder(value.length() + 2).append('"');
+        for (int index = 0; index < value.length(); index++) {
+            char character = value.charAt(index);
+            switch (character) {
+                case '\\' -> escaped.append("\\\\");
+                case '"' -> escaped.append("\\\"");
+                case '\b' -> escaped.append("\\b");
+                case '\t' -> escaped.append("\\t");
+                case '\n' -> escaped.append("\\n");
+                case '\f' -> escaped.append("\\f");
+                case '\r' -> escaped.append("\\r");
+                default -> {
+                    if (Character.isISOControl(character)) {
+                        escaped.append(String.format(Locale.ROOT, "\\u%04x", (int) character));
+                    } else {
+                        escaped.append(character);
+                    }
+                }
+            }
+        }
+        return escaped.append('"').toString();
     }
 
     private Optional<DroppedAnnotation> classifyDrop(CobolAnnotation a) {

@@ -103,6 +103,28 @@ class JavaGenerationServiceAnnotatedTest {
         assertThat(Files.readString(report)).contains("COBOL-ANNOTATION-STALE");
     }
 
+    @Test
+    void cleanRunReplacesStaleActionItemReport(@TempDir Path workspacePath) throws Exception {
+        Path cobolPath = workspacePath.resolve("sample.cob");
+        Files.writeString(cobolPath, COBOL);
+        Path report = workspacePath.resolve(ManualActionItemWriter.DEFAULT_REPORT);
+        Files.createDirectories(report.getParent());
+        Files.writeString(report,
+                "{\"schemaVersion\":\"manual-action-item.v1\",\"items\":[{\"id\":\"stale\"}]}");
+        CobolIntermediateModelService modelService = new CobolIntermediateModelService();
+        ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+        JavaGenerationService service = new JavaGenerationService(
+                new CobolParsingService(CobolParsingService.Dialect.IBM),
+                new TemplateCodeGenerationService(), modelService,
+                new CobolSemanticTranspiler(new OpenRewriteRunner()), mapper);
+        Workspace workspace = new Workspace("annotated", workspacePath.toString(), "main");
+
+        StubResult result = service.generateInterfaceStubs(new NqlQuery(), workspace);
+
+        assertThat(result.isSuccess()).isTrue();
+        assertThat(mapper.readTree(report.toFile()).path("items")).isEmpty();
+    }
+
     private AnnotatedCobolModel sidecar(CobolIntermediateModel model) {
         CobolIrIdentityProjector projector = new CobolIrIdentityProjector();
         String nodeId = projector.nodes(model).stream()

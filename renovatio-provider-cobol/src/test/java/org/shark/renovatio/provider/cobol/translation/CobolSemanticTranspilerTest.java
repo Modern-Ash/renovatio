@@ -126,10 +126,13 @@ class CobolSemanticTranspilerTest {
         List<ManualActionItem> captured = new ArrayList<>();
 
         new CobolSemanticTranspiler(new OpenRewriteRunner())
-                .enrichServiceImplementation(JAVA_STUB, annotated, captured::addAll);
+                .enrichServiceImplementation(JAVA_STUB, annotated,
+                        "/workspace/jobs/customer-input.cbl", captured::addAll);
 
         assertThat(captured).anySatisfy(item ->
                 assertThat(item.diagnosticReference()).isEqualTo("COBOL-ANNOTATION-REJECTED"));
+        assertThat(captured).allSatisfy(item ->
+                assertThat(item.sourceFile()).isEqualTo("/workspace/jobs/customer-input.cbl"));
     }
 
     private static final class CapturingRunner extends OpenRewriteRunner {

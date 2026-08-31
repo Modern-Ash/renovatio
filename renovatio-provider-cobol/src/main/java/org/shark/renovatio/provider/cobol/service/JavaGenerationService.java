@@ -111,6 +111,7 @@ public class JavaGenerationService {
                     if (annotatedResolution.context().isPresent()) {
                         dtoClass = semanticTranspiler.enrichServiceImplementation(dtoClass,
                                 annotatedResolution.context().orElseThrow(),
+                                fileName,
                                 items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)));
                     }
                     generatedFiles.put(classBase + "DTO.java", dtoClass);
@@ -122,6 +123,7 @@ public class JavaGenerationService {
                     if (annotatedResolution.context().isPresent()) {
                         serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl,
                                 annotatedResolution.context().orElseThrow(),
+                                fileName,
                                 items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)));
                     } else {
                         serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl, model);
@@ -145,10 +147,8 @@ public class JavaGenerationService {
                 }
             }
 
-            if (!actionItems.isEmpty()) {
-                manualActionItemWriter.write(Paths.get(workspace.getPath())
-                        .resolve(ManualActionItemWriter.DEFAULT_REPORT), actionItems.values());
-            }
+            manualActionItemWriter.write(Paths.get(workspace.getPath())
+                    .resolve(ManualActionItemWriter.DEFAULT_REPORT), actionItems.values());
 
             // Write generated files to disk
             String outputPath = writeGeneratedFilesToDisk(generatedFiles, workspace);

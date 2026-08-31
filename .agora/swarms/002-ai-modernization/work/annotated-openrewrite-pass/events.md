@@ -76,3 +76,4 @@
 - 2026-08-31T12:31:33.722489Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=accepted
 - 2026-08-31T12:31:37.944102Z | approval.added | role=spec-owner actor=project:owner delegation=none
 - 2026-08-31T12:31:48.702490Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-08-31T12:44:59.859970Z | work.reopened | revision=2 source=github-pr-review actor=project:owner change=change-20260831t124459859878z
