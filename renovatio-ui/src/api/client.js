@@ -42,7 +42,17 @@ export async function createBrowserAnalyzeJob(projectId, files, workspaceLabel =
   const role = localStorage.getItem('userRole') || 'ADMIN';
   const formData = new FormData();
 
-  Array.from(files || []).forEach((file) => {
+  const cobolExtensions = ['.cob', '.cbl', '.cobol', '.cpy'];
+  const selectedFiles = Array.from(files || []).filter((file) => {
+    const name = (file.webkitRelativePath || file.name || '').toLowerCase();
+    return cobolExtensions.some((extension) => name.endsWith(extension));
+  });
+
+  if (selectedFiles.length === 0) {
+    throw new Error('No COBOL source or copybook files were found in the selected folder.')
+  }
+
+  selectedFiles.forEach((file) => {
     const filename = file.webkitRelativePath || file.name;
     formData.append('files', file, filename);
   });
@@ -60,6 +70,9 @@ export async function createBrowserAnalyzeJob(projectId, files, workspaceLabel =
   });
 
   if (!response.ok) {
+    if (response.status === 413) {
+      throw new Error('The selected folder is too large to upload in one request. Try a smaller COBOL subtree or reduce non-source files.')
+    }
     throw new Error(`API error: ${response.status}`);
   }
 
