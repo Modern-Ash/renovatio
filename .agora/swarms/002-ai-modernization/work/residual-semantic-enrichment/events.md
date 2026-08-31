@@ -95,3 +95,8 @@
 - 2026-08-31T00:44:07.280086Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=accepted
 - 2026-08-31T00:44:07.593100Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=accepted
 - 2026-08-31T00:44:07.923283Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=accepted
+- 2026-08-31T00:44:44.810435Z | tool.prepared | run=tool-20260831t00441788147884z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:44:44.812457Z | tool.running | run=tool-20260831t00441788147884z actor=project:agent
+- 2026-08-31T00:44:44.835988Z | tool.completed | run=tool-20260831t00441788147884z exit-code=0
+- 2026-08-31T00:47:06.090538Z | artifact.added | kind=test-report uri=repo://docs/reports/residual-semantic-enrichment-revalidation-20260830.md actor=project:agent
+- 2026-08-31T00:47:25.882627Z | work.transitioned | from=verifying to=completed actor=project:owner

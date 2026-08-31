@@ -1,8 +1,8 @@
-# Residual semantic enrichment test report
+# Residual semantic enrichment revalidation report
 
 > GitHub issue: [#126](https://github.com/Modern-Ash/renovatio/issues/126)
 > Agora work: `ai-modernization/residual-semantic-enrichment`
-> Tested implementation commit: `f4193c6200919594e1c1303ece6ac97822c7c30b`
+> Tested implementation commit: `e947c2e5af119041f4d69d58dc76e86944fcbd00`
 > Environment: OpenJDK 17 (`/usr/lib/jvm/java-17-openjdk-amd64`), Maven, Linux
 > Executed: 2026-08-30, America/Argentina/Buenos_Aires
 
@@ -10,8 +10,8 @@
 
 | Gate | Exact command | Scope | Tests | Result |
 | --- | --- | --- | ---: | --- |
-| Focused | `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 mvn -pl renovatio-llm,renovatio-cobol-ir -am test` | parent, shared, COBOL runtime, COBOL IR, LLM runtime | 168 | PASS: 0 failures, 0 errors, 0 skipped |
-| Full reactor | `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 mvn test` | all 10 reactor modules | 285 | PASS: 0 failures, 0 errors, 0 skipped |
+| Focused | `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 mvn -pl renovatio-llm,renovatio-cobol-ir -am test` | parent, shared, COBOL runtime, COBOL IR, LLM runtime | 170 | PASS: 0 failures, 0 errors, 0 skipped |
+| Full reactor | `JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 mvn test` | all 10 reactor modules | 287 | PASS: 0 failures, 0 errors, 0 skipped |
 
 Both commands exited zero and ended with `BUILD SUCCESS`. The Maven compiler used `release 17`.
 The full-reactor `McpIntegrationTest` class discovered zero externally hosted cases because no local
@@ -38,10 +38,16 @@ successfully. No residual enrichment test performs a live provider request.
 - Data-intent proposals cannot become downstream-consumable without the assigned human spec owner.
 - Manual work items carry node, construction, reason, semantic risk, human action, closure evidence,
   diagnostic, and Agora tool-run provenance.
+- Review rework makes incompatible residual signals fail closed and supplies domain naming requests
+  with collision scope, public-signature context, and Agora tool-run provenance; both regressions are
+  covered by the focused suite.
 
 ## Commit binding
 
-The two test gates ran directly against implementation commit
-`f4193c6200919594e1c1303ece6ac97822c7c30b`. This report and subsequent Agora-only metadata are the
-only intended descendant changes before verification evidence is registered; they do not alter
-production or test code.
+The two test gates ran with production and test content from implementation commit
+`e947c2e5af119041f4d69d58dc76e86944fcbd00`. Descendant commit
+`176f115` contains only Agora review-resolution metadata; this report and subsequent Agora metadata
+also do not alter production or test code.
+
+This versioned URI preserves the revalidation bytes independently from the historical report used
+by evidence `evidence-000001` and `evidence-000002`.
