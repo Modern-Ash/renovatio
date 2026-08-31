@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { createBrowserAnalyzeJob, createJob, getJobStatus, subscribeToJob } from '../api/client'
 
-function StepAnalyze({ projectId, data, onNext, onBack }) {
+function StepAnalyze({ projectId, data, onChange, onNext, onBack }) {
   const [jobId, setJobId] = useState(null)
   const [status, setStatus] = useState('idle')
   const [progress, setProgress] = useState(0)
@@ -41,6 +41,20 @@ function StepAnalyze({ projectId, data, onNext, onBack }) {
     }
 
     return null
+  }
+
+  const persistAnalysisState = (messageText, summaryValue) => {
+    if (typeof onChange !== 'function') {
+      return
+    }
+
+    onChange({
+      analysisSummary: summaryValue,
+      analysisMessage: messageText,
+      analysisWorkspace: data.workspaceSelectionMode === 'browser'
+        ? data.workspaceFolderName || 'selected folder'
+        : data.workspacePath || ''
+    })
   }
 
   const isAbsoluteWorkspacePath = (value) => {
@@ -93,13 +107,17 @@ function StepAnalyze({ projectId, data, onNext, onBack }) {
           if (event.status === 'COMPLETED') {
             setStatus('completed')
             setProgress(100)
-            setMessage(completionMessage(event))
-            setSummary(completionSummary(event))
+            const completedMessage = completionMessage(event)
+            const completedSummary = completionSummary(event)
+            setMessage(completedMessage)
+            setSummary(completedSummary)
+            persistAnalysisState(completedMessage, completedSummary)
             unsubscribe()
           } else if (event.status === 'FAILED') {
             setStatus('failed')
             setMessage(event.error || 'Analysis failed')
             setSummary(null)
+            persistAnalysisState(event.error || 'Analysis failed', null)
             unsubscribe()
           } else if (event.progress !== undefined) {
             setProgress(event.progress * 100)
@@ -112,14 +130,18 @@ function StepAnalyze({ projectId, data, onNext, onBack }) {
             if (current.status === 'COMPLETED') {
               setStatus('completed')
               setProgress(100)
-              setMessage(completionMessage(current))
-              setSummary(completionSummary(current))
+              const completedMessage = completionMessage(current)
+              const completedSummary = completionSummary(current)
+              setMessage(completedMessage)
+              setSummary(completedSummary)
+              persistAnalysisState(completedMessage, completedSummary)
               return
             }
             if (current.status === 'FAILED') {
               setStatus('failed')
               setMessage(current.error || 'Analysis failed')
               setSummary(null)
+              persistAnalysisState(current.error || 'Analysis failed', null)
               return
             }
           } catch (error) {
@@ -129,12 +151,14 @@ function StepAnalyze({ projectId, data, onNext, onBack }) {
           setStatus('failed')
           setMessage('Connection lost while waiting for analysis updates')
           setSummary(null)
+          persistAnalysisState('Connection lost while waiting for analysis updates', null)
         }
       )
     } catch (error) {
       setStatus('failed')
       setMessage(error.message)
       setSummary(null)
+      persistAnalysisState(error.message, null)
     }
   }
 

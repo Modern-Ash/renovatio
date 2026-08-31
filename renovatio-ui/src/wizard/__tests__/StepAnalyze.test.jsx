@@ -46,6 +46,7 @@ describe('StepAnalyze', () => {
   })
 
   it('shows the completion message and parsing summary returned by the job when available', async () => {
+    const onChangeMock = vi.fn()
     subscribeToJobMock.mockImplementation((_jobId, onEvent) => {
       onEvent({
         status: 'COMPLETED',
@@ -63,6 +64,7 @@ describe('StepAnalyze', () => {
       <StepAnalyze
         projectId="project-1"
         data={{ workspacePath: '/workspace/demo' }}
+        onChange={onChangeMock}
         onNext={vi.fn()}
         onBack={vi.fn()}
       />
@@ -77,6 +79,15 @@ describe('StepAnalyze', () => {
     expect(summaryBlock?.textContent).toContain('44')
     expect(summaryBlock?.textContent).toContain('62')
     expect(summaryBlock?.textContent).toContain('parsed program(s)')
+    expect(onChangeMock).toHaveBeenCalledWith({
+      analysisSummary: {
+        sourceFiles: 44,
+        copybooks: 62,
+        programs: 44
+      },
+      analysisMessage: 'Parsed 44 COBOL source file(s) and 62 copybook(s) from /workspace/demo',
+      analysisWorkspace: '/workspace/demo'
+    })
   })
 
   it('uploads a browser-selected folder and analyzes the uploaded subdirectory tree', async () => {

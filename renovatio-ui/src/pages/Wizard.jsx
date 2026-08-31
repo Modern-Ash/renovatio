@@ -26,7 +26,7 @@ function Wizard() {
   const [data, setData] = useState({})
 
   const updateData = (newData) => {
-    setData({ ...data, ...newData })
+    setData((current) => ({ ...current, ...newData }))
   }
 
   const goNext = () => {
