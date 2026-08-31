@@ -62,3 +62,7 @@
 - 2026-08-31T00:32:44.483185Z | evidence.added | id=evidence-000001 type=test-report result=success revision=1 actor=project:agent
 - 2026-08-31T00:32:44.709295Z | evidence.added | id=evidence-000002 type=test-report result=success revision=1 actor=project:agent
 - 2026-08-31T00:33:07.016898Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T00:33:25.302762Z | tool.prepared | run=tool-20260831t00331788147205z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:33:25.305256Z | tool.running | run=tool-20260831t00331788147205z actor=project:agent
+- 2026-08-31T00:33:25.329584Z | tool.completed | run=tool-20260831t00331788147205z exit-code=0
+- 2026-08-31T00:34:09.844075Z | work.transitioned | from=verifying to=implementing actor=project:agent

@@ -56,10 +56,35 @@ class ResidualEnrichmentCoordinatorTest {
     void reducibleOrGotoFreeControlFlowRemainsDeterministic() {
         assertEquals(ResidualRoute.DETERMINISTIC, new ResidualRouter().route(new ResidualEnrichmentRequest(
                 "cobol-ir.v1", "node-1", "CONTROL_FLOW", ResidualConstruction.CONTROL_FLOW_COMPONENT,
-                false, false, true, false, null)));
+                false, false, true, false, null, java.util.List.of(), false, null)));
         assertEquals(ResidualRoute.DETERMINISTIC, new ResidualRouter().route(new ResidualEnrichmentRequest(
                 "cobol-ir.v1", "node-1", "CONTROL_FLOW", ResidualConstruction.CONTROL_FLOW_COMPONENT,
-                false, true, false, false, null)));
+                false, true, false, false, null, java.util.List.of(), false, null)));
+    }
+
+    @Test
+    void incompatibleResidualSignalsFailClosedWithoutExecutorCall() {
+        AtomicInteger calls = new AtomicInteger();
+        ResidualEnrichmentCoordinator coordinator = new ResidualEnrichmentCoordinator(new ResidualRouter(),
+                (route, request) -> { calls.incrementAndGet(); return JSON.createObjectNode(); });
+        ResidualEnrichmentRequest ambiguous = new ResidualEnrichmentRequest("cobol-ir.v1", "node-1",
+                "PARAGRAPH", ResidualConstruction.PARAGRAPH, true, true, true, false, null,
+                java.util.List.of("existingMethod"), true, "tool-20260830t12345678901234z");
+
+        assertEquals(ResidualRoute.DETERMINISTIC,
+                coordinator.enrich(ambiguous, JSON.createObjectNode()).route());
+        assertEquals(0, calls.get());
+    }
+
+    @Test
+    void explicitDomainRequestCarriesGovernedScopeSignatureAndToolRun() {
+        ResidualEnrichmentRequest request = domainRequest();
+        assertEquals(java.util.List.of("existingMethod"), request.collisionScope());
+        assertEquals(true, request.publicSignatureProtected());
+        assertEquals("tool-20260830t12345678901234z", request.agoraToolRunRef());
+        assertThrows(IllegalArgumentException.class, () -> new ResidualEnrichmentRequest(
+                "cobol-ir.v1", "node-1", "PARAGRAPH", ResidualConstruction.PARAGRAPH,
+                true, false, false, false, null, java.util.List.of(), false, null));
     }
 
     @Test
@@ -88,26 +113,29 @@ class ResidualEnrichmentCoordinatorTest {
 
     private static ResidualEnrichmentRequest request(ResidualConstruction construction) {
         return new ResidualEnrichmentRequest("cobol-ir.v1", "node-1", construction.name(), construction,
-                false, false, false, false, null);
+                false, false, false, false, null, java.util.List.of(), false, null);
     }
 
     private static ResidualEnrichmentRequest domainRequest() {
         return new ResidualEnrichmentRequest("cobol-ir.v1", "node-1", "PARAGRAPH",
-                ResidualConstruction.PARAGRAPH, true, false, false, false, null);
+                ResidualConstruction.PARAGRAPH, true, false, false, false, null,
+                java.util.List.of("existingMethod"), true, "tool-20260830t12345678901234z");
     }
 
     private static ResidualEnrichmentRequest controlFlowRequest() {
         return new ResidualEnrichmentRequest("cobol-ir.v1", "node-1", "CONTROL_FLOW",
-                ResidualConstruction.CONTROL_FLOW_COMPONENT, false, true, true, false, null);
+                ResidualConstruction.CONTROL_FLOW_COMPONENT, false, true, true, false, null,
+                java.util.List.of(), false, null);
     }
 
     private static ResidualEnrichmentRequest intentRequest(ResidualConstruction construction) {
         return new ResidualEnrichmentRequest("cobol-ir.v1", "node-1", "DATA_ITEM", construction,
-                false, false, false, true, null);
+                false, false, false, true, null, java.util.List.of(), false, null);
     }
 
     private static ResidualEnrichmentRequest unsupportedRequest() {
         return new ResidualEnrichmentRequest("cobol-ir.v1", "node-1", "STATEMENT",
-                ResidualConstruction.UNSUPPORTED, false, false, false, false, "COBOL_UNSUPPORTED");
+                ResidualConstruction.UNSUPPORTED, false, false, false, false, "COBOL_UNSUPPORTED",
+                java.util.List.of(), false, null);
     }
 }
