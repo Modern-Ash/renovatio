@@ -2,3 +2,18 @@
 
 - 2026-08-30T14:33:31.738787Z | work.created | state=drafting actor=project:owner
 - 2026-08-30T14:33:31.739210Z | work.decomposition-linked | parent=ai-modernization/three-pass-modernization actor=project:owner
+- 2026-08-31T10:33:42.473551Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-openrewrite-pass.md actor=project:agent
+- 2026-08-31T10:33:48.010695Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=specified
+- 2026-08-31T10:33:48.227115Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=specified
+- 2026-08-31T10:33:48.437164Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=specified
+- 2026-08-31T10:33:48.653693Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=specified
+- 2026-08-31T10:33:48.861912Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=specified
+- 2026-08-31T10:35:35.257625Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-31T10:42:06.277803Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/annotated-openrewrite-pass.md actor=project:agent
+- 2026-08-31T10:42:07.441010Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-31T10:42:23.770735Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=planned
+- 2026-08-31T10:42:23.976353Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=planned
+- 2026-08-31T10:42:24.175166Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=planned
+- 2026-08-31T10:42:24.378494Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=planned
+- 2026-08-31T10:42:24.581204Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=planned
+- 2026-08-31T10:42:24.785368Z | work.transitioned | from=planned to=implementing actor=project:agent
