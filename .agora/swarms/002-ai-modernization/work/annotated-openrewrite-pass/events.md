@@ -108,3 +108,13 @@
 - 2026-08-31T12:52:17.087279Z | tool.prepared | run=tool-20260831t12521788191537z tool=repository operation=commit actor=project:agent
 - 2026-08-31T12:52:17.090235Z | tool.running | run=tool-20260831t12521788191537z actor=project:agent
 - 2026-08-31T12:52:17.104696Z | tool.failed | run=tool-20260831t12521788191537z exit-code=128
+- 2026-08-31T12:52:35.186887Z | tool.prepared | run=tool-20260831t12521788191555z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:52:35.189920Z | tool.running | run=tool-20260831t12521788191555z actor=project:agent
+- 2026-08-31T12:52:35.213916Z | tool.completed | run=tool-20260831t12521788191555z exit-code=0
+- 2026-08-31T13:08:40.111349Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=accepted
+- 2026-08-31T13:08:40.398915Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=accepted
+- 2026-08-31T13:08:40.681799Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=accepted
+- 2026-08-31T13:08:40.969320Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=accepted
+- 2026-08-31T13:08:41.266332Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=accepted
+- 2026-08-31T13:08:41.557046Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T13:08:41.863868Z | work.transitioned | from=verifying to=completed actor=project:owner
