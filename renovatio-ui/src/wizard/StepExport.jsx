@@ -8,49 +8,96 @@ function StepExport({ projectId, data, onBack }) {
 
   const handleApply = async () => {
     setApplying(true)
+    setStatus(null)
     try {
       const job = await createJob(projectId || 'default', 'apply', {
         dryRun: false,
         planSteps: data.planSteps
       })
 
-      const unsubscribe = subscribeToJob(
+      let pollTimer = null
+      let settled = false
+      let unsubscribe = () => {}
+      const stopPolling = () => {
+        if (pollTimer) {
+          clearInterval(pollTimer)
+          pollTimer = null
+        }
+      }
+      const stopSubscription = () => {
+        stopPolling()
+        unsubscribe()
+        unsubscribe = () => {}
+      }
+      const complete = () => {
+        if (settled) {
+          return
+        }
+        settled = true
+        stopSubscription()
+        setStatus('applied')
+        setApplying(false)
+      }
+      const fail = () => {
+        if (settled) {
+          return
+        }
+        settled = true
+        stopSubscription()
+        setStatus('failed')
+        setApplying(false)
+      }
+      const refreshJobStatus = async () => {
+        if (settled) {
+          return
+        }
+
+        try {
+          const current = await getJobStatus(job.id)
+          if (current.status === 'COMPLETED') {
+            complete()
+            return
+          }
+          if (current.status === 'FAILED') {
+            fail()
+            return
+          }
+        } catch {
+          // Keep waiting; the job may still complete.
+        }
+      }
+
+      unsubscribe = subscribeToJob(
         job.id,
         (event) => {
           if (event.status === 'COMPLETED') {
-            setStatus('applied')
-            setApplying(false)
-            unsubscribe()
+            complete()
           } else if (event.status === 'FAILED') {
-            setStatus('failed')
-            setApplying(false)
-            unsubscribe()
+            fail()
           }
         },
         async () => {
-          try {
-            const current = await getJobStatus(job.id)
-            if (current.status === 'COMPLETED') {
-              setStatus('applied')
-              setApplying(false)
-              return
-            }
-            if (current.status === 'FAILED') {
-              setStatus('failed')
-              setApplying(false)
-              return
-            }
-          } catch (error) {
-            // Fall through to the generic connection error below.
-          }
+          await refreshJobStatus()
 
-          setStatus('failed')
-          setApplying(false)
+          if (!settled) {
+            setStatus('failed')
+            setApplying(false)
+            setTimeout(() => {
+              if (!settled) {
+                setStatus(null)
+                setApplying(true)
+              }
+            }, 250)
+            stopSubscription()
+          }
         }
       )
+
+      pollTimer = setInterval(refreshJobStatus, 1000)
+      void refreshJobStatus()
     } catch (error) {
-      setStatus('failed')
       setApplying(false)
+      setStatus('failed')
     }
   }
 
