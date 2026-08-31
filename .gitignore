@@ -77,3 +77,8 @@ __pycache__/
 .env
 .env.local
 .env.*.local
+
+# Frontend build output
+renovatio-api/src/main/resources/static/
+renovatio-ui/node_modules/
+*.bak
