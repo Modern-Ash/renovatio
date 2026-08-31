@@ -4,6 +4,8 @@ import org.shark.renovatio.cli.OutputWriter;
 import org.shark.renovatio.cli.RenovatioCliContext;
 import picocli.CommandLine.Option;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -25,7 +27,20 @@ public abstract class AbstractCoreCommand implements Callable<Integer> {
     }
 
     protected Map<String, Object> route(String tool, Map<String, Object> args) {
-        return context().registry().routeToolCall(tool, args);
+        PrintStream originalOut = System.out;
+        PrintStream originalErr = System.err;
+        PrintStream mutedOut = new PrintStream(OutputStream.nullOutputStream());
+        PrintStream mutedErr = new PrintStream(OutputStream.nullOutputStream());
+        try {
+            System.setOut(mutedOut);
+            System.setErr(mutedErr);
+            return context().registry().routeToolCall(tool, args);
+        } finally {
+            System.setOut(originalOut);
+            System.setErr(originalErr);
+            mutedOut.close();
+            mutedErr.close();
+        }
     }
 
     protected static Map<String, Object> args() {
