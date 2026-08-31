@@ -90,7 +90,7 @@ class ResidualAnnotationAssemblerTest {
         ResidualAnnotationContext wrongBase = new ResidualAnnotationContext("cobol-ir.v1", "c".repeat(64),
                 NODE, AnnotatedNodeKind.PARAGRAPH, "offline", "fake", "v1", "domain-naming.v1",
                 HASH, "tool-20260830t12345678901234z", AnnotationProvenance.CacheDisposition.MISS,
-                0.8, null, List.of());
+                0.8, null, List.of(), List.of(), false);
         assertThrows(IllegalArgumentException.class, () -> assembler.append(empty(),
                 ResidualRoute.DOMAIN_NAMING,
                 JSON.createObjectNode().put("suggestedName", "name").put("rationale", "reason"), wrongBase));
@@ -104,6 +104,6 @@ class ResidualAnnotationAssemblerTest {
                                                      String reviewer) {
         return new ResidualAnnotationContext("cobol-ir.v1", HASH, NODE, kind, "offline", "fake",
                 "v1", "annotated-output.v1", HASH, "tool-20260830t12345678901234z",
-                AnnotationProvenance.CacheDisposition.MISS, 0.8, reviewer, affected);
+                AnnotationProvenance.CacheDisposition.MISS, 0.8, reviewer, affected, List.of(), false);
     }
 }

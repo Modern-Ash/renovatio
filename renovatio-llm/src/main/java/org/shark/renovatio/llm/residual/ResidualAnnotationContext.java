@@ -21,7 +21,9 @@ public record ResidualAnnotationContext(
         AnnotationProvenance.CacheDisposition cacheDisposition,
         double confidence,
         String assignedHumanReviewer,
-        List<String> affectedNodeIds) {
+        List<String> affectedNodeIds,
+        List<String> collisionScope,
+        boolean publicSignatureProtected) {
 
     public ResidualAnnotationContext {
         requireText(baseIrVersion, "baseIrVersion");
@@ -40,6 +42,7 @@ public record ResidualAnnotationContext(
         }
         if (assignedHumanReviewer != null) requireText(assignedHumanReviewer, "assignedHumanReviewer");
         affectedNodeIds = List.copyOf(affectedNodeIds == null ? List.of() : affectedNodeIds);
+        collisionScope = List.copyOf(collisionScope == null ? List.of() : collisionScope);
     }
 
     private static void requireText(String value, String field) {

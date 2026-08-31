@@ -11,7 +11,7 @@ status-by: null
 status-at: null
 acceptance-criteria: {"domain-language":"Paragraph and data names receive reviewable domain-name and bounded-context suggestions with provenance.","goto-plan":"Irreducible control flow receives a structured plan proposal that cannot apply unless characterization tests remain green.","human-confirmation":"REDEFINES and OCCURS DEPENDING ON interpretations remain suggestions requiring explicit human confirmation.","manual-actions":"Unsupported constructs produce precise explanations and actionable manual migration items.","residual-only":"Supported deterministic constructs never invoke the LLM enrichment path."}
 satisfied-criteria: []
-criterion-statuses: {"domain-language":["specified","planned"],"goto-plan":["specified","planned"],"human-confirmation":["specified","planned"],"manual-actions":["specified","planned"],"residual-only":["specified","planned","implemented"]}
+criterion-statuses: {"domain-language":["specified","planned","implemented"],"goto-plan":["specified","planned"],"human-confirmation":["specified","planned"],"manual-actions":["specified","planned"],"residual-only":["specified","planned","implemented"]}
 required-artifacts: ["spec","prompt-catalog","test-report"]
 child-work-refs: []
 budget-limits: null
@@ -26,7 +26,7 @@ Queue 5. Depends on annotated-ir-contract, llm-runtime-catalog-cache, and charac
 
 ## Acceptance criteria
 
-- [ ] **domain-language:** Paragraph and data names receive reviewable domain-name and bounded-context suggestions with provenance.; stages: specified, planned
+- [ ] **domain-language:** Paragraph and data names receive reviewable domain-name and bounded-context suggestions with provenance.; stages: specified, planned, implemented
 - [ ] **goto-plan:** Irreducible control flow receives a structured plan proposal that cannot apply unless characterization tests remain green.; stages: specified, planned
 - [ ] **human-confirmation:** REDEFINES and OCCURS DEPENDING ON interpretations remain suggestions requiring explicit human confirmation.; stages: specified, planned
 - [ ] **manual-actions:** Unsupported constructs produce precise explanations and actionable manual migration items.; stages: specified, planned

@@ -19,6 +19,7 @@ import java.util.Objects;
 
 /** Maps already schema-validated model output to the immutable annotated-IR v1 contract. */
 public final class ResidualAnnotationAssembler {
+    private final DomainNamingPolicy domainNamingPolicy = new DomainNamingPolicy();
 
     public AnnotatedCobolModel append(AnnotatedCobolModel sidecar, ResidualRoute route,
                                       JsonNode validatedOutput, ResidualAnnotationContext context) {
@@ -59,11 +60,10 @@ public final class ResidualAnnotationAssembler {
         };
     }
 
-    private static AnnotationPayload payload(ResidualRoute route, JsonNode output,
-                                             ResidualAnnotationContext context) {
+    private AnnotationPayload payload(ResidualRoute route, JsonNode output,
+                                      ResidualAnnotationContext context) {
         return switch (route) {
-            case DOMAIN_NAMING -> new DomainNamingPayload(requiredText(output, "suggestedName"),
-                    optionalText(output, "boundedContext"), requiredText(output, "rationale"));
+            case DOMAIN_NAMING -> domainNamingPayload(output, context);
             case CONTROL_FLOW_PLAN -> new ControlFlowPlanPayload(context.affectedNodeIds(),
                     textList(output, "steps"), textList(output, "risks"));
             case REDEFINES_INTENT -> dataIntent(output, DataIntentPayload.Construction.REDEFINES);
@@ -74,6 +74,14 @@ public final class ResidualAnnotationAssembler {
                     requiredText(output, "manualAction"));
             case DETERMINISTIC -> throw new IllegalArgumentException("deterministic output cannot become a payload");
         };
+    }
+
+    private DomainNamingPayload domainNamingPayload(JsonNode output, ResidualAnnotationContext context) {
+        DomainNamingPolicy.Decision decision = domainNamingPolicy.validate(
+                requiredText(output, "suggestedName"), context.collisionScope(),
+                context.publicSignatureProtected());
+        return new DomainNamingPayload(decision.normalizedName(), optionalText(output, "boundedContext"),
+                requiredText(output, "rationale"));
     }
 
     private static DataIntentPayload dataIntent(JsonNode output,
