@@ -65,3 +65,7 @@ body {
 .badge-low {
   @apply bg-green-100 text-green-800;
 }
+
+.group:hover .group-hover\:visible {
+  visibility: visible;
+}
