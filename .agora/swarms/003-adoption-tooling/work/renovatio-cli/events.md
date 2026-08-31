@@ -18,3 +18,7 @@
 - 2026-08-31T16:05:37.369018Z | work.criterion-stage-marked | criterion=tested actor=project:owner stage=planned
 - 2026-08-31T16:05:42.809733Z | work.transitioned | from=clarified to=planned actor=project:agent
 - 2026-08-31T16:05:43.029909Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-31T20:30:00.000000Z | implementation.progress | Tasks 0-6 completed (skeleton, context, output, analyze, metrics, workspace-store, plan, apply, migration-chain)
+- 2026-08-31T22:15:00.000000Z | implementation.progress | Tasks 7-11 completed (diff, review, report, serve commands; subcommand registration; module README; .gitignore)
+- 2026-08-31T22:15:00.000000Z | test.completed | 24 tests passing: smoke, arg validation, review checklist, report flags, workspace store
+- 2026-08-31T22:15:00.000000Z | commit | 35d8258 feat(cli): implement remaining subcommands for renovatio-cli (issue #130)
