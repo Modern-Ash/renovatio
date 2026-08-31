@@ -41,6 +41,10 @@ describe('StepFolder', () => {
     expect(
       await screen.findByText(/Found 1 COBOL program file\(s\) and 0 copybook\(s\)\./i)
     ).toBeTruthy()
+    expect(
+      await screen.findByText(/Folder browsing checks whether the contents look like COBOL/i)
+    ).toBeTruthy()
+    expect(screen.getByPlaceholderText('/path/to/cobol/workspace').value).toBe('')
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Next: Analyze/i }).disabled).toBe(false)

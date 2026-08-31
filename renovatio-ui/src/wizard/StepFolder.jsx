@@ -22,6 +22,13 @@ function hasExtension(file, extensions) {
   return extensions.some((extension) => name.endsWith(extension))
 }
 
+function isAbsoluteWorkspacePath(value) {
+  if (!value || typeof value !== 'string') {
+    return false
+  }
+  return /^(\/|[A-Za-z]:[\\/])/.test(value)
+}
+
 async function inspectFileContent(file) {
   try {
     return await file.text()
@@ -108,13 +115,14 @@ function StepFolder({ data, onChange, onNext }) {
     const pickedFolder = relativePath.includes('/')
       ? relativePath.split('/')[0]
       : files[0].name
+    const currentWorkspacePath = isAbsoluteWorkspacePath(data.workspacePath) ? data.workspacePath : ''
 
     setValidation({ status: 'checking', message: 'Checking selected folder...' })
     const result = await validateCobolWorkspace(files)
     setValidation(result)
 
     onChange({
-      workspacePath: data.workspacePath || pickedFolder,
+      workspacePath: currentWorkspacePath,
       workspaceFolderName: pickedFolder,
       workspaceSelectionMode: 'browser',
       workspaceValidationStatus: result.status,
@@ -126,7 +134,7 @@ function StepFolder({ data, onChange, onNext }) {
     <div>
       <h2 className="text-xl font-semibold mb-4">Select COBOL Workspace</h2>
       <p className="text-gray-600 mb-4">
-        Enter the path to your COBOL workspace folder, or browse it with the file picker below.
+        Enter the absolute path to your COBOL workspace folder, or browse it to validate the folder contents first.
       </p>
       <div className="flex gap-2 mb-3">
         <input
@@ -175,10 +183,15 @@ function StepFolder({ data, onChange, onNext }) {
           {validation.message}
         </p>
       )}
+      {data.workspaceSelectionMode === 'browser' && !isAbsoluteWorkspacePath(data.workspacePath) && (
+        <p className="text-sm text-amber-700 mb-4">
+          Folder browsing checks whether the contents look like COBOL, but analysis runs on the backend and still needs the full absolute filesystem path.
+        </p>
+      )}
       <div className="flex justify-end">
         <button
           onClick={onNext}
-          disabled={!data.workspacePath || validation.status === 'invalid'}
+          disabled={validation.status === 'invalid'}
           className="btn btn-primary"
         >
           Next: Analyze →

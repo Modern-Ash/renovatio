@@ -75,4 +75,28 @@ describe('StepAnalyze', () => {
     expect(summaryBlock?.textContent).toContain('62')
     expect(summaryBlock?.textContent).toContain('parsed program(s)')
   })
+
+  it('explains why a browser-selected folder still needs an absolute path', async () => {
+    render(
+      <StepAnalyze
+        projectId="project-1"
+        data={{
+          workspacePath: '',
+          workspaceSelectionMode: 'browser',
+          workspaceFolderName: 'demo-workspace'
+        }}
+        onNext={vi.fn()}
+        onBack={vi.fn()}
+      />
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /start analysis/i }))
+
+    expect(
+      await screen.findByText(
+        /browser-selected folder "demo-workspace" does not provide an absolute filesystem path/i
+      )
+    ).toBeTruthy()
+    expect(createJobMock).not.toHaveBeenCalled()
+  })
 })
