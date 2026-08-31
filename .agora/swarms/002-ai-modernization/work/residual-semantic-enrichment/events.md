@@ -2,3 +2,132 @@
 
 - 2026-08-30T14:33:31.471429Z | work.created | state=drafting actor=project:owner
 - 2026-08-30T14:33:31.471878Z | work.decomposition-linked | parent=ai-modernization/three-pass-modernization actor=project:owner
+- 2026-08-30T23:13:01.490714Z | tool.prepared | run=tool-20260830t23131788142381z tool=repository operation=create-branch actor=project:agent
+- 2026-08-30T23:13:01.493276Z | tool.running | run=tool-20260830t23131788142381z actor=project:agent
+- 2026-08-30T23:13:01.506630Z | tool.completed | run=tool-20260830t23131788142381z exit-code=0
+- 2026-08-30T23:13:40.877346Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T23:18:50.876630Z | artifact.added | kind=spec uri=repo://docs/specs/residual-semantic-enrichment.md actor=project:owner
+- 2026-08-30T23:18:51.168921Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=specified
+- 2026-08-30T23:18:51.462404Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=specified
+- 2026-08-30T23:18:51.760951Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=specified
+- 2026-08-30T23:18:52.050943Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=specified
+- 2026-08-30T23:18:52.357459Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=specified
+- 2026-08-30T23:19:24.014070Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T23:19:37.314186Z | artifact.added | kind=prompt-catalog uri=repo://renovatio-llm/src/main/resources/prompts/catalog-v1.yaml actor=project:owner
+- 2026-08-30T23:26:19.975263Z | artifact.added | kind=spec uri=repo://docs/specs/residual-semantic-enrichment.md actor=project:owner
+- 2026-08-30T23:26:53.337983Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T23:27:20.340617Z | artifact.added | kind=spec uri=repo://docs/specs/residual-semantic-enrichment.md actor=project:owner
+- 2026-08-30T23:27:43.922084Z | work.clarified-advisory | questions=4 actor=project:owner
+- 2026-08-30T23:42:19.302128Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-08-30T23:42:33.243410Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T23:42:47.088587Z | tool.prepared | run=tool-20260830t23421788144167z tool=repository operation=commit actor=project:agent
+- 2026-08-30T23:42:47.090825Z | tool.running | run=tool-20260830t23421788144167z actor=project:agent
+- 2026-08-30T23:42:47.114845Z | tool.completed | run=tool-20260830t23421788144167z exit-code=0
+- 2026-08-30T23:49:36.793792Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/residual-semantic-enrichment.md actor=project:agent
+- 2026-08-30T23:49:39.787170Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=planned
+- 2026-08-30T23:49:40.005248Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=planned
+- 2026-08-30T23:49:40.233279Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=planned
+- 2026-08-30T23:49:40.453694Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=planned
+- 2026-08-30T23:49:40.674632Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=planned
+- 2026-08-30T23:49:44.367543Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-30T23:51:12.456899Z | tool.prepared | run=tool-20260830t23511788144672z tool=repository operation=commit actor=project:agent
+- 2026-08-30T23:51:12.459230Z | tool.running | run=tool-20260830t23511788144672z actor=project:agent
+- 2026-08-30T23:51:12.482943Z | tool.completed | run=tool-20260830t23511788144672z exit-code=0
+- 2026-08-31T00:12:07.414828Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T00:12:07.667727Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-31T00:13:23.655862Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=implemented
+- 2026-08-31T00:13:38.719830Z | tool.prepared | run=tool-20260831t00131788146018z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:13:38.722088Z | tool.running | run=tool-20260831t00131788146018z actor=project:agent
+- 2026-08-31T00:13:38.745696Z | tool.completed | run=tool-20260831t00131788146018z exit-code=0
+- 2026-08-31T00:16:11.935449Z | tool.prepared | run=tool-20260831t00161788146171z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:16:11.937588Z | tool.running | run=tool-20260831t00161788146171z actor=project:agent
+- 2026-08-31T00:16:11.962033Z | tool.completed | run=tool-20260831t00161788146171z exit-code=0
+- 2026-08-31T00:21:27.987135Z | work.criterion-stage-marked | criterion=domain-language actor=project:agent stage=implemented
+- 2026-08-31T00:21:37.704184Z | tool.prepared | run=tool-20260831t00211788146497z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:21:37.706222Z | tool.running | run=tool-20260831t00211788146497z actor=project:agent
+- 2026-08-31T00:21:37.729820Z | tool.completed | run=tool-20260831t00211788146497z exit-code=0
+- 2026-08-31T00:23:53.702298Z | work.criterion-stage-marked | criterion=goto-plan actor=project:agent stage=implemented
+- 2026-08-31T00:24:08.557384Z | tool.prepared | run=tool-20260831t00241788146648z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:24:08.559338Z | tool.running | run=tool-20260831t00241788146648z actor=project:agent
+- 2026-08-31T00:24:08.582875Z | tool.completed | run=tool-20260831t00241788146648z exit-code=0
+- 2026-08-31T00:28:16.938254Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:agent stage=implemented
+- 2026-08-31T00:28:27.498897Z | tool.prepared | run=tool-20260831t00281788146907z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:28:27.501195Z | tool.running | run=tool-20260831t00281788146907z actor=project:agent
+- 2026-08-31T00:28:27.525065Z | tool.completed | run=tool-20260831t00281788146907z exit-code=0
+- 2026-08-31T00:29:45.749178Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=implemented
+- 2026-08-31T00:30:12.415167Z | tool.prepared | run=tool-20260831t00301788147012z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:30:12.417324Z | tool.running | run=tool-20260831t00301788147012z actor=project:agent
+- 2026-08-31T00:30:12.440316Z | tool.completed | run=tool-20260831t00301788147012z exit-code=0
+- 2026-08-31T00:32:37.171160Z | artifact.added | kind=test-report uri=repo://docs/reports/residual-semantic-enrichment-test-report.md actor=project:agent
+- 2026-08-31T00:32:44.483185Z | evidence.added | id=evidence-000001 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T00:32:44.709295Z | evidence.added | id=evidence-000002 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T00:33:07.016898Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T00:33:25.302762Z | tool.prepared | run=tool-20260831t00331788147205z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:33:25.305256Z | tool.running | run=tool-20260831t00331788147205z actor=project:agent
+- 2026-08-31T00:33:25.329584Z | tool.completed | run=tool-20260831t00331788147205z exit-code=0
+- 2026-08-31T00:34:09.844075Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-08-31T00:35:20.802289Z | tool.prepared | run=tool-20260831t00351788147320z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:35:20.804525Z | tool.running | run=tool-20260831t00351788147320z actor=project:agent
+- 2026-08-31T00:35:20.827844Z | tool.completed | run=tool-20260831t00351788147320z exit-code=0
+- 2026-08-31T00:36:02.158648Z | tool.prepared | run=tool-20260831t00361788147362z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:36:02.160766Z | tool.running | run=tool-20260831t00361788147362z actor=project:agent
+- 2026-08-31T00:36:02.184228Z | tool.completed | run=tool-20260831t00361788147362z exit-code=0
+- 2026-08-31T00:40:20.577073Z | artifact.added | kind=test-report uri=repo://docs/reports/residual-semantic-enrichment-test-report.md actor=project:agent
+- 2026-08-31T00:40:27.819756Z | evidence.added | id=evidence-000003 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T00:40:28.140566Z | evidence.added | id=evidence-000004 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-31T00:40:32.205876Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T00:40:42.473182Z | tool.prepared | run=tool-20260831t00401788147642z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:40:42.476224Z | tool.running | run=tool-20260831t00401788147642z actor=project:agent
+- 2026-08-31T00:40:42.489643Z | tool.failed | run=tool-20260831t00401788147642z exit-code=128
+- 2026-08-31T00:41:01.984037Z | tool.prepared | run=tool-20260831t00411788147661z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:41:01.986439Z | tool.running | run=tool-20260831t00411788147661z actor=project:agent
+- 2026-08-31T00:41:02.010360Z | tool.completed | run=tool-20260831t00411788147661z exit-code=0
+- 2026-08-31T00:42:28.809354Z | work.criterion-stage-marked | criterion=domain-language actor=project:agent stage=verified
+- 2026-08-31T00:42:29.105888Z | work.criterion-stage-marked | criterion=goto-plan actor=project:agent stage=verified
+- 2026-08-31T00:42:29.403274Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:agent stage=verified
+- 2026-08-31T00:42:29.695980Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=verified
+- 2026-08-31T00:42:29.996298Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=verified
+- 2026-08-31T00:42:46.913850Z | tool.prepared | run=tool-20260831t00421788147766z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:42:46.916258Z | tool.running | run=tool-20260831t00421788147766z actor=project:agent
+- 2026-08-31T00:42:46.939440Z | tool.completed | run=tool-20260831t00421788147766z exit-code=0
+- 2026-08-31T00:44:06.681459Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=accepted
+- 2026-08-31T00:44:06.980978Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=accepted
+- 2026-08-31T00:44:07.280086Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=accepted
+- 2026-08-31T00:44:07.593100Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=accepted
+- 2026-08-31T00:44:07.923283Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=accepted
+- 2026-08-31T00:44:44.810435Z | tool.prepared | run=tool-20260831t00441788147884z tool=repository operation=commit actor=project:agent
+- 2026-08-31T00:44:44.812457Z | tool.running | run=tool-20260831t00441788147884z actor=project:agent
+- 2026-08-31T00:44:44.835988Z | tool.completed | run=tool-20260831t00441788147884z exit-code=0
+- 2026-08-31T00:47:06.090538Z | artifact.added | kind=test-report uri=repo://docs/reports/residual-semantic-enrichment-revalidation-20260830.md actor=project:agent
+- 2026-08-31T00:47:25.882627Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-08-31T00:53:47.801497Z | work.reopened | revision=2 source=github-pr-review actor=project:owner change=change-20260831t005347801392z
+- 2026-08-31T01:00:19.971095Z | tool.prepared | run=tool-20260831t01001788148819z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:00:19.973514Z | tool.running | run=tool-20260831t01001788148819z actor=project:agent
+- 2026-08-31T01:00:19.997380Z | tool.completed | run=tool-20260831t01001788148819z exit-code=0
+- 2026-08-31T01:02:08.162437Z | artifact.added | kind=spec uri=repo://docs/specs/residual-semantic-enrichment.md actor=project:owner
+- 2026-08-31T01:02:08.457284Z | artifact.added | kind=prompt-catalog uri=repo://renovatio-llm/src/main/resources/prompts/catalog-v1.yaml actor=project:owner
+- 2026-08-31T01:02:08.762525Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/residual-semantic-enrichment.md actor=project:agent
+- 2026-08-31T01:02:09.052558Z | artifact.added | kind=test-report uri=repo://docs/reports/residual-semantic-enrichment-pr136-review-20260830.md actor=project:agent
+- 2026-08-31T01:02:17.865225Z | evidence.added | id=evidence-000005 type=test-report result=success revision=2 actor=project:agent
+- 2026-08-31T01:02:18.163549Z | evidence.added | id=evidence-000006 type=test-report result=success revision=2 actor=project:agent
+- 2026-08-31T01:02:28.569280Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=specified
+- 2026-08-31T01:02:49.741400Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=specified
+- 2026-08-31T01:02:50.034246Z | work.criterion-stage-marked | criterion=domain-language actor=project:owner stage=planned
+- 2026-08-31T01:02:50.332361Z | work.criterion-stage-marked | criterion=domain-language actor=project:agent stage=implemented
+- 2026-08-31T01:02:50.629806Z | work.criterion-stage-marked | criterion=domain-language actor=project:agent stage=verified
+- 2026-08-31T01:02:50.940716Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=specified
+- 2026-08-31T01:02:51.257215Z | work.criterion-stage-marked | criterion=goto-plan actor=project:owner stage=planned
+- 2026-08-31T01:02:51.568839Z | work.criterion-stage-marked | criterion=goto-plan actor=project:agent stage=implemented
+- 2026-08-31T01:02:51.881695Z | work.criterion-stage-marked | criterion=goto-plan actor=project:agent stage=verified
+- 2026-08-31T01:02:52.192906Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=specified
+- 2026-08-31T01:02:52.480432Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:owner stage=planned
+- 2026-08-31T01:02:52.773984Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:agent stage=implemented
+- 2026-08-31T01:02:53.081478Z | work.criterion-stage-marked | criterion=human-confirmation actor=project:agent stage=verified
+- 2026-08-31T01:02:53.385706Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=specified
+- 2026-08-31T01:02:53.693674Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=planned
+- 2026-08-31T01:02:54.005531Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=implemented
+- 2026-08-31T01:02:54.313237Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=verified
+- 2026-08-31T01:02:54.614539Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=specified
+- 2026-08-31T01:02:54.918059Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=planned
+- 2026-08-31T01:02:55.223889Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=implemented
+- 2026-08-31T01:02:55.536914Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=verified

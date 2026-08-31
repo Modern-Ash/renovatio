@@ -55,6 +55,36 @@ class LlmEnrichmentCliTest {
         assertTrue(Files.notExists(temporary.resolve("renovatio-llm/src/main/resources/llm-cache")));
     }
 
+    @Test
+    void deterministicConstructionBypassesPromptCacheAndProvider() throws Exception {
+        Invocation invocation = invocation();
+        JsonNode request = JSON.readTree(invocation.request().toFile());
+        ((com.fasterxml.jackson.databind.node.ObjectNode) request.path("routing"))
+                .put("construction", "MOVE")
+                .put("explicitDomainNamingRequest", false)
+                .remove("agoraToolRunRef");
+        JSON.writerWithDefaultPrettyPrinter().writeValue(invocation.request().toFile(), request);
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+
+        LlmEnrichmentCli.run(invocation.arguments(), invocation.environment(), new Properties(),
+                new PrintStream(bytes, true, StandardCharsets.UTF_8));
+
+        JsonNode result = JSON.readTree(bytes.toString(StandardCharsets.UTF_8));
+        assertEquals("DETERMINISTIC_BYPASS", result.path("resultDisposition").textValue());
+        assertTrue(Files.notExists(temporary.resolve("renovatio-llm/src/main/resources/llm-cache")));
+    }
+
+    @Test
+    void callerPromptMustMatchTheDeterministicallySelectedResidualRoute() throws Exception {
+        Invocation invocation = invocation();
+        String[] altered = invocation.arguments().clone();
+        altered[2] = "cobol.goto.restructure.v1";
+
+        assertThrows(IllegalArgumentException.class, () -> LlmEnrichmentCli.run(altered,
+                invocation.environment(), new Properties(), System.out));
+        assertTrue(Files.notExists(temporary.resolve("renovatio-llm/src/main/resources/llm-cache")));
+    }
+
     private Invocation invocation() throws Exception {
         initializeRepository();
         JsonNode input = JSON.createObjectNode().put("nodeId", "node-1");
@@ -66,6 +96,18 @@ class LlmEnrichmentCliTest {
         requestBody.set("deterministicResult",
                 JSON.createObjectNode().put("rationale", "deterministic translation"));
         requestBody.set("offlineResponse", response);
+        var routing = requestBody.putObject("routing");
+        routing.put("baseIrVersion", "cobol-ir.v1");
+        routing.put("nodeId", "node-1");
+        routing.put("nodeKind", "PARAGRAPH");
+        routing.put("construction", "PARAGRAPH");
+        routing.put("explicitDomainNamingRequest", true);
+        routing.put("irreducibleControlFlow", false);
+        routing.put("containsGoTo", false);
+        routing.put("residualBusinessIntent", false);
+        routing.putArray("collisionScope");
+        routing.put("publicSignatureProtected", false);
+        routing.put("agoraToolRunRef", "tool-20260831t00540000000000z");
         JSON.writerWithDefaultPrettyPrinter().writeValue(request.toFile(), requestBody);
         PromptRuntime runtime = new PromptRuntime(new PromptCatalogLoader().loadDefault());
         PreparedEnrichment prepared = runtime.prepare("cobol.domain.naming.v1", input,
@@ -73,12 +115,12 @@ class LlmEnrichmentCliTest {
         CacheIdentity identity = prepared.identity();
         String inputHash = CacheKey.sha256(CanonicalJson.write(JSON.convertValue(input, Object.class)));
         String cacheKey = CacheKey.derive(identity);
-        Path run = temporary.resolve("tool-abc123/RUN.md");
+        Path run = temporary.resolve("tool-20260831t00540000000000z/RUN.md");
         Files.createDirectories(run.getParent());
         Files.writeString(run, """
                 ---
                 schema: "agora/tool-run/v1"
-                id: "tool-abc123"
+                id: "tool-20260831t00540000000000z"
                 tool: "llm-enrichment"
                 operation: "enrich"
                 status: "running"
@@ -95,7 +137,7 @@ class LlmEnrichmentCliTest {
                 LlmEnrichmentCli.REQUEST_ENV, request.toString(),
                 "AGORA_TOOL_RUN", run.toString(),
                 "AGORA_PROJECT", temporary.toString());
-        return new Invocation(arguments, environment, cacheKey);
+        return new Invocation(arguments, environment, cacheKey, request);
     }
 
     private void initializeRepository() throws Exception {
@@ -118,5 +160,6 @@ class LlmEnrichmentCliTest {
         }
     }
 
-    private record Invocation(String[] arguments, Map<String, String> environment, String cacheKey) { }
+    private record Invocation(String[] arguments, Map<String, String> environment,
+                              String cacheKey, Path request) { }
 }
