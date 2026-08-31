@@ -66,3 +66,13 @@
 - 2026-08-31T12:16:55.653916Z | artifact.added | kind=test-report uri=repo://docs/reports/annotated-openrewrite-pass-test-report-20260831-final.md actor=project:agent
 - 2026-08-31T12:17:06.828681Z | evidence.added | id=evidence-000005 type=unit-tests result=success revision=1 actor=project:agent
 - 2026-08-31T12:17:07.127972Z | evidence.added | id=evidence-000006 type=offline-characterization result=success revision=1 actor=project:agent
+- 2026-08-31T12:17:37.309627Z | tool.prepared | run=tool-20260831t12171788189457z tool=repository operation=commit actor=project:agent
+- 2026-08-31T12:17:37.312276Z | tool.running | run=tool-20260831t12171788189457z actor=project:agent
+- 2026-08-31T12:17:37.336111Z | tool.completed | run=tool-20260831t12171788189457z exit-code=0
+- 2026-08-31T12:31:32.546763Z | work.criterion-stage-marked | criterion=annotated-consumption actor=project:owner stage=accepted
+- 2026-08-31T12:31:32.841026Z | work.criterion-stage-marked | criterion=ast-safe actor=project:owner stage=accepted
+- 2026-08-31T12:31:33.126640Z | work.criterion-stage-marked | criterion=no-provider-call actor=project:owner stage=accepted
+- 2026-08-31T12:31:33.419219Z | work.criterion-stage-marked | criterion=reproducible actor=project:owner stage=accepted
+- 2026-08-31T12:31:33.722489Z | work.criterion-stage-marked | criterion=fallback actor=project:owner stage=accepted
+- 2026-08-31T12:31:37.944102Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T12:31:48.702490Z | work.transitioned | from=verifying to=completed actor=project:owner
