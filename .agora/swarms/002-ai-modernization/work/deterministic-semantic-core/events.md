@@ -50,3 +50,6 @@
 - 2026-08-31T01:18:53.487780Z | evidence.added | id=evidence-000002 type=unit-tests result=success revision=1 actor=project:agent
 - 2026-08-31T01:19:06.816028Z | work.block | from=active to=blocked actor=project:agent change=change-20260831t011906815880z
 - 2026-08-31T01:19:58.121557Z | work.resume | from=blocked to=active actor=project:agent change=change-20260831t011958121404z
+- 2026-08-31T01:22:27.933791Z | tool.prepared | run=tool-20260831t01221788150147z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:22:27.935990Z | tool.running | run=tool-20260831t01221788150147z actor=project:agent
+- 2026-08-31T01:22:27.959511Z | tool.completed | run=tool-20260831t01221788150147z exit-code=0
