@@ -154,6 +154,7 @@ function StepExport({ projectId, data, onBack }) {
 
       setReportHtmlPreview(html)
       setReportSummary(summary)
+      setReportPreviewError('')
       setReportPreviewLoaded(true)
     } catch (error) {
       setReportHtmlPreview('')
@@ -164,6 +165,14 @@ function StepExport({ projectId, data, onBack }) {
       setReportPreviewLoading(false)
     }
   }
+
+  const selectedSteps = Array.isArray(data?.dryRunResult?.selectedSteps) ? data.dryRunResult.selectedSteps : []
+  const skippedSteps = Array.isArray(data?.dryRunResult?.skippedSteps) ? data.dryRunResult.skippedSteps : []
+  const pendingActionItems = Array.isArray(data?.review?.actionItems) ? data.review.actionItems.length : 0
+  const reportHasData = Boolean(
+    (reportSummary && Object.keys(reportSummary?.statuses || {}).length > 0) ||
+    (reportSummary && Object.keys(reportSummary?.metrics || {}).length > 0)
+  )
 
   return (
     <div>
@@ -240,7 +249,16 @@ function StepExport({ projectId, data, onBack }) {
           )}
               {reportSummary && (
             <div className="mt-3 border rounded-lg p-3 bg-gray-50 space-y-3">
-              <p className="font-semibold text-gray-700">Resumen del reporte</p>
+              <div className="flex items-center justify-between">
+                <p className="font-semibold text-gray-700">Resumen del reporte</p>
+                <span className="text-xs text-gray-500">
+                  Proyecto: {projectId || 'default'} · {new Date().toLocaleString()}
+                </span>
+              </div>
+
+              {!reportHasData && (
+                <p className="text-sm text-amber-700">No hay datos detectables en el reporte.</p>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-700">
                 <div>
@@ -269,25 +287,19 @@ function StepExport({ projectId, data, onBack }) {
                 <div className="bg-white border rounded p-2">
                   <p className="text-xs text-gray-500">Acciones habilitadas</p>
                   <p className="text-lg font-semibold">
-                    {Array.isArray((data.dryRunResult && data.dryRunResult.selectedSteps) || [])
-                      ? (data.dryRunResult && data.dryRunResult.selectedSteps).length
-                      : 0}
+                    {selectedSteps.length}
                   </p>
                 </div>
                 <div className="bg-white border rounded p-2">
                   <p className="text-xs text-gray-500">Acciones omitidas</p>
                   <p className="text-lg font-semibold">
-                    {Array.isArray((data.dryRunResult && data.dryRunResult.skippedSteps) || [])
-                      ? (data.dryRunResult && data.dryRunResult.skippedSteps).length
-                      : 0}
+                    {skippedSteps.length}
                   </p>
                 </div>
                 <div className="bg-white border rounded p-2">
                   <p className="text-xs text-gray-500">Action items pendientes</p>
                   <p className="text-lg font-semibold">
-                    {Array.isArray((data.review && data.review.actionItems) || [])
-                      ? data.review.actionItems.length
-                      : 0}
+                    {pendingActionItems}
                   </p>
                 </div>
               </div>
@@ -295,14 +307,10 @@ function StepExport({ projectId, data, onBack }) {
               <div>
                 <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Plan aplicado</p>
                 <p className="text-sm text-gray-700">
-                  Seleccionados: {Array.isArray(data.dryRunResult?.selectedSteps) && data.dryRunResult.selectedSteps.length > 0
-                    ? data.dryRunResult.selectedSteps.join(', ')
-                    : '—'}
+                  Seleccionados: {selectedSteps.length > 0 ? selectedSteps.join(', ') : '—'}
                 </p>
                 <p className="text-sm text-gray-700">
-                  Omitidos: {Array.isArray(data.dryRunResult?.skippedSteps) && data.dryRunResult.skippedSteps.length > 0
-                    ? data.dryRunResult.skippedSteps.join(', ')
-                    : '—'}
+                  Omitidos: {skippedSteps.length > 0 ? skippedSteps.join(', ') : '—'}
                 </p>
               </div>
             </div>
