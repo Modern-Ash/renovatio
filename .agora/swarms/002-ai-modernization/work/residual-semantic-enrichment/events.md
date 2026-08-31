@@ -30,3 +30,9 @@
 - 2026-08-30T23:49:40.453694Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=planned
 - 2026-08-30T23:49:40.674632Z | work.criterion-stage-marked | criterion=residual-only actor=project:owner stage=planned
 - 2026-08-30T23:49:44.367543Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-30T23:51:12.456899Z | tool.prepared | run=tool-20260830t23511788144672z tool=repository operation=commit actor=project:agent
+- 2026-08-30T23:51:12.459230Z | tool.running | run=tool-20260830t23511788144672z actor=project:agent
+- 2026-08-30T23:51:12.482943Z | tool.completed | run=tool-20260830t23511788144672z exit-code=0
+- 2026-08-31T00:12:07.414828Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T00:12:07.667727Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-31T00:13:23.655862Z | work.criterion-stage-marked | criterion=residual-only actor=project:agent stage=implemented
