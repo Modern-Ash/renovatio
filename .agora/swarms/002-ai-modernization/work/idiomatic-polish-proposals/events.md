@@ -48,3 +48,9 @@
 - 2026-08-31T14:02:16.238523Z | tool.prepared | run=tool-20260831t14021788195736z tool=repository operation=commit actor=project:agent
 - 2026-08-31T14:02:16.241533Z | tool.running | run=tool-20260831t14021788195736z actor=project:agent
 - 2026-08-31T14:02:16.266227Z | tool.completed | run=tool-20260831t14021788195736z exit-code=0
+- 2026-08-31T15:24:05.119865Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T15:24:09.435824Z | work.criterion-stage-marked | criterion=diff-only actor=project:owner stage=accepted
+- 2026-08-31T15:24:09.652909Z | work.criterion-stage-marked | criterion=eligible-only actor=project:owner stage=accepted
+- 2026-08-31T15:24:09.885326Z | work.criterion-stage-marked | criterion=human-gate actor=project:owner stage=accepted
+- 2026-08-31T15:24:10.101167Z | work.criterion-stage-marked | criterion=discard-on-failure actor=project:owner stage=accepted
+- 2026-08-31T15:24:13.838967Z | work.transitioned | from=verifying to=completed actor=project:owner
