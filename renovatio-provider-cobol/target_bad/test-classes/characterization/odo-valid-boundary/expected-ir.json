@@ -1,1 +1,0 @@
-{"schemaVersion":"cobol-ir.v1","programId":"ODO-VALID","paragraphs":{},"dataItems":[{"name":"ITEM-VALUE","picture":"X","level":5,"occurs":5,"redefines":null,"javaType":"String","picType":{"category":"ALPHANUMERIC","digits":1,"scale":0,"signed":false,"usage":"DISPLAY"},"level88Conditions":[]}],"diagnostics":[]}

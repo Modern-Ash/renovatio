@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: org.shark.renovatio.provider.cobol.service.ArithmeticMigrationTest
--------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.599 s -- in org.shark.renovatio.provider.cobol.service.ArithmeticMigrationTest

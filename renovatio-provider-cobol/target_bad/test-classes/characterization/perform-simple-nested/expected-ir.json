@@ -1,1 +1,0 @@
-{"schemaVersion":"cobol-ir.v1","programId":"PERFORM-NESTED","paragraphs":{"MAIN":{"name":"MAIN","statements":[{"paragraph":"OUTER-PARA","throughParagraph":null}]},"OUTER-PARA":{"name":"OUTER-PARA","statements":[{"paragraph":"INNER-PARA","throughParagraph":null}]}},"dataItems":[],"diagnostics":[]}
