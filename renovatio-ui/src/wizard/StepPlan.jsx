@@ -1,13 +1,22 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 function StepPlan({ data, onChange, onNext, onBack }) {
-  const [steps, setSteps] = useState([
+  const defaultSteps = [
     { type: 'PARSE_COBOL', description: 'Parse COBOL programs', enabled: true },
     { type: 'GENERATE_JAVA_DTOS', description: 'Generate Java DTOs', enabled: true },
     { type: 'GENERATE_JAVA_STUBS', description: 'Generate Java stubs', enabled: true },
     { type: 'CREATE_MAPPINGS', description: 'Create data mappings', enabled: true },
     { type: 'GENERATE_TESTS', description: 'Generate tests', enabled: false }
-  ])
+  ]
+  const [steps, setSteps] = useState(
+    Array.isArray(data?.planSteps) && data.planSteps.length > 0
+      ? data.planSteps.map((step) => ({ ...step }))
+      : defaultSteps
+  )
+
+  useEffect(() => {
+    onChange({ planSteps: steps })
+  }, [])
 
   const toggleStep = (index) => {
     const newSteps = [...steps]
