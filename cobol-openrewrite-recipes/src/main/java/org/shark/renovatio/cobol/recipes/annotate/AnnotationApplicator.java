@@ -1,18 +1,24 @@
 package org.shark.renovatio.cobol.recipes.annotate;
 
 import org.openrewrite.ExecutionContext;
+import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
+import org.openrewrite.java.JavaTemplate;
 import org.openrewrite.java.tree.J;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
 import org.shark.renovatio.cobol.ir.annotated.AnnotationFamily;
 import org.shark.renovatio.cobol.ir.annotated.AnnotationReview;
 import org.shark.renovatio.cobol.ir.annotated.CobolAnnotation;
 import org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
+import org.shark.renovatio.cobol.ir.annotated.DataIntentPayload;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Applies validated, {@code ACCEPTED} sidecar annotations to a generated {@link J.CompilationUnit}
@@ -23,6 +29,8 @@ import java.util.Optional;
  * re-checks the base-IR hash, the review state, the applied-family set, and per-node resolution.
  */
 public final class AnnotationApplicator {
+
+    private static final String DATA_INTENT_FQN = "org.shark.renovatio.cobol.annotations.CobolDataIntent";
 
     private final AnnotatedCobolModel sidecar;
     private final NodeIdentityIndex index;
@@ -70,8 +78,59 @@ public final class AnnotationApplicator {
         for (CobolAnnotation a : ordered()) {
             classifyDrop(a).ifPresent(dropped::add);
         }
-        // Tasks 4-5 add real mutation here for the eligible() set.
-        return new AnnotationApplicationOutcome(cu, dropped);
+        J.CompilationUnit tree = cu;
+        if (tree != null) {
+            for (CobolAnnotation a : eligible()) {
+                NodeIdentityIndex.Resolved resolved = index.resolve(a.nodeId(), a.nodeKind()).orElseThrow();
+                if (a.annotationFamily() == AnnotationFamily.DATA_INTENT) {
+                    tree = applyDataIntent(tree, ctx, a,
+                            NodeIdentityIndex.toJavaFieldName(resolved.cobolName()));
+                }
+                // DOMAIN_NAMING application is added in Task 5.
+            }
+        }
+        return new AnnotationApplicationOutcome(tree, dropped);
+    }
+
+    private J.CompilationUnit applyDataIntent(J.CompilationUnit cu, ExecutionContext ctx,
+                                              CobolAnnotation a, String fieldName) {
+        DataIntentPayload payload = (DataIntentPayload) a.payload();
+        String assumptions = payload.assumptions().stream()
+                .map(AnnotationApplicator::quote)
+                .collect(Collectors.joining(", ", "{", "}"));
+        String annotation = String.format(Locale.ROOT,
+                "@CobolDataIntent(nodeId = %s, annotationId = %s, "
+                        + "construction = CobolDataIntent.Construction.%s, interpretation = %s, assumptions = %s)",
+                quote(a.nodeId()), quote(a.annotationId()), payload.construction().name(),
+                quote(payload.interpretation()), assumptions);
+
+        return (J.CompilationUnit) new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.VariableDeclarations visitVariableDeclarations(J.VariableDeclarations multiVariable,
+                                                                    ExecutionContext context) {
+                J.VariableDeclarations vd = super.visitVariableDeclarations(multiVariable, context);
+                boolean isField = getCursor().firstEnclosing(J.ClassDeclaration.class) != null
+                        && getCursor().firstEnclosing(J.MethodDeclaration.class) == null;
+                boolean nameMatches = !vd.getVariables().isEmpty()
+                        && vd.getVariables().get(0).getSimpleName().equals(fieldName);
+                boolean alreadyAnnotated = vd.getLeadingAnnotations().stream()
+                        .anyMatch(an -> "CobolDataIntent".equals(an.getSimpleName()));
+                if (!isField || !nameMatches || alreadyAnnotated) {
+                    return vd;
+                }
+                maybeAddImport(DATA_INTENT_FQN);
+                return JavaTemplate.builder(annotation)
+                        .imports(DATA_INTENT_FQN)
+                        .javaParser(JavaParser.fromJavaVersion().classpath("renovatio-cobol-annotations"))
+                        .build()
+                        .apply(getCursor(), vd.getCoordinates().addAnnotation(
+                                Comparator.comparing(J.Annotation::getSimpleName)));
+            }
+        }.visit(cu, ctx);
+    }
+
+    private static String quote(String value) {
+        return '"' + value.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
     }
 
     private Optional<DroppedAnnotation> classifyDrop(CobolAnnotation a) {
