@@ -9,7 +9,16 @@ import org.openrewrite.java.tree.J;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -133,5 +142,94 @@ class PopulateCobolProcessRecipeTest {
         assertThat(updated).contains("output.setCustomerName(\"INIT\");");
         assertThat(updated).contains("output.setCustomerName(\"READY\");");
         assertThat(updated).doesNotContain("PERFORM");
+    }
+
+    @Test
+    void shouldProduceByteStableOutputAcrossIndependentRuns() {
+        String first = applyRecipe(COBOL_SAMPLE);
+        String second = applyRecipe(COBOL_SAMPLE);
+
+        assertThat(second).isEqualTo(first);
+        assertThat(sha256(second)).isEqualTo(sha256(first));
+    }
+
+    @Test
+    void productionBoundaryShouldContainNoNetworkOrLlmDependency() throws IOException {
+        Path moduleRoot = locateModuleRoot();
+        String pom = Files.readString(moduleRoot.resolve("pom.xml"), StandardCharsets.UTF_8);
+        String productionSources;
+        try (Stream<Path> paths = Files.walk(moduleRoot.resolve("src/main/java"))) {
+            productionSources = paths
+                    .filter(path -> path.getFileName().toString().endsWith(".java"))
+                    .sorted()
+                    .map(PopulateCobolProcessRecipeTest::readUtf8)
+                    .reduce("", (left, right) -> left + "\n" + right);
+        }
+
+        String boundary = (pom + "\n" + productionSources).toLowerCase(Locale.ROOT);
+        assertThat(boundary).doesNotContain(
+                "java.net.",
+                "java.net.http",
+                "okhttp",
+                "retrofit",
+                "anthropic",
+                "openai",
+                "bedrock",
+                "gemini",
+                "prompt catalog",
+                "api key",
+                "credential");
+    }
+
+    private String applyRecipe(String cobol) {
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(cobol);
+        String javaSource = """
+                package sample;
+                public class SampleService {
+                    public SampleDto process(SampleDto input) {
+                        // TODO: Implement COBOL business logic
+                        SampleDto output = new SampleDto();
+                        return output;
+                    }
+                }
+                """;
+
+        JavaParser parser = JavaParser.fromJavaVersion().build();
+        ExecutionContext context = new InMemoryExecutionContext(Throwable::printStackTrace);
+        context.putMessage(PopulateCobolProcessRecipe.CONTEXT_KEY, model);
+        List<org.openrewrite.SourceFile> sources = parser.parse(context, javaSource).toList();
+        var run = new PopulateCobolProcessRecipe().run(
+                new org.openrewrite.internal.InMemoryLargeSourceSet(sources), context);
+
+        return run.getChangeset().getAllResults().get(0).getAfter().printAll();
+    }
+
+    private static String sha256(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 must be available", exception);
+        }
+    }
+
+    private static Path locateModuleRoot() {
+        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
+        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+            return workingDirectory;
+        }
+        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
+        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+            return childModule;
+        }
+        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
+    }
+
+    private static String readUtf8(Path path) {
+        try {
+            return Files.readString(path, StandardCharsets.UTF_8);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Cannot read " + path, exception);
+        }
     }
 }

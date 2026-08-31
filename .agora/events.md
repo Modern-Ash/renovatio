@@ -234,3 +234,12 @@
 - 2026-08-31T01:03:37.779208Z | tool.prepared | run=tool-20260831t01031788149017z tool=repository operation=commit actor=project:agent
 - 2026-08-31T01:03:37.781627Z | tool.running | run=tool-20260831t01031788149017z tool=repository operation=commit actor=project:agent
 - 2026-08-31T01:03:37.805332Z | tool.completed | run=tool-20260831t01031788149017z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:08:23.734023Z | session.prepared | session=issue-123-verification actor=project:agent executor=project:agent swarm=ai-modernization
+- 2026-08-31T01:08:33.061569Z | session.running | session=issue-123-verification
+- 2026-08-31T01:08:33.167284Z | session.failed | session=issue-123-verification exit-code=1
+- 2026-08-31T01:08:59.396947Z | session.prepared | session=issue-123-verification-retry-20260831t01081788149339z actor=project:agent executor=project:agent swarm=ai-modernization
+- 2026-08-31T01:08:59.399410Z | session.running | session=issue-123-verification-retry-20260831t01081788149339z
+- 2026-08-31T01:13:21.790541Z | session.completed | session=issue-123-verification-retry-20260831t01081788149339z exit-code=0
+- 2026-08-31T01:13:50.078590Z | session.prepared | session=issue-123-coverage actor=project:agent executor=project:agent swarm=ai-modernization
+- 2026-08-31T01:15:01.041082Z | session.running | session=issue-123-coverage
+- 2026-08-31T01:19:26.854981Z | session.completed | session=issue-123-coverage exit-code=0

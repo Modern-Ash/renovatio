@@ -44,3 +44,9 @@
 - 2026-08-30T17:02:28.923967Z | tool.prepared | run=tool-20260830t17021788120148z tool=repository operation=create-branch actor=project:agent
 - 2026-08-30T17:02:28.925521Z | tool.running | run=tool-20260830t17021788120148z actor=project:agent
 - 2026-08-30T17:02:28.938664Z | tool.completed | run=tool-20260830t17021788120148z exit-code=0
+- 2026-08-31T01:12:18.543285Z | artifact.added | kind=test-report uri=repo://docs/reports/deterministic-semantic-core-revalidation-20260831.md actor=project:agent
+- 2026-08-31T01:12:37.660206Z | evidence.added | id=evidence-000001 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T01:18:47.053479Z | artifact.added | kind=test-report uri=repo://docs/reports/deterministic-semantic-core-recipe-boundary-20260831.md actor=project:agent
+- 2026-08-31T01:18:53.487780Z | evidence.added | id=evidence-000002 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T01:19:06.816028Z | work.block | from=active to=blocked actor=project:agent change=change-20260831t011906815880z
+- 2026-08-31T01:19:58.121557Z | work.resume | from=blocked to=active actor=project:agent change=change-20260831t011958121404z
