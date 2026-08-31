@@ -5,6 +5,10 @@ function StepExport({ projectId, data, onBack }) {
   const [applying, setApplying] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [status, setStatus] = useState(null)
+  const [reportHtmlPreview, setReportHtmlPreview] = useState('')
+  const [reportPreviewLoading, setReportPreviewLoading] = useState(false)
+  const [reportPreviewError, setReportPreviewError] = useState('')
+  const [reportPreviewLoaded, setReportPreviewLoaded] = useState(false)
 
   const handleApply = async () => {
     setApplying(true)
@@ -104,9 +108,13 @@ function StepExport({ projectId, data, onBack }) {
   const handleExport = async (format) => {
     setExporting(true)
     try {
+      setReportPreviewError('')
       const response = await fetch(`/api/projects/${projectId}/report/${format}`, {
         headers: { 'X-Role': 'ADMIN' }
       })
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
+      }
       const blob = await response.blob()
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -115,9 +123,32 @@ function StepExport({ projectId, data, onBack }) {
       a.click()
       window.URL.revokeObjectURL(url)
     } catch (error) {
+      setReportPreviewError(error.message || 'Failed to export report')
       console.error('Export failed:', error)
     } finally {
       setExporting(false)
+    }
+  }
+
+  const handleReportPreview = async () => {
+    setReportPreviewLoading(true)
+    setReportPreviewError('')
+    try {
+      const response = await fetch(`/api/projects/${projectId}/report/html`, {
+        headers: { 'X-Role': 'ADMIN' }
+      })
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
+      }
+      const html = await response.text()
+      setReportHtmlPreview(html)
+      setReportPreviewLoaded(true)
+    } catch (error) {
+      setReportHtmlPreview('')
+      setReportPreviewLoaded(false)
+      setReportPreviewError(error.message || 'No se pudo generar el preview del reporte.')
+    } finally {
+      setReportPreviewLoading(false)
     }
   }
 
@@ -173,6 +204,27 @@ function StepExport({ projectId, data, onBack }) {
               {exporting ? 'Exporting...' : 'PDF'}
             </button>
           </div>
+          <button
+            onClick={handleReportPreview}
+            disabled={reportPreviewLoading}
+            className="btn btn-secondary w-full mt-3"
+          >
+            {reportPreviewLoading ? 'Cargando preview...' : 'Previsualizar reporte (HTML)'}
+          </button>
+          {reportPreviewError && (
+            <p className="text-sm text-red-700 mt-2">{reportPreviewError}</p>
+          )}
+          {reportPreviewLoaded && reportHtmlPreview && (
+            <div className="mt-4 border rounded-lg p-2 bg-white">
+              <p className="text-sm text-gray-600 mb-2">Vista previa del reporte</p>
+              <iframe
+                title="Report preview"
+                srcDoc={reportHtmlPreview}
+                className="w-full border rounded"
+                style={{ height: '260px' }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
