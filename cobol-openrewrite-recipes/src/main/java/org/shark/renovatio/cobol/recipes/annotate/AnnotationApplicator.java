@@ -118,16 +118,20 @@ public final class AnnotationApplicator {
         }
 
         String currentField = NodeIdentityIndex.toJavaFieldName(resolved.cobolName());
+        String oldStem = accessorStem(currentField);
+        String newStem = accessorStem(target);
         String declaringType = declaringType(cu, currentField);
         if (declaringType == null) {
+            if (methodNameInUse(cu, "get" + oldStem) || methodNameInUse(cu, "set" + oldStem)) {
+                J.CompilationUnit renamed = renameMethods(cu, ctx, "get" + oldStem, "get" + newStem);
+                return renameMethods(renamed, ctx, "set" + oldStem, "set" + newStem);
+            }
             dropped.add(new DroppedAnnotation(annotation.nodeId(), annotation.annotationId(),
                     annotation.annotationFamily(), DroppedAnnotation.DropReason.NODE_UNRESOLVED,
                     "Generated field " + currentField + " was not found"));
             return cu;
         }
 
-        String oldStem = accessorStem(currentField);
-        String newStem = accessorStem(target);
         J.CompilationUnit renamed = (J.CompilationUnit) new ChangeFieldName<ExecutionContext>(
                 declaringType, currentField, target).visit(cu, ctx);
         renamed = renameMethods(renamed, ctx, "get" + oldStem, "get" + newStem);
@@ -145,6 +149,21 @@ public final class AnnotationApplicator {
             public J.Identifier visitIdentifier(J.Identifier identifier, AtomicBoolean state) {
                 J.Identifier visited = super.visitIdentifier(identifier, state);
                 if (visited.getSimpleName().equals(candidate)) {
+                    state.set(true);
+                }
+                return visited;
+            }
+        }.visit(cu, found);
+        return found.get();
+    }
+
+    private static boolean methodNameInUse(J.CompilationUnit cu, String candidate) {
+        AtomicBoolean found = new AtomicBoolean();
+        new JavaIsoVisitor<AtomicBoolean>() {
+            @Override
+            public J.MethodInvocation visitMethodInvocation(J.MethodInvocation invocation, AtomicBoolean state) {
+                J.MethodInvocation visited = super.visitMethodInvocation(invocation, state);
+                if (visited.getSimpleName().equalsIgnoreCase(candidate)) {
                     state.set(true);
                 }
                 return visited;
@@ -182,7 +201,7 @@ public final class AnnotationApplicator {
             public J.MethodDeclaration visitMethodDeclaration(J.MethodDeclaration method,
                                                               ExecutionContext context) {
                 J.MethodDeclaration visited = super.visitMethodDeclaration(method, context);
-                if (!visited.getSimpleName().equals(from)) {
+                if (!visited.getSimpleName().equalsIgnoreCase(from)) {
                     return visited;
                 }
                 JavaType.Method type = visited.getMethodType();
@@ -194,7 +213,7 @@ public final class AnnotationApplicator {
             public J.MethodInvocation visitMethodInvocation(J.MethodInvocation invocation,
                                                             ExecutionContext context) {
                 J.MethodInvocation visited = super.visitMethodInvocation(invocation, context);
-                if (!visited.getSimpleName().equals(from)) {
+                if (!visited.getSimpleName().equalsIgnoreCase(from)) {
                     return visited;
                 }
                 JavaType.Method type = visited.getMethodType();

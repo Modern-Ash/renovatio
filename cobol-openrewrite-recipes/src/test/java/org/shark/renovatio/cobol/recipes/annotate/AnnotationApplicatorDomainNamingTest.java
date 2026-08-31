@@ -62,6 +62,26 @@ class AnnotationApplicatorDomainNamingTest {
                 assertThat(dropped.reason()).isEqualTo(DroppedAnnotation.DropReason.NAME_COLLISION));
     }
 
+    @Test
+    void renamesAccessorInvocationsWhenDtoDeclarationIsInAnotherCompilationUnit() {
+        ExecutionContext ctx = new InMemoryExecutionContext(Throwable::printStackTrace);
+        String service = """
+                package sample;
+                public class SampleService {
+                    public void copy(SampleDto input, SampleDto output) {
+                        output.setCustomerName(input.getCustomerName());
+                    }
+                }
+                """;
+        AnnotatedFixtures.Fixture fixture = AnnotatedFixtures.domainNaming("clientFullName");
+
+        AnnotationApplicationOutcome outcome = new AnnotationApplicator(fixture.model(), fixture.sidecar())
+                .apply(parse(ctx, service), ctx);
+
+        assertThat(outcome.tree().printAll()).contains("setClientFullName(input.getClientFullName())");
+        assertThat(outcome.dropped()).isEmpty();
+    }
+
     private J.CompilationUnit parse(ExecutionContext ctx, String source) {
         return JavaParser.fromJavaVersion().build()
                 .parse(ctx, source)
