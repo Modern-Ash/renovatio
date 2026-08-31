@@ -32,6 +32,7 @@
         <jgit.version>6.7.0.202309050840-r</jgit.version>
         <antlr4.version>4.11.1</antlr4.version>
         <mustache.version>0.9.10</mustache.version>
+        <picocli.version>4.7.6</picocli.version>
         <!-- Lombok for boilerplate reduction -->
         <lombok.version>1.18.34</lombok.version>
     </properties>
@@ -42,6 +43,7 @@
         <module>renovatio-provider-java</module>
         <module>renovatio-provider-cobol</module>
         <module>renovatio-mcp-server</module>
+        <module>renovatio-cli</module>
         <module>renovatio-cobol-runtime</module>
         <module>renovatio-cobol-ir</module>
         <module>renovatio-llm</module>
@@ -56,6 +58,16 @@
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-shared</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-mcp-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>info.picocli</groupId>
+                <artifactId>picocli</artifactId>
+                <version>${picocli.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
