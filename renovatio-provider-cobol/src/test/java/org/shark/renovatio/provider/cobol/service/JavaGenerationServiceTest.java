@@ -97,6 +97,45 @@ class JavaGenerationServiceTest {
     }
 
     @Test
+    void testGenerateInterfaceStubsUsesCustomOutputDir() throws IOException {
+        Path outputDir = tempDir.resolve("custom-stubs");
+        workspace.setMetadata(Map.of("outputDir", outputDir.toString()));
+
+        String cobolContent = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAMPLE-PROGRAM.
+
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01  WS-NAME       PIC X(30).
+
+                PROCEDURE DIVISION.
+                STOP RUN.
+                """;
+
+        Path cobolFile = tempDir.resolve("sample.cob");
+        Files.writeString(cobolFile, cobolContent);
+
+        NqlQuery query = new NqlQuery();
+        query.setType(NqlQuery.QueryType.FIND);
+        query.setTarget("stubs");
+        query.setLanguage("cobol");
+
+        var result = javaGenerationService.generateInterfaceStubs(query, workspace);
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess(), result.getMessage());
+        assertTrue(Files.exists(outputDir.resolve("SampleProgramDTO.java"))
+                || Files.exists(outputDir.resolve("SampleDTO.java")));
+        assertTrue(Files.exists(outputDir.resolve("SampleProgramService.java"))
+                || Files.exists(outputDir.resolve("SampleService.java")));
+        assertTrue(Files.exists(outputDir.resolve("SampleProgramServiceImpl.java"))
+                || Files.exists(outputDir.resolve("SampleServiceImpl.java")));
+        assertFalse(Files.exists(tempDir.resolve("generated-java-stubs")),
+                "default workspace output dir should not be used when outputDir metadata is present");
+    }
+
+    @Test
     void testGenerateInterfaceStubsWithEmptyWorkspace() {
         NqlQuery query = new NqlQuery();
         query.setType(NqlQuery.QueryType.FIND);

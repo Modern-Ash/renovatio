@@ -28,6 +28,7 @@ public class LanguageProviderRegistry {
             "planId",
             "runId",
             "dryRun",
+            "outputDir",
             "language",
             "nql"
     );
@@ -346,6 +347,12 @@ public class LanguageProviderRegistry {
         workspace.setId("default");
         workspace.setPath((String) arguments.get("workspacePath"));
         workspace.setBranch("main");
+        Object outputDir = arguments.get("outputDir");
+        if (outputDir != null && !outputDir.toString().isBlank()) {
+            Map<String, Object> metadata = new LinkedHashMap<>();
+            metadata.put("outputDir", outputDir.toString());
+            workspace.setMetadata(metadata);
+        }
         return workspace;
     }
 
