@@ -55,3 +55,6 @@
 - 2026-08-31T01:47:24.484494Z | work.criterion-stage-marked | criterion=gate-order actor=project:agent stage=verified
 - 2026-08-31T01:47:24.699732Z | work.criterion-stage-marked | criterion=safe-fallback actor=project:agent stage=verified
 - 2026-08-31T01:47:24.912645Z | work.criterion-stage-marked | criterion=offline-ci actor=project:agent stage=verified
+- 2026-08-31T01:47:37.879994Z | tool.prepared | run=tool-20260831t01471788151657z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:47:37.882432Z | tool.running | run=tool-20260831t01471788151657z actor=project:agent
+- 2026-08-31T01:47:37.906530Z | tool.completed | run=tool-20260831t01471788151657z exit-code=0
