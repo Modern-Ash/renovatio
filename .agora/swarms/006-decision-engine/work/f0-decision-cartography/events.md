@@ -1,3 +1,90 @@
 # Work events
 
 - 2026-08-31T22:49:24.487522Z | work.created | state=drafting actor=project:owner
+- 2026-08-31T23:49:22.702302Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-31T23:54:21.733890Z | artifact.added | kind=spec uri=docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-08-31T23:57:25.848717Z | artifact.added | kind=consistency-report uri=repo://.agora/swarms/006-decision-engine/work/f0-decision-cartography/consistency/consistency-20260831t23571788231445z.md actor=project:owner
+- 2026-08-31T23:57:25.853106Z | evidence.added | id=evidence-000001 type=consistency-check result=failure revision=1 actor=project:owner
+- 2026-09-01T00:04:32.475699Z | artifact.added | kind=spec uri=repo://docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-09-01T00:10:45.952879Z | work.clarified-advisory | questions=4 actor=project:owner
+- 2026-09-01T00:18:42.464831Z | artifact.added | kind=spec uri=repo://docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-09-01T00:19:08.259241Z | work.clarified-advisory | questions=3 actor=project:owner
+- 2026-09-01T00:21:40.523874Z | artifact.added | kind=consistency-report uri=repo://.agora/swarms/006-decision-engine/work/f0-decision-cartography/consistency/consistency-20260901t00211788232900z.md actor=project:owner
+- 2026-09-01T00:21:40.528337Z | evidence.added | id=evidence-000002 type=consistency-check result=failure revision=1 actor=project:owner
+- 2026-09-01T00:23:04.736010Z | artifact.added | kind=spec uri=repo://docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-09-01T00:23:29.164207Z | work.clarified-advisory | questions=4 actor=project:owner
+- 2026-09-01T00:23:46.360289Z | artifact.added | kind=spec uri=repo://docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-09-01T00:24:09.755857Z | work.clarified-advisory | questions=4 actor=project:owner
+- 2026-09-01T00:26:16.654512Z | artifact.added | kind=consistency-report uri=repo://.agora/swarms/006-decision-engine/work/f0-decision-cartography/consistency/consistency-20260901t00261788233176z.md actor=project:owner
+- 2026-09-01T00:26:16.658167Z | evidence.added | id=evidence-000003 type=consistency-check result=success revision=1 actor=project:owner
+- 2026-09-01T00:26:24.632186Z | work.criterion-stage-marked | criterion=catalog actor=project:owner stage=specified
+- 2026-09-01T00:26:24.923251Z | work.criterion-stage-marked | criterion=categories actor=project:owner stage=specified
+- 2026-09-01T00:26:25.223790Z | work.criterion-stage-marked | criterion=coupling-map actor=project:owner stage=specified
+- 2026-09-01T00:26:25.524988Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:owner stage=specified
+- 2026-09-01T00:26:35.810168Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-01T01:04:07.133122Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/decision-model-cartography.md actor=project:agent
+- 2026-09-01T01:04:10.734099Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-01T02:15:52.168436Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/decision-model-cartography.md actor=project:agent
+- 2026-09-01T02:15:56.670341Z | work.criterion-stage-marked | criterion=catalog actor=project:owner stage=planned
+- 2026-09-01T02:15:56.962437Z | work.criterion-stage-marked | criterion=categories actor=project:owner stage=planned
+- 2026-09-01T02:15:57.255999Z | work.criterion-stage-marked | criterion=coupling-map actor=project:owner stage=planned
+- 2026-09-01T02:15:57.549552Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:owner stage=planned
+- 2026-09-01T02:16:02.220461Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-01T02:17:33.753034Z | artifact.added | kind=spec uri=repo://docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-09-01T02:17:34.072497Z | artifact.added | kind=verification-report uri=repo://docs/reports/decision-model-cartography-verification.md actor=project:agent
+- 2026-09-01T02:17:34.395420Z | evidence.added | id=evidence-000004 type=verification result=success revision=1 actor=project:agent
+- 2026-09-01T02:17:39.762593Z | work.criterion-stage-marked | criterion=catalog actor=project:agent stage=implemented
+- 2026-09-01T02:17:40.060951Z | work.criterion-stage-marked | criterion=categories actor=project:agent stage=implemented
+- 2026-09-01T02:17:40.361047Z | work.criterion-stage-marked | criterion=coupling-map actor=project:agent stage=implemented
+- 2026-09-01T02:17:40.657998Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:agent stage=implemented
+- 2026-09-01T02:17:40.978575Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T02:18:05.746123Z | artifact.added | kind=spec uri=docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-09-01T02:22:58.079039Z | artifact.added | kind=consistency-report uri=repo://.agora/swarms/006-decision-engine/work/f0-decision-cartography/consistency/consistency-20260901t02221788240178z.md actor=project:owner
+- 2026-09-01T02:22:58.082789Z | evidence.added | id=evidence-000005 type=consistency-check result=success revision=1 actor=project:owner
+- 2026-09-01T02:23:42.101656Z | artifact.added | kind=docs/specs/decision-model-cartography.md uri=repo://docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-09-01T02:24:13.683763Z | artifact.added | kind=review-report uri=repo://docs/reports/decision-model-cartography-review.md actor=project:owner
+- 2026-09-01T02:24:13.962628Z | evidence.added | id=evidence-000006 type=review result=success revision=1 actor=project:owner
+- 2026-09-01T02:24:22.051711Z | work.criterion-stage-marked | criterion=catalog actor=project:owner stage=verified
+- 2026-09-01T02:24:22.343830Z | work.criterion-stage-marked | criterion=categories actor=project:owner stage=verified
+- 2026-09-01T02:24:22.638987Z | work.criterion-stage-marked | criterion=coupling-map actor=project:owner stage=verified
+- 2026-09-01T02:24:22.927273Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:owner stage=verified
+- 2026-09-01T02:24:23.218280Z | work.criterion-stage-marked | criterion=catalog actor=project:owner stage=accepted
+- 2026-09-01T02:24:23.505205Z | work.criterion-stage-marked | criterion=categories actor=project:owner stage=accepted
+- 2026-09-01T02:24:23.796603Z | work.criterion-stage-marked | criterion=coupling-map actor=project:owner stage=accepted
+- 2026-09-01T02:24:24.086921Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:owner stage=accepted
+- 2026-09-01T02:24:28.726841Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-01T02:28:13.605037Z | artifact.added | kind=consistency-report uri=repo://.agora/swarms/006-decision-engine/work/f0-decision-cartography/consistency/consistency-20260901t02281788240493z.md actor=project:owner
+- 2026-09-01T02:28:13.608533Z | evidence.added | id=evidence-000007 type=consistency-check result=success revision=1 actor=project:owner
+- 2026-09-01T02:28:30.518287Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-09-01T10:43:16.135368Z | work.reopened | revision=2 source=github-review actor=project:owner change=change-20260901t104316135264z
+- 2026-09-01T10:44:37.710358Z | artifact.added | kind=spec uri=repo://docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-09-01T10:44:37.973793Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/decision-model-cartography.md actor=project:agent
+- 2026-09-01T10:44:38.236134Z | artifact.added | kind=verification-report uri=repo://docs/reports/decision-model-cartography-verification.md actor=project:agent
+- 2026-09-01T10:44:52.502115Z | evidence.added | id=evidence-000008 type=verification result=success revision=2 actor=project:agent
+- 2026-09-01T10:50:21.296083Z | artifact.added | kind=consistency-report uri=repo://.agora/swarms/006-decision-engine/work/f0-decision-cartography/consistency/consistency-20260901t10501788270621z.md actor=project:owner
+- 2026-09-01T10:50:21.299578Z | evidence.added | id=evidence-000009 type=consistency-check result=success revision=2 actor=project:owner
+- 2026-09-01T10:50:52.072292Z | artifact.added | kind=review-report uri=repo://docs/reports/decision-model-cartography-review.md actor=project:owner
+- 2026-09-01T10:50:52.356224Z | evidence.added | id=evidence-000010 type=review result=success revision=2 actor=project:owner
+- 2026-09-01T10:51:03.144912Z | artifact.added | kind=docs/specs/decision-model-cartography.md uri=repo://docs/specs/decision-model-cartography.md actor=project:owner
+- 2026-09-01T10:51:08.344540Z | work.criterion-stage-marked | criterion=catalog actor=project:owner stage=specified
+- 2026-09-01T10:51:08.614668Z | work.criterion-stage-marked | criterion=catalog actor=project:owner stage=planned
+- 2026-09-01T10:51:08.883223Z | work.criterion-stage-marked | criterion=catalog actor=project:agent stage=implemented
+- 2026-09-01T10:51:09.149225Z | work.criterion-stage-marked | criterion=catalog actor=project:owner stage=verified
+- 2026-09-01T10:51:09.419341Z | work.criterion-stage-marked | criterion=catalog actor=project:owner stage=accepted
+- 2026-09-01T10:51:09.694849Z | work.criterion-stage-marked | criterion=categories actor=project:owner stage=specified
+- 2026-09-01T10:51:09.969881Z | work.criterion-stage-marked | criterion=categories actor=project:owner stage=planned
+- 2026-09-01T10:51:10.248308Z | work.criterion-stage-marked | criterion=categories actor=project:agent stage=implemented
+- 2026-09-01T10:51:10.510563Z | work.criterion-stage-marked | criterion=categories actor=project:owner stage=verified
+- 2026-09-01T10:51:10.774723Z | work.criterion-stage-marked | criterion=categories actor=project:owner stage=accepted
+- 2026-09-01T10:51:11.042907Z | work.criterion-stage-marked | criterion=coupling-map actor=project:owner stage=specified
+- 2026-09-01T10:51:11.309699Z | work.criterion-stage-marked | criterion=coupling-map actor=project:owner stage=planned
+- 2026-09-01T10:51:11.579295Z | work.criterion-stage-marked | criterion=coupling-map actor=project:agent stage=implemented
+- 2026-09-01T10:51:11.842850Z | work.criterion-stage-marked | criterion=coupling-map actor=project:owner stage=verified
+- 2026-09-01T10:51:12.100110Z | work.criterion-stage-marked | criterion=coupling-map actor=project:owner stage=accepted
+- 2026-09-01T10:51:12.373064Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:owner stage=specified
+- 2026-09-01T10:51:12.653661Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:owner stage=planned
+- 2026-09-01T10:51:12.945281Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:agent stage=implemented
+- 2026-09-01T10:51:13.223055Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:owner stage=verified
+- 2026-09-01T10:51:13.501686Z | work.criterion-stage-marked | criterion=f1-recommendation actor=project:owner stage=accepted
+- 2026-09-01T10:51:18.263897Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-01T10:51:21.719938Z | work.transitioned | from=verifying to=completed actor=project:owner

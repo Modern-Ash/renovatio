@@ -4,7 +4,7 @@ id: "f0-decision-cartography"
 swarm: "decision-engine"
 title: "F0 \u00b7 Decision-model cartography (issue #145)"
 state: "completed"
-revision: 2
+revision: 1
 operational-status: "active"
 status-reason: null
 status-by: null
