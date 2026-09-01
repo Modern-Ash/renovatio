@@ -17,3 +17,4 @@ artifact-kinds: ["spec","implementation-plan","test-report"]
 | test-report | repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md | e41c0f2e4ff1c4175d3d4f6f5fcc845d202b28466667535a5a645bd90d488fd6 | project:agent | 2026-09-01T15:18:33.476916Z |
 | test-report | repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md | f57abb3ba3f84f74d6c564b2b300f9e6c653f76971002eac741e76a24a7ed02a | project:agent | 2026-09-01T16:19:21.236117Z |
 | test-report | repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md | 0f17d2dfe463180342a2cd8adabd2559749c6a9cbe19d91c4bd39a8e49c6213d | project:agent | 2026-09-01T17:22:11.512001Z |
+| test-report | repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md | d0475edc67aa571694c96e4ff3b9946ebc62e2f1cb447029d6b68fe66a2a7b86 | project:agent | 2026-09-01T17:35:28.288553Z |

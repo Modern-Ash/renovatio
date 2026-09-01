@@ -2,7 +2,7 @@
 
 - **Agora work:** `decision-engine-f2/f2-semantic-ir-emitter-spi`
 - **GitHub issue:** #147
-- **Reviewed implementation:** `eaf429edbca5ee90e9c6a145aeedafda2748231c`
+- **Reviewed implementation:** `0f2b0f6c2c3d7abdc0a292dc3ae6f320239eeb6d`
 - **F1 baseline:** `152d57462d4d7fc2b4554b6a1f029ae44e96d97a`
 - **Toolchain:** Apache Maven 3.9.12; OpenJDK 21.0.12; source release 17
 - **Result:** review-ready; Agora completion remains pending PR review
@@ -73,25 +73,35 @@ The valid finding from the fourth review cycle was addressed at
    normalization, rejecting both `/` and `\\` terminal separators before
    duplicate-path collection or filesystem resolution.
 
+The two valid post-merge findings from the fifth review cycle were addressed at
+`0f2b0f6c2c3d7abdc0a292dc3ae6f320239eeb6d`:
+
+1. Control-break decomposition generates each source in memory, validates the
+   complete aggregate, and persists Java artifacts only after aggregation
+   succeeds; a later collision no longer leaves a partially mutated workspace.
+2. Source provenance now includes each contributing accepted annotation's
+   validated output hash in addition to its stable annotation ID, so regenerated
+   accepted payloads produce distinct content-addressed target envelopes.
+
 ## Verification matrix
 
 | Gate | Command / proof | Result |
 |---|---|---|
 | Semantic/shared contracts | `mvn -pl renovatio-shared -am test` | PASS — semantic IR 5, profile 7, shared 26 |
 | Architecture and registry | `F2ArchitectureTest`, `TargetEmitterRegistryTest`, structured error-path tests in the functional reactor | PASS — ArchUnit 2; registry 5; error paths 5 |
-| COBOL projection and provider | `mvn -pl renovatio-provider-cobol -am test` | PASS — provider 101; all 12 modules green; 305 tests |
+| COBOL projection and provider | `mvn -pl renovatio-provider-cobol -am test` | PASS — provider 103; all 12 modules green; 307 tests |
 | Issue #122 corpus | `mvn -pl renovatio-provider-cobol -am -Dtest=CharacterizationFixtureContractTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 13 fixtures traverse the F2 boundary; 2 supported byte comparisons, 11 residual empty emissions |
 | Annotation projection | `AnnotationApplicatorDataIntentTest` and the annotated characterization fixture | PASS — neutral and compatibility paths emit identical Java source bytes |
-| Review regressions | `TargetEmissionContractTest`, `SemanticProgramTest`, `AnnotationApplicatorDataIntentTest`, `CobolSemanticProjectorTest`, `CobolLanguageProviderEmitterRoutingTest`, and the characterization corpus | PASS — fourteen PR findings covered with exact Java-byte compatibility |
+| Review regressions | `TargetEmissionContractTest`, `SemanticProgramTest`, `AnnotationApplicatorDataIntentTest`, `CobolSemanticProjectorTest`, `CobolLanguageProviderEmitterRoutingTest`, and the characterization corpus | PASS — sixteen PR findings covered with exact Java-byte compatibility |
 | Multi-program aggregation | `JavaGenerationRegistryRoutingTest` | PASS — 5 tests, including per-source provenance, duplicate-path rejection, copybook fail-closed, and NODE selection |
-| Java-producing provider tools | `CobolLanguageProviderEmitterRoutingTest` | PASS — 6 tests; effective profile, unavailable and throwing emitters, multi-source control-break routing, and copybook field projection covered |
+| Java-producing provider tools | `CobolLanguageProviderEmitterRoutingTest` | PASS — 7 tests; effective profile, unavailable and throwing emitters, multi-source control-break routing, deferred persistence, and copybook field projection covered |
 | API integration | `mvn -pl renovatio-api -am -Dexec.skip=true -Dtest=DecisionLayerApiTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 9 tests; Spring profile/registry wiring green |
 | MCP and CLI regression | `mvn -pl renovatio-mcp-server,renovatio-cli -am -Dexec.skip=true test` | PASS — MCP 22, CLI 18; 14-module reactor green |
 | Source hygiene | `git diff --check` | PASS |
 
 The full provider reactor also recorded these upstream counts: core 39,
 provider-java 14, COBOL runtime 23, COBOL IR 55, annotations 2, recipes 25,
-decisions 8, and provider-cobol 101. No fixture golden or JaCoCo threshold was
+decisions 8, and provider-cobol 103. No fixture golden or JaCoCo threshold was
 changed.
 
 ## Literal install and baseline exception
@@ -130,6 +140,5 @@ exception allowed by the spec. The threshold remains 1.0.
 ## Remaining lifecycle actions
 
 1. Register this review revision as `test-report` and successful evidence.
-2. Resolve the addressed PR review thread and await the next external
-   review/check cycle.
+2. Merge the follow-up PR and resolve the two post-merge PR #159 review threads.
 3. Only after the PR is accepted seek the Spec Owner completion approval.
