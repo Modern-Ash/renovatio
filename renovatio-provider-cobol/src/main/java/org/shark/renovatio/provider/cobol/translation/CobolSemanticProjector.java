@@ -10,10 +10,12 @@ import org.shark.renovatio.cobol.ir.model.CallStatement;
 import org.shark.renovatio.cobol.ir.model.CobolDataItem;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.ir.model.CobolStatement;
+import org.shark.renovatio.cobol.ir.model.ComputeStatement;
 import org.shark.renovatio.cobol.ir.model.Db2Statement;
 import org.shark.renovatio.cobol.ir.model.EvaluateStatement;
 import org.shark.renovatio.cobol.ir.model.FileOperationStatement;
 import org.shark.renovatio.cobol.ir.model.IfStatement;
+import org.shark.renovatio.cobol.ir.model.MoveStatement;
 import org.shark.renovatio.cobol.runtime.PicType;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 import org.shark.renovatio.semantic.ir.SourceProvenance;
@@ -34,9 +36,16 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Deterministically projects COBOL IR and accepted sidecar intent into target-neutral semantic IR. */
 public final class CobolSemanticProjector {
+    private static final Pattern DATA_REFERENCE = Pattern.compile("[A-Za-z][A-Za-z0-9-]*");
+    private static final Pattern STRING_LITERAL = Pattern.compile("'[^']*'|\"[^\"]*\"");
+    private static final Set<String> EXPRESSION_KEYWORDS = Set.of(
+            "AND", "OR", "NOT", "IS", "EQUAL", "GREATER", "LESS", "THAN", "TO", "ZERO",
+            "ZEROS", "ZEROES", "SPACE", "SPACES", "HIGH-VALUE", "LOW-VALUE", "TRUE", "FALSE");
     private final CobolIrIdentityProjector identities = new CobolIrIdentityProjector();
 
     public SemanticProgram project(CobolIntermediateModel model, String sourcePath, byte[] sourceBytes,
@@ -46,14 +55,14 @@ public final class CobolSemanticProjector {
         String programId = model.getProgramId();
         SourceSpan programSpan = wholeSource(sourcePath, bytes);
         String baseHash = identities.baseIrHash(model);
+        Map<String, String> sourceNodes = sourceDataNodes(model);
+        List<SemanticProgram.DataIntent> intents = projectIntents(model, annotatedContext, programSpan, sourceNodes);
         List<String> evidence = new ArrayList<>();
         evidence.add(baseHash);
-        annotatedContext.ifPresent(context -> context.sidecar().annotations().stream()
-                .map(CobolAnnotation::annotationId).forEach(evidence::add));
+        intents.stream().map(SemanticProgram.DataIntent::evidenceId).forEach(evidence::add);
         SourceProvenance provenance = new SourceProvenance(sourcePath, sha256(bytes), "COBOL",
                 dialect == null ? Optional.empty() : dialect, evidence);
 
-        Map<String, String> sourceNodes = sourceDataNodes(model);
         List<SemanticProgram.SemanticType> types = new ArrayList<>();
         Map<String, String> typeIdsByName = new HashMap<>();
         for (int index = 0; index < model.getDataItems().size(); index++) {
@@ -72,7 +81,6 @@ public final class CobolSemanticProjector {
             typeIdsByName.putIfAbsent(item.name().toUpperCase(Locale.ROOT), header.id());
         }
 
-        List<SemanticProgram.DataIntent> intents = projectIntents(model, annotatedContext, programSpan, sourceNodes);
         Projection projection = statements(model, programSpan, typeIdsByName);
         SemanticProgram.ControlFlow controlFlow = controlFlow(model, programSpan);
 
@@ -154,14 +162,92 @@ public final class CobolSemanticProjector {
                 effects.add(new SemanticProgram.SideEffect(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.SIDE_EFFECT, "external-call:" + role, span),
                         SemanticProgram.EffectKind.EXTERNAL_CALL, List.of(), "Calls " + call.target()));
+                for (int index = 0; index < call.arguments().size(); index++) {
+                    recordExpressionReads(programId, call.arguments().get(index), span, typeIds,
+                            role + ":call-argument:" + index, effects, residual);
+                }
+            } else if (statement instanceof MoveStatement move) {
+                recordExpressionReads(programId, move.source(), span, typeIds,
+                        role + ":move-source", effects, residual);
+                recordWrite(programId, move.target(), span, typeIds,
+                        role + ":move-target", effects, residual);
+            } else if (statement instanceof ComputeStatement compute) {
+                recordExpressionReads(programId, compute.expression(), span, typeIds,
+                        role + ":compute-expression", effects, residual);
+                recordWrite(programId, compute.target(), span, typeIds,
+                        role + ":compute-target", effects, residual);
             } else if (statement instanceof IfStatement branch) {
+                recordExpressionReads(programId, branch.condition(), span, typeIds,
+                        role + ":if-condition", effects, residual);
                 visitStatements(programId, branch.thenStatements(), span, typeIds, paragraph, sequence, effects, io, residual);
                 visitStatements(programId, branch.elseStatements(), span, typeIds, paragraph, sequence, effects, io, residual);
             } else if (statement instanceof EvaluateStatement evaluate) {
-                evaluate.branches().forEach(branch -> visitStatements(programId, branch.statements(), span, typeIds,
-                        paragraph, sequence, effects, io, residual));
+                recordExpressionReads(programId, evaluate.expression(), span, typeIds,
+                        role + ":evaluate-expression", effects, residual);
+                for (int index = 0; index < evaluate.branches().size(); index++) {
+                    EvaluateStatement.EvaluateWhenBranch branch = evaluate.branches().get(index);
+                    recordExpressionReads(programId, branch.condition(), span, typeIds,
+                            role + ":when-condition:" + index, effects, residual);
+                    visitStatements(programId, branch.statements(), span, typeIds,
+                            paragraph, sequence, effects, io, residual);
+                }
             }
         }
+    }
+
+    private void recordExpressionReads(String programId, String expression, SourceSpan span,
+                                       Map<String, String> typeIds, String role,
+                                       List<SemanticProgram.SideEffect> effects,
+                                       List<SemanticProgram.UnclassifiedDataAccess> residual) {
+        if (expression == null || expression.isBlank() || isLiteral(expression)) return;
+        Matcher matcher = DATA_REFERENCE.matcher(STRING_LITERAL.matcher(expression).replaceAll(" "));
+        int reference = 0;
+        while (matcher.find()) {
+            String subject = matcher.group();
+            if (EXPRESSION_KEYWORDS.contains(subject.toUpperCase(Locale.ROOT))) continue;
+            recordRead(programId, subject, span, typeIds, role + ":" + reference++, effects, residual);
+        }
+    }
+
+    private void recordRead(String programId, String subject, SourceSpan span, Map<String, String> typeIds,
+                            String role, List<SemanticProgram.SideEffect> effects,
+                            List<SemanticProgram.UnclassifiedDataAccess> residual) {
+        recordStateAccess(programId, subject, "READ", SemanticProgram.EffectKind.STATE_READ,
+                span, typeIds, role, effects, residual);
+    }
+
+    private void recordWrite(String programId, String subject, SourceSpan span, Map<String, String> typeIds,
+                             String role, List<SemanticProgram.SideEffect> effects,
+                             List<SemanticProgram.UnclassifiedDataAccess> residual) {
+        recordStateAccess(programId, subject, "WRITE", SemanticProgram.EffectKind.STATE_WRITE,
+                span, typeIds, role, effects, residual);
+    }
+
+    private void recordStateAccess(String programId, String subject, String operation,
+                                   SemanticProgram.EffectKind effectKind, SourceSpan span,
+                                   Map<String, String> typeIds, String role,
+                                   List<SemanticProgram.SideEffect> effects,
+                                   List<SemanticProgram.UnclassifiedDataAccess> residual) {
+        if (subject == null || subject.isBlank() || isLiteral(subject)) return;
+        String normalized = subject.strip().toUpperCase(Locale.ROOT);
+        String typeId = typeIds.get(normalized);
+        if (typeId != null) {
+            effects.add(new SemanticProgram.SideEffect(SemanticProgram.Header.create(programId,
+                    SemanticProgram.NodeKind.SIDE_EFFECT, "state-" + operation.toLowerCase(Locale.ROOT) + ":" + role, span),
+                    effectKind, List.of(typeId), operation + " " + subject.strip()));
+        } else {
+            residual.add(new SemanticProgram.UnclassifiedDataAccess(SemanticProgram.Header.create(programId,
+                    SemanticProgram.NodeKind.UNCLASSIFIED_DATA_ACCESS, "unclassified:" + role, span),
+                    subject.strip(), operation, "No matching semantic data node", List.of()));
+        }
+    }
+
+    private static boolean isLiteral(String value) {
+        String text = value.strip();
+        if (text.isEmpty()) return true;
+        if ((text.startsWith("\"") && text.endsWith("\""))
+                || (text.startsWith("'") && text.endsWith("'"))) return true;
+        return text.matches("[+-]?[0-9]+(?:\\.[0-9]+)?");
     }
 
     private SemanticProgram.ControlFlow controlFlow(CobolIntermediateModel model, SourceSpan span) {

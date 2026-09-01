@@ -2,10 +2,16 @@ package org.shark.renovatio.provider.cobol.translation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
+import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
+import org.shark.renovatio.cobol.ir.annotated.AnnotationReview;
+import org.shark.renovatio.cobol.ir.annotated.CobolAnnotation;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,6 +55,63 @@ class CobolSemanticProjectorTest {
         assertEquals("1", program.schemaVersion());
         assertTrue(program.sourceProvenance().parentEvidenceHashes().size() >= 1);
         assertTrue(program.types().stream().noneMatch(type -> type.symbol().contains("java")));
+    }
+
+    @Test
+    void projectsMoveAndComputeDataAccessesAndKeepsUnknownReferencesResidual() {
+        String source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. ACCESS.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 SOURCE PIC 9(4).
+                01 TARGET PIC 9(4).
+                PROCEDURE DIVISION.
+                MAIN.
+                    MOVE SOURCE TO TARGET.
+                    COMPUTE TARGET = SOURCE + UNKNOWN-VALUE.
+                """;
+        var model = models.parse(source);
+
+        SemanticProgram program = projector.project(model, "access.cob", source.getBytes(),
+                Optional.empty(), Optional.empty());
+
+        assertTrue(program.sideEffects().stream().anyMatch(effect ->
+                effect.effectKind() == SemanticProgram.EffectKind.STATE_READ
+                        && effect.description().equals("READ SOURCE")));
+        assertTrue(program.sideEffects().stream().anyMatch(effect ->
+                effect.effectKind() == SemanticProgram.EffectKind.STATE_WRITE
+                        && effect.description().equals("WRITE TARGET")));
+        assertTrue(program.unclassifiedDataAccesses().stream().anyMatch(access ->
+                access.subject().equals("UNKNOWN-VALUE") && access.observedOperation().equals("READ")));
+    }
+
+    @Test
+    void provenanceIncludesOnlyAnnotationsThatProducedAcceptedSemanticIntent() throws Exception {
+        Path fixture = fixture("data-intent-redefines");
+        Path source = fixture.resolve("input.cob");
+        byte[] bytes = Files.readAllBytes(source);
+        var model = models.parse(Files.readString(source));
+        var resolution = new AnnotatedContextResolver(new ObjectMapper()).resolve(
+                new AnnotatedContextResolver.Request(Optional.empty(),
+                        Optional.of(fixture.resolve("data-intent-redefines.annotated.json")), source), model);
+        AnnotatedCobolContext acceptedContext = resolution.context().orElseThrow();
+        CobolAnnotation accepted = acceptedContext.sidecar().annotations().get(0);
+        String proposedId = "0".repeat(64);
+        CobolAnnotation proposed = new CobolAnnotation(proposedId, accepted.nodeId(), accepted.nodeKind(),
+                accepted.annotationFamily(), accepted.payload(), accepted.confidence(), accepted.provenance(),
+                new AnnotationReview(AnnotationReview.ReviewState.PROPOSED, null, null, null));
+        List<CobolAnnotation> annotations = new ArrayList<>(acceptedContext.sidecar().annotations());
+        annotations.add(proposed);
+        AnnotatedCobolModel sidecar = new AnnotatedCobolModel(acceptedContext.sidecar().schemaVersion(),
+                acceptedContext.sidecar().baseIrVersion(), acceptedContext.sidecar().baseIrHash(), annotations);
+
+        SemanticProgram program = projector.project(model, "fixtures/data-intent-redefines/input.cob", bytes,
+                Optional.of("IBM"), Optional.of(new AnnotatedCobolContext(model, sidecar)));
+
+        assertTrue(program.sourceProvenance().parentEvidenceHashes().contains(accepted.annotationId()));
+        assertFalse(program.sourceProvenance().parentEvidenceHashes().contains(proposedId));
+        assertEquals(2, program.sourceProvenance().parentEvidenceHashes().size());
     }
 
     private static Path fixture(String id) throws Exception {

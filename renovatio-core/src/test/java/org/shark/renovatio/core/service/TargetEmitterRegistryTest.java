@@ -48,6 +48,31 @@ class TargetEmitterRegistryTest {
         assertEquals(List.of(AEmitter.class.getName(), BEmitter.class.getName()), error.emitterTypes());
     }
 
+    @Test
+    void requestAdapterSupplementsRegisteredTargetsWithoutHidingThem() {
+        AtomicInteger nodeCalls = new AtomicInteger();
+        AtomicInteger javaCalls = new AtomicInteger();
+        TargetEmitterRegistry registry = new TargetEmitterRegistry(List.of(
+                emitter(MigrationProfile.Language.NODE, nodeCalls)));
+
+        EmittedArtifacts result = registry.emit(model(MigrationProfile.Language.NODE),
+                emitter(MigrationProfile.Language.JAVA, javaCalls));
+
+        assertEquals("A", result.artifacts().get(0).utf8Text());
+        assertEquals(1, nodeCalls.get());
+        assertEquals(0, javaCalls.get());
+    }
+
+    @Test
+    void requestAdapterParticipatesInDuplicateDetection() {
+        TargetEmitterRegistry registry = new TargetEmitterRegistry(List.of(
+                emitter(MigrationProfile.Language.JAVA, new AtomicInteger())));
+
+        assertThrows(TargetEmitterRegistry.DuplicateTargetEmitterException.class,
+                () -> registry.emit(model(MigrationProfile.Language.JAVA),
+                        emitter(MigrationProfile.Language.JAVA, new AtomicInteger())));
+    }
+
     private static TargetEmitter emitter(MigrationProfile.Language language, AtomicInteger calls) {
         return new TargetEmitter() {
             public boolean supports(MigrationProfile.Language target) { return target == language; }

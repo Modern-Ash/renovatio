@@ -6,16 +6,24 @@ import org.junit.jupiter.api.io.TempDir;
 import org.shark.renovatio.core.service.TargetEmitterRegistry;
 import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.profile.MigrationProfile;
+import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.shared.domain.Workspace;
+import org.shark.renovatio.shared.domain.StubResult;
+import org.shark.renovatio.shared.emission.EmittedArtifact;
+import org.shark.renovatio.shared.emission.EmittedArtifacts;
+import org.shark.renovatio.shared.emission.TargetModel;
 import org.shark.renovatio.shared.nql.NqlQuery;
+import org.shark.renovatio.shared.spi.TargetEmitter;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -88,6 +96,80 @@ class JavaGenerationRegistryRoutingTest {
 
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("duplicate artifact path"), result.getMessage());
+    }
+
+    @Test
+    void applicationRegistryEmitsEveryProgramWithItsOwnSemanticEnvelope(@TempDir Path workspacePath) throws Exception {
+        Files.writeString(workspacePath.resolve("first.cob"), COBOL.replace("ROUTED", "FIRST"));
+        Files.writeString(workspacePath.resolve("second.cob"), COBOL.replace("ROUTED", "SECOND"));
+        var dependencies = dependencies();
+        List<TargetModel> received = new ArrayList<>();
+        TargetEmitter node = new TargetEmitter() {
+            @Override
+            public boolean supports(MigrationProfile.Language target) {
+                return target == MigrationProfile.Language.NODE;
+            }
+
+            @Override
+            public EmittedArtifacts emit(TargetModel model, MigrationProfile profile) {
+                received.add(model);
+                String id = model.semanticProgram().programId().toLowerCase();
+                return EmittedArtifacts.of(List.of(EmittedArtifact.utf8(id + ".js", "export const id = '" + id + "';")));
+            }
+        };
+        JavaGenerationService routed = new JavaGenerationService(dependencies.parsing(), dependencies.templates(),
+                dependencies.models(), dependencies.transpiler(), dependencies.mapper(), true,
+                new TargetEmitterRegistry(List.of(node)), ignored -> nodeProfile());
+
+        StubResult result = routed.generateInterfaceStubs(new NqlQuery(),
+                new Workspace("test", workspacePath.toString(), "main"));
+
+        assertTrue(result.isSuccess(), result.getMessage());
+        assertEquals("NODE", result.getTargetLanguage());
+        assertEquals(List.of("FIRST", "SECOND"), received.stream()
+                .map(model -> model.semanticProgram().programId()).sorted().toList());
+        assertEquals(List.of("first.cob", "second.cob"), received.stream()
+                .map(model -> model.sourceProvenance().sourcePath()).sorted().toList());
+        assertEquals(Map.of("first.js", "export const id = 'first';",
+                "second.js", "export const id = 'second';"), result.getGeneratedCode());
+        assertFalse(Files.exists(workspacePath.resolve("generated-java-stubs")));
+    }
+
+    @Test
+    void copybookProjectionFailureDoesNotInvokeLegacyRenderer(@TempDir Path workspacePath) throws Exception {
+        Path copybook = Files.writeString(workspacePath.resolve("broken.cpy"), "01 BROKEN PIC X.\n");
+        var dependencies = dependencies();
+        CobolIntermediateModelService failingModels = new CobolIntermediateModelService() {
+            @Override
+            public org.shark.renovatio.cobol.ir.model.CobolIntermediateModel parse(Path ignored) {
+                throw new IllegalStateException("projection rejected");
+            }
+        };
+        JavaGenerationService routed = new JavaGenerationService(dependencies.parsing(), dependencies.templates(),
+                failingModels, dependencies.transpiler(), dependencies.mapper(), true,
+                new TargetEmitterRegistry(List.of()), ignored -> javaProfile());
+        AtomicBoolean rendered = new AtomicBoolean();
+
+        StubResult result = routed.emitThroughRegistry(copybook, new NqlQuery(),
+                new Workspace("test", workspacePath.toString(), "main"), javaProfile(), semantic -> {
+                    rendered.set(true);
+                    return new StubResult(true, "should not run");
+                });
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("projection rejected"), result.getMessage());
+        assertFalse(rendered.get());
+    }
+
+    private static MigrationProfiles.EffectiveProfile nodeProfile() {
+        MigrationProfile overlay = new MigrationProfile("1", Map.of(),
+                new MigrationProfile.Target(MigrationProfile.Language.NODE, "20"),
+                null, null, null, null, null);
+        return new DecisionResolver().resolve(overlay, List.of());
+    }
+
+    private static MigrationProfiles.EffectiveProfile javaProfile() {
+        return new DecisionResolver().resolve(MigrationProfiles.emptyOverlay(), List.of());
     }
 
     private static Dependencies dependencies() {

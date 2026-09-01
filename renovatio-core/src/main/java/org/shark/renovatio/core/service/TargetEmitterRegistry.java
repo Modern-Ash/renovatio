@@ -42,8 +42,34 @@ public class TargetEmitterRegistry {
         return resolve(model.targetLanguage()).emit(model, model.profile());
     }
 
+    /**
+     * Emits through the application registry while supplementing it with one request-bound adapter.
+     * The adapter participates in availability and duplicate checks without hiding registered targets.
+     */
+    public EmittedArtifacts emit(TargetModel model, TargetEmitter requestAdapter) {
+        Objects.requireNonNull(model, "model");
+        Objects.requireNonNull(requestAdapter, "requestAdapter");
+        MigrationProfile.Language target = model.targetLanguage();
+        TargetEmitter registered = emitters.get(target);
+        boolean requestSupportsTarget = requestAdapter.supports(target);
+        if (registered != null && requestSupportsTarget) {
+            throw new DuplicateTargetEmitterException(target, List.of(registered, requestAdapter));
+        }
+        TargetEmitter selected = requestSupportsTarget ? requestAdapter : registered;
+        if (selected == null) throw new TargetEmitterUnavailableException(target, availableTargets(requestAdapter));
+        return selected.emit(model, model.profile());
+    }
+
     public List<MigrationProfile.Language> availableTargets() {
         return emitters.keySet().stream().sorted(Comparator.comparing(Enum::name)).toList();
+    }
+
+    private List<MigrationProfile.Language> availableTargets(TargetEmitter requestAdapter) {
+        List<MigrationProfile.Language> available = new ArrayList<>(emitters.keySet());
+        for (MigrationProfile.Language target : MigrationProfile.Language.values()) {
+            if (requestAdapter.supports(target) && !available.contains(target)) available.add(target);
+        }
+        return available.stream().sorted(Comparator.comparing(Enum::name)).toList();
     }
 
     public static final class TargetEmitterUnavailableException extends IllegalStateException {

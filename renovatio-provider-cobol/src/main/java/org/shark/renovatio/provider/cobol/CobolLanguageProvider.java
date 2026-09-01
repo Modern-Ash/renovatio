@@ -163,8 +163,13 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
 
     @Override
     public Optional<StubResult> generateStubs(NqlQuery query, Workspace workspace) {
+        return generateStubs(query, workspace, javaGenerationService.effectiveProfile(workspace));
+    }
+
+    public Optional<StubResult> generateStubs(NqlQuery query, Workspace workspace,
+                                              MigrationProfiles.EffectiveProfile effective) {
         try {
-            return Optional.of(javaGenerationService.generateInterfaceStubs(query, workspace));
+            return Optional.of(javaGenerationService.generateInterfaceStubs(query, workspace, effective));
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
         } catch (Exception e) {
@@ -186,7 +191,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
      * Migrate a specific COBOL copybook to Java artifacts using templates.
      */
     public StubResult migrateCopybook(NqlQuery query, Workspace workspace) {
-        return migrateCopybook(query, workspace, javaGenerationService.defaultEffectiveProfile());
+        return migrateCopybook(query, workspace, javaGenerationService.effectiveProfile(workspace));
     }
 
     StubResult migrateCopybook(NqlQuery query, Workspace workspace,
@@ -244,7 +249,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
      * Generate JPA artifacts from embedded DB2 EXEC SQL statements.
      */
     public StubResult migrateDb2(NqlQuery query, Workspace workspace) {
-        return migrateDb2(query, workspace, javaGenerationService.defaultEffectiveProfile());
+        return migrateDb2(query, workspace, javaGenerationService.effectiveProfile(workspace));
     }
 
     StubResult migrateDb2(NqlQuery query, Workspace workspace,
@@ -313,7 +318,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
      * @return StubResult containing decomposed components
      */
     public StubResult decomposeControlBreaks(Workspace workspace) {
-        return decomposeControlBreaks(workspace, javaGenerationService.defaultEffectiveProfile());
+        return decomposeControlBreaks(workspace, javaGenerationService.effectiveProfile(workspace));
     }
 
     StubResult decomposeControlBreaks(Workspace workspace,

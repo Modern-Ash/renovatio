@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,6 +46,29 @@ class CobolLanguageProviderEmitterRoutingTest {
         assertUnavailable(() -> provider.migrateDb2(db2, workspace, node));
         assertUnavailable(() -> provider.decomposeControlBreaks(workspace, node));
 
+    }
+
+    @Test
+    void generateStubsResolvesAndPreservesProjectEffectiveProfileOnce(@TempDir Path root) throws Exception {
+        Files.writeString(root.resolve("routing.cbl"), COBOL);
+        CobolParsingService parsing = new CobolParsingService(CobolParsingService.Dialect.IBM);
+        TemplateCodeGenerationService templates = new TemplateCodeGenerationService();
+        CobolIntermediateModelService models = new CobolIntermediateModelService();
+        AtomicInteger resolutions = new AtomicInteger();
+        JavaGenerationService generation = new JavaGenerationService(parsing, templates, models,
+                new CobolSemanticTranspiler(new OpenRewriteRunner()),
+                new ObjectMapper().findAndRegisterModules(), true, new TargetEmitterRegistry(List.of()), projectId -> {
+                    assertEquals("project-42", projectId);
+                    resolutions.incrementAndGet();
+                    return nodeProfile();
+                });
+        CobolLanguageProvider provider = new CobolLanguageProvider(parsing, generation,
+                new MigrationPlanService(parsing, generation), new IndexingService(), new MetricsService(), templates,
+                new Db2MigrationService(parsing), new ControlBreakDecompositionService(models, parsing));
+
+        assertUnavailable(() -> provider.generateStubs(new NqlQuery(),
+                new Workspace("project-42", root.toString(), "main")));
+        assertEquals(1, resolutions.get());
     }
 
     private static void assertUnavailable(org.junit.jupiter.api.function.Executable action) {

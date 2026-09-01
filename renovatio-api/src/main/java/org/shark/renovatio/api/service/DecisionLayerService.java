@@ -3,6 +3,7 @@ package org.shark.renovatio.api.service;
 import org.shark.renovatio.api.repository.ProjectRepository;
 import org.shark.renovatio.decisions.DecisionPoint;
 import org.shark.renovatio.decisions.DecisionResolver;
+import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.decisions.DecisionStore;
 import org.shark.renovatio.decisions.DecisionTransitions;
 import org.shark.renovatio.decisions.F1DecisionCatalog;
@@ -18,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class DecisionLayerService {
+public class DecisionLayerService implements EffectiveProfileResolver {
     private final ProjectRepository projects;
     private final ProfileStore profiles;
     private final DecisionStore decisions;
@@ -60,6 +61,11 @@ public class DecisionLayerService {
     }
     public MigrationProfiles.EffectiveProfile effective(String projectId) {
         return resolver.resolve(profile(projectId).profile(), decisions(projectId, null, null, null));
+    }
+
+    @Override
+    public MigrationProfiles.EffectiveProfile resolve(String projectId) {
+        return effective(projectId);
     }
 
     public void deleteProjectData(String projectId) {
