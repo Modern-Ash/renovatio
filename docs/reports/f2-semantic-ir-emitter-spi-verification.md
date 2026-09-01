@@ -2,7 +2,7 @@
 
 - **Agora work:** `decision-engine-f2/f2-semantic-ir-emitter-spi`
 - **GitHub issue:** #147
-- **Reviewed implementation:** `2d05633a3ce6bc372ef2b3928371e6201c2718d5`
+- **Reviewed implementation:** `484bf70757c8b24ca7a5b2ddf5d2fb9e545a4341`
 - **F1 baseline:** `152d57462d4d7fc2b4554b6a1f029ae44e96d97a`
 - **Toolchain:** Apache Maven 3.9.12; OpenJDK 21.0.12; source release 17
 - **Result:** review-ready; Agora completion remains pending PR review
@@ -43,25 +43,37 @@ The six valid review findings received on PR #159 were addressed at
 6. Copybook semantic projection is fail-closed; parse or annotation failures no
    longer invoke a legacy renderer with an empty semantic envelope.
 
+The four valid findings from the subsequent PR re-review were addressed at
+`484bf70757c8b24ca7a5b2ddf5d2fb9e545a4341`:
+
+1. Applying a migration plan now propagates the structured
+   `TARGET_EMITTER_UNAVAILABLE` failure instead of reporting a successful run.
+2. Control-break routing emits every deterministically ordered COBOL source as
+   its own semantic envelope; the Java callback decomposes only that source.
+3. Standalone copybooks are projected through a copybook-aware synthetic data
+   section, so registered emitters receive their declared semantic fields.
+4. DB2 `SELECT`, `FETCH`, and `VALUES` operations are reads; known mutations are
+   writes; cursor lifecycle and unclassified statements remain `UNKNOWN`.
+
 ## Verification matrix
 
 | Gate | Command / proof | Result |
 |---|---|---|
 | Semantic/shared contracts | `mvn -pl renovatio-shared -am test` | PASS — semantic IR 5, profile 7, shared 26 |
 | Architecture and registry | `F2ArchitectureTest`, `TargetEmitterRegistryTest`, structured error-path tests in the functional reactor | PASS — ArchUnit 2; registry 5; error paths 5 |
-| COBOL projection and provider | `mvn -pl renovatio-provider-cobol -am test` | PASS — provider 95; all 12 modules green; 299 tests |
+| COBOL projection and provider | `mvn -pl renovatio-provider-cobol -am test` | PASS — provider 99; all 12 modules green; 303 tests |
 | Issue #122 corpus | `mvn -pl renovatio-provider-cobol -am -Dtest=CharacterizationFixtureContractTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 13 fixtures traverse the F2 boundary; 2 supported byte comparisons, 11 residual empty emissions |
 | Annotation projection | `AnnotationApplicatorDataIntentTest` and the annotated characterization fixture | PASS — neutral and compatibility paths emit identical Java source bytes |
-| Review regressions | `mvn -pl renovatio-provider-cobol -am -Dtest=JavaGenerationRegistryRoutingTest,CobolLanguageProviderEmitterRoutingTest,CobolSemanticProjectorTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 11 tests, six findings covered |
+| Review regressions | `mvn -pl renovatio-provider-cobol -Dtest=CobolLanguageProviderEmitterRoutingTest,CobolSemanticProjectorTest test` plus the full reactor | PASS — 15 focused tests across the three F2 routing/projector classes; ten findings covered |
 | Multi-program aggregation | `JavaGenerationRegistryRoutingTest` | PASS — 5 tests, including per-source provenance, duplicate-path rejection, copybook fail-closed, and NODE selection |
-| Java-producing provider tools | `CobolLanguageProviderEmitterRoutingTest` | PASS — effective profile resolved once; copybook, DB2, and control-break routes stop on unavailable NODE target |
+| Java-producing provider tools | `CobolLanguageProviderEmitterRoutingTest` | PASS — 5 tests; effective profile, plan propagation, multi-source control-break routing, and copybook field projection covered |
 | API integration | `mvn -pl renovatio-api -am -Dexec.skip=true -Dtest=DecisionLayerApiTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 9 tests; Spring profile/registry wiring green |
 | MCP and CLI regression | `mvn -pl renovatio-mcp-server,renovatio-cli -am -Dexec.skip=true test` | PASS — MCP 22, CLI 18; 14-module reactor green |
 | Source hygiene | `git diff --check` | PASS |
 
 The full provider reactor also recorded these upstream counts: core 39,
 provider-java 14, COBOL runtime 23, COBOL IR 55, annotations 2, recipes 25,
-decisions 8, and provider-cobol 95. No fixture golden or JaCoCo threshold was
+decisions 8, and provider-cobol 99. No fixture golden or JaCoCo threshold was
 changed.
 
 ## Literal install and baseline exception
@@ -100,6 +112,6 @@ exception allowed by the spec. The threshold remains 1.0.
 ## Remaining lifecycle actions
 
 1. Register this review revision as `test-report` and successful evidence.
-2. Resolve the six addressed PR review threads and await the next external
+2. Resolve the four addressed PR re-review threads and await the next external
    review/check cycle.
 3. Only after the PR is accepted seek the Spec Owner completion approval.

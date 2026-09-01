@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "f2-semantic-ir-emitter-spi"
 swarm: "decision-engine-f2"
 title: "F2 \u00b7 Semantic IR and TargetEmitter SPI (issue #147)"
-state: "implementing"
+state: "verifying"
 revision: 1
 operational-status: "active"
 status-reason: null

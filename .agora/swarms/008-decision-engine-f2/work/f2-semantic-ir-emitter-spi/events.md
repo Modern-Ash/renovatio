@@ -81,3 +81,9 @@
 - 2026-09-01T15:17:30.477933Z | tool.running | run=tool-20260901t15171788286636z actor=project:agent
 - 2026-09-01T15:17:30.494205Z | tool.failed | run=tool-20260901t15171788286636z exit-code=128
 - 2026-09-01T15:17:46.290882Z | tool.prepared | run=tool-20260901t15171788286666z tool=repository operation=commit actor=project:agent
+- 2026-09-01T15:17:59.729640Z | tool.running | run=tool-20260901t15171788286666z actor=project:agent
+- 2026-09-01T15:17:59.754572Z | tool.completed | run=tool-20260901t15171788286666z exit-code=0
+- 2026-09-01T15:18:33.476992Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T15:18:33.676402Z | evidence.added | id=evidence-000004 type=review-remediation result=success revision=1 actor=project:agent
+- 2026-09-01T15:18:37.206541Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T15:18:40.964627Z | tool.prepared | run=tool-20260901t15181788286720z tool=repository operation=commit actor=project:agent
