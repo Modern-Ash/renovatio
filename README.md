@@ -329,7 +329,6 @@ If you introduce new POJOs, prefer Lombok annotations (e.g., `@Data`, or `@Gette
 
 ---
 
-<sub>A <img src="docs/assets/modern-ash.png" alt="ModernAsh" height="18"> project · <a href="https://github.com/Modern-Ash">github.com/Modern-Ash</a></sub>
-
-
 **Renovatio** – Focused MCP server for code migration and modernization.
+
+<sub>A <img src="docs/assets/modern-ash.png" alt="ModernAsh" height="18"> project · <a href="https://github.com/Modern-Ash">github.com/Modern-Ash</a></sub>
