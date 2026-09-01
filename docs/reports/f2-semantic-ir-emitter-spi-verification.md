@@ -2,7 +2,7 @@
 
 - **Agora work:** `decision-engine-f2/f2-semantic-ir-emitter-spi`
 - **GitHub issue:** #147
-- **Reviewed implementation:** `6bee7cdb65ba18f1f85f4e18b04d8bfca28c3529`
+- **Reviewed implementation:** `eaf429edbca5ee90e9c6a145aeedafda2748231c`
 - **F1 baseline:** `152d57462d4d7fc2b4554b6a1f029ae44e96d97a`
 - **Toolchain:** Apache Maven 3.9.12; OpenJDK 21.0.12; source release 17
 - **Result:** review-ready; Agora completion remains pending PR review
@@ -66,6 +66,13 @@ The three valid findings from the third review cycle were addressed at
 3. OPEN and CLOSE file operations project `UNKNOWN` direction, and OPEN parsing
    records the actual file resource instead of the INPUT/OUTPUT mode token.
 
+The valid finding from the fourth review cycle was addressed at
+`eaf429edbca5ee90e9c6a145aeedafda2748231c`:
+
+1. Artifact path validation preserves trailing empty segments after slash
+   normalization, rejecting both `/` and `\\` terminal separators before
+   duplicate-path collection or filesystem resolution.
+
 ## Verification matrix
 
 | Gate | Command / proof | Result |
@@ -75,7 +82,7 @@ The three valid findings from the third review cycle were addressed at
 | COBOL projection and provider | `mvn -pl renovatio-provider-cobol -am test` | PASS — provider 101; all 12 modules green; 305 tests |
 | Issue #122 corpus | `mvn -pl renovatio-provider-cobol -am -Dtest=CharacterizationFixtureContractTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 13 fixtures traverse the F2 boundary; 2 supported byte comparisons, 11 residual empty emissions |
 | Annotation projection | `AnnotationApplicatorDataIntentTest` and the annotated characterization fixture | PASS — neutral and compatibility paths emit identical Java source bytes |
-| Review regressions | `SemanticProgramTest`, `AnnotationApplicatorDataIntentTest`, `CobolSemanticProjectorTest`, `CobolLanguageProviderEmitterRoutingTest`, and the characterization corpus | PASS — thirteen PR findings covered with exact Java-byte compatibility |
+| Review regressions | `TargetEmissionContractTest`, `SemanticProgramTest`, `AnnotationApplicatorDataIntentTest`, `CobolSemanticProjectorTest`, `CobolLanguageProviderEmitterRoutingTest`, and the characterization corpus | PASS — fourteen PR findings covered with exact Java-byte compatibility |
 | Multi-program aggregation | `JavaGenerationRegistryRoutingTest` | PASS — 5 tests, including per-source provenance, duplicate-path rejection, copybook fail-closed, and NODE selection |
 | Java-producing provider tools | `CobolLanguageProviderEmitterRoutingTest` | PASS — 6 tests; effective profile, unavailable and throwing emitters, multi-source control-break routing, and copybook field projection covered |
 | API integration | `mvn -pl renovatio-api -am -Dexec.skip=true -Dtest=DecisionLayerApiTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 9 tests; Spring profile/registry wiring green |
@@ -123,6 +130,6 @@ exception allowed by the spec. The threshold remains 1.0.
 ## Remaining lifecycle actions
 
 1. Register this review revision as `test-report` and successful evidence.
-2. Resolve the three addressed PR review threads and await the next external
+2. Resolve the addressed PR review thread and await the next external
    review/check cycle.
 3. Only after the PR is accepted seek the Spec Owner completion approval.
