@@ -147,6 +147,8 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     public ApplyResult apply(String planId, boolean dryRun, Workspace workspace) {
         try {
             return migrationPlanService.applyMigrationPlan(planId, dryRun, workspace);
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
         } catch (Exception e) {
             return new ApplyResult(false, MSG_APPLY_FAILED + e.getMessage());
         }
@@ -219,7 +221,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
 
             Path source = copybookPath.orElseThrow();
             String selectedName = copybookName;
-            return javaGenerationService.emitThroughRegistry(source, query, workspace, effective,
+            return javaGenerationService.emitCopybookThroughRegistry(source, query, workspace, effective,
                     ignored -> generateCopybook(selectedName, source));
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
@@ -325,12 +327,31 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                                       MigrationProfiles.EffectiveProfile effective) {
         try {
             Path root = Paths.get(workspace.getPath());
-            Optional<Path> source = parsingService.findCobolSourceFiles(root).stream().sorted().findFirst();
-            if (source.isEmpty()) {
+            List<Path> sources = parsingService.findCobolSourceFiles(root).stream().sorted().toList();
+            if (sources.isEmpty()) {
                 return new StubResult(false, "No COBOL programs found for control break decomposition");
             }
-            return javaGenerationService.emitThroughRegistry(source.orElseThrow(), null, workspace, effective,
-                    ignored -> decomposeControlBreaksLegacy(workspace));
+            Map<String, String> generated = new LinkedHashMap<>();
+            for (Path source : sources) {
+                StubResult emitted = javaGenerationService.emitThroughRegistry(source, null, workspace, effective,
+                        ignored -> decomposeControlBreakLegacy(workspace, source));
+                if (!emitted.isSuccess()) {
+                    return emitted;
+                }
+                if (emitted.getGeneratedCode() != null) {
+                    emitted.getGeneratedCode().forEach((path, content) -> {
+                        if (generated.putIfAbsent(path, content) != null) {
+                            throw new IllegalArgumentException("duplicate artifact path: " + path);
+                        }
+                    });
+                }
+            }
+            StubResult result = new StubResult(!generated.isEmpty(), generated.isEmpty()
+                    ? "No control break patterns detected"
+                    : "Generated " + generated.size() + " decomposed target artifact(s)");
+            result.setGeneratedCode(generated);
+            result.setTargetLanguage(effective.profile().target().language().name());
+            return result;
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
         } catch (Exception exception) {
@@ -338,36 +359,15 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         }
     }
 
-    private StubResult decomposeControlBreaksLegacy(Workspace workspace) {
+    private StubResult decomposeControlBreakLegacy(Workspace workspace, Path source) {
         try {
-            var analysisResult = decompositionService.analyzeAndDecompose(workspace);
-            
-            if (!analysisResult.hasResults()) {
-                return new StubResult(false, 
-                        "No control break patterns detected. Programs may not use ISAM/sequential file processing with grouping.");
+            var decomposition = decompositionService.decomposeProgram(source);
+            if (decomposition == null) {
+                StubResult result = new StubResult(true, "No control break patterns detected in " + source.getFileName());
+                result.setGeneratedCode(Map.of());
+                return result;
             }
-            
-            // Generate code for each decomposed program
-            Map<String, String> allGenerated = new LinkedHashMap<>();
-            for (var decomposition : analysisResult.getDecompositions()) {
-                StubResult genResult = decompositionService.generateDecomposedCode(decomposition, workspace);
-                if (genResult.isSuccess() && genResult.getGeneratedCode() != null) {
-                    allGenerated.putAll(genResult.getGeneratedCode());
-                }
-            }
-            
-            StringBuilder message = new StringBuilder();
-            message.append("Decomposed ").append(analysisResult.getDecompositions().size()).append(" program(s) ");
-            message.append("with ").append(analysisResult.getTotalControlBreakPatterns()).append(" control break pattern(s). ");
-            message.append("Generated ").append(allGenerated.size()).append(" reusable component(s).");
-            
-            if (!analysisResult.getErrors().isEmpty()) {
-                message.append(" Errors: ").append(analysisResult.getErrors().size());
-            }
-            
-            StubResult result = new StubResult(true, message.toString());
-            result.setGeneratedCode(allGenerated);
-            return result;
+            return decompositionService.generateDecomposedCode(decomposition, workspace);
         } catch (Exception e) {
             return new StubResult(false, "Control break decomposition failed: " + e.getMessage());
         }

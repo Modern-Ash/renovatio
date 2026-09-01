@@ -153,8 +153,7 @@ public final class CobolSemanticProjector {
                         file.operationType().name(), Optional.of(file.fileName()), direction, List.of()));
             } else if (statement instanceof Db2Statement db2) {
                 String operation = firstToken(db2.sql());
-                SemanticProgram.Direction direction = "SELECT".equals(operation)
-                        ? SemanticProgram.Direction.READ : SemanticProgram.Direction.WRITE;
+                SemanticProgram.Direction direction = databaseDirection(operation);
                 io.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.IO_OPERATION, "database:" + role, span),
                         SemanticProgram.IoKind.DATABASE, operation, Optional.empty(), direction, List.of()));
@@ -193,6 +192,14 @@ public final class CobolSemanticProjector {
                 }
             }
         }
+    }
+
+    private static SemanticProgram.Direction databaseDirection(String operation) {
+        return switch (operation) {
+            case "SELECT", "FETCH", "VALUES" -> SemanticProgram.Direction.READ;
+            case "INSERT", "UPDATE", "DELETE", "MERGE" -> SemanticProgram.Direction.WRITE;
+            default -> SemanticProgram.Direction.UNKNOWN;
+        };
     }
 
     private void recordExpressionReads(String programId, String expression, SourceSpan span,

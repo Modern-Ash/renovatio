@@ -1,5 +1,6 @@
 package org.shark.renovatio.provider.cobol.service;
 
+import org.shark.renovatio.core.service.TargetEmitterRegistry;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.shared.util.BenchmarkUtils;
@@ -103,6 +104,8 @@ public class MigrationPlanService {
 
                     executedSteps.add(step.getDescription());
 
+                } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+                    throw unavailable;
                 } catch (Exception e) {
                     run.setError("Failed to execute step: " + step.getDescription() + " - " + e.getMessage());
                     break;
@@ -134,6 +137,8 @@ public class MigrationPlanService {
 
             return result;
 
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
         } catch (Exception e) {
             return new ApplyResult(false, "Migration application failed: " + e.getMessage());
         }

@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import javax.lang.model.element.Modifier;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -166,29 +167,48 @@ public class JavaGenerationService {
                                           Function<SemanticProgram, StubResult> generation) {
         try {
             SemanticProgram semantic = semanticProgram(source, query, workspace);
-            TargetModel targetModel = TargetModel.from(semantic, effective);
-            AtomicReference<StubResult> resultReference = new AtomicReference<>();
-            JavaEmitter javaEmitter = new JavaEmitter((ignoredModel, ignoredProfile) -> {
-                StubResult result = generation.apply(semantic);
-                resultReference.set(result);
-                return result.isSuccess() && result.getGeneratedCode() != null
-                        ? EmittedArtifacts.fromUtf8(result.getGeneratedCode())
-                        : new EmittedArtifacts(List.of());
-            });
-            EmittedArtifacts emitted = emitterRegistry.emit(targetModel, javaEmitter);
-            StubResult result = resultReference.get();
-            if (result == null) {
-                result = new StubResult(!emitted.artifacts().isEmpty(), emitted.artifacts().isEmpty()
-                        ? "No target files generated" : "Generated " + emitted.artifacts().size() + " target files");
-            }
-            if (result.isSuccess()) result.setGeneratedCode(emitted.utf8TextByPath());
-            result.setTargetLanguage(effective.profile().target().language().name());
-            return result;
+            return emitProjected(semantic, effective, generation);
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
         } catch (Exception exception) {
             return new StubResult(false, "Target emission failed: " + exception.getMessage());
         }
+    }
+
+    /** Routes a standalone copybook through a data-section-aware semantic projection. */
+    public StubResult emitCopybookThroughRegistry(Path source, NqlQuery query, Workspace workspace,
+                                                  MigrationProfiles.EffectiveProfile effective,
+                                                  Function<SemanticProgram, StubResult> generation) {
+        try {
+            SemanticProgram semantic = copybookSemanticProgram(source, query, workspace);
+            return emitProjected(semantic, effective, generation);
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception exception) {
+            return new StubResult(false, "Target emission failed: " + exception.getMessage());
+        }
+    }
+
+    private StubResult emitProjected(SemanticProgram semantic, MigrationProfiles.EffectiveProfile effective,
+                                     Function<SemanticProgram, StubResult> generation) {
+        TargetModel targetModel = TargetModel.from(semantic, effective);
+        AtomicReference<StubResult> resultReference = new AtomicReference<>();
+        JavaEmitter javaEmitter = new JavaEmitter((ignoredModel, ignoredProfile) -> {
+            StubResult result = generation.apply(semantic);
+            resultReference.set(result);
+            return result.isSuccess() && result.getGeneratedCode() != null
+                    ? EmittedArtifacts.fromUtf8(result.getGeneratedCode())
+                    : new EmittedArtifacts(List.of());
+        });
+        EmittedArtifacts emitted = emitterRegistry.emit(targetModel, javaEmitter);
+        StubResult result = resultReference.get();
+        if (result == null) {
+            result = new StubResult(!emitted.artifacts().isEmpty(), emitted.artifacts().isEmpty()
+                    ? "No target files generated" : "Generated " + emitted.artifacts().size() + " target files");
+        }
+        if (result.isSuccess()) result.setGeneratedCode(emitted.utf8TextByPath());
+        result.setTargetLanguage(effective.profile().target().language().name());
+        return result;
     }
 
     public MigrationProfiles.EffectiveProfile defaultEffectiveProfile() {
@@ -326,6 +346,31 @@ public class JavaGenerationService {
         String relative = root.relativize(normalizedSource).toString().replace('\\', '/');
         byte[] bytes = Files.readAllBytes(normalizedSource);
         CobolIntermediateModel model = intermediateModelService.parse(normalizedSource);
+        AnnotatedContextResolver.Resolution annotated = annotatedContextResolver.resolve(
+                new AnnotatedContextResolver.Request(Optional.empty(), Optional.empty(), normalizedSource), model);
+        return semanticProjector.project(model, relative, bytes,
+                Optional.ofNullable(resolveDialect(query, workspace)), annotated.context());
+    }
+
+    private SemanticProgram copybookSemanticProgram(Path source, NqlQuery query, Workspace workspace) throws Exception {
+        Path root = Paths.get(workspace.getPath()).toAbsolutePath().normalize();
+        Path normalizedSource = source.toAbsolutePath().normalize();
+        String relative = root.relativize(normalizedSource).toString().replace('\\', '/');
+        byte[] bytes = Files.readAllBytes(normalizedSource);
+        String copybook = new String(bytes, StandardCharsets.UTF_8);
+        String programId = normalizedSource.getFileName().toString().replaceFirst("\\.[^.]+$", "")
+                .replaceAll("[^A-Za-z0-9-]", "-");
+        String projectionSource = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. %s.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                %s
+                PROCEDURE DIVISION.
+                COPYBOOK-PROJECTION.
+                    STOP RUN.
+                """.formatted(programId, copybook);
+        CobolIntermediateModel model = intermediateModelService.parse(projectionSource);
         AnnotatedContextResolver.Resolution annotated = annotatedContextResolver.resolve(
                 new AnnotatedContextResolver.Request(Optional.empty(), Optional.empty(), normalizedSource), model);
         return semanticProjector.project(model, relative, bytes,

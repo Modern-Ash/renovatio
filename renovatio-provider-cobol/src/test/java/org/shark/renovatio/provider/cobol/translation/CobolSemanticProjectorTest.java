@@ -12,7 +12,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -112,6 +114,36 @@ class CobolSemanticProjectorTest {
         assertTrue(program.sourceProvenance().parentEvidenceHashes().contains(accepted.annotationId()));
         assertFalse(program.sourceProvenance().parentEvidenceHashes().contains(proposedId));
         assertEquals(2, program.sourceProvenance().parentEvidenceHashes().size());
+    }
+
+    @Test
+    void classifiesDb2DirectionsWithoutTreatingCursorOperationsAsWrites() {
+        String source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SQLDIRECTION.
+                PROCEDURE DIVISION.
+                MAIN.
+                    EXEC SQL SELECT COL FROM TAB END-EXEC.
+                    EXEC SQL FETCH CURSOR-A INTO :VALUE-A END-EXEC.
+                    EXEC SQL DECLARE CURSOR-A CURSOR FOR SELECT COL FROM TAB END-EXEC.
+                    EXEC SQL OPEN CURSOR-A END-EXEC.
+                    EXEC SQL CLOSE CURSOR-A END-EXEC.
+                    EXEC SQL UPDATE TAB SET COL = 1 END-EXEC.
+                """;
+        var model = models.parse(source);
+
+        SemanticProgram program = projector.project(model, "sql-direction.cob", source.getBytes(),
+                Optional.empty(), Optional.empty());
+        Map<String, SemanticProgram.Direction> directions = program.ioOperations().stream()
+                .collect(Collectors.toMap(SemanticProgram.IoOperation::operation,
+                        SemanticProgram.IoOperation::direction));
+
+        assertEquals(SemanticProgram.Direction.READ, directions.get("SELECT"));
+        assertEquals(SemanticProgram.Direction.READ, directions.get("FETCH"));
+        assertEquals(SemanticProgram.Direction.UNKNOWN, directions.get("DECLARE"));
+        assertEquals(SemanticProgram.Direction.UNKNOWN, directions.get("OPEN"));
+        assertEquals(SemanticProgram.Direction.UNKNOWN, directions.get("CLOSE"));
+        assertEquals(SemanticProgram.Direction.WRITE, directions.get("UPDATE"));
     }
 
     private static Path fixture(String id) throws Exception {
