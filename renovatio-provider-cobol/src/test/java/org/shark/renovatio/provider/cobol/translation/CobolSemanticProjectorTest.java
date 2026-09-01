@@ -4,8 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
+import org.shark.renovatio.cobol.ir.annotated.AnnotatedIdentity;
+import org.shark.renovatio.cobol.ir.annotated.AnnotationProvenance;
 import org.shark.renovatio.cobol.ir.annotated.AnnotationReview;
 import org.shark.renovatio.cobol.ir.annotated.CobolAnnotation;
+import org.shark.renovatio.cobol.ir.annotated.DataIntentPayload;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.nio.file.Files;
@@ -116,8 +119,52 @@ class CobolSemanticProjectorTest {
                 Optional.of("IBM"), Optional.of(new AnnotatedCobolContext(model, sidecar)));
 
         assertTrue(program.sourceProvenance().parentEvidenceHashes().contains(accepted.annotationId()));
+        assertTrue(program.sourceProvenance().parentEvidenceHashes().contains(accepted.provenance().outputHash()));
         assertFalse(program.sourceProvenance().parentEvidenceHashes().contains(proposedId));
-        assertEquals(2, program.sourceProvenance().parentEvidenceHashes().size());
+        assertEquals(3, program.sourceProvenance().parentEvidenceHashes().size());
+    }
+
+    @Test
+    void provenanceChangesWhenAcceptedAnnotationOutputChanges() throws Exception {
+        Path fixture = fixture("data-intent-redefines");
+        Path source = fixture.resolve("input.cob");
+        byte[] bytes = Files.readAllBytes(source);
+        var model = models.parse(Files.readString(source));
+        var resolution = new AnnotatedContextResolver(new ObjectMapper()).resolve(
+                new AnnotatedContextResolver.Request(Optional.empty(),
+                        Optional.of(fixture.resolve("data-intent-redefines.annotated.json")), source), model);
+        AnnotatedCobolContext originalContext = resolution.context().orElseThrow();
+        CobolAnnotation original = originalContext.sidecar().annotations().get(0);
+        DataIntentPayload originalPayload = (DataIntentPayload) original.payload();
+        DataIntentPayload revisedPayload = new DataIntentPayload(originalPayload.construction(),
+                originalPayload.interpretation() + " revised", originalPayload.assumptions());
+        AnnotationProvenance provenance = original.provenance();
+        AnnotationProvenance revisedProvenance = new AnnotationProvenance(provenance.provider(), provenance.model(),
+                provenance.promptId(), provenance.promptVersion(), provenance.outputSchemaVersion(),
+                provenance.inputHash(), AnnotatedIdentity.outputHash(original.annotationFamily(), revisedPayload,
+                        original.confidence()), provenance.toolRunRef(), provenance.cacheDisposition());
+        CobolAnnotation revised = new CobolAnnotation(original.annotationId(), original.nodeId(), original.nodeKind(),
+                original.annotationFamily(), revisedPayload, original.confidence(), revisedProvenance,
+                original.review());
+        assertEquals(original.annotationId(),
+                AnnotatedIdentity.annotationId(revised.nodeId(), revised.annotationFamily(), revised.provenance()));
+        AnnotatedCobolModel revisedSidecar = new AnnotatedCobolModel(originalContext.sidecar().schemaVersion(),
+                originalContext.sidecar().baseIrVersion(), originalContext.sidecar().baseIrHash(), List.of(revised));
+
+        SemanticProgram originalProgram = projector.project(model, "fixtures/data-intent-redefines/input.cob", bytes,
+                Optional.of("IBM"), Optional.of(originalContext));
+        SemanticProgram revisedProgram = projector.project(model, "fixtures/data-intent-redefines/input.cob", bytes,
+                Optional.of("IBM"), Optional.of(new AnnotatedCobolContext(model, revisedSidecar)));
+
+        assertEquals(originalProgram.dataIntents().get(0).evidenceId(),
+                revisedProgram.dataIntents().get(0).evidenceId());
+        assertNotEquals(originalProgram.dataIntents(), revisedProgram.dataIntents());
+        assertNotEquals(originalProgram.sourceProvenance().parentEvidenceHashes(),
+                revisedProgram.sourceProvenance().parentEvidenceHashes());
+        assertTrue(originalProgram.sourceProvenance().parentEvidenceHashes()
+                .contains(original.provenance().outputHash()));
+        assertTrue(revisedProgram.sourceProvenance().parentEvidenceHashes()
+                .contains(revised.provenance().outputHash()));
     }
 
     @Test

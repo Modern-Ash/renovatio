@@ -79,11 +79,18 @@ public final class CobolSemanticProjector {
             }
         }
 
-        List<SemanticProgram.DataIntent> intents = projectIntents(model, annotatedContext, programSpan,
+        List<CobolAnnotation> contributingAnnotations = contributingAnnotations(model, annotatedContext,
                 typeIdsBySourceNode);
+        List<SemanticProgram.DataIntent> intents = contributingAnnotations.stream()
+                .map(annotation -> intent(model.getProgramId(), programSpan, annotation,
+                        typeIdsBySourceNode.get(annotation.nodeId())))
+                .toList();
         List<String> evidence = new ArrayList<>();
         evidence.add(baseHash);
-        intents.stream().map(SemanticProgram.DataIntent::evidenceId).forEach(evidence::add);
+        contributingAnnotations.forEach(annotation -> {
+            evidence.add(annotation.annotationId());
+            evidence.add(annotation.provenance().outputHash());
+        });
         SourceProvenance provenance = new SourceProvenance(sourcePath, sha256(bytes), "COBOL",
                 dialect == null ? Optional.empty() : dialect, evidence);
 
@@ -95,8 +102,8 @@ public final class CobolSemanticProjector {
                 projection.effects(), projection.io(), controlFlow, projection.unclassified());
     }
 
-    private List<SemanticProgram.DataIntent> projectIntents(CobolIntermediateModel model,
-            Optional<AnnotatedCobolContext> context, SourceSpan span, Map<String, String> typeIdsBySourceNode) {
+    private List<CobolAnnotation> contributingAnnotations(CobolIntermediateModel model,
+            Optional<AnnotatedCobolContext> context, Map<String, String> typeIdsBySourceNode) {
         if (context == null || context.isEmpty()) return List.of();
         AnnotatedCobolContext value = context.orElseThrow();
         if (value.baseModel() != model && !identities.baseIrHash(value.baseModel()).equals(identities.baseIrHash(model))) {
@@ -109,8 +116,7 @@ public final class CobolSemanticProjector {
                 .filter(annotation -> typeIdsBySourceNode.containsKey(annotation.nodeId()))
                 .sorted(java.util.Comparator.comparing(CobolAnnotation::nodeId)
                         .thenComparing(CobolAnnotation::annotationId))
-                .map(annotation -> intent(model.getProgramId(), span, annotation,
-                        typeIdsBySourceNode.get(annotation.nodeId()))).toList();
+                .toList();
     }
 
     private SemanticProgram.DataIntent intent(String programId, SourceSpan span, CobolAnnotation annotation,

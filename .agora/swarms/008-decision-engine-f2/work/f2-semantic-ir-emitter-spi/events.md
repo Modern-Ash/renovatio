@@ -107,3 +107,5 @@
 - 2026-09-01T17:22:11.794641Z | evidence.added | id=evidence-000006 type=review-remediation result=success revision=1 actor=project:agent
 - 2026-09-01T17:22:18.027824Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-09-01T17:22:40.531142Z | tool.prepared | run=tool-20260901t17221788294160z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:29:00.171861Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-01T17:34:49.014784Z | tool.prepared | run=tool-20260901t17341788294889z tool=repository operation=commit actor=project:agent
