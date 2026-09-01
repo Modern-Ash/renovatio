@@ -6,9 +6,9 @@ title: "F2 \u00b7 Semantic IR and TargetEmitter SPI (issue #147)"
 state: "verifying"
 revision: 1
 operational-status: "active"
-status-reason: null
-status-by: null
-status-at: null
+status-reason: "Spec Owner authorized extending the repository Tool Pack with a constrained governed branch-publication operation."
+status-by: "project:agent"
+status-at: "2026-09-01T17:38:23.303225Z"
 acceptance-criteria: {"semantic-ir":"A new renovatio-semantic-ir module models target-neutral semantic types, data intents, side effects, classified I/O, control flow, and unclassified data access without Java-specific dependencies","intent-projection":"CobolDataIntent remains compatible as a generated Java projection whose source of truth is the semantic IR","emitter-spi":"TargetEmitter, TargetModel, EmittedArtifacts, and TargetEmitterRegistry provide deterministic JAVA selection and clear unavailable-emitter errors for NODE and PYTHON","java-adapter":"JavaEmitter wraps the existing OpenRewrite/template generation path without changing emitted artifact keys or bytes","profile-integration":"The effective F1 MigrationProfile feeds TargetModel and emitter selection without ad-hoc target translation","regression-gates":"The Maven reactor, issue-122 characterization harness, MCP server, and renovatio-cli regressions pass with inspectable evidence","scope-boundaries":"F2 introduces no real Node/Python emitter, architecture transformation, or fine persistence classification"}
 satisfied-criteria: []
 criterion-statuses: {"semantic-ir":["specified","planned","implemented","verified"],"intent-projection":["specified","planned","implemented","verified"],"emitter-spi":["specified","planned","implemented","verified"],"java-adapter":["specified","planned","implemented","verified"],"profile-integration":["specified","planned","implemented","verified"],"regression-gates":["specified","planned","implemented","verified"],"scope-boundaries":["specified","planned","implemented","verified"]}

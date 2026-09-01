@@ -115,3 +115,8 @@
 - 2026-09-01T17:35:28.564401Z | evidence.added | id=evidence-000007 type=review-remediation result=success revision=1 actor=project:agent
 - 2026-09-01T17:35:34.259123Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-09-01T17:35:38.415601Z | tool.prepared | run=tool-20260901t17351788294938z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:35:47.713031Z | tool.running | run=tool-20260901t17351788294938z actor=project:agent
+- 2026-09-01T17:35:47.737343Z | tool.completed | run=tool-20260901t17351788294938z exit-code=0
+- 2026-09-01T17:37:34.203253Z | work.block | from=active to=blocked actor=project:agent change=change-20260901t173734203141z
+- 2026-09-01T17:38:23.303542Z | work.resume | from=blocked to=active actor=project:agent change=change-20260901t173823303376z
+- 2026-09-01T17:38:52.577319Z | tool.prepared | run=tool-20260901t17381788295132z tool=repository operation=commit actor=project:agent
