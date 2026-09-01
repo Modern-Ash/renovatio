@@ -30,7 +30,7 @@ public class CobolProviderConfiguration {
             org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler semanticTranspiler,
             ObjectMapper objectMapper) {
         return new JavaGenerationService(parsingService, templateCodeGenerationService,
-                intermediateModelService, semanticTranspiler, objectMapper);
+                intermediateModelService, semanticTranspiler, objectMapper, true);
     }
 
     @Bean

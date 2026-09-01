@@ -10,6 +10,7 @@ import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.provider.cobol.guardrail.GuardrailSchemaCatalog;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
+import org.shark.renovatio.provider.cobol.translation.CobolSemanticProjector;
 import org.shark.renovatio.provider.cobol.translation.AnnotatedContextResolver;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.decisions.DecisionResolver;
@@ -84,6 +85,11 @@ class CharacterizationFixtureContractTest {
                     assertThat(annotatedFirst)
                             .as("committed annotated golden for %s", fixtureId)
                             .isEqualTo(Files.readString(fixture.resolve("expected-annotated.java")));
+                    String neutral = translateAnnotatedNeutral(cobol,
+                            fixture.resolve("translation-input.java"), annotatedSidecar);
+                    assertThat(neutral)
+                            .as("neutral F2 data-intent bytes for %s", fixtureId)
+                            .isEqualTo(annotatedFirst);
                     Path annotatedOutput = compilationOutput.resolve(fixtureId + "-annotated");
                     assertCompiles(annotatedFirst, annotatedOutput);
                     assertBehavior(annotatedOutput, behavior);
@@ -154,6 +160,20 @@ class CharacterizationFixtureContractTest {
         var ignored = new ArrayList<org.shark.renovatio.provider.cobol.guardrail.ManualActionItem>();
         return transpiler.enrichServiceImplementation(Files.readString(javaStub),
                 resolution.context().orElseThrow(), ignored::addAll);
+    }
+
+    private String translateAnnotatedNeutral(Path cobol, Path javaStub, Path sidecar) throws Exception {
+        byte[] bytes = Files.readAllBytes(cobol);
+        CobolIntermediateModel model = modelService.parse(new String(bytes, StandardCharsets.UTF_8));
+        AnnotatedContextResolver.Resolution resolution = new AnnotatedContextResolver(mapper).resolve(
+                new AnnotatedContextResolver.Request(Optional.empty(), Optional.of(sidecar), cobol), model);
+        assertThat(resolution.diagnostics()).as("sidecar diagnostics for %s", sidecar).isEmpty();
+        var semantic = new CobolSemanticProjector().project(model, "input.cob", bytes,
+                Optional.empty(), resolution.context());
+        var ignored = new ArrayList<org.shark.renovatio.provider.cobol.guardrail.ManualActionItem>();
+        return transpiler.enrichServiceImplementation(Files.readString(javaStub),
+                resolution.context().orElseThrow(), cobol.toString(), ignored::addAll,
+                semantic.dataIntents());
     }
 
     private void assertBehavior(Path output, JsonNode behavior) throws Exception {

@@ -3,6 +3,8 @@ package org.shark.renovatio.provider.cobol;
 import org.shark.renovatio.provider.cobol.service.*;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
+import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.core.service.TargetEmitterRegistry;
 import org.shark.renovatio.shared.spi.BaseLanguageProvider;
 
 import java.nio.file.Path;
@@ -163,6 +165,8 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     public Optional<StubResult> generateStubs(NqlQuery query, Workspace workspace) {
         try {
             return Optional.of(javaGenerationService.generateInterfaceStubs(query, workspace));
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
         } catch (Exception e) {
             StubResult result = new StubResult(false, "Stub generation failed: " + e.getMessage());
             return Optional.of(result);
@@ -182,6 +186,11 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
      * Migrate a specific COBOL copybook to Java artifacts using templates.
      */
     public StubResult migrateCopybook(NqlQuery query, Workspace workspace) {
+        return migrateCopybook(query, workspace, javaGenerationService.defaultEffectiveProfile());
+    }
+
+    StubResult migrateCopybook(NqlQuery query, Workspace workspace,
+                               MigrationProfiles.EffectiveProfile effective) {
         try {
             String copybookName = null;
             if (query.getParameters() != null) {
@@ -203,19 +212,31 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                 return new StubResult(false, MSG_COPYBOOK_NOT_FOUND + copybookName);
             }
 
-            Map<String, Object> metadata = parsingService.parseCopybook(copybookPath.get(), parsingService.getDefaultDialect());
-            metadata.put("filePath", copybookPath.get().toString());
+            Path source = copybookPath.orElseThrow();
+            String selectedName = copybookName;
+            return javaGenerationService.emitThroughRegistry(source, query, workspace, effective,
+                    ignored -> generateCopybook(selectedName, source));
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception e) {
+            return new StubResult(false, "Copybook migration failed: " + e.getMessage());
+        }
+    }
 
+    private StubResult generateCopybook(String copybookName, Path copybookPath) {
+        try {
+            Map<String, Object> metadata = parsingService.parseCopybook(copybookPath,
+                    parsingService.getDefaultDialect());
+            metadata.put("filePath", copybookPath.toString());
             Map<String, String> generated = templateCodeGenerationService.generateFromCopybook(
                     copybookName.replaceFirst("\\.[^.]+$", ""), metadata);
-
             boolean success = !generated.isEmpty();
             StubResult result = new StubResult(success,
                     success ? "Generated " + generated.size() + " artifacts" : "No artifacts generated");
             result.setGeneratedCode(generated);
             return result;
-        } catch (Exception e) {
-            return new StubResult(false, "Copybook migration failed: " + e.getMessage());
+        } catch (Exception exception) {
+            return new StubResult(false, "Copybook migration failed: " + exception.getMessage());
         }
     }
 
@@ -223,6 +244,11 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
      * Generate JPA artifacts from embedded DB2 EXEC SQL statements.
      */
     public StubResult migrateDb2(NqlQuery query, Workspace workspace) {
+        return migrateDb2(query, workspace, javaGenerationService.defaultEffectiveProfile());
+    }
+
+    StubResult migrateDb2(NqlQuery query, Workspace workspace,
+                          MigrationProfiles.EffectiveProfile effective) {
         try {
             String programName = null;
             if (query.getParameters() != null) {
@@ -244,14 +270,26 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                 return new StubResult(false, MSG_PROGRAM_NOT_FOUND + programName);
             }
 
-            Map<String, String> generated = db2MigrationService.migrateCobolFile(programPath.get());
+            Path source = programPath.orElseThrow();
+            return javaGenerationService.emitThroughRegistry(source, query, workspace, effective,
+                    ignored -> generateDb2(source));
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception e) {
+            return new StubResult(false, "DB2 migration failed: " + e.getMessage());
+        }
+    }
+
+    private StubResult generateDb2(Path programPath) {
+        try {
+            Map<String, String> generated = db2MigrationService.migrateCobolFile(programPath);
             boolean success = !generated.isEmpty();
             StubResult result = new StubResult(success,
                     success ? "Generated " + generated.size() + " artifacts" : "No SQL statements found");
             result.setGeneratedCode(generated);
             return result;
-        } catch (Exception e) {
-            return new StubResult(false, "DB2 migration failed: " + e.getMessage());
+        } catch (Exception exception) {
+            return new StubResult(false, "DB2 migration failed: " + exception.getMessage());
         }
     }
 
@@ -275,6 +313,27 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
      * @return StubResult containing decomposed components
      */
     public StubResult decomposeControlBreaks(Workspace workspace) {
+        return decomposeControlBreaks(workspace, javaGenerationService.defaultEffectiveProfile());
+    }
+
+    StubResult decomposeControlBreaks(Workspace workspace,
+                                      MigrationProfiles.EffectiveProfile effective) {
+        try {
+            Path root = Paths.get(workspace.getPath());
+            Optional<Path> source = parsingService.findCobolSourceFiles(root).stream().sorted().findFirst();
+            if (source.isEmpty()) {
+                return new StubResult(false, "No COBOL programs found for control break decomposition");
+            }
+            return javaGenerationService.emitThroughRegistry(source.orElseThrow(), null, workspace, effective,
+                    ignored -> decomposeControlBreaksLegacy(workspace));
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception exception) {
+            return new StubResult(false, "Control break decomposition failed: " + exception.getMessage());
+        }
+    }
+
+    private StubResult decomposeControlBreaksLegacy(Workspace workspace) {
         try {
             var analysisResult = decompositionService.analyzeAndDecompose(workspace);
             

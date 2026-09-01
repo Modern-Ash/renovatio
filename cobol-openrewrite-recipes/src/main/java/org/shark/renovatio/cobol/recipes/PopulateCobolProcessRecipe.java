@@ -14,6 +14,7 @@ import org.shark.renovatio.cobol.recipes.annotate.AnnotationApplicationOutcome;
 import org.shark.renovatio.cobol.recipes.annotate.AnnotationApplicator;
 import org.shark.renovatio.cobol.recipes.annotate.AnnotationOutcomeKey;
 import org.shark.renovatio.cobol.recipes.annotate.DroppedAnnotation;
+import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.util.*;
 
@@ -21,6 +22,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
     public static final String CONTEXT_KEY = "renovatio.cobol.ir";
     public static final String ANNOTATED_CONTEXT_KEY = AnnotatedCobolContext.CONTEXT_KEY;
+    public static final String SEMANTIC_DATA_INTENTS_KEY = "renovatio.semantic.data-intents";
 
     @Option(displayName = "Method name",
             description = "Name of the method to populate with COBOL logic.",
@@ -69,7 +71,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 return populated;
             }
 
-            AnnotationApplicationOutcome outcome = new AnnotationApplicator(model, annotated.sidecar())
+            List<SemanticProgram.DataIntent> neutralDataIntents = ctx.getMessage(SEMANTIC_DATA_INTENTS_KEY);
+            AnnotationApplicationOutcome outcome = new AnnotationApplicator(model, annotated.sidecar(),
+                    neutralDataIntents)
                     .apply(populated, ctx);
             List<DroppedAnnotation> accumulated = ctx.getMessage(AnnotationOutcomeKey.ANNOTATION_OUTCOMES_KEY);
             if (accumulated == null) {
