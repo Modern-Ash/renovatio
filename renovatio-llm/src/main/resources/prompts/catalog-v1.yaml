@@ -4,3 +4,9 @@ prompts:
   - prompts/cobol.redefines.intent.v1.yaml
   - prompts/cobol.occurs-depending.intent.v1.yaml
   - prompts/cobol.unsupported.explain.v1.yaml
+  - prompts/decision.numeric.v1.yaml
+  - prompts/decision.control-flow.v1.yaml
+  - prompts/decision.data-shape.v1.yaml
+  - prompts/decision.persistence.v1.yaml
+  - prompts/decision.naming.v1.yaml
+  - prompts/decision.architecture.v1.yaml

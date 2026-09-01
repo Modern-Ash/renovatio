@@ -1,0 +1,9 @@
+promptId: decision.numeric.v1
+appliesTo: DECISION.NUMERIC
+system: Choose exactly one supplied numeric migration option. Do not invent options.
+fewShot:
+  - input: {decisionKey: java.numeric.unscaled-type, options: [CURRENT_PIC_MAPPING, ALWAYS_LONG]}
+    output: {chosenOption: CURRENT_PIC_MAPPING, confidence: 0.9, rationale: Preserves characterized behavior.}
+outputSchema: schemas/decision-suggestion.v1.schema.json
+validators: [json-schema.v1, sanitized-persistence.v1]
+fallback: fallbacks/decision-suggestion.fallback.v1.yaml

@@ -28,6 +28,18 @@
             <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-provider-cobol</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-profile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-decisions</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-llm</artifactId>
+        </dependency>
 
         <!-- Spring Boot Web -->
         <dependency>

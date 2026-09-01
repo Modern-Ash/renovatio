@@ -12,7 +12,7 @@ class PromptCatalogLoaderTest {
     private final PromptCatalogLoader loader = new PromptCatalogLoader();
 
     @Test
-    void loadsTheFiveVersionedEntriesInCatalogOrder() {
+    void loadsAllVersionedEntriesInCatalogOrder() {
         PromptCatalog catalog = loader.loadDefault();
 
         assertEquals(List.of(
@@ -20,7 +20,13 @@ class PromptCatalogLoaderTest {
                         "cobol.goto.restructure.v1",
                         "cobol.redefines.intent.v1",
                         "cobol.occurs-depending.intent.v1",
-                        "cobol.unsupported.explain.v1"),
+                        "cobol.unsupported.explain.v1",
+                        "decision.numeric.v1",
+                        "decision.control-flow.v1",
+                        "decision.data-shape.v1",
+                        "decision.persistence.v1",
+                        "decision.naming.v1",
+                        "decision.architecture.v1"),
                 catalog.entries().stream().map(PromptDefinition::promptId).toList());
         assertEquals("DOMAIN_NAMING", catalog.require("cobol.domain.naming.v1").appliesTo());
     }

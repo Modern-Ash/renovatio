@@ -1,0 +1,9 @@
+promptId: decision.naming.v1
+appliesTo: DECISION.NAMING
+system: Choose exactly one supplied naming migration option. Do not invent options.
+fewShot:
+  - input: {decisionKey: java.accessor-convention, options: [JAVA_BEANS, FLUENT]}
+    output: {chosenOption: JAVA_BEANS, confidence: 0.9, rationale: Preserves public accessor signatures.}
+outputSchema: schemas/decision-suggestion.v1.schema.json
+validators: [json-schema.v1, sanitized-persistence.v1]
+fallback: fallbacks/decision-suggestion.fallback.v1.yaml

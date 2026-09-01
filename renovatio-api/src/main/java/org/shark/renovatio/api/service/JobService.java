@@ -43,6 +43,7 @@ public class JobService {
     private final PersistentPlanService planService;
     private final ProjectService projectService;
     private final CobolLanguageProvider cobolLanguageProvider;
+    private final DecisionLayerService decisionLayerService;
 
     public JobService(JobRepository jobRepo,
                       SseEventCollector eventCollector,
@@ -50,6 +51,7 @@ public class JobService {
                       PersistentPlanService planService,
                       ProjectService projectService,
                       CobolLanguageProvider cobolLanguageProvider,
+                      DecisionLayerService decisionLayerService,
                       @org.springframework.beans.factory.annotation.Qualifier("jobExecutor") Executor jobExecutor) {
         this.jobRepo = jobRepo;
         this.eventCollector = eventCollector;
@@ -57,6 +59,7 @@ public class JobService {
         this.planService = planService;
         this.projectService = projectService;
         this.cobolLanguageProvider = cobolLanguageProvider;
+        this.decisionLayerService = decisionLayerService;
         this.jobExecutor = jobExecutor;
     }
 
@@ -217,6 +220,10 @@ public class JobService {
                 "copybooks", copybookCount,
                 "programs", programCount
         );
+        String semanticIrHash = org.shark.renovatio.profile.MigrationProfiles.sha256(
+                org.shark.renovatio.profile.MigrationProfiles.canonical(result.getData()));
+        DecisionLayerService.AnalysisDecisionSummary decisionSummary =
+                decisionLayerService.upsertAnalysis(entity.getProjectId(), semanticIrHash);
 
         Map<String, Object> response = new java.util.LinkedHashMap<>();
         response.put("status", "completed");
@@ -228,6 +235,7 @@ public class JobService {
         response.put("workspaceResolvedPath", workspacePath);
         response.put("summary", summary);
         response.put("analysis", result.getData());
+        response.put("decisions", decisionSummary);
         response.put(
                 "message",
                 String.format(
@@ -250,12 +258,14 @@ public class JobService {
 
     private Object executePlan(JobEntity entity) {
         Map<String, Object> params = parseParams(entity.getParamsJson());
+        var effective = requireActiveTarget(entity.getProjectId());
         eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.5, "message", "Planning..."));
-        return Map.of("status", "completed", "operation", "plan");
+        return Map.of("status", "completed", "operation", "plan", "profileHash", effective.profileHash());
     }
 
     private Object executeApply(JobEntity entity) {
         Map<String, Object> params = parseParams(entity.getParamsJson());
+        var effective = requireActiveTarget(entity.getProjectId());
         List<Map<String, Object>> planSteps = extractPlanSteps(params.get("planSteps"));
         eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.5, "message", "Building dry run preview..."));
         eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.9, "message", "Finalizing dry run preview..."));
@@ -292,6 +302,7 @@ public class JobService {
         Map<String, Object> result = new java.util.LinkedHashMap<>();
         result.put("status", "completed");
         result.put("operation", "apply");
+        result.put("profileHash", effective.profileHash());
         result.put("dryRun", Boolean.parseBoolean(String.valueOf(params.getOrDefault("dryRun", Boolean.TRUE))));
         result.put("message", "Dry run completed successfully!");
         result.put("preview", preview.toString().trim());
@@ -304,6 +315,14 @@ public class JobService {
         changes.put("dryRun", Boolean.TRUE);
         result.put("changes", changes);
         return result;
+    }
+
+    private org.shark.renovatio.profile.MigrationProfiles.EffectiveProfile requireActiveTarget(String projectId) {
+        var effective = decisionLayerService.effective(projectId);
+        if (effective.profile().target().language() != org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
+            throw new IllegalStateException("TARGET_NOT_ACTIVE");
+        }
+        return effective;
     }
 
     private Object executeDiff(JobEntity entity) {

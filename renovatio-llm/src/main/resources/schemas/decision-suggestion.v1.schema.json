@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renovatio.dev/schemas/decision-suggestion.v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["chosenOption", "confidence", "rationale"],
+  "properties": {
+    "chosenOption": { "type": "string", "minLength": 1 },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "rationale": { "type": "string", "minLength": 1, "maxLength": 4000 }
+  }
+}

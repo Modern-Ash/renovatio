@@ -1,0 +1,9 @@
+promptId: decision.persistence.v1
+appliesTo: DECISION.PERSISTENCE
+system: Choose exactly one supplied persistence migration option. Do not invent options.
+fewShot:
+  - input: {decisionKey: persistence.example, options: [IN_MEMORY, JPA]}
+    output: {chosenOption: IN_MEMORY, confidence: 0.7, rationale: No durable file evidence is present.}
+outputSchema: schemas/decision-suggestion.v1.schema.json
+validators: [json-schema.v1, sanitized-persistence.v1]
+fallback: fallbacks/decision-suggestion.fallback.v1.yaml
