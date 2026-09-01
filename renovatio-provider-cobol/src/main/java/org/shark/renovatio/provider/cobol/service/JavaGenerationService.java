@@ -25,6 +25,7 @@ import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.provider.java.emission.JavaArchitectureLayoutPlanner;
+import org.shark.renovatio.provider.java.emission.JavaArchitectureSourceLayout;
 import org.shark.renovatio.provider.java.emission.JavaEmitter;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 import org.springframework.stereotype.Service;
@@ -64,6 +65,7 @@ public class JavaGenerationService {
     private final AnnotatedContextResolver annotatedContextResolver;
     private final AnnotationActionItemFactory annotationActionItemFactory;
     private final ManualActionItemWriter manualActionItemWriter;
+    private final GeneratedArtifactTreeWriter artifactTreeWriter = new GeneratedArtifactTreeWriter();
     private final boolean registryRouting;
     private final TargetEmitterRegistry emitterRegistry;
     private final EffectiveProfileResolver effectiveProfileResolver;
@@ -332,7 +334,7 @@ public class JavaGenerationService {
         });
         if (!expectedByFileName.isEmpty()) throw new TargetManifestMismatchException(
                 "missing emitted paths " + expectedByFileName.values());
-        return EmittedArtifacts.fromUtf8(rebased);
+        return EmittedArtifacts.fromUtf8(JavaArchitectureSourceLayout.align(rebased));
     }
 
     public static final class TargetManifestMismatchException extends IllegalStateException {
@@ -1192,28 +1194,7 @@ public class JavaGenerationService {
     private String writeGeneratedFilesToDisk(Map<String, String> generatedFiles, Workspace workspace) {
         try {
             Path outputDir = resolveOutputDir(workspace).toAbsolutePath().normalize();
-
-            // Crear directorio si no existe
-            if (!java.nio.file.Files.exists(outputDir)) {
-                java.nio.file.Files.createDirectories(outputDir);
-            }
-
-            // Escribir cada archivo generado
-            for (Map.Entry<String, String> entry : generatedFiles.entrySet()) {
-                String fileName = entry.getKey();
-                String fileContent = entry.getValue();
-
-                Path filePath = outputDir.resolve(fileName).normalize();
-                if (!filePath.startsWith(outputDir)) {
-                    throw new IllegalArgumentException("generated path escapes output directory: " + fileName);
-                }
-                java.nio.file.Files.createDirectories(filePath.getParent());
-                java.nio.file.Files.write(filePath, fileContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-
-                System.out.println("Archivo escrito: " + filePath.toString());
-            }
-
-            return outputDir.toAbsolutePath().toString();
+            return artifactTreeWriter.write(generatedFiles, outputDir).toString();
 
         } catch (Exception e) {
             throw new IllegalStateException("Could not persist generated artifacts: " + e.getMessage(), e);

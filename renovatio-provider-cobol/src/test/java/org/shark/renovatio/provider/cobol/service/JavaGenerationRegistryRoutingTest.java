@@ -24,10 +24,12 @@ import org.shark.renovatio.semantic.ir.SourceSpan;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.tools.ToolProvider;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -110,6 +112,27 @@ class JavaGenerationRegistryRoutingTest {
         assertTrue(emitted.isSuccess(), emitted.getMessage());
         assertEquals(preview.manifest().artifacts().stream().map(artifact -> artifact.path()).toList(),
                 emitted.getGeneratedCode().keySet().stream().toList());
+    }
+
+    @Test
+    void transactionScriptAndHexagonalLayoutsCompile(@TempDir Path root) throws Exception {
+        Path transactionWorkspace = Files.createDirectories(root.resolve("transaction"));
+        Path hexagonalWorkspace = Files.createDirectories(root.resolve("hexagonal"));
+        Files.writeString(transactionWorkspace.resolve("routed.cob"), COBOL);
+        Files.writeString(hexagonalWorkspace.resolve("routed.cob"), COBOL);
+        var dependencies = dependencies();
+        JavaGenerationService routed = new JavaGenerationService(dependencies.parsing(), dependencies.templates(),
+                dependencies.models(), dependencies.transpiler(), dependencies.mapper(), true);
+
+        StubResult transaction = routed.generateInterfaceStubs(new NqlQuery(),
+                new Workspace("transaction", transactionWorkspace.toString(), "main"), javaProfile());
+        StubResult hexagonal = routed.generateInterfaceStubs(new NqlQuery(),
+                new Workspace("hexagonal", hexagonalWorkspace.toString(), "main"), hexagonalJavaProfile());
+
+        assertTrue(transaction.isSuccess(), transaction.getMessage());
+        assertTrue(hexagonal.isSuccess(), hexagonal.getMessage());
+        compile(transactionWorkspace.resolve("generated-java-stubs"), root.resolve("transaction-classes"));
+        compile(hexagonalWorkspace.resolve("generated-java-stubs"), root.resolve("hexagonal-classes"));
     }
 
     @Test
@@ -263,6 +286,20 @@ class JavaGenerationRegistryRoutingTest {
         CobolSemanticTranspiler transpiler = new CobolSemanticTranspiler(new OpenRewriteRunner());
         return new Dependencies(parsing, templates, models, transpiler,
                 new ObjectMapper().findAndRegisterModules());
+    }
+
+    private static void compile(Path sources, Path classes) throws Exception {
+        var compiler = ToolProvider.getSystemJavaCompiler();
+        assertNotNull(compiler, "A JDK compiler is required");
+        Files.createDirectories(classes);
+        List<String> arguments = new ArrayList<>(List.of("-classpath", System.getProperty("java.class.path"),
+                "-d", classes.toString()));
+        try (var paths = Files.walk(sources)) {
+            paths.filter(path -> path.toString().endsWith(".java"))
+                    .sorted().map(Path::toString).forEach(arguments::add);
+        }
+        assertEquals(0, compiler.run(null, null, null, arguments.toArray(String[]::new)),
+                "Generated layout did not compile: " + Arrays.toString(arguments.toArray()));
     }
 
     private record Dependencies(CobolParsingService parsing, TemplateCodeGenerationService templates,
