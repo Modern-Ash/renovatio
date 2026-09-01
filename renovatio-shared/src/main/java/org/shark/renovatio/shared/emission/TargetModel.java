@@ -15,7 +15,8 @@ import java.util.TreeMap;
 /** Immutable one-to-one envelope passed from semantic analysis to a target emitter. */
 public record TargetModel(SemanticProgram semanticProgram, MigrationProfile profile,
                           Map<String, String> resolvedDecisions, List<String> appliedDecisionIds,
-                          String profileHash, SourceProvenance sourceProvenance) {
+                          String profileHash, SourceProvenance sourceProvenance,
+                          TargetStructure targetStructure) {
     public TargetModel {
         Objects.requireNonNull(semanticProgram, "semanticProgram");
         Objects.requireNonNull(profile, "profile");
@@ -36,12 +37,23 @@ public record TargetModel(SemanticProgram semanticProgram, MigrationProfile prof
         if (!sourceProvenance.equals(semanticProgram.sourceProvenance())) {
             throw new IllegalArgumentException("target and semantic provenance must match");
         }
+        targetStructure = Objects.requireNonNull(targetStructure, "targetStructure");
+    }
+
+    /** Backward-compatible F2 constructor producing an identity architecture slice. */
+    public TargetModel(SemanticProgram semanticProgram, MigrationProfile profile,
+                       Map<String, String> resolvedDecisions, List<String> appliedDecisionIds,
+                       String profileHash, SourceProvenance sourceProvenance) {
+        this(semanticProgram, profile, resolvedDecisions, appliedDecisionIds, profileHash, sourceProvenance,
+                TargetStructure.identity(semanticProgram, profileHash,
+                        Objects.requireNonNull(profile, "profile").architecture().style()));
     }
 
     public static TargetModel from(SemanticProgram program, MigrationProfiles.EffectiveProfile effective) {
         Objects.requireNonNull(effective, "effective");
         return new TargetModel(program, effective.profile(), effective.resolvedDecisions(),
-                effective.appliedDecisionIds(), effective.profileHash(), program.sourceProvenance());
+                effective.appliedDecisionIds(), effective.profileHash(), program.sourceProvenance(),
+                TargetStructure.identity(program, effective.profileHash(), effective.profile().architecture().style()));
     }
 
     public MigrationProfile.Language targetLanguage() { return profile.target().language(); }

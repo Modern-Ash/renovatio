@@ -478,3 +478,6 @@
 - 2026-09-01T17:55:46.293916Z | tool.prepared | run=tool-20260901t17551788296146z tool=repository operation=publish-branch actor=project:agent
 - 2026-09-01T17:55:46.297015Z | tool.running | run=tool-20260901t17551788296146z tool=repository operation=publish-branch actor=project:agent
 - 2026-09-01T17:55:48.215356Z | tool.completed | run=tool-20260901t17551788296146z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-01T17:59:50.547589Z | tool.prepared | run=tool-20260901t17591788296390z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:59:50.551639Z | tool.running | run=tool-20260901t17591788296390z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:59:50.575739Z | tool.completed | run=tool-20260901t17591788296390z tool=repository operation=commit actor=project:agent
