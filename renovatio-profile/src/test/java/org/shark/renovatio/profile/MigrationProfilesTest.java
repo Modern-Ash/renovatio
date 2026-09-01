@@ -30,6 +30,25 @@ class MigrationProfilesTest {
     }
 
     @Test
+    void extensionsRoundTripExplicitNullValues() {
+        MigrationProfile json = MigrationProfiles.readJson(
+                "{\"schemaVersion\":\"1\",\"extensions\":{\"vendorSetting\":null}}");
+        MigrationProfile yaml = MigrationProfiles.readYaml("""
+                schemaVersion: "1"
+                extensions:
+                  vendorSetting: null
+                """);
+
+        assertTrue(json.extensions().containsKey("vendorSetting"));
+        assertNull(json.extensions().get("vendorSetting"));
+        assertEquals(json, yaml);
+        assertEquals(json, MigrationProfiles.readJson(MigrationProfiles.writeJson(json)));
+        assertEquals(yaml, MigrationProfiles.readYaml(MigrationProfiles.writeYaml(yaml)));
+        assertThrows(UnsupportedOperationException.class,
+                () -> json.extensions().put("other", true));
+    }
+
+    @Test
     void rejectsUnknownFieldsAndInvalidLlmCombinations() {
         assertThrows(MigrationProfiles.ProfileFormatException.class,
                 () -> MigrationProfiles.readJson("{\"schemaVersion\":\"1\",\"extensions\":{},\"unknown\":1}"));
@@ -63,6 +82,7 @@ class MigrationProfilesTest {
         decisions.put("java.accessor-convention", "FLUENT");
         decisions.put("java.generated-package", "org.shark.renovatio.generated.cobol");
         var result = MigrationProfiles.effective(MigrationProfiles.emptyOverlay(), decisions,
+                Map.of("java.framework-coupling", "PLAIN_JAVA", "java.accessor-convention", "FLUENT"),
                 List.of("b", "a"));
         assertEquals(Framework.NONE, result.profile().runtime().framework());
         assertEquals(Naming.FLUENT, result.profile().style().naming());

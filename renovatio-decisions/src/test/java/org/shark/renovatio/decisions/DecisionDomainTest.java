@@ -1,12 +1,14 @@
 package org.shark.renovatio.decisions;
 
 import org.junit.jupiter.api.Test;
+import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.profile.MigrationProfiles;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.shark.renovatio.decisions.DecisionPoint.*;
@@ -104,6 +106,21 @@ class DecisionDomainTest {
                 effective.profile().style().naming());
         assertEquals(1, effective.appliedDecisionIds().size());
         assertEquals(7, effective.resolvedDecisions().size());
+    }
+
+    @Test
+    void resolverPreservesProfileValuesUntilMappedDecisionsAreAccepted() {
+        MigrationProfile overlay = new MigrationProfile("1", Map.of(), null, null,
+                new MigrationProfile.Runtime(MigrationProfile.Framework.NONE), null,
+                new MigrationProfile.Style(null, null, null, MigrationProfile.Naming.FLUENT), null);
+
+        var effective = new DecisionResolver().resolve(overlay, F1DecisionCatalog.create(IR, NOW));
+
+        assertEquals(MigrationProfile.Framework.NONE, effective.profile().runtime().framework());
+        assertEquals(MigrationProfile.Naming.FLUENT, effective.profile().style().naming());
+        assertEquals("SPRING_SERVICE", effective.resolvedDecisions().get("java.framework-coupling"));
+        assertEquals("JAVA_BEANS", effective.resolvedDecisions().get("java.accessor-convention"));
+        assertTrue(effective.appliedDecisionIds().isEmpty());
     }
 
     @Test

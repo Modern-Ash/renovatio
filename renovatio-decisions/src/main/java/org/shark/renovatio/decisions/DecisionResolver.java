@@ -24,15 +24,17 @@ public final class DecisionResolver {
         });
         Map<String, String> values = new LinkedHashMap<>();
         F1DecisionCatalog.definitions().forEach((key, definition) -> values.put(key, definition.options().get(0)));
+        Map<String, String> accepted = new LinkedHashMap<>();
         List<String> applied = new ArrayList<>();
         decisions.stream().filter(DecisionPoint::active)
                 .filter(value -> value.status() == CONFIRMED || value.status() == OVERRIDDEN)
                 .sorted(Comparator.comparing(DecisionPoint::id)).forEach(value -> {
                     if (values.put(value.decisionKey(), value.chosenOption()) == null)
                         throw new IllegalStateException("Unknown F1 decision key: " + value.decisionKey());
+                    accepted.put(value.decisionKey(), value.chosenOption());
                     applied.add(value.id());
                 });
-        return MigrationProfiles.effective(overlay, values, applied);
+        return MigrationProfiles.effective(overlay, values, accepted, applied);
     }
 
     public static Comparator<DecisionPoint> apiOrder() {

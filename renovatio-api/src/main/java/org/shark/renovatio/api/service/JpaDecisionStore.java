@@ -43,7 +43,7 @@ public class JpaDecisionStore implements DecisionStore {
         ProjectDecisionEntity entity = repository.findById(id).orElseGet(() -> new ProjectDecisionEntity(id));
         entity.update(decision.category().name(), decision.decisionKey(), decision.status().name(),
                 decision.confidence(), decision.active(), encode(decision));
-        return decode(repository.save(entity));
+        return decode(repository.saveAndFlush(entity));
     }
     @Override public List<DecisionPoint> saveAll(String projectId, List<DecisionPoint> decisions) {
         return decisions.stream().map(value -> save(projectId, value)).toList();

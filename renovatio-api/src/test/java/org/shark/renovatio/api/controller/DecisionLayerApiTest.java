@@ -16,11 +16,21 @@ import org.shark.renovatio.profile.MigrationProfiles;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,7 +49,7 @@ class DecisionLayerApiTest {
     @Autowired ProjectProfileRepository profiles;
     @Autowired ProjectDecisionRepository decisions;
     @Autowired DecisionLayerService service;
-    @Autowired DecisionStore decisionStore;
+    @SpyBean DecisionStore decisionStore;
     @Autowired ProjectService projectService;
 
     private String projectId;
@@ -103,6 +113,22 @@ class DecisionLayerApiTest {
     }
 
     @Test
+    void profilePersistsAndReturnsNullExtensionValues() throws Exception {
+        String overlay = """
+                {"schemaVersion":"1","extensions":{"vendorSetting":null}}
+                """;
+
+        mvc.perform(put(path("/profile")).header("X-Role", "MANAGER")
+                        .header("If-Match", "\"0\"").contentType(MediaType.APPLICATION_JSON).content(overlay))
+                .andExpect(status().isOk());
+        String response = mvc.perform(get(path("/profile")).header("X-Role", "ADMIN"))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+
+        assertThat(json.readTree(response).path("extensions").has("vendorSetting")).isTrue();
+        assertThat(json.readTree(response).path("extensions").path("vendorSetting").isNull()).isTrue();
+    }
+
+    @Test
     void analysisCreatesSevenDeterministicDecisionsAndSupportsTransitions() throws Exception {
         service.upsertAnalysis(projectId, "a".repeat(64));
         String response = mvc.perform(get(path("/decisions")).header("X-Role", "ADMIN"))
@@ -127,6 +153,32 @@ class DecisionLayerApiTest {
         mvc.perform(get(path("/decisions?status=CONFIRMED&minConfidence=1"))
                         .header("X-Role", "ADMIN"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(7));
+    }
+
+    @Test
+    void concurrentPatchesWithTheSameRevisionReturnOneConflict() throws Exception {
+        service.upsertAnalysis(projectId, "9".repeat(64));
+        var decision = decisionStore.findAll(projectId).get(0);
+        CyclicBarrier bothLoaded = new CyclicBarrier(2);
+        doAnswer(invocation -> {
+            Object result = invocation.callRealMethod();
+            bothLoaded.await(5, TimeUnit.SECONDS);
+            return result;
+        }).when(decisionStore).findById(projectId, decision.id());
+
+        String content = json.writeValueAsString(new PatchRequest(decision.chosenOption(), decision.revision()));
+        Callable<Integer> request = () -> mvc.perform(patch(path("/decisions/" + decision.id()))
+                        .header("X-Role", "MANAGER").contentType(MediaType.APPLICATION_JSON).content(content))
+                .andReturn().getResponse().getStatus();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<Integer> first = executor.submit(request);
+            Future<Integer> second = executor.submit(request);
+            assertThat(List.of(first.get(10, TimeUnit.SECONDS), second.get(10, TimeUnit.SECONDS)))
+                    .containsExactlyInAnyOrder(200, 409);
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test

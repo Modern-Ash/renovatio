@@ -44,6 +44,7 @@ public class DecisionLayerService {
             throw new IllegalArgumentException("minConfidence must be between 0 and 1");
         return decisions.find(projectId, category, minConfidence, status);
     }
+    @Transactional
     public DecisionPoint patch(String projectId, String id, String option, long revision) {
         requireProject(projectId);
         DecisionPoint current = decisions.findById(projectId, id).orElseThrow(ResourceNotFoundException::new);

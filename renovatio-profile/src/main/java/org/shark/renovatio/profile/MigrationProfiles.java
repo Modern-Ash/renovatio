@@ -173,17 +173,19 @@ public final class MigrationProfiles {
     }
 
     public static EffectiveProfile effective(MigrationProfile overlay, Map<String, String> decisions,
+                                             Map<String, String> acceptedDecisions,
                                              List<String> appliedDecisionIds) {
         MigrationProfile profile = resolve(overlay);
         Map<String, String> ordered = new java.util.TreeMap<>(decisions == null ? Map.of() : decisions);
-        if ("FLUENT".equals(ordered.get("java.accessor-convention"))) {
+        Map<String, String> accepted = acceptedDecisions == null ? Map.of() : acceptedDecisions;
+        if ("FLUENT".equals(accepted.get("java.accessor-convention"))) {
             profile = withNaming(profile, Naming.FLUENT);
-        } else if ("JAVA_BEANS".equals(ordered.get("java.accessor-convention"))) {
+        } else if ("JAVA_BEANS".equals(accepted.get("java.accessor-convention"))) {
             profile = withNaming(profile, Naming.JAVA_BEANS);
         }
-        if ("PLAIN_JAVA".equals(ordered.get("java.framework-coupling"))) {
+        if ("PLAIN_JAVA".equals(accepted.get("java.framework-coupling"))) {
             profile = withFramework(profile, Framework.NONE);
-        } else if ("SPRING_SERVICE".equals(ordered.get("java.framework-coupling"))) {
+        } else if ("SPRING_SERVICE".equals(accepted.get("java.framework-coupling"))) {
             profile = withFramework(profile, Framework.SPRING_BOOT);
         }
         List<String> ids = appliedDecisionIds == null ? List.of() : appliedDecisionIds.stream().sorted().toList();

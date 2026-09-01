@@ -2,6 +2,7 @@ package org.shark.renovatio.profile;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -18,7 +19,8 @@ public record MigrationProfile(
         Llm llm) {
 
     public MigrationProfile {
-        extensions = extensions == null ? null : Map.copyOf(new LinkedHashMap<>(extensions));
+        extensions = extensions == null ? null
+                : Collections.unmodifiableMap(new LinkedHashMap<>(extensions));
     }
 
     public enum Language { JAVA, NODE, PYTHON }
