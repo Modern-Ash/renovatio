@@ -3,7 +3,7 @@
 - **Work item:** `decision-engine-f1/f1-decision-layer`
 - **Specification:** `docs/specs/f1-decision-layer.md`
 - **Implementation plan:** `docs/plans/f1-decision-layer.md`
-- **Tested commit:** `58568dcac6842f4505494e05b73d41814bd8b2d2`
+- **Tested commit:** `6929212d5d04b97a2c16ebddc5b40aef171499b1`
 - **Verification date:** 2026-09-01
 - **Overall result:** PASS WITH BASELINE BUILD-GATE EXCEPTION
 
@@ -27,6 +27,7 @@
 | `mvn clean install -Djacoco.skip=true` | PASS | All 15 reactor modules built and installed; 408 Java tests passed, 0 failed, 0 errored, 0 skipped |
 | `mvn -pl renovatio-mcp-server -am test` | PASS | Reactor success; MCP module 22 tests passed, dependencies also passed |
 | focused profile/decision/LLM/API/legacy suite | PASS | All selected F1 tests passed |
+| PR 157 review-fix suite | PASS | 24 profile, decision-domain, and API tests passed; includes profile precedence, null extension persistence, and simultaneous decision PATCH coverage |
 | `CharacterizationFixtureContractTest` | PASS | 13 fixtures compared twice baseline-vs-F1; generated key sets and UTF-8 bytes are identical |
 | `npm test -- --run` | PASS | 11 files, 23 tests passed |
 | `npm run lint` | PASS | ESLint completed without findings |
@@ -40,6 +41,15 @@ discarded after the next unchanged module, `renovatio-core`, exposed the same
 pre-existing 90%-versus-100% gate. No baseline module was altered to weaken or
 game coverage. The full reactor was therefore verified with only JaCoCo's gate
 disabled, while the required test suites were also run normally.
+
+The PR 157 review pass found and resolved three contract defects. Catalog
+defaults remain present in `resolvedDecisions` and the content hash but no
+longer override stored profile values until the corresponding decision is
+confirmed or overridden. Decision PATCH now keeps read/check/write in one
+transaction, flushes the managed JPA version, and maps an optimistic conflict
+to HTTP 409; a synchronized two-request test observes exactly one 200 and one
+409. Extension maps now retain explicit JSON null values through JSON, YAML,
+and persisted API round trips while remaining defensively unmodifiable.
 
 ## Compatibility anchors
 
