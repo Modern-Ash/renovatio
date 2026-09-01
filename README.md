@@ -8,7 +8,7 @@
 OpenRewrite concepts. It provides tools for migrating and upgrading COBOL and Java code with extensibility for
 additional languages.
 
-<sub>A <img src="docs/assets/modern-ash.png" alt="ModernAsh" height="18"> project · <a href="https://github.com/Modern-Ash">github.com/Modern-Ash</a></sub>
+
 
 ---
 
@@ -328,5 +328,8 @@ If you introduce new POJOs, prefer Lombok annotations (e.g., `@Data`, or `@Gette
 - **COBOL Tools** - See section "Available MCP Tools" → "COBOL provider"
 
 ---
+
+<sub>A <img src="docs/assets/modern-ash.png" alt="ModernAsh" height="18"> project · <a href="https://github.com/Modern-Ash">github.com/Modern-Ash</a></sub>
+
 
 **Renovatio** – Focused MCP server for code migration and modernization.
