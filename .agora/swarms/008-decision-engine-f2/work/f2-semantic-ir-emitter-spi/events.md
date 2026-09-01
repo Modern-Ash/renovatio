@@ -41,3 +41,23 @@
 - 2026-09-01T13:12:12.362610Z | tool.prepared | run=tool-20260901t13121788279132z tool=repository operation=commit actor=project:agent
 - 2026-09-01T13:12:12.364683Z | tool.running | run=tool-20260901t13121788279132z actor=project:agent
 - 2026-09-01T13:12:12.398750Z | tool.completed | run=tool-20260901t13121788279132z exit-code=0
+- 2026-09-01T13:14:25.228173Z | tool.prepared | run=tool-20260901t13141788279265z tool=repository operation=commit actor=project:agent
+- 2026-09-01T13:14:25.230559Z | tool.running | run=tool-20260901t13141788279265z actor=project:agent
+- 2026-09-01T13:14:25.254881Z | tool.completed | run=tool-20260901t13141788279265z exit-code=0
+- 2026-09-01T13:15:19.994742Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T13:15:27.335646Z | evidence.added | id=evidence-000001 type=verification-report result=success revision=1 actor=project:agent
+- 2026-09-01T13:15:32.857716Z | work.criterion-stage-marked | criterion=semantic-ir actor=project:agent stage=implemented
+- 2026-09-01T13:15:33.363876Z | work.criterion-stage-marked | criterion=semantic-ir actor=project:agent stage=verified
+- 2026-09-01T13:15:33.850038Z | work.criterion-stage-marked | criterion=intent-projection actor=project:agent stage=implemented
+- 2026-09-01T13:15:34.349121Z | work.criterion-stage-marked | criterion=intent-projection actor=project:agent stage=verified
+- 2026-09-01T13:15:34.849454Z | work.criterion-stage-marked | criterion=emitter-spi actor=project:agent stage=implemented
+- 2026-09-01T13:15:35.357967Z | work.criterion-stage-marked | criterion=emitter-spi actor=project:agent stage=verified
+- 2026-09-01T13:15:35.881815Z | work.criterion-stage-marked | criterion=java-adapter actor=project:agent stage=implemented
+- 2026-09-01T13:15:36.404373Z | work.criterion-stage-marked | criterion=java-adapter actor=project:agent stage=verified
+- 2026-09-01T13:15:36.888504Z | work.criterion-stage-marked | criterion=profile-integration actor=project:agent stage=implemented
+- 2026-09-01T13:15:37.382472Z | work.criterion-stage-marked | criterion=profile-integration actor=project:agent stage=verified
+- 2026-09-01T13:15:37.873152Z | work.criterion-stage-marked | criterion=regression-gates actor=project:agent stage=implemented
+- 2026-09-01T13:15:38.368639Z | work.criterion-stage-marked | criterion=regression-gates actor=project:agent stage=verified
+- 2026-09-01T13:15:38.850344Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:agent stage=implemented
+- 2026-09-01T13:15:39.341511Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:agent stage=verified
+- 2026-09-01T13:15:44.508060Z | work.transitioned | from=implementing to=verifying actor=project:agent
