@@ -20,3 +20,14 @@
 - 2026-09-01T11:12:05.053497Z | tool.running | run=tool-20260901t11121788271925z actor=project:agent
 - 2026-09-01T11:12:05.079853Z | tool.completed | run=tool-20260901t11121788271925z exit-code=0
 - 2026-09-01T11:12:09.474548Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-01T11:12:29.745341Z | tool.prepared | run=tool-20260901t11121788271949z tool=repository operation=commit actor=project:agent
+- 2026-09-01T11:12:29.748324Z | tool.running | run=tool-20260901t11121788271949z actor=project:agent
+- 2026-09-01T11:12:29.772940Z | tool.completed | run=tool-20260901t11121788271949z exit-code=0
+- 2026-09-01T11:14:50.836414Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/f1-decision-layer.md actor=project:agent
+- 2026-09-01T11:14:56.332795Z | work.criterion-stage-marked | criterion=profile-contract actor=project:owner stage=planned
+- 2026-09-01T11:14:56.559307Z | work.criterion-stage-marked | criterion=decision-contract actor=project:owner stage=planned
+- 2026-09-01T11:14:56.797558Z | work.criterion-stage-marked | criterion=llm-suggestions actor=project:owner stage=planned
+- 2026-09-01T11:14:57.040480Z | work.criterion-stage-marked | criterion=api-contract actor=project:owner stage=planned
+- 2026-09-01T11:14:57.277666Z | work.criterion-stage-marked | criterion=ui-workflow actor=project:owner stage=planned
+- 2026-09-01T11:14:57.509280Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=planned
+- 2026-09-01T11:14:57.735334Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:owner stage=planned
