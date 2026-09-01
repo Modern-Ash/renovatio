@@ -200,6 +200,7 @@ public class JavaGenerationService {
                         "No COBOL source files found");
             }
             Map<String, Path> sourceByProgram = new LinkedHashMap<>();
+            Map<String, List<String>> copybooksByProgram = new LinkedHashMap<>();
             List<SemanticProgram> semanticPrograms = new ArrayList<>();
             for (Path source : sources) {
                 SemanticProgram semantic = semanticProgram(source, query, workspace);
@@ -209,9 +210,10 @@ public class JavaGenerationService {
                             "Duplicate semantic program " + semantic.programId());
                 }
                 semanticPrograms.add(semantic);
+                copybooksByProgram.put(semantic.programId(), parsingService.extractCopybookReferences(source));
             }
             ArchitectureResult result = architecture(semanticPrograms,
-                    Objects.requireNonNull(effective, "effective profile"), true);
+                    Objects.requireNonNull(effective, "effective profile"), true, copybooksByProgram);
             return new ArchitecturePreparation(result,
                     Collections.unmodifiableMap(new LinkedHashMap<>(sourceByProgram)));
         } catch (ArchitecturePreviewException exception) {
@@ -261,7 +263,8 @@ public class JavaGenerationService {
                                           Function<SemanticProgram, StubResult> generation) {
         try {
             SemanticProgram semantic = semanticProgram(source, query, workspace);
-            return emitProjected(semantic, effective, generation);
+            return emitProjected(semantic, effective,
+                    Map.of(semantic.programId(), parsingService.extractCopybookReferences(source)), generation);
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
         } catch (Exception exception) {
@@ -275,7 +278,7 @@ public class JavaGenerationService {
                                                   Function<SemanticProgram, StubResult> generation) {
         try {
             SemanticProgram semantic = copybookSemanticProgram(source, query, workspace);
-            return emitProjected(semantic, effective, generation);
+            return emitProjected(semantic, effective, Map.of(semantic.programId(), List.of()), generation);
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
         } catch (Exception exception) {
@@ -284,8 +287,10 @@ public class JavaGenerationService {
     }
 
     private StubResult emitProjected(SemanticProgram semantic, MigrationProfiles.EffectiveProfile effective,
+                                     Map<String, List<String>> programCopybooks,
                                      Function<SemanticProgram, StubResult> generation) {
-        TargetModel targetModel = architecture(List.of(semantic), effective, false).programs().get(0).targetModel();
+        TargetModel targetModel = architecture(List.of(semantic), effective, false, programCopybooks)
+                .programs().get(0).targetModel();
         return emitProjected(targetModel, generation);
     }
 
@@ -348,13 +353,21 @@ public class JavaGenerationService {
     private ArchitectureResult architecture(List<SemanticProgram> programs,
                                             MigrationProfiles.EffectiveProfile effective,
                                             boolean standardJavaLayout) {
+        return architecture(programs, effective, standardJavaLayout, Map.of());
+    }
+
+    private ArchitectureResult architecture(List<SemanticProgram> programs,
+                                            MigrationProfiles.EffectiveProfile effective,
+                                            boolean standardJavaLayout,
+                                            Map<String, List<String>> programCopybooks) {
         GroupingConfiguration grouping = GroupingConfiguration.fromExtensions(effective.profile().extensions());
         List<String> evidence = programs.stream()
                 .flatMap(value -> value.sourceProvenance().parentEvidenceHashes().stream())
                 .distinct().sorted().toList();
         ArchitectureTransformer transformer = standardJavaLayout
                 ? architectureTransformer : architectureTransformerWithoutLayout;
-        return transformer.transform(ArchitectureRequest.create(programs, effective, grouping, Map.of(), evidence));
+        return transformer.transform(ArchitectureRequest.create(programs, effective, grouping,
+                programCopybooks, evidence));
     }
 
     public MigrationProfiles.EffectiveProfile defaultEffectiveProfile() {

@@ -10,6 +10,8 @@ import org.shark.renovatio.decisions.F1DecisionCatalog;
 import org.shark.renovatio.decisions.ProfileStore;
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.llm.decision.ArchitectureSuggestionGateway;
+import org.shark.renovatio.llm.decision.DecisionSuggestionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,9 +25,12 @@ public class DecisionLayerService implements EffectiveProfileResolver {
     private final ProjectRepository projects;
     private final ProfileStore profiles;
     private final DecisionStore decisions;
+    private final ArchitectureSuggestionGateway architectureSuggestions;
     private final DecisionResolver resolver = new DecisionResolver();
-    public DecisionLayerService(ProjectRepository projects, ProfileStore profiles, DecisionStore decisions) {
+    public DecisionLayerService(ProjectRepository projects, ProfileStore profiles, DecisionStore decisions,
+                                ArchitectureSuggestionGateway architectureSuggestions) {
         this.projects = projects; this.profiles = profiles; this.decisions = decisions;
+        this.architectureSuggestions = architectureSuggestions;
     }
 
     public ProfileStore.VersionedProfile profile(String projectId) {
@@ -86,8 +91,12 @@ public class DecisionLayerService implements EffectiveProfileResolver {
         }
         current.stream().filter(value -> generated.stream().noneMatch(item -> item.id().equals(value.id())))
                 .map(value -> DecisionTransitions.retire(value, now)).forEach(next::add);
-        decisions.saveAll(projectId, next);
-        return new AnalysisDecisionSummary(7, 0, 0, 0);
+        MigrationProfiles.EffectiveProfile effective = resolver.resolve(profile(projectId).profile(), next);
+        DecisionSuggestionService.SuggestionBatch suggested = architectureSuggestions.suggest(next,
+                effective.profileHash(), effective.profile().llm(), now);
+        decisions.saveAll(projectId, suggested.decisions());
+        return new AnalysisDecisionSummary(suggested.decisions().size(), suggested.suggestionsAttempted(),
+                suggested.suggestionsFailed(), suggested.cacheHits());
     }
 
     private void requireProject(String projectId) {

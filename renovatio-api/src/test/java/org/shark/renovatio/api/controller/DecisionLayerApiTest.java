@@ -13,10 +13,14 @@ import org.shark.renovatio.api.service.ProjectService;
 import org.shark.renovatio.decisions.DecisionStore;
 import org.shark.renovatio.decisions.DecisionTransitions;
 import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.profile.MigrationProfile;
+import org.shark.renovatio.llm.decision.ArchitectureSuggestionGateway;
+import org.shark.renovatio.llm.decision.DecisionSuggestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,9 +32,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.time.Instant;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -50,12 +62,16 @@ class DecisionLayerApiTest {
     @Autowired ProjectDecisionRepository decisions;
     @Autowired DecisionLayerService service;
     @SpyBean DecisionStore decisionStore;
+    @MockBean ArchitectureSuggestionGateway architectureSuggestions;
     @Autowired ProjectService projectService;
 
     private String projectId;
 
     @BeforeEach
     void setUp() {
+        when(architectureSuggestions.suggest(anyList(), anyString(), any(), any(Instant.class)))
+                .thenAnswer(invocation -> new DecisionSuggestionService.SuggestionBatch(
+                        List.copyOf(invocation.getArgument(0)), 0, 0, 0));
         decisions.deleteAll();
         profiles.deleteAll();
         projects.deleteAll();
@@ -153,6 +169,21 @@ class DecisionLayerApiTest {
         mvc.perform(get(path("/decisions?status=CONFIRMED&minConfidence=1"))
                         .header("X-Role", "ADMIN"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(7));
+    }
+
+    @Test
+    void analysisRoutesSavedLlmPolicyThroughArchitectureSuggestionCoordinator() {
+        MigrationProfile overlay = new MigrationProfile("1", Map.of(), null, null, null, null, null,
+                new MigrationProfile.Llm(true, true, 1));
+        service.replaceProfile(projectId, overlay, 0);
+
+        var summary = service.upsertAnalysis(projectId, "b".repeat(64));
+
+        assertThat(summary.total()).isEqualTo(7);
+        verify(architectureSuggestions).suggest(anyList(), anyString(),
+                argThat(policy -> Boolean.TRUE.equals(policy.enabled())
+                        && Boolean.TRUE.equals(policy.suggestDecisions())
+                        && policy.maxSuggestionsPerRun() == 1), any(Instant.class));
     }
 
     @Test

@@ -31,6 +31,17 @@
 | `npm run build` | PASS — 54 modules transformed; production assets generated successfully. |
 | `git diff --check` | PASS. |
 
+## PR review verification
+
+The PR #161 review found four valid integration gaps. The follow-up projects `EXEC CICS` as
+transaction I/O so conditional controllers enter the canonical manifest, supplies normalized
+program-to-copybook evidence to `BY_DOMAIN`, includes classified I/O dependencies in the
+transaction-script graph, and invokes governed architecture suggestions from the production
+analysis upsert path through an overridable fail-closed gateway.
+
+Focused regression tests cover all four cases. The 13-fixture characterization contract and the
+full 17-module Maven test reactor pass after the corrections.
+
 ## Known baseline observations
 
 Maven continues to report the pre-existing duplicate `renovatio-mcp-server` dependency-management

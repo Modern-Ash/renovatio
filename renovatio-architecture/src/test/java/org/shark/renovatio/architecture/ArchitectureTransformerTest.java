@@ -28,6 +28,10 @@ class ArchitectureTransformerTest {
                 transaction.programs().get(0).effectiveStyle());
         assertTrue(transaction.graph().components().stream()
                 .anyMatch(value -> value.kind() == ArchitectureGraph.ComponentKind.SERVICE));
+        assertTrue(transaction.graph().components().stream()
+                .anyMatch(value -> value.kind() == ArchitectureGraph.ComponentKind.OUTBOUND_PORT));
+        assertTrue(transaction.graph().relations().stream()
+                .anyMatch(value -> value.kind() == ArchitectureGraph.RelationKind.READS));
         assertFalse(transaction.graph().components().stream()
                 .anyMatch(value -> value.kind() == ArchitectureGraph.ComponentKind.INBOUND_PORT));
 

@@ -3,6 +3,7 @@ package org.shark.renovatio.provider.java.emission;
 import org.shark.renovatio.architecture.ArchitectureGraph;
 import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
 import org.shark.renovatio.profile.MigrationProfile;
+import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -35,6 +36,13 @@ public final class JavaArchitectureLayoutPlanner implements ArtifactLayoutPlanne
                 + classBase + "Service.java", contract, "service-contract"));
         result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "application/service/")
                 + classBase + "ServiceImpl.java", implementation, "service-implementation"));
+        if (context.program().ioOperations().stream()
+                .anyMatch(operation -> operation.ioKind() == SemanticProgram.IoKind.TRANSACTION)) {
+            String adapter = component(context, ArchitectureGraph.ComponentKind.ADAPTER,
+                    ArchitectureGraph.ComponentKind.OUTBOUND_PORT, ArchitectureGraph.ComponentKind.SERVICE);
+            result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "adapter/in/web/")
+                    + classBase + "CicsController.java", adapter, "cics-controller"));
+        }
         return List.copyOf(result);
     }
 

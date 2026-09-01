@@ -53,6 +53,21 @@ class JavaArchitectureLayoutPlannerTest {
                 MigrationProfile.ArchitectureStyle.TRANSACTION_SCRIPT, List.of())));
     }
 
+    @Test
+    void plansConditionalCicsControllerInBothLayouts() {
+        SemanticProgram program = programWithTransaction("src/PAY-FILE.cob");
+        var service = component("7", ArchitectureGraph.ComponentKind.SERVICE, program);
+        var dependency = component("8", ArchitectureGraph.ComponentKind.OUTBOUND_PORT, program);
+
+        assertEquals(List.of("PayDTO.java", "PayService.java", "PayServiceImpl.java",
+                        "PayCicsController.java"),
+                paths(planner.plan(context(program, MigrationProfile.ArchitectureStyle.TRANSACTION_SCRIPT,
+                        List.of(service, dependency)))));
+        assertTrue(paths(planner.plan(context(program, MigrationProfile.ArchitectureStyle.HEXAGONAL,
+                List.of(service, dependency)))).contains(
+                "modules/payments/adapter/in/web/PayCicsController.java"));
+    }
+
     private static ArtifactLayoutPlanner.LayoutContext context(SemanticProgram program,
             MigrationProfile.ArchitectureStyle style, List<ArchitectureGraph.Component> components) {
         return new ArtifactLayoutPlanner.LayoutContext(REQUEST, MODULE, "payments", program, style, components);
@@ -72,6 +87,17 @@ class JavaArchitectureLayoutPlannerTest {
                 SemanticProgram.NodeKind.PROGRAM, "program", span), "PAY001", provenance, List.of(), List.of(),
                 List.of(), List.of(), new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()),
                 List.of());
+    }
+
+    private static SemanticProgram programWithTransaction(String path) {
+        SemanticProgram base = program(path);
+        var operation = new SemanticProgram.IoOperation(SemanticProgram.Header.create(base.programId(),
+                SemanticProgram.NodeKind.IO_OPERATION, "cics:0", base.header().sourceSpan()),
+                SemanticProgram.IoKind.TRANSACTION, "LINK", Optional.of("BACKEND"),
+                SemanticProgram.Direction.UNKNOWN, List.of());
+        return new SemanticProgram(base.schemaVersion(), base.header(), base.programId(), base.sourceProvenance(),
+                base.types(), base.dataIntents(), base.sideEffects(), List.of(operation), base.controlFlow(),
+                base.unclassifiedDataAccesses());
     }
 
     private static List<String> paths(List<ArtifactLayoutPlanner.PlannedArtifact> artifacts) {

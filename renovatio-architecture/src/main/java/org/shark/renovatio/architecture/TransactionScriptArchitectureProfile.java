@@ -38,6 +38,19 @@ public final class TransactionScriptArchitectureProfile implements ArchitectureP
                     ? ArchitectureGraph.ComponentKind.ENTITY : ArchitectureGraph.ComponentKind.VALUE, type.symbol()));
             relations.add(relation(context, serviceId, valueId, ArchitectureGraph.RelationKind.USES));
         }
+        for (SemanticProgram.IoOperation operation : program.ioOperations()) {
+            String dependencyId = componentId(context, operation.header().id(), "io-dependency");
+            String resource = operation.resourceReference().map(value -> " " + value).orElse("");
+            components.add(new ArchitectureGraph.Component(dependencyId, context.moduleId(), program.programId(),
+                    Optional.of(operation.header().id()), ArchitectureGraph.ComponentKind.OUTBOUND_PORT,
+                    operation.operation() + resource));
+            ArchitectureGraph.RelationKind kind = switch (operation.direction()) {
+                case READ -> ArchitectureGraph.RelationKind.READS;
+                case WRITE -> ArchitectureGraph.RelationKind.WRITES;
+                default -> ArchitectureGraph.RelationKind.USES;
+            };
+            relations.add(relation(context, serviceId, dependencyId, kind));
+        }
         for (SemanticProgram.UnclassifiedDataAccess access : program.unclassifiedDataAccesses()) {
             String unresolvedId = componentId(context, access.header().id(), "unresolved");
             components.add(new ArchitectureGraph.Component(unresolvedId, context.moduleId(), program.programId(),

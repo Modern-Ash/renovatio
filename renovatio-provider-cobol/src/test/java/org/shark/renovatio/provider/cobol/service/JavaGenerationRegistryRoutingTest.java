@@ -115,6 +115,49 @@ class JavaGenerationRegistryRoutingTest {
     }
 
     @Test
+    void cicsControllerIsPlannedBeforeManifestValidation(@TempDir Path workspacePath) throws Exception {
+        String cics = COBOL.replace("MOVE 'A' TO CUSTOMER-NAME.",
+                "EXEC CICS LINK PROGRAM('BACKEND') END-EXEC.");
+        Files.writeString(workspacePath.resolve("routed.cob"), cics);
+        var dependencies = dependencies();
+        JavaGenerationService routed = new JavaGenerationService(dependencies.parsing(), dependencies.templates(),
+                dependencies.models(), dependencies.transpiler(), dependencies.mapper(), true);
+        Workspace workspace = new Workspace("test", workspacePath.toString(), "main");
+
+        var preview = routed.previewArchitecture(new NqlQuery(), workspace);
+        StubResult emitted = routed.generateInterfaceStubs(new NqlQuery(), workspace);
+
+        assertTrue(emitted.isSuccess(), emitted.getMessage());
+        assertTrue(preview.manifest().artifacts().stream()
+                .anyMatch(artifact -> artifact.path().equals("RoutedCicsController.java")));
+        assertEquals(preview.manifest().artifacts().stream().map(artifact -> artifact.path()).toList(),
+                emitted.getGeneratedCode().keySet().stream().toList());
+    }
+
+    @Test
+    void domainGroupingUsesCopybookRelationshipsFromSource(@TempDir Path workspacePath) throws Exception {
+        String source = COBOL.replace("01 CUSTOMER-NAME PIC X(20).",
+                "01 CUSTOMER-NAME PIC X(20).\n            COPY customer-rec.cpy.");
+        Files.writeString(workspacePath.resolve("routed.cob"), source);
+        Files.writeString(workspacePath.resolve("customer-rec.cpy"), "01 CUSTOMER-REC PIC X(20).\n");
+        var dependencies = dependencies();
+        JavaGenerationService routed = new JavaGenerationService(dependencies.parsing(), dependencies.templates(),
+                dependencies.models(), dependencies.transpiler(), dependencies.mapper(), true);
+        Workspace workspace = new Workspace("test", workspacePath.toString(), "main");
+
+        var preview = routed.previewArchitecture(new NqlQuery(), workspace, domainHexagonalProfile());
+        StubResult emitted = routed.generateInterfaceStubs(new NqlQuery(), workspace, domainHexagonalProfile());
+
+        assertEquals(List.of("customers"), preview.graph().modules().stream()
+                .map(module -> module.name()).toList());
+        assertTrue(emitted.isSuccess(), emitted.getMessage());
+        assertEquals(preview.manifest().artifacts().stream().map(artifact -> artifact.path()).toList(),
+                emitted.getGeneratedCode().keySet().stream().toList());
+        assertTrue(emitted.getGeneratedCode().keySet().stream()
+                .allMatch(path -> path.startsWith("modules/customers/")));
+    }
+
+    @Test
     void transactionScriptAndHexagonalLayoutsCompile(@TempDir Path root) throws Exception {
         Path transactionWorkspace = Files.createDirectories(root.resolve("transaction"));
         Path hexagonalWorkspace = Files.createDirectories(root.resolve("hexagonal"));
@@ -276,6 +319,14 @@ class JavaGenerationRegistryRoutingTest {
         MigrationProfile overlay = new MigrationProfile("1", Map.of(), null,
                 new MigrationProfile.Architecture(MigrationProfile.ArchitectureStyle.HEXAGONAL,
                         MigrationProfile.ModuleGrouping.BY_PROGRAM), null, null, null, null);
+        return new DecisionResolver().resolve(overlay, List.of());
+    }
+
+    private static MigrationProfiles.EffectiveProfile domainHexagonalProfile() {
+        MigrationProfile overlay = new MigrationProfile("1", Map.of("renovatio.architecture", Map.of(
+                "domainCopybooks", Map.of("CUSTOMER-REC", "customers"))), null,
+                new MigrationProfile.Architecture(MigrationProfile.ArchitectureStyle.HEXAGONAL,
+                        MigrationProfile.ModuleGrouping.BY_DOMAIN), null, null, null, null);
         return new DecisionResolver().resolve(overlay, List.of());
     }
 

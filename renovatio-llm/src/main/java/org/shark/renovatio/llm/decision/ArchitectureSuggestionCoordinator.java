@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Objects;
 
 /** Bounded adapter for optional architecture suggestions and gated control-flow plans. */
-public final class ArchitectureSuggestionCoordinator {
+public final class ArchitectureSuggestionCoordinator implements ArchitectureSuggestionGateway {
     private final DecisionSuggestionService suggestions;
     private final ControlFlowPlanGate controlFlowPlans;
 
@@ -26,6 +26,7 @@ public final class ArchitectureSuggestionCoordinator {
         this.controlFlowPlans = Objects.requireNonNull(controlFlowPlans, "controlFlowPlans");
     }
 
+    @Override
     public DecisionSuggestionService.SuggestionBatch suggest(List<DecisionPoint> current, String profileHash,
                                                               MigrationProfile.Llm policy, Instant now) {
         List<DecisionPoint> decisions = List.copyOf(Objects.requireNonNull(current, "current"));
