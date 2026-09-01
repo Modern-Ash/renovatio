@@ -3,7 +3,7 @@
 - **Work item:** `decision-engine/f0-decision-cartography`
 - **Specification:** `docs/specs/decision-model-cartography.md`
 - **Implementation plan:** `docs/plans/decision-model-cartography.md`
-- **Verification date:** 2026-08-31
+- **Verification date:** 2026-09-01
 - **Scope:** Documentation and evidence only
 - **Overall result:** PASS
 
@@ -11,18 +11,18 @@
 
 | Check | Expected | Observed | Result |
 |---|---|---|:---:|
-| Repository revision | `f2173f5ef1ffde7e6c1a35439ab66e49c27877e6` | Exact match from `git rev-parse HEAD` | PASS |
-| `JavaGenerationService.java` SHA-256 | `8b3fb65abb085485b4a9fb5a6461c457110899b8f550db00cb1da8c7c0a2ad2d` | Exact match | PASS |
-| `MigrationPlanService.java` SHA-256 | `fa12b7477ad05d6b74041c6e62bd58c6bc2f210500af2c39aa54e3d5e877bd93` | Exact match | PASS |
+| Repository revision | `b430ba48a01ebe55e42b9714a5ccf5557e3981aa` | Exact match from the PR base | PASS |
+| `JavaGenerationService.java` SHA-256 | `8ec5359ece8a48cc0c8891f235c770a9a5ac7dddc6c79e024f581a32361890c3` | Exact match | PASS |
+| `MigrationPlanService.java` SHA-256 | `2e44a17db423b8a70d576aeaa89475f1cfe3e24d057e04fb1ece991dcd4803be` | Exact match | PASS |
 | Fixture inputs | 13 | 13 `input.cob` files | PASS |
 | Behavior evidence | One per fixture | 13 `expected-behavior.json` files | PASS |
 | Action-item evidence | One per fixture | 13 `expected-action-items.json` files | PASS |
 | IR goldens | 10, with three declared gaps | 10 `expected-ir.json` files | PASS |
 | Annotated/generated-Java goldens | Two fixture families | `data-intent-redefines` and `move-numeric` | PASS |
 
-Both service files were already modified in the working tree when the
-cartography snapshot was taken. Their working-tree content is deliberately
-pinned by the hashes above. This spike did not modify either production file.
+Both service files reproduce from a clean checkout of the PR base and are
+unchanged by the cartography commit. The earlier working-tree-only metadata
+producer/consumer behavior is excluded from this revised evidence.
 
 ## Acceptance-criterion results
 
@@ -49,8 +49,8 @@ map covers:
 - Direct arguments and stored caller inputs.
 - Constructor collaborators and their transitive parser/IR/annotation/runtime
   rules.
-- Query and workspace metadata, parser result metadata, and generated-result
-  metadata.
+- Query and workspace metadata and parser result metadata. The committed
+  `MigrationPlanService` ignores `StubResult` message and metadata.
 - Filesystem content, output/report writes, existence checks, locale, standard
   streams, UUIDs, clocks, and in-memory plan/run maps.
 - Hard-coded generation choices, fixed migration steps, ignored/unused inputs,
@@ -85,7 +85,8 @@ manual exception or desirable-cluster override was applied.
 ## Commands used
 
 ```bash
-git rev-parse HEAD
+git rev-parse b430ba48a01ebe55e42b9714a5ccf5557e3981aa^{commit}
+git diff --exit-code b430ba48a01ebe55e42b9714a5ccf5557e3981aa -- renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/JavaGenerationService.java renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/MigrationPlanService.java
 sha256sum renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/JavaGenerationService.java renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/MigrationPlanService.java
 rg --files renovatio-provider-cobol/src/test/resources/characterization -g 'input.cob'
 rg --files renovatio-provider-cobol/src/test/resources/characterization -g 'expected-ir.json'

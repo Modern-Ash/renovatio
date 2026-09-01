@@ -4,7 +4,7 @@
 - **GitHub issue:** #145 (Epic #152)
 - **Type:** Spike — no production code
 - **Status:** governed; durable lifecycle state is recorded in Agora
-- **Date:** 2026-08-31
+- **Date:** 2026-09-01
 
 ## 1. Purpose and resolved boundaries
 
@@ -21,8 +21,8 @@ The Spec Owner resolved the clarification questions as follows:
    content-addressed registrations of this same document, not separate
    artifacts requiring reconciliation.
 2. Fixture evidence is pinned to
-   `renovatio-provider-cobol/src/test/resources/characterization/` at revision
-   `f2173f5ef1ffde7e6c1a35439ab66e49c27877e6`.
+   `renovatio-provider-cobol/src/test/resources/characterization/` at the PR
+   base revision `b430ba48a01ebe55e42b9714a5ccf5557e3981aa`.
 3. The coupling map includes parameters, collaborators, configuration,
    filesystem and ambient state, static state, and transitive dependencies.
 4. IR reuse is judged from its API, available goldens, and generation call
@@ -36,9 +36,9 @@ The Spec Owner resolved the clarification questions as follows:
    basis for the four acceptance criteria. Criterion-stage marking and
    lifecycle transitions remain separate durable Agora actions; this document
    intentionally does not duplicate their current values.
-7. The authoritative reproducibility snapshot is revision
-   `f2173f5ef1ffde7e6c1a35439ab66e49c27877e6` plus the two working-tree service
-   versions identified by content SHA-256 in §2.2.
+7. The authoritative reproducibility snapshot is the clean PR base revision
+   `b430ba48a01ebe55e42b9714a5ccf5557e3981aa`. The two service files are
+   additionally identified by content SHA-256 in §2.2.
 8. The Spec Owner accepts per-object WORKING-STORAGE lifetime as the real
    PERSISTENCE-category fixture example, while retaining the explicit corpus
    gap for file, VSAM, SQL, and CICS persistence.
@@ -79,17 +79,16 @@ three cases are not mixed.
 
 ### 2.2 Code snapshot
 
-The repository HEAD is the pinned revision above. The coupling map also
-includes two later working-tree changes already present when this cartography
-was performed:
+The coupling map was regenerated from a clean checkout of the pinned PR base:
 
 | Source | Inspected content SHA-256 |
 |---|---|
-| `JavaGenerationService.java` | `8b3fb65abb085485b4a9fb5a6461c457110899b8f550db00cb1da8c7c0a2ad2d` |
-| `MigrationPlanService.java` | `fa12b7477ad05d6b74041c6e62bd58c6bc2f210500af2c39aa54e3d5e877bd93` |
+| `JavaGenerationService.java` | `8ec5359ece8a48cc0c8891f235c770a9a5ac7dddc6c79e024f581a32361890c3` |
+| `MigrationPlanService.java` | `2e44a17db423b8a70d576aeaa89475f1cfe3e24d057e04fb1ece991dcd4803be` |
 
-Those changes add `StubResult.metadata.outputPath/generatedFiles` and consume
-them in the migration result. No production source was changed by this spike.
+These are the versions stored in both the PR parent and resulting tree. They
+do not produce or consume `StubResult.metadata.outputPath/generatedFiles`.
+No production source was changed by this spike.
 
 ## 3. Complete coupling map
 
@@ -142,9 +141,7 @@ stored by the API layer but do not reach generation.
 | `planId` | apply caller | Key into the process-local `activePlans` map. |
 | `dryRun` | apply caller | Stored on `MigrationRun` and echoed in result changes; it does not suppress generation or writes. |
 | Stored plan `query/steps` | `activePlans` | Query drives baseline/generation; step type selects the only implemented branch and description is recorded. |
-| `StubResult.success/generatedCode` | `JavaGenerationService` | Successful, non-null generated code is accumulated into run output. The result message is ignored. |
-| `StubResult.metadata["outputPath"]` | generator | Copied to `changes.javaOutputDirectory` when it is a string. |
-| `StubResult.metadata["generatedFiles"]` | generator | String members are sorted and copied to `changes.javaGeneratedFiles`; `generatedFileCount` is produced but not consumed. |
+| `StubResult.success/generatedCode` | `JavaGenerationService` | Successful, non-null generated code is accumulated into run output. The result message and metadata are ignored. |
 | Baseline `AnalyzeResult` and synthetic migrated metrics | parser/local | Passed to `BenchmarkUtils.compare`; elapsed time becomes the migrated performance metric. |
 | `runId` | diff caller | Key into process-local `completedRuns`. |
 | Stored run fields | `completedRuns` | `planId`, timestamps, and generated-file keys form the textual/semantic diff. The diff method's `workspace` parameter is unused. |

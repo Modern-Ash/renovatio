@@ -14,12 +14,12 @@ two-service coupling map, and the mechanically derived seven-decision F1 cut.
 
 ## Reproducibility baseline
 
-- Canonical characterization fixtures are pinned to revision
-  `f2173f5ef1ffde7e6c1a35439ab66e49c27877e6`.
+- Canonical characterization fixtures are pinned to the clean PR base revision
+  `b430ba48a01ebe55e42b9714a5ccf5557e3981aa`.
 - `JavaGenerationService.java` is inspected at SHA-256
-  `8b3fb65abb085485b4a9fb5a6461c457110899b8f550db00cb1da8c7c0a2ad2d`.
+  `8ec5359ece8a48cc0c8891f235c770a9a5ac7dddc6c79e024f581a32361890c3`.
 - `MigrationPlanService.java` is inspected at SHA-256
-  `fa12b7477ad05d6b74041c6e62bd58c6bc2f210500af2c39aa54e3d5e877bd93`.
+  `2e44a17db423b8a70d576aeaa89475f1cfe3e24d057e04fb1ece991dcd4803be`.
 - The 13 fixture directories and their expected-behavior/action-item files are
   the frequency corpus. Missing IR and generated-Java goldens remain explicit
   corpus limitations rather than inferred evidence.

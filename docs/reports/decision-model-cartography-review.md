@@ -1,7 +1,8 @@
 # F0 Decision-Model Cartography — Spec Owner Review
 
 - **Work item:** `decision-engine/f0-decision-cartography`
-- **Review date:** 2026-08-31
+- **Review date:** 2026-09-01
+- **Revision:** 2, reopened after Codex review on PR #155
 - **Reviewer role:** `spec-owner` (`project:owner`)
 - **Decision:** ACCEPT
 
@@ -12,7 +13,7 @@
 - `docs/reports/decision-model-cartography-verification.md`
 - Agora artifact and evidence registries for the work item
 - Final consistency report
-  `consistency-20260901t02221788240178z.md` (`result: success`)
+  `consistency-20260901t10501788270621z.md` (`result: success`)
 - Current Method Pack transition and completion gate
 
 ## Criterion review
@@ -36,7 +37,10 @@
   version interprets those entries as artifact kinds. The same digested spec
   was therefore registered under that literal compatibility kind. No gate was
   waived and the underlying artifact requirement remains satisfied.
-- The review finding registry contains no open findings.
+- Finding `pr155-service-snapshot` identified unreproducible working-tree-only
+  service hashes. Revision 2 pins the clean PR base, removes the two nonexistent
+  metadata-consumption rows, and regenerates verification and consistency
+  evidence. The finding is resolved; no open findings remain.
 - No production or fixture file was changed by this spike.
 
 ## Decision
