@@ -27,6 +27,7 @@ public final class StrictJsonSchemaValidator {
         if ("object".equals(type)) validateObject(value, schema);
         else if ("array".equals(type)) validateArray(value, schema);
         else if ("string".equals(type)) validateString(value, schema);
+        else if ("number".equals(type)) validateNumber(value, schema);
         if (schema.has("enum")) {
             boolean found = false;
             for (JsonNode allowed : schema.path("enum")) found |= allowed.equals(value);
@@ -57,6 +58,13 @@ public final class StrictJsonSchemaValidator {
     private void validateString(JsonNode value, JsonNode schema) {
         require(value != null && value.isTextual());
         require(value.textValue().length() >= schema.path("minLength").asInt(0));
+        if (schema.has("maxLength")) require(value.textValue().length() <= schema.path("maxLength").asInt());
+    }
+
+    private void validateNumber(JsonNode value, JsonNode schema) {
+        require(value != null && value.isNumber());
+        if (schema.has("minimum")) require(value.decimalValue().compareTo(schema.path("minimum").decimalValue()) >= 0);
+        if (schema.has("maximum")) require(value.decimalValue().compareTo(schema.path("maximum").decimalValue()) <= 0);
     }
 
     private static void require(boolean condition) {

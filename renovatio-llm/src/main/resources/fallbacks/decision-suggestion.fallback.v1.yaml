@@ -1,0 +1,4 @@
+fallbackVersion: renovatio-llm-fallback.v1
+type: MANUAL_ACTION
+diagnosticCode: LLM_DECISION_SUGGESTION_FAILED
+manualAction: Keep the deterministic decision default and continue analysis.

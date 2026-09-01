@@ -12,16 +12,21 @@ import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelServ
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 import org.shark.renovatio.provider.cobol.translation.AnnotatedContextResolver;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
+import org.shark.renovatio.decisions.DecisionResolver;
+import org.shark.renovatio.profile.MigrationProfiles;
 
 import javax.tools.ToolProvider;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -89,6 +94,50 @@ class CharacterizationFixtureContractTest {
                 assertThat(fixture.resolve("translation-input.java")).doesNotExist();
             }
         }
+    }
+
+    @Test
+    void defaultF1EnvelopeIsByteCompatibleAcrossAllThirteenFixtures() throws Exception {
+        var effective = new DecisionResolver().resolve(MigrationProfiles.emptyOverlay(), List.of());
+        assertThat(effective.profile()).isEqualTo(MigrationProfiles.defaults());
+        assertThat(effective.resolvedDecisions()).hasSize(7);
+
+        for (String fixtureId : FIXTURES) {
+            Path fixture = corpus().resolve(fixtureId);
+            Map<String, byte[]> baselineFirst = generatedFiles(fixtureId, fixture, false, effective);
+            Map<String, byte[]> baselineSecond = generatedFiles(fixtureId, fixture, false, effective);
+            Map<String, byte[]> f1First = generatedFiles(fixtureId, fixture, true, effective);
+            Map<String, byte[]> f1Second = generatedFiles(fixtureId, fixture, true, effective);
+
+            assertSameFiles(fixtureId + " baseline repeat", baselineFirst, baselineSecond);
+            assertSameFiles(fixtureId + " F1 repeat", f1First, f1Second);
+            assertSameFiles(fixtureId + " baseline versus default F1", baselineFirst, f1First);
+        }
+    }
+
+    private Map<String, byte[]> generatedFiles(String fixtureId, Path fixture, boolean f1,
+                                                MigrationProfiles.EffectiveProfile effective) throws Exception {
+        if (!SUPPORTED.contains(fixtureId)) return Map.of();
+        if (f1) {
+            assertThat(effective.profileHash()).hasSize(64);
+            assertThat(effective.appliedDecisionIds()).isEmpty();
+        }
+        Map<String, byte[]> generated = new TreeMap<>();
+        Path cobol = fixture.resolve("input.cob");
+        Path javaStub = fixture.resolve("translation-input.java");
+        generated.put("CharacterizationFixture.java", translate(cobol, javaStub).getBytes(StandardCharsets.UTF_8));
+        Path annotatedSidecar = fixture.resolve(fixtureId + ".annotated.json");
+        if (Files.exists(annotatedSidecar)) {
+            generated.put("CharacterizationFixture.annotated.java",
+                    translateAnnotated(cobol, javaStub, annotatedSidecar).getBytes(StandardCharsets.UTF_8));
+        }
+        return generated;
+    }
+
+    private static void assertSameFiles(String label, Map<String, byte[]> expected, Map<String, byte[]> actual) {
+        assertThat(actual.keySet()).as(label + " file keys").containsExactlyElementsOf(expected.keySet());
+        expected.forEach((path, bytes) -> assertThat(actual.get(path)).as(label + " bytes for " + path)
+                .containsExactly(bytes));
     }
 
     private String translate(Path cobol, Path javaStub) throws Exception {

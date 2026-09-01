@@ -105,4 +105,20 @@ class DecisionDomainTest {
         assertEquals(1, effective.appliedDecisionIds().size());
         assertEquals(7, effective.resolvedDecisions().size());
     }
+
+    @Test
+    void retirementIsIdempotentAndDuplicateActiveIdentityIsRejected() {
+        DecisionPoint first = F1DecisionCatalog.create(IR, NOW).get(0);
+        DecisionPoint retired = DecisionTransitions.retire(first, NOW.plusSeconds(1));
+        assertFalse(retired.active());
+        assertSame(retired, DecisionTransitions.retire(retired, NOW.plusSeconds(2)));
+
+        DecisionPoint duplicate = new DecisionPoint(first.schemaVersion(), "b".repeat(64), first.category(),
+                first.decisionKey(), first.location(), first.question(), first.options(), first.defaultOption(),
+                first.chosenOption(), first.source(), first.confidence(), first.rationale(), first.evidence(),
+                first.status(), first.semanticIrHash(), false, null, first.revision(), first.createdAt(),
+                first.updatedAt(), true);
+        assertThrows(IllegalStateException.class,
+                () -> new DecisionResolver().resolve(MigrationProfiles.emptyOverlay(), List.of(first, duplicate)));
+    }
 }

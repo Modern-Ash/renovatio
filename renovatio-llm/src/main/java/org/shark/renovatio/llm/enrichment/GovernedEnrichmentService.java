@@ -20,6 +20,7 @@ import org.shark.renovatio.llm.prompt.PromptOutputValidator;
 import org.shark.renovatio.llm.prompt.PromptRuntime;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /** Cache-first enrichment whose miss path is fully enclosed by Agora attribution. */
@@ -60,6 +61,16 @@ public final class GovernedEnrichmentService {
         return cache.find(cacheKey, index, manifest)
                 .map(envelope -> new EnrichmentResult(envelope, true))
                 .orElseGet(() -> miss(prepared, deterministicResult, cacheKey));
+    }
+
+    /** Performs the verified committed-cache half of enrichment without constructing or calling a provider. */
+    public Optional<EnrichmentResult> findCommitted(String promptId, JsonNode canonicalInput,
+                                                    String providerId, String model,
+                                                    CommittedCacheIndex index,
+                                                    VerifiedPromotionManifest manifest) {
+        PreparedEnrichment prepared = promptRuntime.prepare(promptId, canonicalInput, providerId, model);
+        String cacheKey = CacheKey.derive(prepared.identity());
+        return cache.find(cacheKey, index, manifest).map(envelope -> new EnrichmentResult(envelope, true));
     }
 
     private EnrichmentResult miss(PreparedEnrichment prepared, JsonNode deterministicResult, String cacheKey) {

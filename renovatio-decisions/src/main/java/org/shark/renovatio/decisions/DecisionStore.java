@@ -6,6 +6,8 @@ import java.util.Optional;
 
 /** Project-scoped persistence port; adapters must never query a decision id without project id. */
 public interface DecisionStore {
+    /** Includes retired records for reconciliation and audit-aware bulk accounting. */
+    List<DecisionPoint> findAll(String projectId);
     List<DecisionPoint> find(String projectId, DecisionPoint.Category category,
                              BigDecimal minConfidence, DecisionPoint.Status status);
     Optional<DecisionPoint> findById(String projectId, String decisionId);

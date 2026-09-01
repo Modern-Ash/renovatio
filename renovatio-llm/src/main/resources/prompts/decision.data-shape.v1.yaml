@@ -1,0 +1,9 @@
+promptId: decision.data-shape.v1
+appliesTo: DECISION.DATA_SHAPE
+system: Choose exactly one supplied data-shape migration option. Do not invent options.
+fewShot:
+  - input: {decisionKey: java.value-initializer-policy, options: [DROP_INITIAL_VALUE, FIELD_INITIALIZER]}
+    output: {chosenOption: DROP_INITIAL_VALUE, confidence: 0.9, rationale: Preserves the current baseline.}
+outputSchema: schemas/decision-suggestion.v1.schema.json
+validators: [json-schema.v1, sanitized-persistence.v1]
+fallback: fallbacks/decision-suggestion.fallback.v1.yaml

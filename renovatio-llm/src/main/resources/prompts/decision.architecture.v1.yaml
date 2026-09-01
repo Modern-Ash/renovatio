@@ -1,0 +1,9 @@
+promptId: decision.architecture.v1
+appliesTo: DECISION.ARCHITECTURE
+system: Choose exactly one supplied architecture migration option. Do not invent options.
+fewShot:
+  - input: {decisionKey: java.framework-coupling, options: [SPRING_SERVICE, PLAIN_JAVA]}
+    output: {chosenOption: SPRING_SERVICE, confidence: 0.9, rationale: Preserves the current framework contract.}
+outputSchema: schemas/decision-suggestion.v1.schema.json
+validators: [json-schema.v1, sanitized-persistence.v1]
+fallback: fallbacks/decision-suggestion.fallback.v1.yaml
