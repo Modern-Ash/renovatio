@@ -4,7 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.javapoet.*;
 import org.shark.renovatio.cobol.ir.model.CobolDataItem;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.shark.renovatio.core.service.TargetEmitterRegistry;
+import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
+import org.shark.renovatio.provider.cobol.translation.CobolSemanticProjector;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 import org.shark.renovatio.provider.cobol.translation.AnnotatedContextResolver;
 import org.shark.renovatio.provider.cobol.translation.AnnotationActionItemFactory;
@@ -12,11 +15,18 @@ import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionItemWriter;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
+import org.shark.renovatio.shared.emission.EmittedArtifacts;
+import org.shark.renovatio.shared.emission.TargetModel;
 import org.shark.renovatio.shared.nql.NqlQuery;
+import org.shark.renovatio.profile.EffectiveProfileResolver;
+import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.provider.java.emission.JavaEmitter;
+import org.shark.renovatio.semantic.ir.SemanticProgram;
 import org.springframework.stereotype.Service;
 
 import javax.lang.model.element.Modifier;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,9 +37,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 /**
  * Java code generation service using JavaPoet
@@ -45,13 +58,17 @@ public class JavaGenerationService {
     private final AnnotatedContextResolver annotatedContextResolver;
     private final AnnotationActionItemFactory annotationActionItemFactory;
     private final ManualActionItemWriter manualActionItemWriter;
+    private final boolean registryRouting;
+    private final TargetEmitterRegistry emitterRegistry;
+    private final EffectiveProfileResolver effectiveProfileResolver;
+    private final CobolSemanticProjector semanticProjector = new CobolSemanticProjector();
 
     public JavaGenerationService(CobolParsingService parsingService,
                                  TemplateCodeGenerationService templateService,
                                  CobolIntermediateModelService intermediateModelService,
                                  CobolSemanticTranspiler semanticTranspiler) {
         this(parsingService, templateService, intermediateModelService, semanticTranspiler,
-                new ObjectMapper().findAndRegisterModules());
+                new ObjectMapper().findAndRegisterModules(), false, new TargetEmitterRegistry(List.of()), null);
     }
 
     public JavaGenerationService(CobolParsingService parsingService,
@@ -59,6 +76,28 @@ public class JavaGenerationService {
                                  CobolIntermediateModelService intermediateModelService,
                                  CobolSemanticTranspiler semanticTranspiler,
                                  ObjectMapper objectMapper) {
+        this(parsingService, templateService, intermediateModelService, semanticTranspiler, objectMapper, false,
+                new TargetEmitterRegistry(List.of()), null);
+    }
+
+    public JavaGenerationService(CobolParsingService parsingService,
+                                 TemplateCodeGenerationService templateService,
+                                 CobolIntermediateModelService intermediateModelService,
+                                 CobolSemanticTranspiler semanticTranspiler,
+                                 ObjectMapper objectMapper,
+                                 boolean registryRouting) {
+        this(parsingService, templateService, intermediateModelService, semanticTranspiler, objectMapper,
+                registryRouting, new TargetEmitterRegistry(List.of()), null);
+    }
+
+    public JavaGenerationService(CobolParsingService parsingService,
+                                 TemplateCodeGenerationService templateService,
+                                 CobolIntermediateModelService intermediateModelService,
+                                 CobolSemanticTranspiler semanticTranspiler,
+                                 ObjectMapper objectMapper,
+                                 boolean registryRouting,
+                                 TargetEmitterRegistry emitterRegistry,
+                                 EffectiveProfileResolver effectiveProfileResolver) {
         this.parsingService = parsingService;
         this.templateService = templateService;
         this.intermediateModelService = intermediateModelService;
@@ -66,12 +105,129 @@ public class JavaGenerationService {
         this.annotatedContextResolver = new AnnotatedContextResolver(objectMapper);
         this.annotationActionItemFactory = new AnnotationActionItemFactory();
         this.manualActionItemWriter = new ManualActionItemWriter(objectMapper);
+        this.registryRouting = registryRouting;
+        this.emitterRegistry = Objects.requireNonNull(emitterRegistry, "emitterRegistry");
+        this.effectiveProfileResolver = effectiveProfileResolver == null
+                ? ignored -> defaultEffectiveProfile() : effectiveProfileResolver;
     }
 
     /**
      * Generates Java interface stubs for COBOL programs
      */
     public StubResult generateInterfaceStubs(NqlQuery query, Workspace workspace) {
+        if (!registryRouting) {
+            return generateInterfaceStubsLegacy(query, workspace);
+        }
+        return generateInterfaceStubs(query, workspace, effectiveProfile(workspace));
+    }
+
+    public MigrationProfiles.EffectiveProfile effectiveProfile(Workspace workspace) {
+        String projectId = workspace == null ? null : workspace.getId();
+        return Objects.requireNonNull(effectiveProfileResolver.resolve(projectId), "effective profile");
+    }
+
+    /** Routes an effective F1 target envelope through the F2 target registry. */
+    public StubResult generateInterfaceStubs(NqlQuery query, Workspace workspace,
+                                             MigrationProfiles.EffectiveProfile effective) {
+        try {
+            Path root = Paths.get(workspace.getPath()).toAbsolutePath().normalize();
+            List<Path> sources = parsingService.findCobolSourceFiles(root).stream().sorted().toList();
+            if (sources.isEmpty()) return new StubResult(false, "No COBOL source files found");
+            Map<String, String> generatedFiles = new LinkedHashMap<>();
+            Map<String, ManualActionItem> actionItems = new LinkedHashMap<>();
+            for (Path source : sources) {
+                StubResult emitted = emitThroughRegistry(source, query, workspace, effective,
+                        semantic -> generateInterfaceStubsLegacy(query, workspace, semantic, source, false, actionItems));
+                if (!emitted.isSuccess()) return emitted;
+                if (emitted.getGeneratedCode() != null) {
+                    emitted.getGeneratedCode().forEach((path, content) -> putArtifact(generatedFiles, path, content));
+                }
+            }
+            String outputPath = resolveOutputDir(workspace).toString();
+            if (effective.profile().target().language() == org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
+                manualActionItemWriter.write(root.resolve(ManualActionItemWriter.DEFAULT_REPORT), actionItems.values());
+                outputPath = writeGeneratedFilesToDisk(generatedFiles, workspace);
+            }
+            StubResult result = new StubResult(!generatedFiles.isEmpty(), generatedFiles.isEmpty()
+                    ? "No target files generated"
+                    : "Generated " + generatedFiles.size() + " target files in: " + outputPath);
+            result.setGeneratedCode(generatedFiles);
+            result.setTargetLanguage(effective.profile().target().language().name());
+            return result;
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception exception) {
+            return new StubResult(false, "Stub generation failed: " + exception.getMessage());
+        }
+    }
+
+    /** Wraps an existing Java-producing route in the F2 target selection boundary. */
+    public StubResult emitThroughRegistry(Path source, NqlQuery query, Workspace workspace,
+                                          MigrationProfiles.EffectiveProfile effective,
+                                          Function<SemanticProgram, StubResult> generation) {
+        try {
+            SemanticProgram semantic = semanticProgram(source, query, workspace);
+            return emitProjected(semantic, effective, generation);
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception exception) {
+            return new StubResult(false, "Target emission failed: " + exception.getMessage());
+        }
+    }
+
+    /** Routes a standalone copybook through a data-section-aware semantic projection. */
+    public StubResult emitCopybookThroughRegistry(Path source, NqlQuery query, Workspace workspace,
+                                                  MigrationProfiles.EffectiveProfile effective,
+                                                  Function<SemanticProgram, StubResult> generation) {
+        try {
+            SemanticProgram semantic = copybookSemanticProgram(source, query, workspace);
+            return emitProjected(semantic, effective, generation);
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception exception) {
+            return new StubResult(false, "Target emission failed: " + exception.getMessage());
+        }
+    }
+
+    private StubResult emitProjected(SemanticProgram semantic, MigrationProfiles.EffectiveProfile effective,
+                                     Function<SemanticProgram, StubResult> generation) {
+        TargetModel targetModel = TargetModel.from(semantic, effective);
+        AtomicReference<StubResult> resultReference = new AtomicReference<>();
+        JavaEmitter javaEmitter = new JavaEmitter((ignoredModel, ignoredProfile) -> {
+            StubResult result = generation.apply(semantic);
+            resultReference.set(result);
+            return result.isSuccess() && result.getGeneratedCode() != null
+                    ? EmittedArtifacts.fromUtf8(result.getGeneratedCode())
+                    : new EmittedArtifacts(List.of());
+        });
+        EmittedArtifacts emitted = emitterRegistry.emit(targetModel, javaEmitter);
+        StubResult result = resultReference.get();
+        if (result == null) {
+            result = new StubResult(!emitted.artifacts().isEmpty(), emitted.artifacts().isEmpty()
+                    ? "No target files generated" : "Generated " + emitted.artifacts().size() + " target files");
+        }
+        if (result.isSuccess()) result.setGeneratedCode(emitted.utf8TextByPath());
+        result.setTargetLanguage(effective.profile().target().language().name());
+        return result;
+    }
+
+    public MigrationProfiles.EffectiveProfile defaultEffectiveProfile() {
+        return new DecisionResolver().resolve(MigrationProfiles.emptyOverlay(), List.of());
+    }
+
+    private StubResult generateInterfaceStubsLegacy(NqlQuery query, Workspace workspace) {
+        return generateInterfaceStubsLegacy(query, workspace, null, null, true, null);
+    }
+
+    private StubResult generateInterfaceStubsLegacy(NqlQuery query, Workspace workspace,
+                                                     SemanticProgram semanticProgram) {
+        return generateInterfaceStubsLegacy(query, workspace, semanticProgram, null, true, null);
+    }
+
+    private StubResult generateInterfaceStubsLegacy(NqlQuery query, Workspace workspace,
+                                                     SemanticProgram semanticProgram, Path selectedSource,
+                                                     boolean persist,
+                                                     Map<String, ManualActionItem> collectedActionItems) {
         try {
             // Parse COBOL programs first
             var analyzeResult = parsingService.analyzeCOBOL(query, workspace);
@@ -83,13 +239,15 @@ public class JavaGenerationService {
             List<org.shark.renovatio.provider.cobol.domain.CobolProgram> programs = (List<org.shark.renovatio.provider.cobol.domain.CobolProgram>)
                     ((Map<String, Object>) analyzeResult.getData()).get("programs");
 
-            Map<String, String> generatedFiles = new HashMap<>();
+            Map<String, String> generatedFiles = new LinkedHashMap<>();
             Map<String, ManualActionItem> actionItems = new LinkedHashMap<>();
 
             for (org.shark.renovatio.provider.cobol.domain.CobolProgram program : programs) {
                 Map<String, Object> metadata = program.getMetadata();
                 String fileName = (String) metadata.get("filePath");
-                String baseName = Paths.get(fileName).getFileName().toString();
+                Path cobolPath = Path.of(fileName).toAbsolutePath().normalize();
+                if (selectedSource != null && !selectedSource.toAbsolutePath().normalize().equals(cobolPath)) continue;
+                String baseName = cobolPath.getFileName().toString();
                 // Clean and sanitize the class base name
                 String classBase = sanitizeClassName(toPascalCase(baseName));
 
@@ -98,7 +256,7 @@ public class JavaGenerationService {
 
                 try {
                     CobolIntermediateModel model = resolveIntermediateModel(metadata);
-                    Path cobolPath = Path.of(fileName);
+                    SemanticProgram currentSemantic = semanticProgram;
                     AnnotatedContextResolver.Resolution annotatedResolution = annotatedContextResolver.resolve(
                             new AnnotatedContextResolver.Request(Optional.empty(), Optional.empty(), cobolPath), model);
                     annotatedResolution.diagnostics().stream()
@@ -112,25 +270,27 @@ public class JavaGenerationService {
                         dtoClass = semanticTranspiler.enrichServiceImplementation(dtoClass,
                                 annotatedResolution.context().orElseThrow(),
                                 fileName,
-                                items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)));
+                                items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)),
+                                currentSemantic == null ? null : currentSemantic.dataIntents());
                     }
-                    generatedFiles.put(classBase + "DTO.java", dtoClass);
+                    putArtifact(generatedFiles, classBase + "DTO.java", dtoClass);
                     // Generate service interface
                     String serviceInterface = generateServiceInterface(classBase, metadata);
-                    generatedFiles.put(classBase + "Service.java", serviceInterface);
+                    putArtifact(generatedFiles, classBase + "Service.java", serviceInterface);
                     // Generate implementation template
                     String serviceImpl = generateServiceImplementation(classBase, metadata);
                     if (annotatedResolution.context().isPresent()) {
                         serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl,
                                 annotatedResolution.context().orElseThrow(),
                                 fileName,
-                                items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)));
+                                items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)),
+                                currentSemantic == null ? null : currentSemantic.dataIntents());
                     } else {
                         serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl, model);
                     }
                     // DEBUG: print generated service implementation for verification
                     System.out.println("Generated Service Implementation (" + classBase + "):\n" + serviceImpl);
-                    generatedFiles.put(classBase + "ServiceImpl.java", serviceImpl);
+                    putArtifact(generatedFiles, classBase + "ServiceImpl.java", serviceImpl);
 
                     @SuppressWarnings("unchecked")
                     Set<String> cics = (Set<String>) metadata.get("cicsCommands");
@@ -139,7 +299,7 @@ public class JavaGenerationService {
                         tmplData.put("className", classBase + "CicsController");
                         tmplData.put("transactions", cics);
                         String controller = templateService.generateCicsController(tmplData);
-                        generatedFiles.put(classBase + "CicsController.java", controller);
+                        putArtifact(generatedFiles, classBase + "CicsController.java", controller);
                     }
                 } catch (Exception e) {
                     System.out.println("DEBUG: Error generating for classBase '" + classBase + "': " + e.getMessage());
@@ -147,11 +307,15 @@ public class JavaGenerationService {
                 }
             }
 
-            manualActionItemWriter.write(Paths.get(workspace.getPath())
+            if (collectedActionItems != null) {
+                actionItems.forEach(collectedActionItems::putIfAbsent);
+            }
+            if (persist) manualActionItemWriter.write(Paths.get(workspace.getPath())
                     .resolve(ManualActionItemWriter.DEFAULT_REPORT), actionItems.values());
 
             // Write generated files to disk
-            String outputPath = writeGeneratedFilesToDisk(generatedFiles, workspace);
+            String outputPath = persist ? writeGeneratedFilesToDisk(generatedFiles, workspace)
+                    : resolveOutputDir(workspace).toString();
 
             // Debug: print generated keys
             System.out.println("Claves generadas: " + generatedFiles.keySet());
@@ -168,6 +332,57 @@ public class JavaGenerationService {
         } catch (Exception e) {
             return new StubResult(false, "Stub generation failed: " + e.getMessage());
         }
+    }
+
+    private static void putArtifact(Map<String, String> artifacts, String path, String content) {
+        if (artifacts.putIfAbsent(path, content) != null) {
+            throw new IllegalArgumentException("duplicate artifact path: " + path);
+        }
+    }
+
+    private SemanticProgram semanticProgram(Path source, NqlQuery query, Workspace workspace) throws Exception {
+        Path root = Paths.get(workspace.getPath()).toAbsolutePath().normalize();
+        Path normalizedSource = source.toAbsolutePath().normalize();
+        String relative = root.relativize(normalizedSource).toString().replace('\\', '/');
+        byte[] bytes = Files.readAllBytes(normalizedSource);
+        CobolIntermediateModel model = intermediateModelService.parse(normalizedSource);
+        AnnotatedContextResolver.Resolution annotated = annotatedContextResolver.resolve(
+                new AnnotatedContextResolver.Request(Optional.empty(), Optional.empty(), normalizedSource), model);
+        return semanticProjector.project(model, relative, bytes,
+                Optional.ofNullable(resolveDialect(query, workspace)), annotated.context());
+    }
+
+    private SemanticProgram copybookSemanticProgram(Path source, NqlQuery query, Workspace workspace) throws Exception {
+        Path root = Paths.get(workspace.getPath()).toAbsolutePath().normalize();
+        Path normalizedSource = source.toAbsolutePath().normalize();
+        String relative = root.relativize(normalizedSource).toString().replace('\\', '/');
+        byte[] bytes = Files.readAllBytes(normalizedSource);
+        String copybook = new String(bytes, StandardCharsets.UTF_8);
+        String programId = normalizedSource.getFileName().toString().replaceFirst("\\.[^.]+$", "")
+                .replaceAll("[^A-Za-z0-9-]", "-");
+        String projectionSource = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. %s.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                %s
+                PROCEDURE DIVISION.
+                COPYBOOK-PROJECTION.
+                    STOP RUN.
+                """.formatted(programId, copybook);
+        CobolIntermediateModel model = intermediateModelService.parse(projectionSource);
+        AnnotatedContextResolver.Resolution annotated = annotatedContextResolver.resolve(
+                new AnnotatedContextResolver.Request(Optional.empty(), Optional.empty(), normalizedSource), model);
+        return semanticProjector.project(model, relative, bytes,
+                Optional.ofNullable(resolveDialect(query, workspace)), annotated.context());
+    }
+
+    private String resolveDialect(NqlQuery query, Workspace workspace) {
+        Object value = query != null && query.getParameters() != null ? query.getParameters().get("dialect") : null;
+        if (value == null && workspace != null && workspace.getMetadata() != null) {
+            value = workspace.getMetadata().get("dialect");
+        }
+        return value == null ? null : value.toString();
     }
 
     /**

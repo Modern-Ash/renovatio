@@ -1,9 +1,12 @@
 package org.shark.renovatio.provider.cobol.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.shark.renovatio.core.service.TargetEmitterRegistry;
+import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.provider.cobol.service.*;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -28,9 +31,12 @@ public class CobolProviderConfiguration {
             TemplateCodeGenerationService templateCodeGenerationService,
             org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService intermediateModelService,
             org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler semanticTranspiler,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            TargetEmitterRegistry targetEmitterRegistry,
+            ObjectProvider<EffectiveProfileResolver> effectiveProfiles) {
         return new JavaGenerationService(parsingService, templateCodeGenerationService,
-                intermediateModelService, semanticTranspiler, objectMapper);
+                intermediateModelService, semanticTranspiler, objectMapper, true,
+                targetEmitterRegistry, effectiveProfiles.getIfAvailable());
     }
 
     @Bean

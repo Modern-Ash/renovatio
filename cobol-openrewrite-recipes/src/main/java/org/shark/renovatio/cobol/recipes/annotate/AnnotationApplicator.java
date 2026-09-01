@@ -15,6 +15,7 @@ import org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
 import org.shark.renovatio.cobol.ir.annotated.DataIntentPayload;
 import org.shark.renovatio.cobol.ir.annotated.DomainNamingPayload;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -42,11 +43,26 @@ public final class AnnotationApplicator {
     private final AnnotatedCobolModel sidecar;
     private final NodeIdentityIndex index;
     private final boolean hashMatches;
+    private final List<SemanticProgram.DataIntent> neutralDataIntents;
 
     public AnnotationApplicator(CobolIntermediateModel model, AnnotatedCobolModel sidecar) {
+        this(model, sidecar, null);
+    }
+
+    /**
+     * F2 compatibility entry point. When supplied, neutral data intents are the sole source for
+     * {@code CobolDataIntent}; the sidecar remains available for eligibility diagnostics and
+     * non-data-intent families.
+     */
+    public AnnotationApplicator(CobolIntermediateModel model, AnnotatedCobolModel sidecar,
+                                List<SemanticProgram.DataIntent> neutralDataIntents) {
         this.sidecar = sidecar;
         this.index = new NodeIdentityIndex(model);
         this.hashMatches = new CobolIrIdentityProjector().baseIrHash(model).equals(sidecar.baseIrHash());
+        this.neutralDataIntents = neutralDataIntents == null ? null : neutralDataIntents.stream()
+                .sorted(Comparator.comparing(SemanticProgram.DataIntent::subjectNodeId)
+                        .thenComparing(SemanticProgram.DataIntent::evidenceId))
+                .toList();
     }
 
     List<CobolAnnotation> ordered() {
@@ -72,6 +88,9 @@ public final class AnnotationApplicator {
             if (!isAppliedFamily(a.annotationFamily())) {
                 continue;
             }
+            if (neutralDataIntents != null && a.annotationFamily() == AnnotationFamily.DATA_INTENT) {
+                continue;
+            }
             if (index.resolve(a.nodeId(), a.nodeKind()).isEmpty()) {
                 continue;
             }
@@ -94,6 +113,18 @@ public final class AnnotationApplicator {
         }
         J.CompilationUnit tree = cu;
         if (tree != null) {
+            if (neutralDataIntents != null) {
+                for (SemanticProgram.DataIntent intent : neutralDataIntents) {
+                    CobolAnnotation source = sourceAnnotation(intent);
+                    NodeIdentityIndex.Resolved resolved = index.resolve(source.nodeId(),
+                                    org.shark.renovatio.cobol.ir.annotated.AnnotatedNodeKind.DATA_ITEM)
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "neutral data intent source is unresolved: " + source.nodeId()));
+                    tree = applyDataIntent(tree, ctx, source.nodeId(), intent.evidenceId(),
+                            construction(intent.intentKind()), intent.interpretation(), intent.assumptions(),
+                            NodeIdentityIndex.toJavaFieldName(resolved.cobolName()));
+                }
+            }
             for (CobolAnnotation a : eligible()) {
                 NodeIdentityIndex.Resolved resolved = index.resolve(a.nodeId(), a.nodeKind()).orElseThrow();
                 if (a.annotationFamily() == AnnotationFamily.DATA_INTENT) {
@@ -105,6 +136,16 @@ public final class AnnotationApplicator {
             }
         }
         return new AnnotationApplicationOutcome(tree, dropped);
+    }
+
+    private CobolAnnotation sourceAnnotation(SemanticProgram.DataIntent intent) {
+        return sidecar.annotations().stream()
+                .filter(annotation -> annotation.annotationId().equals(intent.evidenceId()))
+                .filter(annotation -> annotation.annotationFamily() == AnnotationFamily.DATA_INTENT)
+                .filter(annotation -> annotation.review().reviewState() == AnnotationReview.ReviewState.ACCEPTED)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "neutral data intent evidence is unresolved: " + intent.evidenceId()));
     }
 
     private J.CompilationUnit applyDomainNaming(J.CompilationUnit cu, ExecutionContext ctx,
@@ -270,14 +311,21 @@ public final class AnnotationApplicator {
     private J.CompilationUnit applyDataIntent(J.CompilationUnit cu, ExecutionContext ctx,
                                               CobolAnnotation a, String fieldName) {
         DataIntentPayload payload = (DataIntentPayload) a.payload();
-        String assumptions = payload.assumptions().stream()
+        return applyDataIntent(cu, ctx, a.nodeId(), a.annotationId(), payload.construction().name(),
+                payload.interpretation(), payload.assumptions(), fieldName);
+    }
+
+    private J.CompilationUnit applyDataIntent(J.CompilationUnit cu, ExecutionContext ctx,
+                                              String nodeId, String annotationId, String construction,
+                                              String interpretation, List<String> intentAssumptions,
+                                              String fieldName) {
+        String assumptions = intentAssumptions.stream()
                 .map(AnnotationApplicator::quote)
                 .collect(Collectors.joining(", ", "{", "}"));
         String annotation = String.format(Locale.ROOT,
                 "@CobolDataIntent(nodeId = %s, annotationId = %s, "
                         + "construction = CobolDataIntent.Construction.%s, interpretation = %s, assumptions = %s)",
-                quote(a.nodeId()), quote(a.annotationId()), payload.construction().name(),
-                quote(payload.interpretation()), assumptions);
+                quote(nodeId), quote(annotationId), construction, quote(interpretation), assumptions);
 
         return (J.CompilationUnit) new JavaIsoVisitor<ExecutionContext>() {
             @Override
@@ -302,6 +350,13 @@ public final class AnnotationApplicator {
                                 Comparator.comparing(J.Annotation::getSimpleName)));
             }
         }.visit(cu, ctx);
+    }
+
+    private static String construction(SemanticProgram.IntentKind kind) {
+        return switch (kind) {
+            case OVERLAPPING_STORAGE -> DataIntentPayload.Construction.REDEFINES.name();
+            case DEPENDENT_CARDINALITY -> DataIntentPayload.Construction.OCCURS_DEPENDING_ON.name();
+        };
     }
 
     private static String quote(String value) {

@@ -38,6 +38,7 @@
     </properties>
 
     <modules>
+        <module>renovatio-semantic-ir</module>
         <module>renovatio-shared</module>
         <module>renovatio-core</module>
         <module>renovatio-provider-java</module>
@@ -57,6 +58,11 @@
     <dependencyManagement>
         <dependencies>
             <!-- Internal modules -->
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-semantic-ir</artifactId>
+                <version>${project.version}</version>
+            </dependency>
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-shared</artifactId>

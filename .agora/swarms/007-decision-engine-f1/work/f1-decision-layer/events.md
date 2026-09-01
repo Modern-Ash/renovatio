@@ -69,3 +69,15 @@
 - 2026-09-01T12:05:19.355782Z | tool.completed | run=tool-20260901t12051788275119z exit-code=0
 - 2026-09-01T12:05:39.302285Z | evidence.added | id=evidence-000009 type=review-fix-tests result=success revision=1 actor=project:agent
 - 2026-09-01T12:05:40.400023Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T12:05:55.899173Z | tool.prepared | run=tool-20260901t12051788275155z tool=repository operation=commit actor=project:agent
+- 2026-09-01T12:05:55.902134Z | tool.running | run=tool-20260901t12051788275155z actor=project:agent
+- 2026-09-01T12:05:55.927136Z | tool.completed | run=tool-20260901t12051788275155z exit-code=0
+- 2026-09-01T12:14:18.068190Z | work.criterion-satisfied | criterion=profile-contract actor=project:owner
+- 2026-09-01T12:14:18.344276Z | work.criterion-satisfied | criterion=decision-contract actor=project:owner
+- 2026-09-01T12:14:18.619907Z | work.criterion-satisfied | criterion=llm-suggestions actor=project:owner
+- 2026-09-01T12:14:18.894731Z | work.criterion-satisfied | criterion=api-contract actor=project:owner
+- 2026-09-01T12:14:19.175761Z | work.criterion-satisfied | criterion=ui-workflow actor=project:owner
+- 2026-09-01T12:14:19.460049Z | work.criterion-satisfied | criterion=compatibility actor=project:owner
+- 2026-09-01T12:14:19.727978Z | work.criterion-satisfied | criterion=scope-boundaries actor=project:owner
+- 2026-09-01T12:14:24.630832Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-01T12:14:35.115096Z | work.transitioned | from=verifying to=completed actor=project:owner
