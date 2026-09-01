@@ -5,7 +5,7 @@
 - **Method:** Agora `spec-driven` with TDD
 - **Status:** governed draft; durable Agora state is authoritative
 - **Date:** 2026-09-01
-- **Provisional compatibility baseline:** `c42a5219a778625d84f047b5e6144ba9331e155f`
+- **F1 compatibility baseline:** `152d57462d4d7fc2b4554b6a1f029ae44e96d97a`
 
 ## 1. Outcome
 
@@ -28,7 +28,7 @@ architecture transformation, or a detailed persistence model.
 | `TargetModel` boundary | A one-to-one immutable envelope over one semantic program, the effective F1 `MigrationProfile`, resolved decisions, applied decision ids, profile hash, and source provenance. F2 performs no semantic-IR-to-IR graph reshaping. |
 | Data-intent compatibility | `@CobolDataIntent` keeps its exact type, member values, placement, ordering, and emitted bytes. It is projected deterministically from neutral data intents; it is never read back as semantic truth. Existing downstream consumers remain compatible. |
 | Registry coverage | Every active production generation request resolves exactly one emitter through `TargetEmitterRegistry`. A missing emitter raises `TARGET_EMITTER_UNAVAILABLE` with the requested target and sorted available targets. Duplicate registrations fail deterministically during registry construction. |
-| Baseline and evidence | Use F1 head `c42a521` provisionally and replace it with the F1 merge commit after rebasing. Require issue-#122 byte identity, ArchUnit isolation, focused module tests, functional reactor, MCP and CLI regression checks, plus an attempted literal `mvn clean install`. JaCoCo thresholds may not be weakened; an unchanged baseline-only failure is recorded explicitly rather than hidden. |
+| Baseline and evidence | Use F1 merge commit `152d574` after rebasing. Require issue-#122 byte identity, ArchUnit isolation, focused module tests, functional reactor, MCP and CLI regression checks, plus an attempted literal `mvn clean install`. JaCoCo thresholds may not be weakened; an unchanged baseline-only failure is recorded explicitly rather than hidden. |
 
 The Spec Owner accepted these answers on 2026-09-01. Artifact registration,
 criterion stages, and lifecycle transitions remain separate durable Agora
@@ -36,10 +36,9 @@ actions.
 
 ## 3. Baseline and current seams
 
-The provisional source baseline is the F1 branch head
-`c42a5219a778625d84f047b5e6144ba9331e155f`. F2 must be rebased after F1 is
-merged, and this section plus the registered artifact digest must then be
-updated to the F1 merge commit before implementation evidence is accepted.
+The source baseline is F1 merge commit
+`152d57462d4d7fc2b4554b6a1f029ae44e96d97a`. F2 was rebased onto that commit
+before opening its pull request and recording final review evidence.
 
 At that baseline:
 

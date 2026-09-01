@@ -61,3 +61,10 @@
 - 2026-09-01T13:15:38.850344Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:agent stage=implemented
 - 2026-09-01T13:15:39.341511Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:agent stage=verified
 - 2026-09-01T13:15:44.508060Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T13:16:01.302058Z | tool.prepared | run=tool-20260901t13161788279361z tool=repository operation=commit actor=project:agent
+- 2026-09-01T13:16:01.304560Z | tool.running | run=tool-20260901t13161788279361z actor=project:agent
+- 2026-09-01T13:16:01.328409Z | tool.completed | run=tool-20260901t13161788279361z exit-code=0
+- 2026-09-01T13:17:54.337786Z | artifact.added | kind=spec uri=repo://docs/specs/f2-semantic-ir-emitter-spi.md actor=project:owner
+- 2026-09-01T13:17:54.853473Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/f2-semantic-ir-emitter-spi.md actor=project:agent
+- 2026-09-01T13:17:55.344724Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T13:17:55.845747Z | evidence.added | id=evidence-000002 type=verification-report result=success revision=1 actor=project:agent

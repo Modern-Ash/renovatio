@@ -3,7 +3,7 @@
 - **Work item:** `decision-engine-f2/f2-semantic-ir-emitter-spi`
 - **GitHub issue:** #147 (Epic #152)
 - **Specification:** `docs/specs/f2-semantic-ir-emitter-spi.md`
-- **Provisional baseline:** `c42a5219a778625d84f047b5e6144ba9331e155f`
+- **F1 baseline:** `152d57462d4d7fc2b4554b6a1f029ae44e96d97a`
 - **Method:** Agora `spec-driven`, tests first
 - **Plan status:** proposed for governed execution
 
@@ -14,8 +14,8 @@ changing default Java artifact keys or bytes. Break the current module
 inversion in small green slices, route every active generation entry point
 through one registry, and preserve the F1 effective-profile envelope exactly.
 
-Before implementation evidence is final, rebase onto the F1 merge commit and
-replace the provisional baseline in both the specification and this plan.
+The implementation branch is rebased onto F1 merge commit `152d574`; the
+specification, plan, and verification evidence use that committed baseline.
 
 ## Dependency cutover
 

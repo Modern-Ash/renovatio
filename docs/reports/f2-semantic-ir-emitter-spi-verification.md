@@ -2,10 +2,10 @@
 
 - **Agora work:** `decision-engine-f2/f2-semantic-ir-emitter-spi`
 - **GitHub issue:** #147
-- **Reviewed implementation:** `5a4785862202c0d5f95d31e7f93e8ad950b173ab`
-- **Provisional F1 baseline:** `c42a5219a778625d84f047b5e6144ba9331e155f`
+- **Reviewed implementation:** `7e47d6c9b117827f68384ebf20f1499cf03f60c4`
+- **F1 baseline:** `152d57462d4d7fc2b4554b6a1f029ae44e96d97a`
 - **Toolchain:** Apache Maven 3.9.12; OpenJDK 21.0.12; source release 17
-- **Result:** review-ready; Agora completion remains pending PR review and replacement of the provisional F1 baseline after F1 merges
+- **Result:** review-ready; Agora completion remains pending PR review
 
 ## Findings resolved during review
 
@@ -22,8 +22,7 @@
    deterministic empty emissions with their existing manual-action contracts.
 
 No unresolved critical or high-severity implementation finding remains. The
-review gate must still inspect PR feedback, and the provisional baseline must
-be replaced by the eventual F1 merge commit before Agora completion.
+review gate must still inspect and resolve PR feedback before Agora completion.
 
 ## Verification matrix
 
@@ -55,11 +54,12 @@ Rule violated for bundle renovatio-shared: lines covered ratio is 0.9,
 but expected minimum is 1.0
 ```
 
-The same literal command was executed in an isolated worktree at the
-provisional baseline `c42a5219a778625d84f047b5e6144ba9331e155f`. It ran 23
-green shared tests and failed at the same module, rule, reported ratio, and
-minimum. This is therefore recorded as the explicit baseline-only exception
-allowed by the spec. The threshold remains 1.0.
+The same literal command was executed in an isolated worktree at F1 head
+`c42a5219a778625d84f047b5e6144ba9331e155f`, whose exact tree is the second
+parent incorporated by merge commit `152d57462d4d7fc2b4554b6a1f029ae44e96d97a`.
+It ran 23 green shared tests and failed at the same module, rule, reported
+ratio, and minimum. This is therefore recorded as the explicit baseline-only
+exception allowed by the spec. The threshold remains 1.0.
 
 ## Compatibility and scope review
 
@@ -80,6 +80,5 @@ allowed by the spec. The threshold remains 1.0.
 
 1. Commit and register this report as `test-report` and successful evidence.
 2. Transition the work to `verifying` and open the PR for external review.
-3. Resolve review comments, rebase onto the F1 merge commit when available,
-   rerun the affected gates, and only then seek the Spec Owner completion
-   approval.
+3. Resolve review comments, rerun affected gates, and only then seek the Spec
+   Owner completion approval.
