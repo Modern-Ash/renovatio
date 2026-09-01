@@ -366,3 +366,6 @@
 - 2026-09-01T12:27:42.081854Z | tool.prepared | run=tool-20260901t12271788276462z tool=repository operation=create-branch actor=project:agent
 - 2026-09-01T12:27:42.084405Z | tool.running | run=tool-20260901t12271788276462z tool=repository operation=create-branch actor=project:agent
 - 2026-09-01T12:27:42.098373Z | tool.failed | run=tool-20260901t12271788276462z tool=repository operation=create-branch actor=project:agent
+- 2026-09-01T12:29:59.310762Z | tool.prepared | run=tool-20260901t12291788276599z tool=repository operation=commit actor=project:agent
+- 2026-09-01T12:29:59.313342Z | tool.running | run=tool-20260901t12291788276599z tool=repository operation=commit actor=project:agent
+- 2026-09-01T12:29:59.337092Z | tool.completed | run=tool-20260901t12291788276599z tool=repository operation=commit actor=project:agent
