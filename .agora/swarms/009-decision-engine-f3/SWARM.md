@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "decision-engine-f3"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/f3-issue-148"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
