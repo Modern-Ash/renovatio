@@ -1,8 +1,14 @@
+<p align="center">
+  <img src="docs/assets/renovatio-banner.png" alt="RENOVATIO — Engineering the transition" width="100%">
+</p>
+
 # Renovatio - MCP Server for Code Migration and Refactoring
 
 **Renovatio** is a Model Content Protocol (MCP) server for automated code migration and refactoring, based on
 OpenRewrite concepts. It provides tools for migrating and upgrading COBOL and Java code with extensibility for
 additional languages.
+
+<sub>A <img src="docs/assets/modern-ash.png" alt="ModernAsh" height="18"> project · <a href="https://github.com/Modern-Ash">github.com/Modern-Ash</a></sub>
 
 ---
 
@@ -282,6 +288,9 @@ If you introduce new POJOs, prefer Lombok annotations (e.g., `@Data`, or `@Gette
 ### Architecture & Design
 - **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design principles
 - **[schemas/](./schemas/)** - JSON schemas for configuration validation
+
+### Brand
+- **[docs/assets/README.md](./docs/assets/README.md)** - 🎨 Brand kit: logos, icons, banner, palette, and usage rules
 
 ### COBOL to Python Translation (NEW) 🐍
 - **[docs/COBOL-TO-PYTHON-README.md](./docs/COBOL-TO-PYTHON-README.md)** - 📚 Documentation index and quick overview
