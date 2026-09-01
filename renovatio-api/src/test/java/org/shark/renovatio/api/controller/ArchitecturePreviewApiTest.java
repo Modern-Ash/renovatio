@@ -117,4 +117,19 @@ class ArchitecturePreviewApiTest {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.code").value("COBOL_SOURCE_NOT_FOUND"));
     }
+
+    @Test
+    void previewsDraftArchitectureWithoutPersistingIt() throws Exception {
+        mvc.perform(get("/api/projects/{projectId}/architecture-preview", projectId)
+                        .queryParam("style", "HEXAGONAL")
+                        .queryParam("moduleGrouping", "BY_PROGRAM")
+                        .header("X-Role", "ADMIN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.programs[0].requestedStyle").value("HEXAGONAL"))
+                .andExpect(jsonPath("$.artifacts[0].path")
+                        .value("modules/preview/application/port/in/PreviewService.java"));
+
+        assertThat(decisionLayer.profile(projectId).profile().architecture()).isNull();
+        assertThat(workspace.resolve("generated-java-stubs")).doesNotExist();
+    }
 }

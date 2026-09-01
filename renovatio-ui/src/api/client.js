@@ -142,6 +142,14 @@ export function getEffectiveProfile(projectId) {
   return apiCall(`/projects/${projectId}/profile:effective`)
 }
 
+export function getArchitecturePreview(projectId, { style, moduleGrouping, signal } = {}) {
+  const query = new URLSearchParams()
+  if (style) query.set('style', style)
+  if (moduleGrouping) query.set('moduleGrouping', moduleGrouping)
+  const suffix = query.toString() ? `?${query}` : ''
+  return apiCall(`/projects/${projectId}/architecture-preview${suffix}`, { signal })
+}
+
 export function getProjectDecisions(projectId, filters = {}) {
   const query = new URLSearchParams()
   if (filters.category) query.set('category', filters.category)
