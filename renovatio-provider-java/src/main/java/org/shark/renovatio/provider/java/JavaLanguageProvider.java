@@ -152,8 +152,10 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
 
     @Override
     public MetricsResult metrics(Scope scope, Workspace workspace) {
-        // Busca una receta de métricas específica, si existe
-        String recipeId = "metrics"; // Ajustar si hay una receta concreta para métricas
+        String recipeId = selectMetricsRecipeId();
+        if (recipeId == null) {
+            return localMetricsFallback(workspace, "No OpenRewrite metrics recipe is available; returning local analysis metrics.");
+        }
         return executeMetricsRecipe(recipeId, workspace);
     }
 
@@ -423,6 +425,71 @@ public class JavaLanguageProvider extends BaseLanguageProvider {
         }
 
         return result;
+    }
+
+    private String selectMetricsRecipeId() {
+        List<String> candidates = List.of(
+                "org.openrewrite.LanguageComposition",
+                "org.openrewrite.java.migrate.metrics.SimplifyMicrometerMeterTags"
+        );
+        for (String candidate : candidates) {
+            if (discoveryService.describeRecipe(candidate).isPresent() && discoveryService.isRecipeSafe(candidate)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
+    private MetricsResult localMetricsFallback(Workspace workspace, String reason) {
+        MetricsResult mr = new MetricsResult();
+        try {
+            RecipeExecutionResult local = buildLocalJavaMetrics(workspace);
+            mr.setSuccess(local.success);
+            mr.setMessage(reason != null ? reason : local.summary);
+            Map<String, Number> metrics = new HashMap<>();
+            for (Map.Entry<String, Object> entry : local.metrics.entrySet()) {
+                if (entry.getValue() instanceof Number) {
+                    metrics.put(entry.getKey(), (Number) entry.getValue());
+                }
+            }
+            mr.setMetrics(metrics);
+            return mr;
+        } catch (Exception e) {
+            mr.setSuccess(false);
+            mr.setMessage("Failed to compute local java metrics: " + e.getMessage());
+            return mr;
+        }
+    }
+
+    private RecipeExecutionResult buildLocalJavaMetrics(Workspace workspace) {
+        RecipeExecutionResult result = new RecipeExecutionResult();
+        result.success = false;
+        result.durationMs = 0L;
+        if (workspace == null || workspace.getPath() == null || workspace.getPath().isBlank()) {
+            result.summary = "Workspace path is required.";
+            return result;
+        }
+        try {
+            Path workspacePath = Paths.get(workspace.getPath());
+            List<Path> javaFiles;
+            try (var stream = Files.walk(workspacePath)) {
+                javaFiles = stream.filter(p -> p.toString().endsWith(".java")).toList();
+            }
+            result.totalFiles = javaFiles.size();
+            for (Path file : javaFiles) {
+                result.analyzedFiles.add(relativizePath(workspacePath, file));
+            }
+            result.success = true;
+            result.summary = "Computed local Java metrics from source file inventory.";
+            result.metrics.put("totalFiles", result.totalFiles);
+            result.metrics.put("issuesFound", 0);
+            result.metrics.put("filesChanged", 0);
+            result.metrics.put("durationMs", 0L);
+            return result;
+        } catch (Exception e) {
+            result.summary = "Failed to compute local Java metrics: " + e.getMessage();
+            return result;
+        }
     }
 
     // Utilidad: extrae el recipeId de una consulta NQL (asume que el query contiene recipeId como string)

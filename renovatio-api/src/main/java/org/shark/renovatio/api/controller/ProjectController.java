@@ -29,8 +29,15 @@ public class ProjectController {
         if (!accessService.canCreate(role)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        ProjectDto created = projectService.createProject(project);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        if (project == null || project.getName() == null || project.getName().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            ProjectDto created = projectService.createProject(project);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/{id}")

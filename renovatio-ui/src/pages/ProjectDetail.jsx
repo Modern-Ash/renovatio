@@ -63,6 +63,15 @@ function ProjectDetail() {
         <div>
           <h1 className="text-2xl font-bold">{project.name}</h1>
           <p className="text-gray-500">{project.workspacePath}</p>
+          {project.javaOutputPath && (
+            <p className="text-gray-500 text-sm">Java output: {project.javaOutputPath}</p>
+          )}
+          {project.javaPackage && (
+            <p className="text-gray-500 text-sm">Base package: {project.javaPackage}</p>
+          )}
+          {project.javaArchitecture && (
+            <p className="text-gray-500 text-sm">Architecture: {project.javaArchitecture}</p>
+          )}
         </div>
         <div className="flex gap-2">
           <button

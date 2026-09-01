@@ -487,6 +487,11 @@ public class JavaGenerationService {
 
             StubResult result = new StubResult(success, message);
             result.setGeneratedCode(generatedFiles);
+            java.util.LinkedHashMap<String, Object> metadata = new java.util.LinkedHashMap<>();
+            metadata.put("outputPath", outputPath);
+            metadata.put("generatedFileCount", generatedFiles.size());
+            metadata.put("generatedFiles", generatedFiles.keySet().stream().sorted().toList());
+            result.setMetadata(metadata);
             return result;
         } catch (Exception e) {
             return new StubResult(false, "Stub generation failed: " + e.getMessage());

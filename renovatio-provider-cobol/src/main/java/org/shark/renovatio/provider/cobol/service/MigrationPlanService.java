@@ -88,6 +88,8 @@ public class MigrationPlanService {
 
             List<String> executedSteps = new ArrayList<>();
             Map<String, String> generatedFiles = new HashMap<>();
+            String generatedOutputPath = null;
+            List<String> generatedFilesByPath = new ArrayList<>();
 
             AnalyzeResult baseline = parsingService.analyzeCOBOL(plan.getQuery(), workspace);
 
@@ -104,6 +106,20 @@ public class MigrationPlanService {
                         }
                         if (stubResult.getGeneratedCode() != null) {
                             generatedFiles.putAll(stubResult.getGeneratedCode());
+                        }
+                        if (stubResult.getMetadata() != null) {
+                            Object outputPath = stubResult.getMetadata().get("outputPath");
+                            if (outputPath instanceof String pathValue) {
+                                generatedOutputPath = pathValue;
+                            }
+                            Object generatedPaths = stubResult.getMetadata().get("generatedFiles");
+                            if (generatedPaths instanceof java.util.Collection<?> fileNames) {
+                                generatedFilesByPath = fileNames.stream()
+                                        .filter(String.class::isInstance)
+                                        .map(Object::toString)
+                                        .sorted()
+                                        .toList();
+                            }
                         }
                     }
 
@@ -141,6 +157,8 @@ public class MigrationPlanService {
             changes.put("executedSteps", executedSteps.size());
             changes.put("dryRun", dryRun);
             changes.put("performance", BenchmarkUtils.compare(baseline, migrated));
+            changes.put("javaOutputDirectory", generatedOutputPath != null ? generatedOutputPath : "");
+            changes.put("javaGeneratedFiles", generatedFilesByPath);
             result.setChanges(changes);
             DiffResult diffResult = generateDiff(runId, workspace);
             if (diffResult.isSuccess()) {

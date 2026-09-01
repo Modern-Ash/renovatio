@@ -26,6 +26,12 @@ public class ProjectEntity {
 
     private String branch;
 
+    private String javaOutputPath;
+
+    private String javaPackage;
+
+    private String javaArchitecture;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 

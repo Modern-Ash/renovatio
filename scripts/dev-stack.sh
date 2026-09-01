@@ -66,6 +66,7 @@ start_api() {
     exit 1
   fi
 
+  rm -f "$ROOT_DIR/data/renovatio-db.lock.db" "$ROOT_DIR/data/renovatio-db.trace.db"
   nohup java -jar "$API_JAR" >"$API_LOG" 2>&1 &
   echo $! > "$API_PID_FILE"
   echo "API started on http://127.0.0.1:${API_PORT} (pid $(cat "$API_PID_FILE"))"
@@ -152,7 +153,9 @@ case "$command" in
     start_api
     start_mcp
     wait_for_http "API" "http://127.0.0.1:${API_PORT}/api/projects" 'X-Role: ADMIN'
-    wait_for_http "MCP" "http://127.0.0.1:${MCP_PORT}/actuator/health"
+    if ! wait_for_http "MCP" "http://127.0.0.1:${MCP_PORT}/actuator/health"; then
+      echo "MCP is not available in this environment; continuing with API only."
+    fi
     echo
     echo "Dashboard: http://127.0.0.1:${API_PORT}"
     echo "MCP health: http://127.0.0.1:${MCP_PORT}/actuator/health"
