@@ -15,6 +15,11 @@ import org.shark.renovatio.provider.cobol.translation.AnnotatedContextResolver;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.core.service.TargetEmitterRegistry;
+import org.shark.renovatio.provider.java.emission.JavaEmitter;
+import org.shark.renovatio.shared.emission.EmittedArtifact;
+import org.shark.renovatio.shared.emission.EmittedArtifacts;
+import org.shark.renovatio.shared.emission.TargetModel;
 
 import javax.tools.ToolProvider;
 import java.net.URL;
@@ -123,21 +128,37 @@ class CharacterizationFixtureContractTest {
 
     private Map<String, byte[]> generatedFiles(String fixtureId, Path fixture, boolean f1,
                                                 MigrationProfiles.EffectiveProfile effective) throws Exception {
-        if (!SUPPORTED.contains(fixtureId)) return Map.of();
-        if (f1) {
-            assertThat(effective.profileHash()).hasSize(64);
-            assertThat(effective.appliedDecisionIds()).isEmpty();
-        }
         Map<String, byte[]> generated = new TreeMap<>();
         Path cobol = fixture.resolve("input.cob");
-        Path javaStub = fixture.resolve("translation-input.java");
-        generated.put("CharacterizationFixture.java", translate(cobol, javaStub).getBytes(StandardCharsets.UTF_8));
         Path annotatedSidecar = fixture.resolve(fixtureId + ".annotated.json");
-        if (Files.exists(annotatedSidecar)) {
-            generated.put("CharacterizationFixture.annotated.java",
-                    translateAnnotated(cobol, javaStub, annotatedSidecar).getBytes(StandardCharsets.UTF_8));
+        if (SUPPORTED.contains(fixtureId)) {
+            Path javaStub = fixture.resolve("translation-input.java");
+            generated.put("CharacterizationFixture.java",
+                    translate(cobol, javaStub).getBytes(StandardCharsets.UTF_8));
+            if (Files.exists(annotatedSidecar)) {
+                generated.put("CharacterizationFixture.annotated.java",
+                        translateAnnotated(cobol, javaStub, annotatedSidecar).getBytes(StandardCharsets.UTF_8));
+            }
         }
-        return generated;
+        if (!f1) return generated;
+
+        assertThat(effective.profileHash()).hasSize(64);
+        assertThat(effective.appliedDecisionIds()).isEmpty();
+        byte[] sourceBytes = Files.readAllBytes(cobol);
+        CobolIntermediateModel model = modelService.parse(new String(sourceBytes, StandardCharsets.UTF_8));
+        Optional<Path> sidecar = Files.exists(annotatedSidecar) ? Optional.of(annotatedSidecar) : Optional.empty();
+        AnnotatedContextResolver.Resolution resolution = new AnnotatedContextResolver(mapper).resolve(
+                new AnnotatedContextResolver.Request(Optional.empty(), sidecar, cobol), model);
+        var semantic = new CobolSemanticProjector().project(model, "input.cob", sourceBytes,
+                Optional.empty(), resolution.context());
+        TargetModel target = TargetModel.from(semantic, effective);
+        JavaEmitter emitter = new JavaEmitter((ignoredModel, ignoredProfile) -> EmittedArtifacts.of(
+                generated.entrySet().stream().map(entry -> new EmittedArtifact(entry.getKey(), entry.getValue()))
+                        .toList()));
+        EmittedArtifacts emitted = new TargetEmitterRegistry(List.of(emitter)).emit(target);
+        Map<String, byte[]> routed = new TreeMap<>();
+        emitted.artifacts().forEach(artifact -> routed.put(artifact.path(), artifact.content()));
+        return routed;
     }
 
     private static void assertSameFiles(String label, Map<String, byte[]> expected, Map<String, byte[]> actual) {
