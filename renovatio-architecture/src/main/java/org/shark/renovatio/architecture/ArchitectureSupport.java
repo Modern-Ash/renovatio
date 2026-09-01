@@ -35,6 +35,12 @@ final class ArchitectureSupport {
         }
     }
 
+    static String id(String requestHash, String kind, String moduleId, String ownerId, String role) {
+        return sha256(String.join("\n", "architecture.v1", hash(requestHash, "requestHash"),
+                text(kind, "kind"), text(moduleId, "module"), text(ownerId, "owner"),
+                text(role, "role")));
+    }
+
     static String program(String value) {
         return text(value, "programId").toUpperCase(Locale.ROOT);
     }
