@@ -16,6 +16,7 @@ import org.shark.renovatio.cobol.recipes.annotate.DroppedAnnotation;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;
 import org.shark.renovatio.provider.java.OpenRewriteRunResult;
 import org.shark.renovatio.provider.java.OpenRewriteRunner;
+import org.shark.renovatio.semantic.ir.SemanticProgram;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -52,22 +53,35 @@ public class CobolSemanticTranspiler {
     public String enrichServiceImplementation(String javaSource, AnnotatedCobolContext annotatedContext,
                                                String sourceFile,
                                                Consumer<List<ManualActionItem>> sink) {
+        return enrichServiceImplementation(javaSource, annotatedContext, sourceFile, sink, null);
+    }
+
+    public String enrichServiceImplementation(String javaSource, AnnotatedCobolContext annotatedContext,
+                                               String sourceFile, Consumer<List<ManualActionItem>> sink,
+                                               List<SemanticProgram.DataIntent> neutralDataIntents) {
         if (annotatedContext == null) return javaSource;
         return enrichServiceImplementation(javaSource, annotatedContext.baseModel(), annotatedContext,
-                sourceFile, sink == null ? ignored -> { } : sink);
+                sourceFile, sink == null ? ignored -> { } : sink, neutralDataIntents);
     }
 
     private String enrichServiceImplementation(String javaSource, CobolIntermediateModel model,
                                                 AnnotatedCobolContext annotatedContext) {
         String program = model == null ? "unknown" : model.getProgramId();
         return enrichServiceImplementation(javaSource, model, annotatedContext,
-                program + ".cob", ignored -> { });
+                program + ".cob", ignored -> { }, null);
     }
 
     private String enrichServiceImplementation(String javaSource, CobolIntermediateModel model,
                                                 AnnotatedCobolContext annotatedContext,
                                                 String sourceFile,
                                                 Consumer<List<ManualActionItem>> sink) {
+        return enrichServiceImplementation(javaSource, model, annotatedContext, sourceFile, sink, null);
+    }
+
+    private String enrichServiceImplementation(String javaSource, CobolIntermediateModel model,
+                                                AnnotatedCobolContext annotatedContext,
+                                                String sourceFile, Consumer<List<ManualActionItem>> sink,
+                                                List<SemanticProgram.DataIntent> neutralDataIntents) {
         if (javaSource == null || javaSource.isBlank() || model == null) {
             return javaSource;
         }
@@ -75,6 +89,10 @@ public class CobolSemanticTranspiler {
         ctx.putMessage(PopulateCobolProcessRecipe.CONTEXT_KEY, model);
         if (annotatedContext != null && annotatedContext.baseModel() == model && isValid(annotatedContext)) {
             ctx.putMessage(PopulateCobolProcessRecipe.ANNOTATED_CONTEXT_KEY, annotatedContext);
+            if (neutralDataIntents != null) {
+                ctx.putMessage(PopulateCobolProcessRecipe.SEMANTIC_DATA_INTENTS_KEY,
+                        List.copyOf(neutralDataIntents));
+            }
         }
 
         JavaParser javaParser = JavaParser.fromJavaVersion()

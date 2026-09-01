@@ -7,7 +7,12 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: true
+    show-sql: false
   h2:
     console:
       enabled: false
+debug: false
+logging:
+  level:
+    org.hibernate.SQL: INFO
+    org.springframework: INFO

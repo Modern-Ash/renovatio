@@ -1,0 +1,24 @@
+---
+schema: "agora/evidence-entry/v3"
+id: "evidence-000001"
+type: "reactor-tests"
+phase: "verifying"
+result: "success"
+revision: 1
+artifact-references: ["repo://docs/reports/f3-architecture-transform-verification.md"]
+artifact-content-sha256: {"repo://docs/reports/f3-architecture-transform-verification.md":"7788b45ad54dba4b98dc056840fa1a4cc477466b638c07af3caf2c0818c93e2c"}
+produced-by: "project:agent"
+timestamp: "2026-09-01T20:24:43.961676Z"
+tested-commit: "9056f104b0f60906be9f59c8ead42790770d14a7"
+command: ["mvn -Dexec.skip=true test"]
+exit-code: 0
+tests-total: null
+tests-passed: null
+tests-failed: null
+environment: "local-jdk21"
+dedupe-key: "f3-reactor-9056f104"
+---
+
+# Evidence evidence-000001
+
+This append-only record captures a governed verification fact. Provider output and credentials are intentionally excluded.

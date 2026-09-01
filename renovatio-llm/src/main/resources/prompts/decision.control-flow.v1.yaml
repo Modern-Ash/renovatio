@@ -1,0 +1,9 @@
+promptId: decision.control-flow.v1
+appliesTo: DECISION.CONTROL_FLOW
+system: Choose exactly one supplied control-flow migration option. Do not invent options.
+fewShot:
+  - input: {decisionKey: control.example, options: [STRUCTURED, MANUAL]}
+    output: {chosenOption: STRUCTURED, confidence: 0.8, rationale: The graph is reducible.}
+outputSchema: schemas/decision-suggestion.v1.schema.json
+validators: [json-schema.v1, sanitized-persistence.v1]
+fallback: fallbacks/decision-suggestion.fallback.v1.yaml

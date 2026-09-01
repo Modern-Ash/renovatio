@@ -1,5 +1,6 @@
 package org.shark.renovatio.provider.cobol.service;
 
+import org.shark.renovatio.core.service.TargetEmitterRegistry;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.shared.util.BenchmarkUtils;
@@ -98,7 +99,12 @@ public class MigrationPlanService {
                     if (step.getType() == StepType.GENERATE_JAVA_STUBS) {
                         // Generate Java stubs
                         StubResult stubResult = javaGenerationService.generateInterfaceStubs(plan.getQuery(), workspace);
-                        if (stubResult.isSuccess() && stubResult.getGeneratedCode() != null) {
+                        if (!stubResult.isSuccess()) {
+                            run.setError("Failed to execute step: " + step.getDescription()
+                                    + " - " + stubResult.getMessage());
+                            break;
+                        }
+                        if (stubResult.getGeneratedCode() != null) {
                             generatedFiles.putAll(stubResult.getGeneratedCode());
                         }
                         if (stubResult.getMetadata() != null) {
@@ -119,6 +125,8 @@ public class MigrationPlanService {
 
                     executedSteps.add(step.getDescription());
 
+                } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+                    throw unavailable;
                 } catch (Exception e) {
                     run.setError("Failed to execute step: " + step.getDescription() + " - " + e.getMessage());
                     break;
@@ -132,6 +140,13 @@ public class MigrationPlanService {
             run.setExecutedSteps(executedSteps);
             run.setGeneratedFiles(generatedFiles);
             completedRuns.put(runId, run);
+
+            if (run.getError() != null) {
+                ApplyResult failed = new ApplyResult(false, run.getError());
+                failed.setRunId(runId);
+                failed.setModifiedFiles(new ArrayList<>(generatedFiles.keySet()));
+                return failed;
+            }
 
             ApplyResult result = new ApplyResult(true, "Migration plan applied successfully");
             result.setRunId(runId);
@@ -152,6 +167,8 @@ public class MigrationPlanService {
 
             return result;
 
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
         } catch (Exception e) {
             return new ApplyResult(false, "Migration application failed: " + e.getMessage());
         }

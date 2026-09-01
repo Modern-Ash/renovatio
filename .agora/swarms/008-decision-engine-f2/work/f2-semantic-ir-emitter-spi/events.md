@@ -1,0 +1,172 @@
+# Work events
+
+- 2026-09-01T12:27:35.553679Z | work.created | state=drafting actor=project:owner
+- 2026-09-01T12:27:42.082462Z | tool.prepared | run=tool-20260901t12271788276462z tool=repository operation=create-branch actor=project:agent
+- 2026-09-01T12:27:42.084998Z | tool.running | run=tool-20260901t12271788276462z actor=project:agent
+- 2026-09-01T12:27:42.099084Z | tool.failed | run=tool-20260901t12271788276462z exit-code=128
+- 2026-09-01T12:29:13.129509Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-01T12:29:59.311485Z | tool.prepared | run=tool-20260901t12291788276599z tool=repository operation=commit actor=project:agent
+- 2026-09-01T12:29:59.313892Z | tool.running | run=tool-20260901t12291788276599z actor=project:agent
+- 2026-09-01T12:29:59.337626Z | tool.completed | run=tool-20260901t12291788276599z exit-code=0
+- 2026-09-01T12:34:38.059574Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-01T12:39:08.535748Z | artifact.added | kind=spec uri=repo://docs/specs/f2-semantic-ir-emitter-spi.md actor=project:owner
+- 2026-09-01T12:39:08.969488Z | work.criterion-stage-marked | criterion=semantic-ir actor=project:owner stage=specified
+- 2026-09-01T12:39:09.424802Z | work.criterion-stage-marked | criterion=intent-projection actor=project:owner stage=specified
+- 2026-09-01T12:39:09.861717Z | work.criterion-stage-marked | criterion=emitter-spi actor=project:owner stage=specified
+- 2026-09-01T12:39:10.302244Z | work.criterion-stage-marked | criterion=java-adapter actor=project:owner stage=specified
+- 2026-09-01T12:39:10.738851Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=specified
+- 2026-09-01T12:39:11.178831Z | work.criterion-stage-marked | criterion=regression-gates actor=project:owner stage=specified
+- 2026-09-01T12:39:11.632367Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:owner stage=specified
+- 2026-09-01T12:39:37.490188Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-01T12:39:43.998177Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-01T12:40:13.979098Z | tool.prepared | run=tool-20260901t12401788277213z tool=repository operation=commit actor=project:agent
+- 2026-09-01T12:40:13.981383Z | tool.running | run=tool-20260901t12401788277213z actor=project:agent
+- 2026-09-01T12:40:14.005489Z | tool.completed | run=tool-20260901t12401788277213z exit-code=0
+- 2026-09-01T12:42:15.091035Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/f2-semantic-ir-emitter-spi.md actor=project:agent
+- 2026-09-01T12:42:18.622446Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-01T12:42:30.798279Z | work.criterion-stage-marked | criterion=semantic-ir actor=project:owner stage=planned
+- 2026-09-01T12:42:31.245720Z | work.criterion-stage-marked | criterion=intent-projection actor=project:owner stage=planned
+- 2026-09-01T12:42:31.685502Z | work.criterion-stage-marked | criterion=emitter-spi actor=project:owner stage=planned
+- 2026-09-01T12:42:32.120306Z | work.criterion-stage-marked | criterion=java-adapter actor=project:owner stage=planned
+- 2026-09-01T12:42:32.585937Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=planned
+- 2026-09-01T12:42:33.022981Z | work.criterion-stage-marked | criterion=regression-gates actor=project:owner stage=planned
+- 2026-09-01T12:42:33.442120Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:owner stage=planned
+- 2026-09-01T12:42:34.320010Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-01T12:42:45.133808Z | tool.prepared | run=tool-20260901t12421788277365z tool=repository operation=commit actor=project:agent
+- 2026-09-01T12:42:45.135988Z | tool.running | run=tool-20260901t12421788277365z actor=project:agent
+- 2026-09-01T12:42:45.160003Z | tool.completed | run=tool-20260901t12421788277365z exit-code=0
+- 2026-09-01T12:55:49.949526Z | tool.prepared | run=tool-20260901t12551788278149z tool=repository operation=commit actor=project:agent
+- 2026-09-01T12:55:49.952096Z | tool.running | run=tool-20260901t12551788278149z actor=project:agent
+- 2026-09-01T12:55:49.986370Z | tool.completed | run=tool-20260901t12551788278149z exit-code=0
+- 2026-09-01T13:12:12.362610Z | tool.prepared | run=tool-20260901t13121788279132z tool=repository operation=commit actor=project:agent
+- 2026-09-01T13:12:12.364683Z | tool.running | run=tool-20260901t13121788279132z actor=project:agent
+- 2026-09-01T13:12:12.398750Z | tool.completed | run=tool-20260901t13121788279132z exit-code=0
+- 2026-09-01T13:14:25.228173Z | tool.prepared | run=tool-20260901t13141788279265z tool=repository operation=commit actor=project:agent
+- 2026-09-01T13:14:25.230559Z | tool.running | run=tool-20260901t13141788279265z actor=project:agent
+- 2026-09-01T13:14:25.254881Z | tool.completed | run=tool-20260901t13141788279265z exit-code=0
+- 2026-09-01T13:15:19.994742Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T13:15:27.335646Z | evidence.added | id=evidence-000001 type=verification-report result=success revision=1 actor=project:agent
+- 2026-09-01T13:15:32.857716Z | work.criterion-stage-marked | criterion=semantic-ir actor=project:agent stage=implemented
+- 2026-09-01T13:15:33.363876Z | work.criterion-stage-marked | criterion=semantic-ir actor=project:agent stage=verified
+- 2026-09-01T13:15:33.850038Z | work.criterion-stage-marked | criterion=intent-projection actor=project:agent stage=implemented
+- 2026-09-01T13:15:34.349121Z | work.criterion-stage-marked | criterion=intent-projection actor=project:agent stage=verified
+- 2026-09-01T13:15:34.849454Z | work.criterion-stage-marked | criterion=emitter-spi actor=project:agent stage=implemented
+- 2026-09-01T13:15:35.357967Z | work.criterion-stage-marked | criterion=emitter-spi actor=project:agent stage=verified
+- 2026-09-01T13:15:35.881815Z | work.criterion-stage-marked | criterion=java-adapter actor=project:agent stage=implemented
+- 2026-09-01T13:15:36.404373Z | work.criterion-stage-marked | criterion=java-adapter actor=project:agent stage=verified
+- 2026-09-01T13:15:36.888504Z | work.criterion-stage-marked | criterion=profile-integration actor=project:agent stage=implemented
+- 2026-09-01T13:15:37.382472Z | work.criterion-stage-marked | criterion=profile-integration actor=project:agent stage=verified
+- 2026-09-01T13:15:37.873152Z | work.criterion-stage-marked | criterion=regression-gates actor=project:agent stage=implemented
+- 2026-09-01T13:15:38.368639Z | work.criterion-stage-marked | criterion=regression-gates actor=project:agent stage=verified
+- 2026-09-01T13:15:38.850344Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:agent stage=implemented
+- 2026-09-01T13:15:39.341511Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:agent stage=verified
+- 2026-09-01T13:15:44.508060Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T13:16:01.302058Z | tool.prepared | run=tool-20260901t13161788279361z tool=repository operation=commit actor=project:agent
+- 2026-09-01T13:16:01.304560Z | tool.running | run=tool-20260901t13161788279361z actor=project:agent
+- 2026-09-01T13:16:01.328409Z | tool.completed | run=tool-20260901t13161788279361z exit-code=0
+- 2026-09-01T13:17:54.337786Z | artifact.added | kind=spec uri=repo://docs/specs/f2-semantic-ir-emitter-spi.md actor=project:owner
+- 2026-09-01T13:17:54.853473Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/f2-semantic-ir-emitter-spi.md actor=project:agent
+- 2026-09-01T13:17:55.344724Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T13:17:55.845747Z | evidence.added | id=evidence-000002 type=verification-report result=success revision=1 actor=project:agent
+- 2026-09-01T14:56:27.340207Z | tool.prepared | run=tool-20260901t14561788285387z tool=repository operation=commit actor=project:agent
+- 2026-09-01T14:56:48.897073Z | tool.running | run=tool-20260901t14561788285387z actor=project:agent
+- 2026-09-01T14:56:48.921723Z | tool.completed | run=tool-20260901t14561788285387z exit-code=0
+- 2026-09-01T14:57:45.392528Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T14:57:55.763196Z | evidence.added | id=evidence-000003 type=review-remediation result=success revision=1 actor=project:agent
+- 2026-09-01T14:58:16.464455Z | tool.prepared | run=tool-20260901t14581788285496z tool=repository operation=commit actor=project:agent
+- 2026-09-01T14:58:28.701750Z | tool.running | run=tool-20260901t14581788285496z actor=project:agent
+- 2026-09-01T14:58:28.726415Z | tool.completed | run=tool-20260901t14581788285496z exit-code=0
+- 2026-09-01T15:16:46.667801Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-01T15:17:16.645519Z | tool.prepared | run=tool-20260901t15171788286636z tool=repository operation=commit actor=project:agent
+- 2026-09-01T15:17:30.477933Z | tool.running | run=tool-20260901t15171788286636z actor=project:agent
+- 2026-09-01T15:17:30.494205Z | tool.failed | run=tool-20260901t15171788286636z exit-code=128
+- 2026-09-01T15:17:46.290882Z | tool.prepared | run=tool-20260901t15171788286666z tool=repository operation=commit actor=project:agent
+- 2026-09-01T15:17:59.729640Z | tool.running | run=tool-20260901t15171788286666z actor=project:agent
+- 2026-09-01T15:17:59.754572Z | tool.completed | run=tool-20260901t15171788286666z exit-code=0
+- 2026-09-01T15:18:33.476992Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T15:18:33.676402Z | evidence.added | id=evidence-000004 type=review-remediation result=success revision=1 actor=project:agent
+- 2026-09-01T15:18:37.206541Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T15:18:40.964627Z | tool.prepared | run=tool-20260901t15181788286720z tool=repository operation=commit actor=project:agent
+- 2026-09-01T15:18:53.229775Z | tool.running | run=tool-20260901t15181788286720z actor=project:agent
+- 2026-09-01T15:18:53.254662Z | tool.completed | run=tool-20260901t15181788286720z exit-code=0
+- 2026-09-01T16:12:44.456258Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-01T16:18:36.755687Z | tool.prepared | run=tool-20260901t16181788290316z tool=repository operation=commit actor=project:agent
+- 2026-09-01T16:18:53.845009Z | tool.running | run=tool-20260901t16181788290316z actor=project:agent
+- 2026-09-01T16:18:53.879939Z | tool.completed | run=tool-20260901t16181788290316z exit-code=0
+- 2026-09-01T16:19:21.236184Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T16:19:21.440229Z | evidence.added | id=evidence-000005 type=review-remediation result=success revision=1 actor=project:agent
+- 2026-09-01T16:20:03.008773Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T16:20:06.303755Z | tool.prepared | run=tool-20260901t16201788290406z tool=repository operation=commit actor=project:agent
+- 2026-09-01T16:20:18.185453Z | tool.running | run=tool-20260901t16201788290406z actor=project:agent
+- 2026-09-01T16:20:18.209688Z | tool.completed | run=tool-20260901t16201788290406z exit-code=0
+- 2026-09-01T17:17:35.331279Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-01T17:19:50.170157Z | tool.prepared | run=tool-20260901t17191788293990z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:21:37.801420Z | tool.running | run=tool-20260901t17191788293990z actor=project:agent
+- 2026-09-01T17:21:37.836767Z | tool.completed | run=tool-20260901t17191788293990z exit-code=0
+- 2026-09-01T17:22:11.512082Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T17:22:11.794641Z | evidence.added | id=evidence-000006 type=review-remediation result=success revision=1 actor=project:agent
+- 2026-09-01T17:22:18.027824Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T17:22:40.531142Z | tool.prepared | run=tool-20260901t17221788294160z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:29:00.171861Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-01T17:34:49.014784Z | tool.prepared | run=tool-20260901t17341788294889z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:35:01.374362Z | tool.running | run=tool-20260901t17341788294889z actor=project:agent
+- 2026-09-01T17:35:01.409317Z | tool.completed | run=tool-20260901t17341788294889z exit-code=0
+- 2026-09-01T17:35:28.288627Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T17:35:28.564401Z | evidence.added | id=evidence-000007 type=review-remediation result=success revision=1 actor=project:agent
+- 2026-09-01T17:35:34.259123Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T17:35:38.415601Z | tool.prepared | run=tool-20260901t17351788294938z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:35:47.713031Z | tool.running | run=tool-20260901t17351788294938z actor=project:agent
+- 2026-09-01T17:35:47.737343Z | tool.completed | run=tool-20260901t17351788294938z exit-code=0
+- 2026-09-01T17:37:34.203253Z | work.block | from=active to=blocked actor=project:agent change=change-20260901t173734203141z
+- 2026-09-01T17:38:23.303542Z | work.resume | from=blocked to=active actor=project:agent change=change-20260901t173823303376z
+- 2026-09-01T17:38:52.577319Z | tool.prepared | run=tool-20260901t17381788295132z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:39:02.809847Z | tool.running | run=tool-20260901t17381788295132z actor=project:agent
+- 2026-09-01T17:39:02.833914Z | tool.completed | run=tool-20260901t17381788295132z exit-code=0
+- 2026-09-01T17:39:06.661499Z | tool.prepared | run=tool-20260901t17391788295146z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-01T17:39:19.652485Z | tool.running | run=tool-20260901t17391788295146z actor=project:agent
+- 2026-09-01T17:39:22.025480Z | tool.completed | run=tool-20260901t17391788295146z exit-code=0
+- 2026-09-01T17:39:38.497460Z | tool.prepared | run=tool-20260901t17391788295178z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:39:50.940546Z | tool.running | run=tool-20260901t17391788295178z actor=project:agent
+- 2026-09-01T17:39:50.965596Z | tool.completed | run=tool-20260901t17391788295178z exit-code=0
+- 2026-09-01T17:39:54.444850Z | tool.prepared | run=tool-20260901t17391788295194z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-01T17:40:04.993436Z | tool.running | run=tool-20260901t17391788295194z actor=project:agent
+- 2026-09-01T17:40:07.012589Z | tool.completed | run=tool-20260901t17391788295194z exit-code=0
+- 2026-09-01T17:40:13.577751Z | tool.prepared | run=tool-20260901t17401788295213z tool=github-pull-requests operation=create actor=project:agent
+- 2026-09-01T17:40:21.714668Z | tool.running | run=tool-20260901t17401788295213z actor=project:agent
+- 2026-09-01T17:40:24.026002Z | tool.completed | run=tool-20260901t17401788295213z exit-code=0
+- 2026-09-01T17:40:43.644899Z | tool.prepared | run=tool-20260901t17401788295243z tool=github-pull-requests operation=comment actor=project:agent
+- 2026-09-01T17:40:53.219711Z | tool.running | run=tool-20260901t17401788295243z actor=project:agent
+- 2026-09-01T17:40:54.417517Z | tool.completed | run=tool-20260901t17401788295243z exit-code=0
+- 2026-09-01T17:40:59.314122Z | tool.prepared | run=tool-20260901t17401788295259z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-01T17:41:06.980372Z | tool.running | run=tool-20260901t17401788295259z actor=project:agent
+- 2026-09-01T17:41:07.936066Z | tool.completed | run=tool-20260901t17401788295259z exit-code=0
+- 2026-09-01T17:41:45.821676Z | tool.prepared | run=tool-20260901t17411788295305z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-01T17:41:54.019871Z | tool.running | run=tool-20260901t17411788295305z actor=project:agent
+- 2026-09-01T17:41:55.085855Z | tool.completed | run=tool-20260901t17411788295305z exit-code=0
+- 2026-09-01T17:42:03.228210Z | tool.prepared | run=tool-20260901t17421788295323z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:42:10.948348Z | tool.running | run=tool-20260901t17421788295323z actor=project:agent
+- 2026-09-01T17:42:12.196705Z | tool.completed | run=tool-20260901t17421788295323z exit-code=0
+- 2026-09-01T17:42:49.217744Z | tool.prepared | run=tool-20260901t17421788295369z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-01T17:43:03.640132Z | tool.running | run=tool-20260901t17421788295369z actor=project:agent
+- 2026-09-01T17:43:04.695601Z | tool.completed | run=tool-20260901t17421788295369z exit-code=0
+- 2026-09-01T17:43:43.557263Z | tool.prepared | run=tool-20260901t17431788295423z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:43:50.151074Z | tool.running | run=tool-20260901t17431788295423z actor=project:agent
+- 2026-09-01T17:43:50.914244Z | tool.completed | run=tool-20260901t17431788295423z exit-code=0
+- 2026-09-01T17:44:30.173565Z | tool.prepared | run=tool-20260901t17441788295470z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:45:02.689089Z | tool.running | run=tool-20260901t17441788295470z actor=project:agent
+- 2026-09-01T17:45:03.471895Z | tool.completed | run=tool-20260901t17441788295470z exit-code=0
+- 2026-09-01T17:46:02.397779Z | tool.prepared | run=tool-20260901t17461788295562z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:46:12.829985Z | tool.running | run=tool-20260901t17461788295562z actor=project:agent
+- 2026-09-01T17:46:13.531060Z | tool.completed | run=tool-20260901t17461788295562z exit-code=0
+- 2026-09-01T17:49:59.091675Z | tool.prepared | run=tool-20260901t17491788295799z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:50:08.110317Z | tool.running | run=tool-20260901t17491788295799z actor=project:agent
+- 2026-09-01T17:50:09.227268Z | tool.completed | run=tool-20260901t17491788295799z exit-code=0
+- 2026-09-01T17:50:43.872281Z | work.criterion-stage-marked | criterion=semantic-ir actor=project:owner stage=accepted
+- 2026-09-01T17:50:44.137165Z | work.criterion-stage-marked | criterion=intent-projection actor=project:owner stage=accepted
+- 2026-09-01T17:50:44.398921Z | work.criterion-stage-marked | criterion=emitter-spi actor=project:owner stage=accepted
+- 2026-09-01T17:50:44.670769Z | work.criterion-stage-marked | criterion=java-adapter actor=project:owner stage=accepted
+- 2026-09-01T17:50:44.933383Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=accepted
+- 2026-09-01T17:50:45.198345Z | work.criterion-stage-marked | criterion=regression-gates actor=project:owner stage=accepted
+- 2026-09-01T17:50:45.467675Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:owner stage=accepted
+- 2026-09-01T17:50:49.846063Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-01T17:50:58.629377Z | work.transitioned | from=verifying to=completed actor=project:owner

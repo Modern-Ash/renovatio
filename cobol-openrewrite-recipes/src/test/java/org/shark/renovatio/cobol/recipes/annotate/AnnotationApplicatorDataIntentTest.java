@@ -10,6 +10,8 @@ import org.shark.renovatio.cobol.ir.annotated.AnnotationFamily;
 import org.shark.renovatio.cobol.ir.annotated.CobolAnnotation;
 import org.shark.renovatio.cobol.ir.annotated.DataIntentPayload;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.shark.renovatio.semantic.ir.SemanticProgram;
+import org.shark.renovatio.semantic.ir.SourceSpan;
 
 import java.util.List;
 
@@ -60,6 +62,28 @@ class AnnotationApplicatorDataIntentTest {
         String b = new AnnotationApplicator(f.model(), f.sidecar()).apply(parse(ctx2), ctx2).tree().printAll();
 
         assertThat(a).isEqualTo(b);
+    }
+
+    @Test
+    void neutralIntentPreservesExactLegacyAnnotationBytes() {
+        AnnotatedFixtures.Fixture fixture = AnnotatedFixtures.redefinesDataIntent();
+        CobolAnnotation source = fixture.sidecar().annotations().get(0);
+        DataIntentPayload payload = (DataIntentPayload) source.payload();
+        SemanticProgram.DataIntent neutral = new SemanticProgram.DataIntent(
+                SemanticProgram.Header.create(fixture.model().getProgramId(),
+                        SemanticProgram.NodeKind.DATA_INTENT, "data-intent:" + source.annotationId(),
+                        new SourceSpan("input.cob", 1, 1, 1, 1)),
+                "7".repeat(64), SemanticProgram.IntentKind.OVERLAPPING_STORAGE,
+                payload.interpretation(), payload.assumptions(), source.annotationId());
+
+        ExecutionContext legacyContext = new InMemoryExecutionContext(Throwable::printStackTrace);
+        String legacy = new AnnotationApplicator(fixture.model(), fixture.sidecar())
+                .apply(parse(legacyContext), legacyContext).tree().printAll();
+        ExecutionContext neutralContext = new InMemoryExecutionContext(Throwable::printStackTrace);
+        String actual = new AnnotationApplicator(fixture.model(), fixture.sidecar(), List.of(neutral))
+                .apply(parse(neutralContext), neutralContext).tree().printAll();
+
+        assertThat(actual).isEqualTo(legacy);
     }
 
     @Test

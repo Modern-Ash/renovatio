@@ -4,6 +4,7 @@ import org.shark.renovatio.api.dto.ProjectDto;
 import org.shark.renovatio.api.entity.ProjectEntity;
 import org.shark.renovatio.api.repository.ProjectRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 @Service
 public class ProjectService {
     private final ProjectRepository projectRepo;
+    private final DecisionLayerService decisionLayer;
 
-    public ProjectService(ProjectRepository projectRepo) {
+    public ProjectService(ProjectRepository projectRepo, DecisionLayerService decisionLayer) {
         this.projectRepo = projectRepo;
+        this.decisionLayer = decisionLayer;
     }
 
     public ProjectDto createProject(ProjectDto dto) {
@@ -83,6 +86,13 @@ public class ProjectService {
         return projectRepo.findAll().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteProject(String id) {
+        if (!projectRepo.existsById(id)) return;
+        decisionLayer.deleteProjectData(id);
+        projectRepo.deleteById(id);
     }
 
     private ProjectDto toDto(ProjectEntity entity) {

@@ -280,6 +280,13 @@ public class LanguageProviderRegistry {
                     return createErrorResult("Unsupported capability: " + capability);
             }
 
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            logger.warn("Target emitter unavailable: {}", unavailable.getMessage());
+            Map<String, Object> result = createErrorResult(unavailable.getMessage());
+            result.put("code", unavailable.code());
+            result.put("requestedTarget", unavailable.requestedTarget().name());
+            result.put("availableTargets", unavailable.availableTargets().stream().map(Enum::name).toList());
+            return result;
         } catch (Exception e) {
             logger.error("Error routing tool call: {}", e.getMessage(), e);
             logger.error("Stack trace:", e);

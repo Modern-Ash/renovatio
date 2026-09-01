@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import StepFolder from '../wizard/StepFolder'
+import StepTarget from '../wizard/StepTarget'
 import StepAnalyze from '../wizard/StepAnalyze'
+import StepDecisions from '../wizard/StepDecisions'
 import StepMetrics from '../wizard/StepMetrics'
 import StepPlan from '../wizard/StepPlan'
 import StepApply from '../wizard/StepApply'
@@ -11,7 +13,9 @@ import StepExport from '../wizard/StepExport'
 
 const steps = [
   { id: 'folder', label: 'Select Folder' },
+  { id: 'target', label: 'Target' },
   { id: 'analyze', label: 'Analyze' },
+  { id: 'decisions', label: 'Decisions' },
   { id: 'metrics', label: 'Metrics' },
   { id: 'plan', label: 'Plan' },
   { id: 'apply', label: 'Dry Run' },
@@ -46,6 +50,8 @@ function Wizard() {
       case 0:
         return <StepFolder data={data} onChange={updateData} onNext={goNext} />
       case 1:
+        return <StepTarget projectId={projectId} data={data} onChange={updateData} onNext={goNext} onBack={goBack} />
+      case 2:
         return (
           <StepAnalyze
             projectId={projectId}
@@ -55,11 +61,13 @@ function Wizard() {
             onBack={goBack}
           />
         )
-      case 2:
-        return <StepMetrics data={data} onNext={goNext} onBack={goBack} />
       case 3:
-        return <StepPlan data={data} onChange={updateData} onNext={goNext} onBack={goBack} />
+        return <StepDecisions projectId={projectId} data={data} onChange={updateData} onNext={goNext} onBack={goBack} />
       case 4:
+        return <StepMetrics data={data} onNext={goNext} onBack={goBack} />
+      case 5:
+        return <StepPlan data={data} onChange={updateData} onNext={goNext} onBack={goBack} />
+      case 6:
         return (
           <StepApply
             projectId={projectId}
@@ -69,9 +77,9 @@ function Wizard() {
             onBack={goBack}
           />
         )
-      case 5:
+      case 7:
         return <StepDiff data={data} onNext={goNext} onBack={goBack} />
-      case 6:
+      case 8:
         return (
           <StepReview
             projectId={projectId}
@@ -80,7 +88,7 @@ function Wizard() {
             onBack={goBack}
           />
         )
-      case 7:
+      case 9:
         return (
           <StepExport
             projectId={projectId}
@@ -120,8 +128,8 @@ function Wizard() {
 
       <h1 className="text-2xl font-bold mb-6">Migration Wizard</h1>
 
-      <div className="mb-8">
-        <div className="flex justify-between">
+      <div className="mb-8 wizard-progress" aria-label="Migration wizard progress">
+        <div className="flex justify-between min-w-[720px]">
           {steps.map((step, index) => (
             <div
               key={step.id}
@@ -150,7 +158,7 @@ function Wizard() {
             </div>
           ))}
         </div>
-        <div className="flex justify-between mt-2">
+        <div className="flex justify-between mt-2 min-w-[720px]">
           {steps.map((step) => (
             <div key={step.id} className="text-xs text-gray-500 w-12 text-center">
               {step.label}

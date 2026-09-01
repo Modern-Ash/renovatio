@@ -15,17 +15,15 @@
     <description>Java language provider for Renovatio platform with MCP support</description>
 
     <dependencies>
-        <!-- Renovatio Core for LanguageProviderRegistry -->
-        <dependency>
-            <groupId>org.shark.renovatio</groupId>
-            <artifactId>renovatio-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
         <!-- Renovatio Shared for domain objects and SPI -->
         <dependency>
             <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-shared</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-architecture</artifactId>
             <version>${project.version}</version>
         </dependency>
 
