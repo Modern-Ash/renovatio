@@ -91,6 +91,8 @@ class TargetEmissionContractTest {
         assertThrows(IllegalArgumentException.class, () -> EmittedArtifact.utf8("/A.java", "A"));
         assertThrows(IllegalArgumentException.class, () -> EmittedArtifact.utf8("C:/A.java", "A"));
         assertThrows(IllegalArgumentException.class, () -> EmittedArtifact.utf8("a//A.java", "A"));
+        assertThrows(IllegalArgumentException.class, () -> EmittedArtifact.utf8("a/A.java/", "A"));
+        assertThrows(IllegalArgumentException.class, () -> EmittedArtifact.utf8("a\\A.java\\", "A"));
         assertThrows(IllegalArgumentException.class, () -> EmittedArtifact.utf8("./A.java", "A"));
         assertThrows(NullPointerException.class, () -> new EmittedArtifact("A.java", null));
         assertThrows(NullPointerException.class, () -> EmittedArtifact.utf8("A.java", null));

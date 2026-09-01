@@ -37,7 +37,7 @@ public record EmittedArtifact(String path, byte[] content) {
         if (normalized.isBlank() || normalized.startsWith("/") || normalized.matches("^[A-Za-z]:/.*")) {
             throw new IllegalArgumentException("artifact path must be relative");
         }
-        for (String segment : normalized.split("/")) {
+        for (String segment : normalized.split("/", -1)) {
             if (segment.isBlank() || ".".equals(segment) || "..".equals(segment)) {
                 throw new IllegalArgumentException("artifact path contains an invalid segment");
             }
