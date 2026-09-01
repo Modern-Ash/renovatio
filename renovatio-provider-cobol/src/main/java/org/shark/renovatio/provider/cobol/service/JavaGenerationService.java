@@ -2,6 +2,10 @@ package org.shark.renovatio.provider.cobol.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.squareup.javapoet.*;
+import org.shark.renovatio.architecture.ArchitectureRequest;
+import org.shark.renovatio.architecture.ArchitectureResult;
+import org.shark.renovatio.architecture.ArchitectureTransformer;
+import org.shark.renovatio.architecture.GroupingConfiguration;
 import org.shark.renovatio.cobol.ir.model.CobolDataItem;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.core.service.TargetEmitterRegistry;
@@ -62,6 +66,7 @@ public class JavaGenerationService {
     private final TargetEmitterRegistry emitterRegistry;
     private final EffectiveProfileResolver effectiveProfileResolver;
     private final CobolSemanticProjector semanticProjector = new CobolSemanticProjector();
+    private final ArchitectureTransformer architectureTransformer = new ArchitectureTransformer();
 
     public JavaGenerationService(CobolParsingService parsingService,
                                  TemplateCodeGenerationService templateService,
@@ -133,10 +138,21 @@ public class JavaGenerationService {
             Path root = Paths.get(workspace.getPath()).toAbsolutePath().normalize();
             List<Path> sources = parsingService.findCobolSourceFiles(root).stream().sorted().toList();
             if (sources.isEmpty()) return new StubResult(false, "No COBOL source files found");
+            Map<String, Path> sourceByProgram = new LinkedHashMap<>();
+            List<SemanticProgram> semanticPrograms = new ArrayList<>();
+            for (Path source : sources) {
+                SemanticProgram semantic = semanticProgram(source, query, workspace);
+                Path previous = sourceByProgram.putIfAbsent(semantic.programId(), source);
+                if (previous != null) throw new IllegalArgumentException("duplicate semantic program "
+                        + semantic.programId());
+                semanticPrograms.add(semantic);
+            }
+            ArchitectureResult architecture = architecture(semanticPrograms, effective);
             Map<String, String> generatedFiles = new LinkedHashMap<>();
             Map<String, ManualActionItem> actionItems = new LinkedHashMap<>();
-            for (Path source : sources) {
-                StubResult emitted = emitThroughRegistry(source, query, workspace, effective,
+            for (ArchitectureResult.ArchitectedProgram architected : architecture.programs()) {
+                Path source = sourceByProgram.get(architected.programId());
+                StubResult emitted = emitProjected(architected.targetModel(),
                         semantic -> generateInterfaceStubsLegacy(query, workspace, semantic, source, false, actionItems));
                 if (!emitted.isSuccess()) return emitted;
                 if (emitted.getGeneratedCode() != null) {
@@ -191,7 +207,12 @@ public class JavaGenerationService {
 
     private StubResult emitProjected(SemanticProgram semantic, MigrationProfiles.EffectiveProfile effective,
                                      Function<SemanticProgram, StubResult> generation) {
-        TargetModel targetModel = TargetModel.from(semantic, effective);
+        TargetModel targetModel = architecture(List.of(semantic), effective).programs().get(0).targetModel();
+        return emitProjected(targetModel, generation);
+    }
+
+    private StubResult emitProjected(TargetModel targetModel, Function<SemanticProgram, StubResult> generation) {
+        SemanticProgram semantic = targetModel.semanticProgram();
         AtomicReference<StubResult> resultReference = new AtomicReference<>();
         JavaEmitter javaEmitter = new JavaEmitter((ignoredModel, ignoredProfile) -> {
             StubResult result = generation.apply(semantic);
@@ -207,8 +228,18 @@ public class JavaGenerationService {
                     ? "No target files generated" : "Generated " + emitted.artifacts().size() + " target files");
         }
         if (result.isSuccess()) result.setGeneratedCode(emitted.utf8TextByPath());
-        result.setTargetLanguage(effective.profile().target().language().name());
+        result.setTargetLanguage(targetModel.profile().target().language().name());
         return result;
+    }
+
+    private ArchitectureResult architecture(List<SemanticProgram> programs,
+                                            MigrationProfiles.EffectiveProfile effective) {
+        GroupingConfiguration grouping = GroupingConfiguration.fromExtensions(effective.profile().extensions());
+        List<String> evidence = programs.stream()
+                .flatMap(value -> value.sourceProvenance().parentEvidenceHashes().stream())
+                .distinct().sorted().toList();
+        return architectureTransformer.transform(ArchitectureRequest.create(programs, effective, grouping,
+                Map.of(), evidence));
     }
 
     public MigrationProfiles.EffectiveProfile defaultEffectiveProfile() {

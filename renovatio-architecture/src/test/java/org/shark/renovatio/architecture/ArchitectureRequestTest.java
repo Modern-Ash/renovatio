@@ -57,4 +57,19 @@ class ArchitectureRequestTest {
         assertThrows(IllegalArgumentException.class, () -> new GroupingConfiguration("migration",
                 Map.of(), Map.of(), Map.of("BAD PREFIX!", "x")));
     }
+
+    @Test
+    void parsesTheOpenProfileExtensionNamespace() {
+        GroupingConfiguration parsed = GroupingConfiguration.fromExtensions(Map.of("renovatio.architecture",
+                Map.of("singleModuleName", "Core", "manualModules", Map.of("PAY001", "Payments"),
+                        "domainCopybooks", Map.of("CUSTOMER-REC", "Customers"),
+                        "prefixModules", Map.of("INV", "Inventory"))));
+        assertEquals("core", parsed.singleModuleName());
+        assertEquals(Map.of("PAY001", "payments"), parsed.manualModules());
+        assertEquals(GroupingConfiguration.empty(), GroupingConfiguration.fromExtensions(Map.of()));
+        assertThrows(IllegalArgumentException.class, () -> GroupingConfiguration.fromExtensions(
+                Map.of("renovatio.architecture", "invalid")));
+        assertThrows(IllegalArgumentException.class, () -> GroupingConfiguration.fromExtensions(
+                Map.of("renovatio.architecture", Map.of("manualModules", Map.of("PAY001", 1)))));
+    }
 }

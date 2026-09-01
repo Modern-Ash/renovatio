@@ -130,6 +130,9 @@ class JavaGenerationRegistryRoutingTest {
                 .map(model -> model.semanticProgram().programId()).sorted().toList());
         assertEquals(List.of("first.cob", "second.cob"), received.stream()
                 .map(model -> model.sourceProvenance().sourcePath()).sorted().toList());
+        assertEquals(1, received.stream().map(model -> model.targetStructure().requestHash()).distinct().count());
+        assertEquals(2, received.stream().map(model -> model.targetStructure().moduleId()).distinct().count());
+        assertTrue(received.stream().allMatch(model -> !model.targetStructure().componentIds().isEmpty()));
         assertEquals(Map.of("first.js", "export const id = 'first';",
                 "second.js", "export const id = 'second';"), result.getGeneratedCode());
         assertFalse(Files.exists(workspacePath.resolve("generated-java-stubs")));
