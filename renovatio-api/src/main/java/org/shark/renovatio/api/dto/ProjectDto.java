@@ -15,6 +15,9 @@ public class ProjectDto {
     private String name;
     private String workspacePath;
     private String branch;
+    private String javaOutputPath;
+    private String javaPackage;
+    private String javaArchitecture;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

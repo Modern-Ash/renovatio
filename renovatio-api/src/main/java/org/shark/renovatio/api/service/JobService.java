@@ -256,6 +256,7 @@ public class JobService {
 
     private Object executeApply(JobEntity entity) {
         Map<String, Object> params = parseParams(entity.getParamsJson());
+        String workspacePath = resolveWorkspacePath(entity.getProjectId(), params);
         List<Map<String, Object>> planSteps = extractPlanSteps(params.get("planSteps"));
         eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.5, "message", "Building dry run preview..."));
         eventCollector.send(entity.getId(), "progress", Map.of("progress", 0.9, "message", "Finalizing dry run preview..."));
@@ -271,6 +272,13 @@ public class JobService {
                 disabledSteps.add(label);
             }
         }
+
+        String javaOutputDirectory = resolveJavaOutputDirectory(entity.getProjectId(), params, workspacePath);
+        String javaOutputDirectoryLabel = buildDisplayPath(javaOutputDirectory);
+        List<String> javaDirectoryStructure = buildDirectoryStructure(javaOutputDirectory);
+        Optional<ProjectDto> project = projectService.getProject(entity.getProjectId());
+        String effectiveJavaPackage = chooseValue(params.get("javaPackage"), project.map(ProjectDto::getJavaPackage).orElse(null));
+        String effectiveJavaArchitecture = chooseValue(params.get("javaArchitecture"), project.map(ProjectDto::getJavaArchitecture).orElse(null));
 
         StringBuilder preview = new StringBuilder();
         preview.append("Dry run preview\n");
@@ -288,22 +296,107 @@ public class JobService {
                 preview.append("- ").append(step).append("\n");
             }
         }
+        preview.append("\nJava output directory:\n");
+        preview.append("- ").append(javaOutputDirectory).append("\n");
+        if (javaDirectoryStructure.isEmpty()) {
+            preview.append("- No Java files found yet in this path\n");
+        } else {
+            preview.append("- Directory structure:\n");
+            for (String structureEntry : javaDirectoryStructure) {
+                preview.append("  - ").append(structureEntry).append("\n");
+            }
+        }
 
         Map<String, Object> result = new java.util.LinkedHashMap<>();
         result.put("status", "completed");
         result.put("operation", "apply");
         result.put("dryRun", Boolean.parseBoolean(String.valueOf(params.getOrDefault("dryRun", Boolean.TRUE))));
         result.put("message", "Dry run completed successfully!");
-        result.put("preview", preview.toString().trim());
+        String previewText = preview.toString().trim();
+        int enabledCount = enabledSteps.size();
+        int skippedCount = disabledSteps.size();
+        previewText = "Summary: " + enabledCount + " selected, " + skippedCount + " skipped\n\n" + previewText;
+        result.put("preview", previewText);
         result.put("selectedSteps", enabledSteps);
         result.put("skippedSteps", disabledSteps);
         result.put("planSteps", planSteps);
         Map<String, Object> changes = new java.util.LinkedHashMap<>();
-        changes.put("enabledSteps", enabledSteps.size());
-        changes.put("skippedSteps", disabledSteps.size());
+        changes.put("enabledSteps", enabledCount);
+        changes.put("skippedSteps", skippedCount);
+        changes.put("enabledStepsCount", enabledCount);
+        changes.put("skippedStepsCount", skippedCount);
         changes.put("dryRun", Boolean.TRUE);
+        changes.put("javaPackage", effectiveJavaPackage);
+        changes.put("javaArchitecture", effectiveJavaArchitecture);
+        changes.put("javaOutputDirectory", javaOutputDirectoryLabel);
+        changes.put("javaDirectoryStructure", javaDirectoryStructure);
         result.put("changes", changes);
+        result.put("javaOutputDirectory", javaOutputDirectoryLabel);
+        if (effectiveJavaPackage != null && !effectiveJavaPackage.isBlank()) {
+            result.put("javaPackage", effectiveJavaPackage);
+        }
+        if (effectiveJavaArchitecture != null && !effectiveJavaArchitecture.isBlank()) {
+            result.put("javaArchitecture", effectiveJavaArchitecture);
+        }
         return result;
+    }
+
+    private String chooseValue(Object requested, String fallback) {
+        if (requested != null && !requested.toString().isBlank()) {
+            return requested.toString();
+        }
+        return fallback;
+    }
+
+    private String resolveJavaOutputDirectory(String projectId, Map<String, Object> params, String workspacePath) {
+        Object requestedDir = params.get("outputDir");
+        if (requestedDir == null || requestedDir.toString().isBlank()) {
+            requestedDir = params.get("javaOutputDirectory");
+        }
+        if ((requestedDir == null || requestedDir.toString().isBlank()) && projectId != null) {
+            Optional<ProjectDto> project = projectService.getProject(projectId);
+            if (project.isPresent() && project.get().getJavaOutputPath() != null && !project.get().getJavaOutputPath().isBlank()) {
+                requestedDir = project.get().getJavaOutputPath();
+            }
+        }
+        if (requestedDir != null && !requestedDir.toString().isBlank()) {
+            Path requested = Paths.get(requestedDir.toString());
+            if (!requested.isAbsolute() && workspacePath != null && !workspacePath.isBlank()) {
+                return Paths.get(workspacePath).resolve(requested).normalize().toString();
+            }
+            return requested.normalize().toString();
+        }
+
+        if (workspacePath == null || workspacePath.isBlank()) {
+            return "generated-java-stubs";
+        }
+        return Paths.get(workspacePath).resolve("generated-java-stubs").normalize().toString();
+    }
+
+    private String buildDisplayPath(String path) {
+        if (path == null || path.isBlank()) {
+            return "generated-java-stubs";
+        }
+        return path;
+    }
+
+    private List<String> buildDirectoryStructure(String directoryPath) {
+        Path outputDir = Paths.get(directoryPath);
+        if (!Files.exists(outputDir) || !Files.isDirectory(outputDir)) {
+            return List.of();
+        }
+
+        try (Stream<Path> stream = Files.walk(outputDir)) {
+            return stream
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(".java"))
+                    .sorted()
+                    .map(path -> outputDir.relativize(path).toString())
+                    .toList();
+        } catch (IOException e) {
+            log.warn("No se pudo inspeccionar directorio de salida Java: {}", directoryPath, e);
+            return List.of();
+        }
     }
 
     private Object executeDiff(JobEntity entity) {
