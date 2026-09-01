@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "ai-modernization"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/ai-modernization"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

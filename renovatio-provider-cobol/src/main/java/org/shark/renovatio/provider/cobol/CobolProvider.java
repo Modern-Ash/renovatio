@@ -75,7 +75,7 @@ public class CobolProvider extends BaseLanguageProvider {
     private static final String MSG_DIFF_OK = "COBOL diff generated";
     private static final String MSG_METRICS_OK = "COBOL metrics calculated";
     private static final String MSG_ANALYZE_FAILED_PREFIX = "COBOL analysis failed: ";
-    private static final String MSG_PARSED_FILES_FMT = "Parsed %d COBOL files";
+    private static final String MSG_PARSED_FILES_FMT = "Parsed %d COBOL source file(s) and %d copybook(s)";
     private static final String MSG_STUBS_OK = "Java stubs generated for COBOL interfaces";
     private static final String MSG_TODO_COBOL_INTERFACE = "TODO: Implement COBOL interface";
 
@@ -132,7 +132,8 @@ public class CobolProvider extends BaseLanguageProvider {
         result.setRunId(generateRunId());
         try {
             Path root = Paths.get(workspace.getPath());
-            List<Path> cobolFiles = parsingService.findCobolFiles(root);
+            List<Path> cobolFiles = parsingService.findCobolSourceFiles(root);
+            List<Path> copybooks = parsingService.findCopybooks(root);
 
             List<Map<String, Object>> astPrograms = new ArrayList<>();
             for (Path cobolFile : cobolFiles) {
@@ -144,8 +145,19 @@ public class CobolProvider extends BaseLanguageProvider {
             ast.put(AST_FILE_COUNT, cobolFiles.size());
             result.setAst(ast);
 
+            Map<String, Object> data = new HashMap<>();
+            data.put("sourceFiles", toRelativePaths(root, cobolFiles));
+            data.put("copybooks", toRelativePaths(root, copybooks));
+            data.put(AST_PROGRAMS, astPrograms);
+            data.put("summary", Map.of(
+                    "sourceFiles", cobolFiles.size(),
+                    "copybooks", copybooks.size(),
+                    "programs", astPrograms.size()
+            ));
+            result.setData(data);
+
             result.setSuccess(true);
-            result.setMessage(String.format(MSG_PARSED_FILES_FMT, cobolFiles.size()));
+            result.setMessage(String.format(MSG_PARSED_FILES_FMT, cobolFiles.size(), copybooks.size()));
         } catch (Exception e) {
             result.setSuccess(false);
             result.setMessage(MSG_ANALYZE_FAILED_PREFIX + e.getMessage());
@@ -401,6 +413,18 @@ public class CobolProvider extends BaseLanguageProvider {
         return Dialect.fromString(value);
     }
 
+    private List<String> toRelativePaths(Path root, List<Path> paths) {
+        List<String> relativePaths = new ArrayList<>();
+        for (Path path : paths) {
+            try {
+                relativePaths.add(root.relativize(path).toString());
+            } catch (Exception e) {
+                relativePaths.add(path.toString());
+            }
+        }
+        return relativePaths;
+    }
+
 
     private String generateCustomerRecordStub() {
         return """
@@ -494,4 +518,3 @@ public class CobolProvider extends BaseLanguageProvider {
                 """;
     }
 }
-

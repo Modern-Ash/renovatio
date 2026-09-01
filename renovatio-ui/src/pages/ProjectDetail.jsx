@@ -1,0 +1,93 @@
+import { useState, useEffect } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import { getProject, createJob, getActionItems } from '../api/client'
+import MetricCard from '../dashboard/MetricCard'
+import ActionItems from '../dashboard/ActionItems'
+
+function ProjectDetail() {
+  const { id } = useParams()
+  const [project, setProject] = useState(null)
+  const [actionItems, setActionItems] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [creatingJob, setCreatingJob] = useState(false)
+
+  const fetchData = async () => {
+    try {
+      const [projectData, itemsData] = await Promise.all([
+        getProject(id),
+        getActionItems(id)
+      ])
+      setProject(projectData)
+      setActionItems(itemsData)
+    } catch (error) {
+      console.error('Failed to fetch project:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [id])
+
+  const handleAnalyze = async () => {
+    setCreatingJob(true)
+    try {
+      await createJob(id, 'analyze')
+      alert('Analysis job created!')
+    } catch (error) {
+      console.error('Failed to create job:', error)
+      alert('Failed to create job')
+    } finally {
+      setCreatingJob(false)
+    }
+  }
+
+  if (loading) {
+    return <div className="text-center p-8">Loading...</div>
+  }
+
+  if (!project) {
+    return <div className="text-center p-8">Project not found</div>
+  }
+
+  return (
+    <div>
+      <div className="mb-6">
+        <Link to="/projects" className="text-primary-600 hover:underline">
+          ← Back to Projects
+        </Link>
+      </div>
+
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold">{project.name}</h1>
+          <p className="text-gray-500">{project.workspacePath}</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleAnalyze}
+            disabled={creatingJob}
+            className="btn btn-primary"
+          >
+            {creatingJob ? 'Creating...' : 'Analyze'}
+          </button>
+          <Link to={`/wizard/${id}`} className="btn btn-secondary">
+            Start Wizard
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <MetricCard title="Lines of Code" value="0" unit="LOC" icon="📝" />
+        <MetricCard title="Cyclomatic Complexity" value="0" icon="🔄" />
+        <MetricCard title="Copybooks" value="0" icon="📚" />
+        <MetricCard title="Action Items" value={actionItems.length} icon="📋" />
+      </div>
+
+      <ActionItems items={actionItems} onStatusChange={fetchData} />
+    </div>
+  )
+}
+
+export default ProjectDetail

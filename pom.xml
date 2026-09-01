@@ -44,6 +44,7 @@
         <module>renovatio-provider-cobol</module>
         <module>renovatio-mcp-server</module>
         <module>renovatio-cli</module>
+        <module>renovatio-api</module>
         <module>renovatio-cobol-runtime</module>
         <module>renovatio-cobol-ir</module>
         <module>renovatio-llm</module>
@@ -57,6 +58,16 @@
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-shared</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-mcp-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
