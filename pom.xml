@@ -47,6 +47,8 @@
         <module>renovatio-api</module>
         <module>renovatio-cobol-runtime</module>
         <module>renovatio-cobol-ir</module>
+        <module>renovatio-profile</module>
+        <module>renovatio-decisions</module>
         <module>renovatio-llm</module>
         <module>cobol-openrewrite-recipes</module>
         <module>renovatio-cobol-annotations</module>
@@ -98,6 +100,16 @@
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-cobol-ir</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-profile</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-decisions</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

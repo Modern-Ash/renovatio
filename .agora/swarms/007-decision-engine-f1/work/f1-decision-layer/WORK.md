@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "f1-decision-layer"
 swarm: "decision-engine-f1"
 title: "F1 \u00b7 Migration profile and decision layer (issue #146)"
-state: "clarified"
+state: "implementing"
 revision: 1
 operational-status: "active"
 status-reason: null

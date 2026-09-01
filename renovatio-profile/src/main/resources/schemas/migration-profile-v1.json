@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renovatio.dev/schemas/migration-profile-v1.json",
+  "title": "MigrationProfile v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "extensions"],
+  "properties": {
+    "schemaVersion": { "const": "1" },
+    "extensions": { "type": "object", "additionalProperties": true },
+    "target": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "language": { "enum": ["JAVA", "NODE", "PYTHON"] },
+        "languageVersion": { "type": "string", "minLength": 1, "maxLength": 32 }
+      }
+    },
+    "architecture": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "style": { "enum": ["TRANSACTION_SCRIPT", "LAYERED_MVC", "HEXAGONAL"] },
+        "moduleGrouping": { "enum": ["BY_PROGRAM", "BY_DOMAIN", "SINGLE_MODULE"] }
+      }
+    },
+    "runtime": {
+      "type": "object", "additionalProperties": false,
+      "properties": { "framework": { "enum": ["SPRING_BOOT", "NONE"] } }
+    },
+    "persistence": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "defaultStrategy": { "enum": ["JPA", "SPRING_DATA_JDBC", "IN_MEMORY"] },
+        "transactionBoundary": { "enum": ["METHOD", "PROGRAM", "NONE"] }
+      }
+    },
+    "style": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "numericPolicy": { "enum": ["BIGDECIMAL", "SCALED_LONG"] },
+        "nullability": { "enum": ["NON_NULL_BY_DEFAULT", "NULLABLE"] },
+        "errorHandling": { "enum": ["EXCEPTIONS", "RESULT_OBJECT"] },
+        "naming": { "enum": ["JAVA_BEANS", "FLUENT"] }
+      }
+    },
+    "llm": {
+      "type": "object", "additionalProperties": false,
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "suggestDecisions": { "type": "boolean" },
+        "maxSuggestionsPerRun": { "type": "integer", "minimum": 0, "maximum": 100 }
+      }
+    }
+  }
+}
