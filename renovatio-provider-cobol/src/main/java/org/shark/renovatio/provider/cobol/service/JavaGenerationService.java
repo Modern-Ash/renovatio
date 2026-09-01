@@ -36,6 +36,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -134,27 +135,30 @@ public class JavaGenerationService {
         return Objects.requireNonNull(effectiveProfileResolver.resolve(projectId), "effective profile");
     }
 
+    /**
+     * Builds the same canonical architecture result consumed by generation without invoking an emitter or
+     * writing generated artifacts to the workspace.
+     */
+    public ArchitectureResult previewArchitecture(NqlQuery query, Workspace workspace) {
+        return previewArchitecture(query, workspace, effectiveProfile(workspace));
+    }
+
+    public ArchitectureResult previewArchitecture(NqlQuery query, Workspace workspace,
+                                                  MigrationProfiles.EffectiveProfile effective) {
+        return prepareArchitecture(query, workspace, effective).architecture();
+    }
+
     /** Routes an effective F1 target envelope through the F2 target registry. */
     public StubResult generateInterfaceStubs(NqlQuery query, Workspace workspace,
                                              MigrationProfiles.EffectiveProfile effective) {
         try {
-            Path root = Paths.get(workspace.getPath()).toAbsolutePath().normalize();
-            List<Path> sources = parsingService.findCobolSourceFiles(root).stream().sorted().toList();
-            if (sources.isEmpty()) return new StubResult(false, "No COBOL source files found");
-            Map<String, Path> sourceByProgram = new LinkedHashMap<>();
-            List<SemanticProgram> semanticPrograms = new ArrayList<>();
-            for (Path source : sources) {
-                SemanticProgram semantic = semanticProgram(source, query, workspace);
-                Path previous = sourceByProgram.putIfAbsent(semantic.programId(), source);
-                if (previous != null) throw new IllegalArgumentException("duplicate semantic program "
-                        + semantic.programId());
-                semanticPrograms.add(semantic);
-            }
-            ArchitectureResult architecture = architecture(semanticPrograms, effective, true);
+            Path root = workspaceRoot(workspace);
+            ArchitecturePreparation preparation = prepareArchitecture(query, workspace, effective);
+            ArchitectureResult architecture = preparation.architecture();
             Map<String, String> generatedFiles = new LinkedHashMap<>();
             Map<String, ManualActionItem> actionItems = new LinkedHashMap<>();
             for (ArchitectureResult.ArchitectedProgram architected : architecture.programs()) {
-                Path source = sourceByProgram.get(architected.programId());
+                Path source = preparation.sourceByProgram().get(architected.programId());
                 StubResult emitted = emitProjected(architected.targetModel(),
                         semantic -> generateInterfaceStubsLegacy(query, workspace, semantic, source, false, actionItems));
                 if (!emitted.isSuccess()) return emitted;
@@ -177,6 +181,75 @@ public class JavaGenerationService {
             throw unavailable;
         } catch (Exception exception) {
             return new StubResult(false, "Stub generation failed: " + exception.getMessage());
+        }
+    }
+
+    private ArchitecturePreparation prepareArchitecture(NqlQuery query, Workspace workspace,
+                                                        MigrationProfiles.EffectiveProfile effective) {
+        try {
+            Path root = workspaceRoot(workspace);
+            if (!Files.isDirectory(root)) {
+                throw new ArchitecturePreviewException("WORKSPACE_NOT_FOUND",
+                        "Workspace directory not found or inaccessible: " + root);
+            }
+            List<Path> sources = parsingService.findCobolSourceFiles(root).stream().sorted().toList();
+            if (sources.isEmpty()) {
+                throw new ArchitecturePreviewException("COBOL_SOURCE_NOT_FOUND",
+                        "No COBOL source files found");
+            }
+            Map<String, Path> sourceByProgram = new LinkedHashMap<>();
+            List<SemanticProgram> semanticPrograms = new ArrayList<>();
+            for (Path source : sources) {
+                SemanticProgram semantic = semanticProgram(source, query, workspace);
+                Path previous = sourceByProgram.putIfAbsent(semantic.programId(), source);
+                if (previous != null) {
+                    throw new ArchitecturePreviewException("DUPLICATE_SEMANTIC_PROGRAM",
+                            "Duplicate semantic program " + semantic.programId());
+                }
+                semanticPrograms.add(semantic);
+            }
+            ArchitectureResult result = architecture(semanticPrograms,
+                    Objects.requireNonNull(effective, "effective profile"), true);
+            return new ArchitecturePreparation(result,
+                    Collections.unmodifiableMap(new LinkedHashMap<>(sourceByProgram)));
+        } catch (ArchitecturePreviewException exception) {
+            throw exception;
+        } catch (ArchitectureTransformer.ArchitectureStyleNotActiveException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw new ArchitecturePreviewException("ARCHITECTURE_PREVIEW_FAILED", exception.getMessage(), exception);
+        }
+    }
+
+    private static Path workspaceRoot(Workspace workspace) {
+        if (workspace == null || workspace.getPath() == null || workspace.getPath().isBlank()) {
+            throw new ArchitecturePreviewException("WORKSPACE_NOT_FOUND", "Workspace path is required");
+        }
+        return Paths.get(workspace.getPath()).toAbsolutePath().normalize();
+    }
+
+    private record ArchitecturePreparation(ArchitectureResult architecture, Map<String, Path> sourceByProgram) {
+        private ArchitecturePreparation {
+            Objects.requireNonNull(architecture, "architecture");
+            Objects.requireNonNull(sourceByProgram, "sourceByProgram");
+        }
+    }
+
+    public static final class ArchitecturePreviewException extends IllegalStateException {
+        private final String code;
+
+        public ArchitecturePreviewException(String code, String message) {
+            super(message);
+            this.code = Objects.requireNonNull(code, "code");
+        }
+
+        public ArchitecturePreviewException(String code, String message, Throwable cause) {
+            super(message, cause);
+            this.code = Objects.requireNonNull(code, "code");
+        }
+
+        public String code() {
+            return code;
         }
     }
 

@@ -89,6 +89,30 @@ class JavaGenerationRegistryRoutingTest {
     }
 
     @Test
+    void previewUsesTheEmissionManifestWithoutWritingTheWorkspace(@TempDir Path workspacePath) throws Exception {
+        Files.writeString(workspacePath.resolve("routed.cob"), COBOL);
+        var dependencies = dependencies();
+        JavaGenerationService routed = new JavaGenerationService(dependencies.parsing(), dependencies.templates(),
+                dependencies.models(), dependencies.transpiler(), dependencies.mapper(), true,
+                new TargetEmitterRegistry(List.of()), ignored -> hexagonalJavaProfile());
+        Workspace workspace = new Workspace("test", workspacePath.toString(), "main");
+
+        var preview = routed.previewArchitecture(new NqlQuery(), workspace);
+
+        assertEquals(List.of(
+                "modules/routed/application/port/in/RoutedService.java",
+                "modules/routed/application/service/RoutedServiceImpl.java",
+                "modules/routed/domain/model/RoutedDTO.java"), preview.manifest().artifacts().stream()
+                .map(artifact -> artifact.path()).toList());
+        assertFalse(Files.exists(workspacePath.resolve("generated-java-stubs")));
+
+        StubResult emitted = routed.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(emitted.isSuccess(), emitted.getMessage());
+        assertEquals(preview.manifest().artifacts().stream().map(artifact -> artifact.path()).toList(),
+                emitted.getGeneratedCode().keySet().stream().toList());
+    }
+
+    @Test
     void rejectsJavaOutputThatDoesNotMatchTheCanonicalManifest() {
         SourceSpan span = new SourceSpan("routed.cob", 1, 1, 1, 9);
         SourceProvenance provenance = new SourceProvenance("routed.cob", "0".repeat(64), "COBOL",
