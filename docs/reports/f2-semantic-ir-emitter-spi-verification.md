@@ -2,7 +2,7 @@
 
 - **Agora work:** `decision-engine-f2/f2-semantic-ir-emitter-spi`
 - **GitHub issue:** #147
-- **Reviewed implementation:** `7e47d6c9b117827f68384ebf20f1499cf03f60c4`
+- **Reviewed implementation:** `2d05633a3ce6bc372ef2b3928371e6201c2718d5`
 - **F1 baseline:** `152d57462d4d7fc2b4554b6a1f029ae44e96d97a`
 - **Toolchain:** Apache Maven 3.9.12; OpenJDK 21.0.12; source release 17
 - **Result:** review-ready; Agora completion remains pending PR review
@@ -24,23 +24,44 @@
 No unresolved critical or high-severity implementation finding remains. The
 review gate must still inspect and resolve PR feedback before Agora completion.
 
+## PR #159 review remediation
+
+The six valid review findings received on PR #159 were addressed at
+`2d05633a3ce6bc372ef2b3928371e6201c2718d5`:
+
+1. Project generation resolves the F1 effective profile once and preserves its
+   target selection through every Java-producing provider route.
+2. The COBOL provider uses the application-owned `TargetEmitterRegistry`; the
+   request-bound Java adapter supplements registered targets and participates
+   in duplicate and availability checks.
+3. MOVE, COMPUTE, CALL, IF, and EVALUATE operands now project known data access
+   as neutral state read/write effects and retain unknown references as residual.
+4. Multi-program workspaces emit one `TargetModel` per source, each with its own
+   semantic program and source provenance, before deterministic aggregation.
+5. Source provenance includes only accepted annotations that actually produced
+   semantic data intent.
+6. Copybook semantic projection is fail-closed; parse or annotation failures no
+   longer invoke a legacy renderer with an empty semantic envelope.
+
 ## Verification matrix
 
 | Gate | Command / proof | Result |
 |---|---|---|
 | Semantic/shared contracts | `mvn -pl renovatio-shared -am test` | PASS — semantic IR 5, profile 7, shared 26 |
-| Architecture and registry | `F2ArchitectureTest`, `TargetEmitterRegistryTest`, structured error-path tests in the functional reactor | PASS — ArchUnit 2; registry 3; error paths 5 |
-| COBOL projection and provider | `mvn -pl renovatio-provider-cobol -am test` | PASS — provider 90; all 12 modules green |
+| Architecture and registry | `F2ArchitectureTest`, `TargetEmitterRegistryTest`, structured error-path tests in the functional reactor | PASS — ArchUnit 2; registry 5; error paths 5 |
+| COBOL projection and provider | `mvn -pl renovatio-provider-cobol -am test` | PASS — provider 95; all 12 modules green; 299 tests |
 | Issue #122 corpus | `mvn -pl renovatio-provider-cobol -am -Dtest=CharacterizationFixtureContractTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 13 fixtures traverse the F2 boundary; 2 supported byte comparisons, 11 residual empty emissions |
 | Annotation projection | `AnnotationApplicatorDataIntentTest` and the annotated characterization fixture | PASS — neutral and compatibility paths emit identical Java source bytes |
-| Multi-program aggregation | `JavaGenerationRegistryRoutingTest` | PASS — 3 tests, including duplicate-path rejection and fail-closed NODE selection |
-| Java-producing provider tools | `CobolLanguageProviderEmitterRoutingTest` | PASS — copybook, DB2, and control-break routes stop on unavailable NODE target |
-| MCP and CLI regression | `mvn -pl renovatio-mcp-server,renovatio-cli -am test` | PASS — MCP 22, CLI 18; 14-module reactor green |
+| Review regressions | `mvn -pl renovatio-provider-cobol -am -Dtest=JavaGenerationRegistryRoutingTest,CobolLanguageProviderEmitterRoutingTest,CobolSemanticProjectorTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 11 tests, six findings covered |
+| Multi-program aggregation | `JavaGenerationRegistryRoutingTest` | PASS — 5 tests, including per-source provenance, duplicate-path rejection, copybook fail-closed, and NODE selection |
+| Java-producing provider tools | `CobolLanguageProviderEmitterRoutingTest` | PASS — effective profile resolved once; copybook, DB2, and control-break routes stop on unavailable NODE target |
+| API integration | `mvn -pl renovatio-api -am -Dexec.skip=true -Dtest=DecisionLayerApiTest -Dsurefire.failIfNoSpecifiedTests=false test` | PASS — 9 tests; Spring profile/registry wiring green |
+| MCP and CLI regression | `mvn -pl renovatio-mcp-server,renovatio-cli -am -Dexec.skip=true test` | PASS — MCP 22, CLI 18; 14-module reactor green |
 | Source hygiene | `git diff --check` | PASS |
 
-The full provider reactor also recorded these upstream counts: core 37,
+The full provider reactor also recorded these upstream counts: core 39,
 provider-java 14, COBOL runtime 23, COBOL IR 55, annotations 2, recipes 25,
-decisions 8, and provider-cobol 90. No fixture golden or JaCoCo threshold was
+decisions 8, and provider-cobol 95. No fixture golden or JaCoCo threshold was
 changed.
 
 ## Literal install and baseline exception
@@ -78,7 +99,7 @@ exception allowed by the spec. The threshold remains 1.0.
 
 ## Remaining lifecycle actions
 
-1. Commit and register this report as `test-report` and successful evidence.
-2. Transition the work to `verifying` and open the PR for external review.
-3. Resolve review comments, rerun affected gates, and only then seek the Spec
-   Owner completion approval.
+1. Register this review revision as `test-report` and successful evidence.
+2. Resolve the six addressed PR review threads and await the next external
+   review/check cycle.
+3. Only after the PR is accepted seek the Spec Owner completion approval.
