@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "f2-semantic-ir-emitter-spi"
 swarm: "decision-engine-f2"
 title: "F2 \u00b7 Semantic IR and TargetEmitter SPI (issue #147)"
-state: "clarified"
+state: "implementing"
 revision: 1
 operational-status: "active"
 status-reason: null
@@ -11,7 +11,7 @@ status-by: null
 status-at: null
 acceptance-criteria: {"semantic-ir":"A new renovatio-semantic-ir module models target-neutral semantic types, data intents, side effects, classified I/O, control flow, and unclassified data access without Java-specific dependencies","intent-projection":"CobolDataIntent remains compatible as a generated Java projection whose source of truth is the semantic IR","emitter-spi":"TargetEmitter, TargetModel, EmittedArtifacts, and TargetEmitterRegistry provide deterministic JAVA selection and clear unavailable-emitter errors for NODE and PYTHON","java-adapter":"JavaEmitter wraps the existing OpenRewrite/template generation path without changing emitted artifact keys or bytes","profile-integration":"The effective F1 MigrationProfile feeds TargetModel and emitter selection without ad-hoc target translation","regression-gates":"The Maven reactor, issue-122 characterization harness, MCP server, and renovatio-cli regressions pass with inspectable evidence","scope-boundaries":"F2 introduces no real Node/Python emitter, architecture transformation, or fine persistence classification"}
 satisfied-criteria: []
-criterion-statuses: {"semantic-ir":["specified"],"intent-projection":["specified"],"emitter-spi":["specified"],"java-adapter":["specified"],"profile-integration":["specified"],"regression-gates":["specified"],"scope-boundaries":["specified"]}
+criterion-statuses: {"semantic-ir":["specified","planned"],"intent-projection":["specified","planned"],"emitter-spi":["specified","planned"],"java-adapter":["specified","planned"],"profile-integration":["specified","planned"],"regression-gates":["specified","planned"],"scope-boundaries":["specified","planned"]}
 required-artifacts: ["spec"]
 child-work-refs: []
 budget-limits: null
@@ -25,13 +25,13 @@ Refactor the COBOL-to-Java path into target-neutral semantic analysis followed b
 
 ## Acceptance criteria
 
-- [ ] **semantic-ir:** A new renovatio-semantic-ir module models target-neutral semantic types, data intents, side effects, classified I/O, control flow, and unclassified data access without Java-specific dependencies; stages: specified
-- [ ] **intent-projection:** CobolDataIntent remains compatible as a generated Java projection whose source of truth is the semantic IR; stages: specified
-- [ ] **emitter-spi:** TargetEmitter, TargetModel, EmittedArtifacts, and TargetEmitterRegistry provide deterministic JAVA selection and clear unavailable-emitter errors for NODE and PYTHON; stages: specified
-- [ ] **java-adapter:** JavaEmitter wraps the existing OpenRewrite/template generation path without changing emitted artifact keys or bytes; stages: specified
-- [ ] **profile-integration:** The effective F1 MigrationProfile feeds TargetModel and emitter selection without ad-hoc target translation; stages: specified
-- [ ] **regression-gates:** The Maven reactor, issue-122 characterization harness, MCP server, and renovatio-cli regressions pass with inspectable evidence; stages: specified
-- [ ] **scope-boundaries:** F2 introduces no real Node/Python emitter, architecture transformation, or fine persistence classification; stages: specified
+- [ ] **semantic-ir:** A new renovatio-semantic-ir module models target-neutral semantic types, data intents, side effects, classified I/O, control flow, and unclassified data access without Java-specific dependencies; stages: specified, planned
+- [ ] **intent-projection:** CobolDataIntent remains compatible as a generated Java projection whose source of truth is the semantic IR; stages: specified, planned
+- [ ] **emitter-spi:** TargetEmitter, TargetModel, EmittedArtifacts, and TargetEmitterRegistry provide deterministic JAVA selection and clear unavailable-emitter errors for NODE and PYTHON; stages: specified, planned
+- [ ] **java-adapter:** JavaEmitter wraps the existing OpenRewrite/template generation path without changing emitted artifact keys or bytes; stages: specified, planned
+- [ ] **profile-integration:** The effective F1 MigrationProfile feeds TargetModel and emitter selection without ad-hoc target translation; stages: specified, planned
+- [ ] **regression-gates:** The Maven reactor, issue-122 characterization harness, MCP server, and renovatio-cli regressions pass with inspectable evidence; stages: specified, planned
+- [ ] **scope-boundaries:** F2 introduces no real Node/Python emitter, architecture transformation, or fine persistence classification; stages: specified, planned
 
 ## Required artifacts
 

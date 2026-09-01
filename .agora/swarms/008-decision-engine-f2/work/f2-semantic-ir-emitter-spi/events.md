@@ -19,3 +19,16 @@
 - 2026-09-01T12:39:11.632367Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:owner stage=specified
 - 2026-09-01T12:39:37.490188Z | work.clarified-advisory | questions=5 actor=project:owner
 - 2026-09-01T12:39:43.998177Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-01T12:40:13.979098Z | tool.prepared | run=tool-20260901t12401788277213z tool=repository operation=commit actor=project:agent
+- 2026-09-01T12:40:13.981383Z | tool.running | run=tool-20260901t12401788277213z actor=project:agent
+- 2026-09-01T12:40:14.005489Z | tool.completed | run=tool-20260901t12401788277213z exit-code=0
+- 2026-09-01T12:42:15.091035Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/f2-semantic-ir-emitter-spi.md actor=project:agent
+- 2026-09-01T12:42:18.622446Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-01T12:42:30.798279Z | work.criterion-stage-marked | criterion=semantic-ir actor=project:owner stage=planned
+- 2026-09-01T12:42:31.245720Z | work.criterion-stage-marked | criterion=intent-projection actor=project:owner stage=planned
+- 2026-09-01T12:42:31.685502Z | work.criterion-stage-marked | criterion=emitter-spi actor=project:owner stage=planned
+- 2026-09-01T12:42:32.120306Z | work.criterion-stage-marked | criterion=java-adapter actor=project:owner stage=planned
+- 2026-09-01T12:42:32.585937Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=planned
+- 2026-09-01T12:42:33.022981Z | work.criterion-stage-marked | criterion=regression-gates actor=project:owner stage=planned
+- 2026-09-01T12:42:33.442120Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:owner stage=planned
+- 2026-09-01T12:42:34.320010Z | work.transitioned | from=planned to=implementing actor=project:agent
