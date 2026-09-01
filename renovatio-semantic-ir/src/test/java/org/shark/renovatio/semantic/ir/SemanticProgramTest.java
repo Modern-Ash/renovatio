@@ -79,6 +79,16 @@ class SemanticProgramTest {
                 OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(),
                 List.of("6".repeat(64)));
         assertThrows(IllegalArgumentException.class, () -> program(List.of(typeWithMissingMember)));
+
+        var type = type("A", SPAN);
+        var intent = new SemanticProgram.DataIntent(SemanticProgram.Header.create("TEST",
+                SemanticProgram.NodeKind.DATA_INTENT, "intent:missing", SPAN), "7".repeat(64),
+                SemanticProgram.IntentKind.OVERLAPPING_STORAGE, "shared bytes", List.of("verified"),
+                "8".repeat(64));
+        assertThrows(IllegalArgumentException.class, () -> new SemanticProgram("1",
+                SemanticProgram.Header.create("TEST", SemanticProgram.NodeKind.PROGRAM, "program", SPAN),
+                "test", provenance(), List.of(type), List.of(intent), List.of(), List.of(),
+                new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of()));
     }
 
     private static SemanticProgram.SemanticType type(String symbol, SourceSpan span) {

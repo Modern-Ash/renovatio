@@ -41,7 +41,10 @@ public record SemanticProgram(String schemaVersion, Header header, String progra
         requireUnique(all.stream().map(Node::header).map(Header::id).toList(), "semantic node id");
 
         Set<String> semanticIds = new HashSet<>(all.stream().map(Node::header).map(Header::id).toList());
+        Set<String> typeIds = new HashSet<>(types.stream().map(value -> value.header().id()).toList());
         types.forEach(type -> requireReferences(type.memberIds(), semanticIds, "type member"));
+        dataIntents.forEach(intent -> requireReferences(List.of(intent.subjectNodeId()), typeIds,
+                "data intent subject"));
         sideEffects.forEach(effect -> requireReferences(effect.affectedNodeIds(), semanticIds, "affected node"));
         Set<String> effectIds = new HashSet<>(sideEffects.stream().map(value -> value.header().id()).toList());
         ioOperations.forEach(io -> requireReferences(io.sideEffectIds(), effectIds, "side effect"));

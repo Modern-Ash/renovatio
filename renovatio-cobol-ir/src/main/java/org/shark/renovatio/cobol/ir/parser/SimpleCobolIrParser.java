@@ -462,7 +462,7 @@ public class SimpleCobolIrParser {
             }
             FileOperationStatement.OperationType op = detectFileOperation(upperLine);
             if (op != null) {
-                statements.add(new FileOperationStatement(op, parseFileName(line)));
+                statements.add(new FileOperationStatement(op, parseFileName(line, op)));
                 continue;
             }
             if (upperLine.startsWith(Keywords.COMPUTE)) {
@@ -620,9 +620,12 @@ public class SimpleCobolIrParser {
         return null;
     }
 
-    private String parseFileName(String line) {
+    private String parseFileName(String line, FileOperationStatement.OperationType operation) {
         String[] parts = line.split("\\s+");
-        return parts.length > 1 ? parts[1].replace(Symbols.DOT, Symbols.EMPTY).toUpperCase(Locale.ROOT) : Defaults.UNKNOWN_NAME;
+        int fileNameIndex = operation == FileOperationStatement.OperationType.OPEN ? 2 : 1;
+        return parts.length > fileNameIndex
+                ? parts[fileNameIndex].replace(Symbols.DOT, Symbols.EMPTY).toUpperCase(Locale.ROOT)
+                : Defaults.UNKNOWN_NAME;
     }
 
     private ComputeStatement parseCompute(String line) {

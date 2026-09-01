@@ -73,7 +73,7 @@ class AnnotationApplicatorDataIntentTest {
                 SemanticProgram.Header.create(fixture.model().getProgramId(),
                         SemanticProgram.NodeKind.DATA_INTENT, "data-intent:" + source.annotationId(),
                         new SourceSpan("input.cob", 1, 1, 1, 1)),
-                source.nodeId(), SemanticProgram.IntentKind.OVERLAPPING_STORAGE,
+                "7".repeat(64), SemanticProgram.IntentKind.OVERLAPPING_STORAGE,
                 payload.interpretation(), payload.assumptions(), source.annotationId());
 
         ExecutionContext legacyContext = new InMemoryExecutionContext(Throwable::printStackTrace);

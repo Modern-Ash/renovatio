@@ -1,6 +1,6 @@
 ---
 schema: "agora/tool-run/v1"
-id: "tool-20260901t15181788286720z"
+id: "tool-20260901t16181788290316z"
 tool: "repository"
 operation: "commit"
 actor: "project:agent"
@@ -9,16 +9,16 @@ work: "f2-semantic-ir-emitter-spi"
 environment: null
 capability: "repository.write"
 risk: "write"
-inputs: {"message":"test(decision-engine): record F2 re-review evidence"}
-command: ["git","commit","-m","test(decision-engine): record F2 re-review evidence"]
+inputs: {"message":"fix(decision-engine): address F2 semantic review"}
+command: ["git","commit","-m","fix(decision-engine): address F2 semantic review"]
 runtime-available: true
-status: "completed"
+status: "prepared"
 result-kind: "repository-change"
 timeout-seconds: 300
 max-output-bytes: 1048576
 authentication-reference: "local-git-configuration"
-created-at: "2026-09-01T15:18:40.963539Z"
-exit-code: 0
+created-at: "2026-09-01T16:18:36.754558Z"
+exit-code: null
 authentication-verified: false
 authentication-fingerprint: null
 authentication-public-key: null
@@ -26,6 +26,6 @@ authorization-sha256: null
 authorization-signature: null
 ---
 
-# Tool run tool-20260901t15181788286720z
+# Tool run tool-20260901t16181788290316z
 
 This record contains invocation metadata, not credentials. Authentication is resolved by the external executable and its environment.

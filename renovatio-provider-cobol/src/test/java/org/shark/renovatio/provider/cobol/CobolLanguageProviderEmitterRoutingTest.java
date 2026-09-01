@@ -27,6 +27,8 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class CobolLanguageProviderEmitterRoutingTest {
@@ -95,6 +97,39 @@ class CobolLanguageProviderEmitterRoutingTest {
         var plan = provider.plan(new NqlQuery(), new Scope(), workspace);
 
         assertUnavailable(() -> provider.apply(plan.getPlanId(), false, workspace));
+    }
+
+    @Test
+    void planApplicationFailsWhenRegisteredEmitterThrows(@TempDir Path root) throws Exception {
+        Files.writeString(root.resolve("routing.cbl"), COBOL);
+        CobolParsingService parsing = new CobolParsingService(CobolParsingService.Dialect.IBM);
+        TemplateCodeGenerationService templates = new TemplateCodeGenerationService();
+        CobolIntermediateModelService models = new CobolIntermediateModelService();
+        TargetEmitter failingEmitter = new TargetEmitter() {
+            @Override
+            public boolean supports(MigrationProfile.Language target) {
+                return target == MigrationProfile.Language.NODE;
+            }
+
+            @Override
+            public EmittedArtifacts emit(TargetModel model, MigrationProfile profile) {
+                throw new IllegalStateException("emitter exploded");
+            }
+        };
+        JavaGenerationService generation = new JavaGenerationService(parsing, templates, models,
+                new CobolSemanticTranspiler(new OpenRewriteRunner()),
+                new ObjectMapper().findAndRegisterModules(), true,
+                new TargetEmitterRegistry(List.of(failingEmitter)), ignored -> nodeProfile());
+        CobolLanguageProvider provider = new CobolLanguageProvider(parsing, generation,
+                new MigrationPlanService(parsing, generation), new IndexingService(), new MetricsService(), templates,
+                new Db2MigrationService(parsing), new ControlBreakDecompositionService(models, parsing));
+        Workspace workspace = new Workspace("project-42", root.toString(), "main");
+        var plan = provider.plan(new NqlQuery(), new Scope(), workspace);
+
+        var result = provider.apply(plan.getPlanId(), false, workspace);
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("emitter exploded"), result.getMessage());
     }
 
     @Test

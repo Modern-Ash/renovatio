@@ -115,11 +115,12 @@ public final class AnnotationApplicator {
         if (tree != null) {
             if (neutralDataIntents != null) {
                 for (SemanticProgram.DataIntent intent : neutralDataIntents) {
-                    NodeIdentityIndex.Resolved resolved = index.resolve(intent.subjectNodeId(),
+                    CobolAnnotation source = sourceAnnotation(intent);
+                    NodeIdentityIndex.Resolved resolved = index.resolve(source.nodeId(),
                                     org.shark.renovatio.cobol.ir.annotated.AnnotatedNodeKind.DATA_ITEM)
                             .orElseThrow(() -> new IllegalArgumentException(
-                                    "neutral data intent subject is unresolved: " + intent.subjectNodeId()));
-                    tree = applyDataIntent(tree, ctx, intent.subjectNodeId(), intent.evidenceId(),
+                                    "neutral data intent source is unresolved: " + source.nodeId()));
+                    tree = applyDataIntent(tree, ctx, source.nodeId(), intent.evidenceId(),
                             construction(intent.intentKind()), intent.interpretation(), intent.assumptions(),
                             NodeIdentityIndex.toJavaFieldName(resolved.cobolName()));
                 }
@@ -135,6 +136,16 @@ public final class AnnotationApplicator {
             }
         }
         return new AnnotationApplicationOutcome(tree, dropped);
+    }
+
+    private CobolAnnotation sourceAnnotation(SemanticProgram.DataIntent intent) {
+        return sidecar.annotations().stream()
+                .filter(annotation -> annotation.annotationId().equals(intent.evidenceId()))
+                .filter(annotation -> annotation.annotationFamily() == AnnotationFamily.DATA_INTENT)
+                .filter(annotation -> annotation.review().reviewState() == AnnotationReview.ReviewState.ACCEPTED)
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "neutral data intent evidence is unresolved: " + intent.evidenceId()));
     }
 
     private J.CompilationUnit applyDomainNaming(J.CompilationUnit cu, ExecutionContext ctx,

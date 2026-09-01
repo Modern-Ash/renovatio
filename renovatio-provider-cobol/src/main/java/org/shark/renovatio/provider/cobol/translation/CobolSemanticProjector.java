@@ -55,16 +55,10 @@ public final class CobolSemanticProjector {
         String programId = model.getProgramId();
         SourceSpan programSpan = wholeSource(sourcePath, bytes);
         String baseHash = identities.baseIrHash(model);
-        Map<String, String> sourceNodes = sourceDataNodes(model);
-        List<SemanticProgram.DataIntent> intents = projectIntents(model, annotatedContext, programSpan, sourceNodes);
-        List<String> evidence = new ArrayList<>();
-        evidence.add(baseHash);
-        intents.stream().map(SemanticProgram.DataIntent::evidenceId).forEach(evidence::add);
-        SourceProvenance provenance = new SourceProvenance(sourcePath, sha256(bytes), "COBOL",
-                dialect == null ? Optional.empty() : dialect, evidence);
 
         List<SemanticProgram.SemanticType> types = new ArrayList<>();
         Map<String, String> typeIdsByName = new HashMap<>();
+        Map<String, String> typeIdsBySourceNode = new LinkedHashMap<>();
         for (int index = 0; index < model.getDataItems().size(); index++) {
             CobolDataItem item = model.getDataItems().get(index);
             String role = "data-item:" + item.name().toUpperCase(Locale.ROOT) + ":" + index;
@@ -79,7 +73,19 @@ public final class CobolSemanticProjector {
             types.add(new SemanticProgram.SemanticType(header, item.name(), kind, signedness, precision, scale,
                     cardinality, cardinality, List.of()));
             typeIdsByName.putIfAbsent(item.name().toUpperCase(Locale.ROOT), header.id());
+            String sourceNodeId = identities.node(item, "/dataItems/" + index).nodeId();
+            if (typeIdsBySourceNode.putIfAbsent(sourceNodeId, header.id()) != null) {
+                throw new IllegalArgumentException("duplicate COBOL data-item node: " + sourceNodeId);
+            }
         }
+
+        List<SemanticProgram.DataIntent> intents = projectIntents(model, annotatedContext, programSpan,
+                typeIdsBySourceNode);
+        List<String> evidence = new ArrayList<>();
+        evidence.add(baseHash);
+        intents.stream().map(SemanticProgram.DataIntent::evidenceId).forEach(evidence::add);
+        SourceProvenance provenance = new SourceProvenance(sourcePath, sha256(bytes), "COBOL",
+                dialect == null ? Optional.empty() : dialect, evidence);
 
         Projection projection = statements(model, programSpan, typeIdsByName);
         SemanticProgram.ControlFlow controlFlow = controlFlow(model, programSpan);
@@ -89,16 +95,8 @@ public final class CobolSemanticProjector {
                 projection.effects(), projection.io(), controlFlow, projection.unclassified());
     }
 
-    private Map<String, String> sourceDataNodes(CobolIntermediateModel model) {
-        Map<String, String> result = new LinkedHashMap<>();
-        identities.nodes(model).stream()
-                .filter(node -> node.nodeKind() == org.shark.renovatio.cobol.ir.annotated.AnnotatedNodeKind.DATA_ITEM)
-                .forEach(node -> result.put(node.nodeId(), node.nodeId()));
-        return result;
-    }
-
     private List<SemanticProgram.DataIntent> projectIntents(CobolIntermediateModel model,
-            Optional<AnnotatedCobolContext> context, SourceSpan span, Map<String, String> sourceNodes) {
+            Optional<AnnotatedCobolContext> context, SourceSpan span, Map<String, String> typeIdsBySourceNode) {
         if (context == null || context.isEmpty()) return List.of();
         AnnotatedCobolContext value = context.orElseThrow();
         if (value.baseModel() != model && !identities.baseIrHash(value.baseModel()).equals(identities.baseIrHash(model))) {
@@ -108,13 +106,15 @@ public final class CobolSemanticProjector {
         return value.sidecar().annotations().stream()
                 .filter(annotation -> annotation.annotationFamily() == AnnotationFamily.DATA_INTENT)
                 .filter(annotation -> annotation.review().reviewState() == AnnotationReview.ReviewState.ACCEPTED)
-                .filter(annotation -> sourceNodes.containsKey(annotation.nodeId()))
+                .filter(annotation -> typeIdsBySourceNode.containsKey(annotation.nodeId()))
                 .sorted(java.util.Comparator.comparing(CobolAnnotation::nodeId)
                         .thenComparing(CobolAnnotation::annotationId))
-                .map(annotation -> intent(model.getProgramId(), span, annotation)).toList();
+                .map(annotation -> intent(model.getProgramId(), span, annotation,
+                        typeIdsBySourceNode.get(annotation.nodeId()))).toList();
     }
 
-    private SemanticProgram.DataIntent intent(String programId, SourceSpan span, CobolAnnotation annotation) {
+    private SemanticProgram.DataIntent intent(String programId, SourceSpan span, CobolAnnotation annotation,
+                                              String semanticTypeId) {
         DataIntentPayload payload = (DataIntentPayload) annotation.payload();
         SemanticProgram.IntentKind kind = switch (payload.construction()) {
             case REDEFINES -> SemanticProgram.IntentKind.OVERLAPPING_STORAGE;
@@ -122,7 +122,7 @@ public final class CobolSemanticProjector {
         };
         return new SemanticProgram.DataIntent(SemanticProgram.Header.create(programId,
                 SemanticProgram.NodeKind.DATA_INTENT, "data-intent:" + annotation.annotationId(), span),
-                annotation.nodeId(), kind, payload.interpretation(), payload.assumptions(), annotation.annotationId());
+                semanticTypeId, kind, payload.interpretation(), payload.assumptions(), annotation.annotationId());
     }
 
     private Projection statements(CobolIntermediateModel model, SourceSpan span, Map<String, String> typeIds) {
@@ -145,8 +145,9 @@ public final class CobolSemanticProjector {
             String role = paragraph + ":" + ordinal;
             if (statement instanceof FileOperationStatement file) {
                 SemanticProgram.Direction direction = switch (file.operationType()) {
-                    case READ, OPEN, CLOSE -> SemanticProgram.Direction.READ;
+                    case READ -> SemanticProgram.Direction.READ;
                     case WRITE, REWRITE, DELETE -> SemanticProgram.Direction.WRITE;
+                    case OPEN, CLOSE -> SemanticProgram.Direction.UNKNOWN;
                 };
                 io.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.IO_OPERATION, "file:" + role, span), SemanticProgram.IoKind.FILE,

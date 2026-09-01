@@ -97,7 +97,12 @@ public class MigrationPlanService {
                     if (step.getType() == StepType.GENERATE_JAVA_STUBS) {
                         // Generate Java stubs
                         StubResult stubResult = javaGenerationService.generateInterfaceStubs(plan.getQuery(), workspace);
-                        if (stubResult.isSuccess() && stubResult.getGeneratedCode() != null) {
+                        if (!stubResult.isSuccess()) {
+                            run.setError("Failed to execute step: " + step.getDescription()
+                                    + " - " + stubResult.getMessage());
+                            break;
+                        }
+                        if (stubResult.getGeneratedCode() != null) {
                             generatedFiles.putAll(stubResult.getGeneratedCode());
                         }
                     }
@@ -119,6 +124,13 @@ public class MigrationPlanService {
             run.setExecutedSteps(executedSteps);
             run.setGeneratedFiles(generatedFiles);
             completedRuns.put(runId, run);
+
+            if (run.getError() != null) {
+                ApplyResult failed = new ApplyResult(false, run.getError());
+                failed.setRunId(runId);
+                failed.setModifiedFiles(new ArrayList<>(generatedFiles.keySet()));
+                return failed;
+            }
 
             ApplyResult result = new ApplyResult(true, "Migration plan applied successfully");
             result.setRunId(runId);

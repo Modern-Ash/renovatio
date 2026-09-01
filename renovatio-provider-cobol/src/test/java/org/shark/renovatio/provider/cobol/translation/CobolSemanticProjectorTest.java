@@ -43,6 +43,10 @@ class CobolSemanticProjectorTest {
         assertEquals(1, first.dataIntents().size());
         assertEquals(SemanticProgram.IntentKind.OVERLAPPING_STORAGE,
                 first.dataIntents().get(0).intentKind());
+        assertTrue(first.types().stream().map(type -> type.header().id()).toList()
+                .contains(first.dataIntents().get(0).subjectNodeId()));
+        assertNotEquals(resolution.context().orElseThrow().sidecar().annotations().get(0).nodeId(),
+                first.dataIntents().get(0).subjectNodeId());
         assertEquals(first.dataIntents().get(0).evidenceId(),
                 first.dataIntents().get(0).header().semanticRole().substring("data-intent:".length()));
     }
@@ -144,6 +148,33 @@ class CobolSemanticProjectorTest {
         assertEquals(SemanticProgram.Direction.UNKNOWN, directions.get("OPEN"));
         assertEquals(SemanticProgram.Direction.UNKNOWN, directions.get("CLOSE"));
         assertEquals(SemanticProgram.Direction.WRITE, directions.get("UPDATE"));
+    }
+
+    @Test
+    void projectsOpenAndCloseWithoutInventingReadDirectionOrResource() {
+        String source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. FILEDIRECTION.
+                PROCEDURE DIVISION.
+                MAIN.
+                    OPEN OUTPUT REPORT-FILE.
+                    CLOSE REPORT-FILE.
+                    READ INPUT-FILE.
+                    WRITE REPORT-FILE.
+                """;
+        var model = models.parse(source);
+
+        SemanticProgram program = projector.project(model, "file-direction.cob", source.getBytes(),
+                Optional.empty(), Optional.empty());
+        Map<String, SemanticProgram.IoOperation> operations = program.ioOperations().stream()
+                .collect(Collectors.toMap(SemanticProgram.IoOperation::operation, operation -> operation));
+
+        assertEquals(SemanticProgram.Direction.UNKNOWN, operations.get("OPEN").direction());
+        assertEquals(Optional.of("REPORT-FILE"), operations.get("OPEN").resourceReference());
+        assertEquals(SemanticProgram.Direction.UNKNOWN, operations.get("CLOSE").direction());
+        assertEquals(Optional.of("REPORT-FILE"), operations.get("CLOSE").resourceReference());
+        assertEquals(SemanticProgram.Direction.READ, operations.get("READ").direction());
+        assertEquals(SemanticProgram.Direction.WRITE, operations.get("WRITE").direction());
     }
 
     private static Path fixture(String id) throws Exception {
