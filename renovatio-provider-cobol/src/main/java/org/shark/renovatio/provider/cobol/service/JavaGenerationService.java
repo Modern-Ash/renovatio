@@ -24,6 +24,7 @@ import org.shark.renovatio.shared.emission.TargetModel;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.provider.java.emission.JavaArchitectureLayoutPlanner;
 import org.shark.renovatio.provider.java.emission.JavaEmitter;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 import org.springframework.stereotype.Service;
@@ -66,7 +67,9 @@ public class JavaGenerationService {
     private final TargetEmitterRegistry emitterRegistry;
     private final EffectiveProfileResolver effectiveProfileResolver;
     private final CobolSemanticProjector semanticProjector = new CobolSemanticProjector();
-    private final ArchitectureTransformer architectureTransformer = new ArchitectureTransformer();
+    private final ArchitectureTransformer architectureTransformer = new ArchitectureTransformer(
+            List.of(new JavaArchitectureLayoutPlanner()));
+    private final ArchitectureTransformer architectureTransformerWithoutLayout = new ArchitectureTransformer();
 
     public JavaGenerationService(CobolParsingService parsingService,
                                  TemplateCodeGenerationService templateService,
@@ -147,7 +150,7 @@ public class JavaGenerationService {
                         + semantic.programId());
                 semanticPrograms.add(semantic);
             }
-            ArchitectureResult architecture = architecture(semanticPrograms, effective);
+            ArchitectureResult architecture = architecture(semanticPrograms, effective, true);
             Map<String, String> generatedFiles = new LinkedHashMap<>();
             Map<String, ManualActionItem> actionItems = new LinkedHashMap<>();
             for (ArchitectureResult.ArchitectedProgram architected : architecture.programs()) {
@@ -207,7 +210,7 @@ public class JavaGenerationService {
 
     private StubResult emitProjected(SemanticProgram semantic, MigrationProfiles.EffectiveProfile effective,
                                      Function<SemanticProgram, StubResult> generation) {
-        TargetModel targetModel = architecture(List.of(semantic), effective).programs().get(0).targetModel();
+        TargetModel targetModel = architecture(List.of(semantic), effective, false).programs().get(0).targetModel();
         return emitProjected(targetModel, generation);
     }
 
@@ -217,11 +220,15 @@ public class JavaGenerationService {
         JavaEmitter javaEmitter = new JavaEmitter((ignoredModel, ignoredProfile) -> {
             StubResult result = generation.apply(semantic);
             resultReference.set(result);
-            return result.isSuccess() && result.getGeneratedCode() != null
+            EmittedArtifacts raw = result.isSuccess() && result.getGeneratedCode() != null
                     ? EmittedArtifacts.fromUtf8(result.getGeneratedCode())
                     : new EmittedArtifacts(List.of());
+            return raw;
         });
         EmittedArtifacts emitted = emitterRegistry.emit(targetModel, javaEmitter);
+        if (targetModel.targetLanguage() == org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
+            emitted = applyManifest(targetModel, emitted);
+        }
         StubResult result = resultReference.get();
         if (result == null) {
             result = new StubResult(!emitted.artifacts().isEmpty(), emitted.artifacts().isEmpty()
@@ -232,14 +239,47 @@ public class JavaGenerationService {
         return result;
     }
 
+    static EmittedArtifacts applyManifest(TargetModel targetModel, EmittedArtifacts emitted) {
+        List<String> expected = targetModel.targetStructure().artifactPaths();
+        if (expected.isEmpty()) return emitted;
+        Map<String, String> expectedByFileName = new LinkedHashMap<>();
+        for (String path : expected) {
+            String fileName = Path.of(path).getFileName().toString();
+            if (expectedByFileName.putIfAbsent(fileName, path) != null) {
+                throw new TargetManifestMismatchException("manifest contains duplicate Java file name " + fileName);
+            }
+        }
+        Map<String, String> rebased = new LinkedHashMap<>();
+        emitted.artifacts().forEach(artifact -> {
+            String fileName = Path.of(artifact.path()).getFileName().toString();
+            String planned = expectedByFileName.remove(fileName);
+            if (planned == null) throw new TargetManifestMismatchException(
+                    "unexpected emitted path " + artifact.path());
+            rebased.put(planned, artifact.utf8Text());
+        });
+        if (!expectedByFileName.isEmpty()) throw new TargetManifestMismatchException(
+                "missing emitted paths " + expectedByFileName.values());
+        return EmittedArtifacts.fromUtf8(rebased);
+    }
+
+    public static final class TargetManifestMismatchException extends IllegalStateException {
+        public static final String CODE = "TARGET_MANIFEST_MISMATCH";
+
+        public TargetManifestMismatchException(String detail) {
+            super(CODE + ": " + detail);
+        }
+    }
+
     private ArchitectureResult architecture(List<SemanticProgram> programs,
-                                            MigrationProfiles.EffectiveProfile effective) {
+                                            MigrationProfiles.EffectiveProfile effective,
+                                            boolean standardJavaLayout) {
         GroupingConfiguration grouping = GroupingConfiguration.fromExtensions(effective.profile().extensions());
         List<String> evidence = programs.stream()
                 .flatMap(value -> value.sourceProvenance().parentEvidenceHashes().stream())
                 .distinct().sorted().toList();
-        return architectureTransformer.transform(ArchitectureRequest.create(programs, effective, grouping,
-                Map.of(), evidence));
+        ArchitectureTransformer transformer = standardJavaLayout
+                ? architectureTransformer : architectureTransformerWithoutLayout;
+        return transformer.transform(ArchitectureRequest.create(programs, effective, grouping, Map.of(), evidence));
     }
 
     public MigrationProfiles.EffectiveProfile defaultEffectiveProfile() {
@@ -1078,7 +1118,7 @@ public class JavaGenerationService {
      */
     private String writeGeneratedFilesToDisk(Map<String, String> generatedFiles, Workspace workspace) {
         try {
-            Path outputDir = resolveOutputDir(workspace);
+            Path outputDir = resolveOutputDir(workspace).toAbsolutePath().normalize();
 
             // Crear directorio si no existe
             if (!java.nio.file.Files.exists(outputDir)) {
@@ -1090,7 +1130,11 @@ public class JavaGenerationService {
                 String fileName = entry.getKey();
                 String fileContent = entry.getValue();
 
-                Path filePath = outputDir.resolve(fileName);
+                Path filePath = outputDir.resolve(fileName).normalize();
+                if (!filePath.startsWith(outputDir)) {
+                    throw new IllegalArgumentException("generated path escapes output directory: " + fileName);
+                }
+                java.nio.file.Files.createDirectories(filePath.getParent());
                 java.nio.file.Files.write(filePath, fileContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
                 System.out.println("Archivo escrito: " + filePath.toString());
@@ -1099,9 +1143,7 @@ public class JavaGenerationService {
             return outputDir.toAbsolutePath().toString();
 
         } catch (Exception e) {
-            System.err.println("Error escribiendo archivos: " + e.getMessage());
-            e.printStackTrace();
-            return "Error: No se pudieron escribir los archivos - " + e.getMessage();
+            throw new IllegalStateException("Could not persist generated artifacts: " + e.getMessage(), e);
         }
     }
 

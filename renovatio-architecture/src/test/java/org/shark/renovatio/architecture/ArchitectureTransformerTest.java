@@ -95,6 +95,26 @@ class ArchitectureTransformerTest {
                 List.of(new TransactionScriptArchitectureProfile(), new TransactionScriptArchitectureProfile())));
     }
 
+    @Test
+    void carriesTheCanonicalPlannerManifestIntoEachTargetModel() {
+        ArtifactLayoutPlanner planner = new ArtifactLayoutPlanner() {
+            @Override public MigrationProfile.Language targetLanguage() { return MigrationProfile.Language.JAVA; }
+            @Override public List<PlannedArtifact> plan(LayoutContext context) {
+                return List.of(new PlannedArtifact("generated/Pay.java", context.components().get(0).id(), "service"));
+            }
+        };
+        ArchitectureResult result = new ArchitectureTransformer(List.of(planner)).transform(request(
+                program(false, false, false), MigrationProfile.ArchitectureStyle.TRANSACTION_SCRIPT));
+
+        assertEquals(List.of("generated/Pay.java"), result.programs().get(0).targetModel()
+                .targetStructure().artifactPaths());
+        assertEquals(result.manifest().artifacts().stream().map(ArtifactManifest.Artifact::id).toList(),
+                result.programs().get(0).artifactIds());
+        assertEquals(result.manifest().artifacts().stream().map(ArtifactManifest.Artifact::path).toList(),
+                result.programs().get(0).targetModel().targetStructure().artifactPaths());
+        assertThrows(IllegalArgumentException.class, () -> new ArchitectureTransformer(List.of(planner, planner)));
+    }
+
     private static ArchitectureRequest request(SemanticProgram program,
                                                MigrationProfile.ArchitectureStyle style) {
         return ArchitectureRequest.create(List.of(program), ArchitectureFixtures.effective(style,
