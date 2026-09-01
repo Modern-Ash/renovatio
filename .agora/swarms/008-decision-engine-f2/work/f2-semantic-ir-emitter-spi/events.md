@@ -126,3 +126,47 @@
 - 2026-09-01T17:39:19.652485Z | tool.running | run=tool-20260901t17391788295146z actor=project:agent
 - 2026-09-01T17:39:22.025480Z | tool.completed | run=tool-20260901t17391788295146z exit-code=0
 - 2026-09-01T17:39:38.497460Z | tool.prepared | run=tool-20260901t17391788295178z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:39:50.940546Z | tool.running | run=tool-20260901t17391788295178z actor=project:agent
+- 2026-09-01T17:39:50.965596Z | tool.completed | run=tool-20260901t17391788295178z exit-code=0
+- 2026-09-01T17:39:54.444850Z | tool.prepared | run=tool-20260901t17391788295194z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-01T17:40:04.993436Z | tool.running | run=tool-20260901t17391788295194z actor=project:agent
+- 2026-09-01T17:40:07.012589Z | tool.completed | run=tool-20260901t17391788295194z exit-code=0
+- 2026-09-01T17:40:13.577751Z | tool.prepared | run=tool-20260901t17401788295213z tool=github-pull-requests operation=create actor=project:agent
+- 2026-09-01T17:40:21.714668Z | tool.running | run=tool-20260901t17401788295213z actor=project:agent
+- 2026-09-01T17:40:24.026002Z | tool.completed | run=tool-20260901t17401788295213z exit-code=0
+- 2026-09-01T17:40:43.644899Z | tool.prepared | run=tool-20260901t17401788295243z tool=github-pull-requests operation=comment actor=project:agent
+- 2026-09-01T17:40:53.219711Z | tool.running | run=tool-20260901t17401788295243z actor=project:agent
+- 2026-09-01T17:40:54.417517Z | tool.completed | run=tool-20260901t17401788295243z exit-code=0
+- 2026-09-01T17:40:59.314122Z | tool.prepared | run=tool-20260901t17401788295259z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-01T17:41:06.980372Z | tool.running | run=tool-20260901t17401788295259z actor=project:agent
+- 2026-09-01T17:41:07.936066Z | tool.completed | run=tool-20260901t17401788295259z exit-code=0
+- 2026-09-01T17:41:45.821676Z | tool.prepared | run=tool-20260901t17411788295305z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-01T17:41:54.019871Z | tool.running | run=tool-20260901t17411788295305z actor=project:agent
+- 2026-09-01T17:41:55.085855Z | tool.completed | run=tool-20260901t17411788295305z exit-code=0
+- 2026-09-01T17:42:03.228210Z | tool.prepared | run=tool-20260901t17421788295323z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:42:10.948348Z | tool.running | run=tool-20260901t17421788295323z actor=project:agent
+- 2026-09-01T17:42:12.196705Z | tool.completed | run=tool-20260901t17421788295323z exit-code=0
+- 2026-09-01T17:42:49.217744Z | tool.prepared | run=tool-20260901t17421788295369z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-01T17:43:03.640132Z | tool.running | run=tool-20260901t17421788295369z actor=project:agent
+- 2026-09-01T17:43:04.695601Z | tool.completed | run=tool-20260901t17421788295369z exit-code=0
+- 2026-09-01T17:43:43.557263Z | tool.prepared | run=tool-20260901t17431788295423z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:43:50.151074Z | tool.running | run=tool-20260901t17431788295423z actor=project:agent
+- 2026-09-01T17:43:50.914244Z | tool.completed | run=tool-20260901t17431788295423z exit-code=0
+- 2026-09-01T17:44:30.173565Z | tool.prepared | run=tool-20260901t17441788295470z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:45:02.689089Z | tool.running | run=tool-20260901t17441788295470z actor=project:agent
+- 2026-09-01T17:45:03.471895Z | tool.completed | run=tool-20260901t17441788295470z exit-code=0
+- 2026-09-01T17:46:02.397779Z | tool.prepared | run=tool-20260901t17461788295562z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:46:12.829985Z | tool.running | run=tool-20260901t17461788295562z actor=project:agent
+- 2026-09-01T17:46:13.531060Z | tool.completed | run=tool-20260901t17461788295562z exit-code=0
+- 2026-09-01T17:49:59.091675Z | tool.prepared | run=tool-20260901t17491788295799z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-01T17:50:08.110317Z | tool.running | run=tool-20260901t17491788295799z actor=project:agent
+- 2026-09-01T17:50:09.227268Z | tool.completed | run=tool-20260901t17491788295799z exit-code=0
+- 2026-09-01T17:50:43.872281Z | work.criterion-stage-marked | criterion=semantic-ir actor=project:owner stage=accepted
+- 2026-09-01T17:50:44.137165Z | work.criterion-stage-marked | criterion=intent-projection actor=project:owner stage=accepted
+- 2026-09-01T17:50:44.398921Z | work.criterion-stage-marked | criterion=emitter-spi actor=project:owner stage=accepted
+- 2026-09-01T17:50:44.670769Z | work.criterion-stage-marked | criterion=java-adapter actor=project:owner stage=accepted
+- 2026-09-01T17:50:44.933383Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=accepted
+- 2026-09-01T17:50:45.198345Z | work.criterion-stage-marked | criterion=regression-gates actor=project:owner stage=accepted
+- 2026-09-01T17:50:45.467675Z | work.criterion-stage-marked | criterion=scope-boundaries actor=project:owner stage=accepted
+- 2026-09-01T17:50:49.846063Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-01T17:50:58.629377Z | work.transitioned | from=verifying to=completed actor=project:owner

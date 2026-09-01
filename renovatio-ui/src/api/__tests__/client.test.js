@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   bulkConfirmProjectDecisions,
   createBrowserAnalyzeJob,
+  getArchitecturePreview,
   getProjectDecisions,
   getProjectProfile,
   patchProjectDecision,
@@ -102,6 +103,20 @@ describe('decision layer client', () => {
     expect(fetchMock.mock.calls[0][0]).toBe('/api/projects/p1/decisions?category=DATA_SHAPE&minConfidence=0.8&status=AUTO')
     expect(fetchMock.mock.calls[1][1]).toEqual(expect.objectContaining({ method: 'PATCH', body: '{"chosenOption":"FIELD_INITIALIZER","revision":2}' }))
     expect(fetchMock.mock.calls[2][1]).toEqual(expect.objectContaining({ method: 'POST', body: '{"minConfidence":0.8}' }))
+  })
+
+  it('requests a read-only architecture preview for the draft selection', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true, headers: new Headers(), json: async () => ({ schemaVersion: '1', artifacts: [] })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await getArchitecturePreview('p1', { style: 'HEXAGONAL', moduleGrouping: 'BY_DOMAIN' })
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      '/api/projects/p1/architecture-preview?style=HEXAGONAL&moduleGrouping=BY_DOMAIN'
+    )
+    expect(fetchMock.mock.calls[0][1].headers).toEqual(expect.objectContaining({ 'X-Role': 'MANAGER' }))
   })
 
   it('propagates structured status and profile violations', async () => {

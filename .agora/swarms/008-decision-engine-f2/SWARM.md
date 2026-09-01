@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "decision-engine-f2"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/f2-semantic-ir-emitter"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

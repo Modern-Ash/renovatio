@@ -71,6 +71,9 @@ public class CobolParsingService {
     private static final Pattern ENTRY_PATTERN = Pattern.compile("ENTRY\\s+\"([A-Z0-9_-]+)\"\\s+USING\\s+([A-Z0-9-]+)\\.", Pattern.CASE_INSENSITIVE);
     private static final Pattern PROGRAM_ID_PATTERN = Pattern.compile("PROGRAM-ID\\.\\s*([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern CICS_COMMAND_PATTERN = Pattern.compile("EXEC\\s+CICS\\s+([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern COPYBOOK_PATTERN = Pattern.compile(
+            "\\bCOPY\\s+(?:\"([^\"]+)\"|'([^']+)'|([A-Z0-9][A-Z0-9_.-]*))",
+            Pattern.CASE_INSENSITIVE);
     private static final Pattern DIGITS_PATTERN = Pattern.compile("9\\((\\d+)\\)");
 
     private final Dialect defaultDialect;
@@ -141,6 +144,25 @@ public class CobolParsingService {
             }
         }
         return statements;
+    }
+
+    /** Extract normalized copybook names referenced by COBOL COPY statements. */
+    public List<String> extractCopybookReferences(Path cobolFile) throws IOException {
+        return extractCopybookReferences(Files.readString(cobolFile));
+    }
+
+    /** Extract normalized copybook names referenced by COBOL COPY statements. */
+    public List<String> extractCopybookReferences(String cobolSource) {
+        SortedSet<String> copybooks = new TreeSet<>();
+        Matcher matcher = COPYBOOK_PATTERN.matcher(Objects.requireNonNull(cobolSource, "cobolSource"));
+        while (matcher.find()) {
+            String raw = matcher.group(1) != null ? matcher.group(1)
+                    : matcher.group(2) != null ? matcher.group(2) : matcher.group(3);
+            String fileName = Path.of(raw).getFileName().toString()
+                    .replaceFirst("\\.$", "").replaceFirst("(?i)\\.cpy$", "");
+            copybooks.add(fileName.toUpperCase(Locale.ROOT));
+        }
+        return List.copyOf(copybooks);
     }
 
     /**
@@ -230,7 +252,7 @@ public class CobolParsingService {
      * Parse a COBOL file and return a small metadata map using the given
      * dialect. The returned map contains the program id, a list of detected
      * CICS commands and the dialect name. Additional fields required by other
-     * services (calls, copies, dataItems) are returned as empty collections.
+     * services (calls and dataItems) are returned as empty collections.
      */
     public Map<String, Object> parseCobolFile(Path cobolFile, Dialect dialect) throws IOException {
         String source = Files.readString(cobolFile);
@@ -243,7 +265,7 @@ public class CobolParsingService {
         ast.put(KEY_PROGRAM_ID, programId);
         ast.put(KEY_CICS_COMMANDS, extractCicsCommands(source));
         ast.put(KEY_CALLS, new HashSet<String>());
-        ast.put(KEY_COPIES, new HashSet<String>());
+        ast.put(KEY_COPIES, new LinkedHashSet<>(extractCopybookReferences(source)));
         // Working-Storage data items
         ast.put(KEY_DATA_ITEMS, extractDataItems(source));
         // Linkage Section items (used by ENTRY ... USING ...)

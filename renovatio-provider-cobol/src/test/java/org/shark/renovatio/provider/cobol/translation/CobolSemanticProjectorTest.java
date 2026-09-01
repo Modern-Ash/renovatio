@@ -67,6 +67,23 @@ class CobolSemanticProjectorTest {
     }
 
     @Test
+    void projectsCicsCommandsAsTransactionIo() {
+        String source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. CICSAPP.
+                PROCEDURE DIVISION.
+                MAIN.
+                    EXEC CICS LINK PROGRAM('BACKEND') END-EXEC.
+                """;
+        SemanticProgram program = projector.project(models.parse(source), "cicsapp.cob", source.getBytes(),
+                Optional.empty(), Optional.empty());
+
+        assertTrue(program.ioOperations().stream().anyMatch(operation ->
+                operation.ioKind() == SemanticProgram.IoKind.TRANSACTION
+                        && operation.operation().equals("LINK")));
+    }
+
+    @Test
     void projectsMoveAndComputeDataAccessesAndKeepsUnknownReferencesResidual() {
         String source = """
                 IDENTIFICATION DIVISION.

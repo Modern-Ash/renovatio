@@ -43,6 +43,8 @@ import java.util.regex.Pattern;
 public final class CobolSemanticProjector {
     private static final Pattern DATA_REFERENCE = Pattern.compile("[A-Za-z][A-Za-z0-9-]*");
     private static final Pattern STRING_LITERAL = Pattern.compile("'[^']*'|\"[^\"]*\"");
+    private static final Pattern CICS_COMMAND = Pattern.compile("EXEC\\s+CICS\\s+([A-Z0-9-]+)",
+            Pattern.CASE_INSENSITIVE);
     private static final Set<String> EXPRESSION_KEYWORDS = Set.of(
             "AND", "OR", "NOT", "IS", "EQUAL", "GREATER", "LESS", "THAN", "TO", "ZERO",
             "ZEROS", "ZEROES", "SPACE", "SPACES", "HIGH-VALUE", "LOW-VALUE", "TRUE", "FALSE");
@@ -95,11 +97,26 @@ public final class CobolSemanticProjector {
                 dialect == null ? Optional.empty() : dialect, evidence);
 
         Projection projection = statements(model, programSpan, typeIdsByName);
+        List<SemanticProgram.IoOperation> ioOperations = new ArrayList<>(projection.io());
+        projectCics(programId, new String(bytes, StandardCharsets.UTF_8), programSpan, ioOperations);
         SemanticProgram.ControlFlow controlFlow = controlFlow(model, programSpan);
 
         return new SemanticProgram("1", SemanticProgram.Header.create(programId,
                 SemanticProgram.NodeKind.PROGRAM, "program", programSpan), programId, provenance, types, intents,
-                projection.effects(), projection.io(), controlFlow, projection.unclassified());
+                projection.effects(), ioOperations, controlFlow, projection.unclassified());
+    }
+
+    private static void projectCics(String programId, String source, SourceSpan span,
+                                    List<SemanticProgram.IoOperation> target) {
+        Matcher matcher = CICS_COMMAND.matcher(source);
+        int ordinal = 0;
+        while (matcher.find()) {
+            String command = matcher.group(1).toUpperCase(Locale.ROOT);
+            target.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
+                    SemanticProgram.NodeKind.IO_OPERATION, "cics:" + ordinal++, span),
+                    SemanticProgram.IoKind.TRANSACTION, command, Optional.of(command),
+                    SemanticProgram.Direction.UNKNOWN, List.of()));
+        }
     }
 
     private List<CobolAnnotation> contributingAnnotations(CobolIntermediateModel model,

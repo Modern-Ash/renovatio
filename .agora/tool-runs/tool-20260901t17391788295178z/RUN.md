@@ -12,13 +12,13 @@ risk: "write"
 inputs: {"message":"chore(agora): install GitHub review adapter"}
 command: ["git","commit","-m","chore(agora): install GitHub review adapter"]
 runtime-available: true
-status: "prepared"
+status: "completed"
 result-kind: "repository-change"
 timeout-seconds: 300
 max-output-bytes: 1048576
 authentication-reference: "local-git-configuration"
 created-at: "2026-09-01T17:39:38.496278Z"
-exit-code: null
+exit-code: 0
 authentication-verified: false
 authentication-fingerprint: null
 authentication-public-key: null

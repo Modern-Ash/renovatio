@@ -91,7 +91,7 @@ body {
 }
 
 .target-grid {
-  @apply grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(260px,0.65fr)];
+  @apply grid items-start gap-6 lg:grid-cols-[minmax(280px,0.72fr)_minmax(0,1.28fr)];
 }
 
 .target-controls {
@@ -157,49 +157,185 @@ body {
 }
 
 .architecture-preview {
-  background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.03) 0, rgba(255,255,255,.03) 1px, transparent 1px, transparent 8px);
-  @apply relative overflow-hidden rounded-xl border border-gray-700 bg-gray-900 p-5 text-white shadow-xl;
+  background-image:
+    linear-gradient(rgba(17, 24, 39, .88), rgba(17, 24, 39, .94)),
+    repeating-linear-gradient(0deg, rgba(45, 212, 191, .08) 0, rgba(45, 212, 191, .08) 1px, transparent 1px, transparent 28px),
+    repeating-linear-gradient(90deg, rgba(45, 212, 191, .08) 0, rgba(45, 212, 191, .08) 1px, transparent 1px, transparent 28px);
+  @apply relative overflow-hidden rounded-xl border border-gray-700 bg-gray-950 p-5 text-white shadow-xl;
 }
 
 .architecture-preview::after {
   content: '';
-  @apply absolute -right-10 -top-10 h-32 w-32 rounded-full bg-primary-500/20 blur-2xl;
+  @apply pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-teal-400/10 blur-3xl;
 }
 
 .preview-tag {
-  @apply relative z-10 text-[10px] font-bold tracking-[0.2em] text-primary-300;
+  @apply relative z-10 text-[10px] font-bold tracking-[0.2em] text-teal-300;
 }
 
-.architecture-preview h3 {
-  @apply relative z-10 mt-2 text-xl font-semibold;
+.preview-header {
+  @apply relative z-10 flex items-start justify-between gap-4 border-b border-gray-700 pb-4;
 }
 
-.architecture-rail {
-  @apply relative z-10 my-6 space-y-2;
+.preview-header h3 {
+  @apply mt-1 text-xl font-semibold;
 }
 
-.architecture-layer {
-  @apply flex items-center gap-3 rounded border border-gray-600 bg-gray-800/90 px-3 py-3 text-sm;
+.preview-hash {
+  @apply rounded border border-teal-400/30 bg-teal-400/10 px-2 py-1 font-mono text-[10px] text-teal-200;
 }
 
-.architecture-layer span {
-  @apply font-mono text-xs text-primary-300;
+.preview-status {
+  @apply relative z-10 min-h-8 py-2 font-mono text-[11px] uppercase tracking-wide text-teal-200;
 }
 
-.architecture-preview dl {
-  @apply relative z-10 divide-y divide-gray-700 border-y border-gray-700 text-xs;
+.preview-status span {
+  @apply flex items-center gap-2;
 }
 
-.architecture-preview dl div {
-  @apply flex justify-between gap-3 py-2;
+.status-pulse {
+  @apply inline-block h-2 w-2 rounded-full bg-teal-300;
+  animation: topology-pulse 1s ease-in-out infinite;
 }
 
-.architecture-preview dt {
-  @apply text-gray-400;
+.preview-content {
+  @apply relative z-10 space-y-5 transition-opacity duration-200;
 }
 
-.architecture-preview dd {
-  @apply text-right font-mono text-gray-100;
+.preview-content-stale {
+  @apply opacity-45;
+}
+
+.preview-section {
+  @apply rounded-lg border border-gray-700/90 bg-gray-900/80 p-4;
+}
+
+.preview-section-title {
+  @apply mb-3 flex items-baseline justify-between gap-3;
+}
+
+.preview-section h4,
+.topology-lists h4,
+.preview-diagnostics h4 {
+  @apply text-xs font-bold uppercase tracking-[0.16em] text-gray-200;
+}
+
+.preview-section-title span {
+  @apply font-mono text-[10px] uppercase text-gray-400;
+}
+
+.artifact-tree {
+  @apply space-y-3;
+}
+
+.artifact-module {
+  @apply border-l border-teal-400/50 pl-3;
+}
+
+.artifact-module h5 {
+  @apply flex items-center gap-2 font-mono text-xs font-bold uppercase text-teal-200;
+}
+
+.artifact-program {
+  @apply mt-2 border-l border-gray-700 pl-4;
+}
+
+.artifact-program > strong {
+  @apply font-mono text-[10px] tracking-wider text-gray-400;
+}
+
+.artifact-program ul {
+  @apply mt-1 space-y-1;
+}
+
+.artifact-program li {
+  @apply relative pl-4 text-xs text-gray-200 before:absolute before:left-0 before:text-gray-500 before:content-['└'];
+}
+
+.artifact-program code {
+  @apply break-all font-mono;
+}
+
+.artifact-program p,
+.preview-empty {
+  @apply mt-2 text-xs text-gray-400;
+}
+
+.architecture-diagram {
+  @apply w-full rounded border border-gray-700 bg-gray-950/70;
+}
+
+.diagram-node {
+  fill: rgba(31, 41, 55, .96);
+  stroke: rgba(45, 212, 191, .62);
+  stroke-width: 1;
+}
+
+.diagram-relation {
+  stroke: rgba(251, 191, 36, .68);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+}
+
+.diagram-kind {
+  fill: rgb(94 234 212);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 9px;
+  letter-spacing: .08em;
+}
+
+.diagram-name {
+  fill: rgb(243 244 246);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+
+.topology-lists {
+  @apply grid gap-4 md:grid-cols-2;
+}
+
+.topology-lists > section {
+  @apply rounded-lg border border-gray-700 bg-gray-900/80 p-4;
+}
+
+.topology-list {
+  @apply mt-3 space-y-2;
+}
+
+.topology-list li {
+  @apply flex items-start justify-between gap-3 border-b border-gray-800 pb-2 text-xs last:border-0 last:pb-0;
+}
+
+.topology-list span {
+  @apply font-mono text-[9px] tracking-wider text-teal-300;
+}
+
+.topology-list strong,
+.topology-list code {
+  @apply text-right font-mono text-gray-200;
+}
+
+.fallback-banner,
+.preview-diagnostics {
+  @apply rounded-lg border border-amber-400/40 bg-amber-400/10 p-3 text-xs text-amber-100;
+}
+
+.preview-diagnostics ul {
+  @apply mt-2 space-y-1;
+}
+
+.preview-error {
+  @apply relative z-10 flex flex-col gap-1 rounded-lg border border-red-400/40 bg-red-400/10 p-4 text-sm text-red-100;
+}
+
+@keyframes topology-pulse {
+  0%, 100% { opacity: .35; transform: scale(.82); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-pulse { animation: none; }
+  .preview-content { transition: none; }
 }
 
 .decision-alert {

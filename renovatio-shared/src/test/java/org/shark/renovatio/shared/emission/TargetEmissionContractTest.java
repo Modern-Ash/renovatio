@@ -25,6 +25,9 @@ class TargetEmissionContractTest {
         assertEquals(effective.profile(), model.profile());
         assertEquals(model.semanticProgram().sourceProvenance(), model.sourceProvenance());
         assertEquals(MigrationProfile.Language.JAVA, model.targetLanguage());
+        assertEquals(MigrationProfile.ArchitectureStyle.TRANSACTION_SCRIPT,
+                model.targetStructure().effectiveStyle());
+        assertTrue(model.targetStructure().artifactPaths().isEmpty());
         assertThrows(UnsupportedOperationException.class,
                 () -> model.resolvedDecisions().put("c", "3"));
     }

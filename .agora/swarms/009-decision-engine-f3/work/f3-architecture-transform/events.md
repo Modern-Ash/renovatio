@@ -1,0 +1,86 @@
+# Work events
+
+- 2026-09-01T17:53:57.786081Z | work.created | state=drafting actor=project:owner
+- 2026-09-01T17:54:40.177238Z | tool.prepared | run=tool-20260901t17541788296080z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:54:40.180191Z | tool.running | run=tool-20260901t17541788296080z actor=project:agent
+- 2026-09-01T17:54:40.194459Z | tool.failed | run=tool-20260901t17541788296080z exit-code=128
+- 2026-09-01T17:54:52.055943Z | tool.prepared | run=tool-20260901t17541788296092z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:54:52.058940Z | tool.running | run=tool-20260901t17541788296092z actor=project:agent
+- 2026-09-01T17:54:52.093755Z | tool.completed | run=tool-20260901t17541788296092z exit-code=0
+- 2026-09-01T17:55:32.385614Z | tool.prepared | run=tool-20260901t17551788296132z tool=github-issues operation=view actor=project:agent
+- 2026-09-01T17:55:32.388423Z | tool.running | run=tool-20260901t17551788296132z actor=project:agent
+- 2026-09-01T17:55:32.889018Z | tool.completed | run=tool-20260901t17551788296132z exit-code=0
+- 2026-09-01T17:55:46.295034Z | tool.prepared | run=tool-20260901t17551788296146z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-01T17:55:46.297788Z | tool.running | run=tool-20260901t17551788296146z actor=project:agent
+- 2026-09-01T17:55:48.216637Z | tool.completed | run=tool-20260901t17551788296146z exit-code=0
+- 2026-09-01T17:58:21.244325Z | artifact.added | kind=spec uri=repo://docs/specs/f3-architecture-transform.md actor=project:owner
+- 2026-09-01T17:58:21.467905Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:owner stage=specified
+- 2026-09-01T17:58:21.691653Z | work.criterion-stage-marked | criterion=transaction-script actor=project:owner stage=specified
+- 2026-09-01T17:58:21.910116Z | work.criterion-stage-marked | criterion=hexagonal actor=project:owner stage=specified
+- 2026-09-01T17:58:22.128645Z | work.criterion-stage-marked | criterion=module-grouping actor=project:owner stage=specified
+- 2026-09-01T17:58:22.353055Z | work.criterion-stage-marked | criterion=suggestions actor=project:owner stage=specified
+- 2026-09-01T17:58:22.566041Z | work.criterion-stage-marked | criterion=target-views actor=project:owner stage=specified
+- 2026-09-01T17:58:22.775598Z | work.criterion-stage-marked | criterion=verification-scope actor=project:owner stage=specified
+- 2026-09-01T17:58:35.377203Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-01T17:59:25.333901Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/f3-architecture-transform.md actor=project:agent
+- 2026-09-01T17:59:25.556357Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:owner stage=planned
+- 2026-09-01T17:59:25.768975Z | work.criterion-stage-marked | criterion=transaction-script actor=project:owner stage=planned
+- 2026-09-01T17:59:25.996248Z | work.criterion-stage-marked | criterion=hexagonal actor=project:owner stage=planned
+- 2026-09-01T17:59:26.219121Z | work.criterion-stage-marked | criterion=module-grouping actor=project:owner stage=planned
+- 2026-09-01T17:59:26.439918Z | work.criterion-stage-marked | criterion=suggestions actor=project:owner stage=planned
+- 2026-09-01T17:59:26.663259Z | work.criterion-stage-marked | criterion=target-views actor=project:owner stage=planned
+- 2026-09-01T17:59:26.885080Z | work.criterion-stage-marked | criterion=verification-scope actor=project:owner stage=planned
+- 2026-09-01T17:59:27.336230Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-01T17:59:33.266449Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-01T17:59:50.548711Z | tool.prepared | run=tool-20260901t17591788296390z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:59:50.552731Z | tool.running | run=tool-20260901t17591788296390z actor=project:agent
+- 2026-09-01T17:59:50.576588Z | tool.completed | run=tool-20260901t17591788296390z exit-code=0
+- 2026-09-01T18:03:55.286675Z | tool.prepared | run=tool-20260901t18031788296635z tool=repository operation=commit actor=project:agent
+- 2026-09-01T18:03:55.289307Z | tool.running | run=tool-20260901t18031788296635z actor=project:agent
+- 2026-09-01T18:03:55.324189Z | tool.completed | run=tool-20260901t18031788296635z exit-code=0
+- 2026-09-01T18:06:00.878411Z | tool.prepared | run=tool-20260901t18061788296760z tool=repository operation=commit actor=project:agent
+- 2026-09-01T18:06:00.881426Z | tool.running | run=tool-20260901t18061788296760z actor=project:agent
+- 2026-09-01T18:06:00.906053Z | tool.completed | run=tool-20260901t18061788296760z exit-code=0
+- 2026-09-01T18:09:16.465312Z | tool.prepared | run=tool-20260901t18091788296956z tool=repository operation=commit actor=project:agent
+- 2026-09-01T18:09:16.468621Z | tool.running | run=tool-20260901t18091788296956z actor=project:agent
+- 2026-09-01T18:09:16.503208Z | tool.completed | run=tool-20260901t18091788296956z exit-code=0
+- 2026-09-01T18:18:32.710429Z | tool.prepared | run=tool-20260901t18181788297512z tool=repository operation=commit actor=project:agent
+- 2026-09-01T18:18:32.713877Z | tool.running | run=tool-20260901t18181788297512z actor=project:agent
+- 2026-09-01T18:18:32.748800Z | tool.completed | run=tool-20260901t18181788297512z exit-code=0
+- 2026-09-01T18:25:37.675392Z | tool.prepared | run=tool-20260901t18251788297937z tool=repository operation=commit actor=project:agent
+- 2026-09-01T18:25:37.678401Z | tool.running | run=tool-20260901t18251788297937z actor=project:agent
+- 2026-09-01T18:25:37.713108Z | tool.completed | run=tool-20260901t18251788297937z exit-code=0
+- 2026-09-01T18:31:45.147025Z | tool.prepared | run=tool-20260901t18311788298305z tool=repository operation=commit actor=project:agent
+- 2026-09-01T18:31:45.149989Z | tool.running | run=tool-20260901t18311788298305z actor=project:agent
+- 2026-09-01T18:31:45.174962Z | tool.completed | run=tool-20260901t18311788298305z exit-code=0
+- 2026-09-01T18:36:36.025141Z | tool.prepared | run=tool-20260901t18361788298596z tool=repository operation=commit actor=project:agent
+- 2026-09-01T18:36:36.028257Z | tool.running | run=tool-20260901t18361788298596z actor=project:agent
+- 2026-09-01T18:36:36.062961Z | tool.completed | run=tool-20260901t18361788298596z exit-code=0
+- 2026-09-01T20:24:31.461588Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T20:24:43.742991Z | artifact.added | kind=verification-report uri=repo://docs/reports/f3-architecture-transform-verification.md actor=project:agent
+- 2026-09-01T20:24:43.961842Z | evidence.added | id=evidence-000001 type=reactor-tests result=success revision=1 actor=project:agent
+- 2026-09-01T20:24:44.181578Z | evidence.added | id=evidence-000002 type=characterization result=success revision=1 actor=project:agent
+- 2026-09-01T20:24:44.407272Z | evidence.added | id=evidence-000003 type=ui-tests result=success revision=1 actor=project:agent
+- 2026-09-01T20:25:02.104045Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:agent stage=implemented
+- 2026-09-01T20:25:02.321246Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:agent stage=verified
+- 2026-09-01T20:25:02.536148Z | work.criterion-stage-marked | criterion=transaction-script actor=project:agent stage=implemented
+- 2026-09-01T20:25:02.750243Z | work.criterion-stage-marked | criterion=transaction-script actor=project:agent stage=verified
+- 2026-09-01T20:25:02.976389Z | work.criterion-stage-marked | criterion=hexagonal actor=project:agent stage=implemented
+- 2026-09-01T20:25:03.218305Z | work.criterion-stage-marked | criterion=hexagonal actor=project:agent stage=verified
+- 2026-09-01T20:25:03.443270Z | work.criterion-stage-marked | criterion=module-grouping actor=project:agent stage=implemented
+- 2026-09-01T20:25:03.673768Z | work.criterion-stage-marked | criterion=module-grouping actor=project:agent stage=verified
+- 2026-09-01T20:25:03.915039Z | work.criterion-stage-marked | criterion=suggestions actor=project:agent stage=implemented
+- 2026-09-01T20:25:04.151504Z | work.criterion-stage-marked | criterion=suggestions actor=project:agent stage=verified
+- 2026-09-01T20:25:04.409183Z | work.criterion-stage-marked | criterion=target-views actor=project:agent stage=implemented
+- 2026-09-01T20:25:04.653786Z | work.criterion-stage-marked | criterion=target-views actor=project:agent stage=verified
+- 2026-09-01T20:25:04.918055Z | work.criterion-stage-marked | criterion=verification-scope actor=project:agent stage=implemented
+- 2026-09-01T20:25:05.170506Z | work.criterion-stage-marked | criterion=verification-scope actor=project:agent stage=verified
+- 2026-09-01T20:25:22.863110Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:owner stage=accepted
+- 2026-09-01T20:25:23.103441Z | work.criterion-stage-marked | criterion=transaction-script actor=project:owner stage=accepted
+- 2026-09-01T20:25:23.346501Z | work.criterion-stage-marked | criterion=hexagonal actor=project:owner stage=accepted
+- 2026-09-01T20:25:23.601694Z | work.criterion-stage-marked | criterion=module-grouping actor=project:owner stage=accepted
+- 2026-09-01T20:25:23.827142Z | work.criterion-stage-marked | criterion=suggestions actor=project:owner stage=accepted
+- 2026-09-01T20:25:24.054596Z | work.criterion-stage-marked | criterion=target-views actor=project:owner stage=accepted
+- 2026-09-01T20:25:24.282201Z | work.criterion-stage-marked | criterion=verification-scope actor=project:owner stage=accepted
+- 2026-09-01T20:25:24.509169Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-01T20:25:33.257950Z | work.transitioned | from=verifying to=completed actor=project:owner
