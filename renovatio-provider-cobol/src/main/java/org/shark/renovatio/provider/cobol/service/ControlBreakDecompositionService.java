@@ -140,6 +140,20 @@ public class ControlBreakDecompositionService {
      * @return StubResult containing generated files
      */
     public StubResult generateDecomposedCode(ProgramDecomposition decomposition, Workspace workspace) {
+        StubResult result = generateDecomposedCode(decomposition);
+        if (!result.isSuccess()) {
+            return result;
+        }
+        try {
+            persistGeneratedCode(result.getGeneratedCode(), workspace);
+            return result;
+        } catch (IOException e) {
+            return new StubResult(false, "Failed to write files: " + e.getMessage());
+        }
+    }
+
+    /** Generates decomposed Java artifacts without mutating the workspace. */
+    public StubResult generateDecomposedCode(ProgramDecomposition decomposition) {
         Map<String, String> generatedFiles = new LinkedHashMap<>();
 
         DecomposedBusinessLogic logic = decomposition.decomposedLogic();
@@ -172,17 +186,15 @@ public class ControlBreakDecompositionService {
         String orchestratorCode = generateOrchestratorService(decomposition);
         generatedFiles.put(toPascalCase(logic.programId()) + "ProcessingService.java", orchestratorCode);
 
-        // Write files to disk
-        try {
-            writeGeneratedFiles(generatedFiles, workspace);
-        } catch (IOException e) {
-            return new StubResult(false, "Failed to write files: " + e.getMessage());
-        }
-
         StubResult result = new StubResult(true,
                 "Generated " + generatedFiles.size() + " decomposed components from " + logic.programId());
         result.setGeneratedCode(generatedFiles);
         return result;
+    }
+
+    /** Persists an already validated aggregate of decomposed artifacts. */
+    public void persistGeneratedCode(Map<String, String> generatedFiles, Workspace workspace) throws IOException {
+        writeGeneratedFiles(generatedFiles, workspace);
     }
 
     // --- Code generation methods ---

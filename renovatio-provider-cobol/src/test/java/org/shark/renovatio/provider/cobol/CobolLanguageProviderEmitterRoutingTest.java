@@ -150,6 +150,38 @@ class CobolLanguageProviderEmitterRoutingTest {
     }
 
     @Test
+    void controlBreakRouteDoesNotWriteBeforeAggregateValidation(@TempDir Path root) throws Exception {
+        String controlBreak = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAME.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-KEY PIC X(10).
+                01 WS-PREV-KEY PIC X(10).
+                PROCEDURE DIVISION.
+                MAIN.
+                    OPEN INPUT DATA-FILE.
+                    READ DATA-FILE.
+                    IF WS-KEY NOT = WS-PREV-KEY
+                        PERFORM BREAK-PARA
+                    END-IF.
+                    CLOSE DATA-FILE.
+                    STOP RUN.
+                BREAK-PARA.
+                    MOVE WS-KEY TO WS-PREV-KEY.
+                """;
+        Files.writeString(root.resolve("first.cbl"), controlBreak);
+        Files.writeString(root.resolve("second.cbl"), controlBreak);
+        CobolLanguageProvider provider = provider(dependencies());
+
+        StubResult result = provider.decomposeControlBreaks(new Workspace("test", root.toString(), "main"));
+
+        assertFalse(result.isSuccess());
+        assertTrue(result.getMessage().contains("duplicate artifact path"), result.getMessage());
+        assertFalse(Files.exists(root.resolve("generated-decomposed")));
+    }
+
+    @Test
     void standaloneCopybookProjectsFieldsForRegisteredEmitter(@TempDir Path root) throws Exception {
         Files.writeString(root.resolve("customer.cpy"), """
                 01 CUSTOMER-RECORD.

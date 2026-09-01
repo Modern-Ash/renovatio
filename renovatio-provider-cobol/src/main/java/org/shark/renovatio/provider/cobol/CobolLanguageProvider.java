@@ -334,7 +334,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
             Map<String, String> generated = new LinkedHashMap<>();
             for (Path source : sources) {
                 StubResult emitted = javaGenerationService.emitThroughRegistry(source, null, workspace, effective,
-                        ignored -> decomposeControlBreakLegacy(workspace, source));
+                        ignored -> decomposeControlBreakLegacy(source));
                 if (!emitted.isSuccess()) {
                     return emitted;
                 }
@@ -345,6 +345,11 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                         }
                     });
                 }
+            }
+            if (!generated.isEmpty()
+                    && effective.profile().target().language()
+                    == org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
+                decompositionService.persistGeneratedCode(generated, workspace);
             }
             StubResult result = new StubResult(!generated.isEmpty(), generated.isEmpty()
                     ? "No control break patterns detected"
@@ -359,7 +364,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         }
     }
 
-    private StubResult decomposeControlBreakLegacy(Workspace workspace, Path source) {
+    private StubResult decomposeControlBreakLegacy(Path source) {
         try {
             var decomposition = decompositionService.decomposeProgram(source);
             if (decomposition == null) {
@@ -367,7 +372,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                 result.setGeneratedCode(Map.of());
                 return result;
             }
-            return decompositionService.generateDecomposedCode(decomposition, workspace);
+            return decompositionService.generateDecomposedCode(decomposition);
         } catch (Exception e) {
             return new StubResult(false, "Control break decomposition failed: " + e.getMessage());
         }

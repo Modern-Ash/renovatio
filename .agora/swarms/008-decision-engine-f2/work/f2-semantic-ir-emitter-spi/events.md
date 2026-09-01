@@ -107,3 +107,22 @@
 - 2026-09-01T17:22:11.794641Z | evidence.added | id=evidence-000006 type=review-remediation result=success revision=1 actor=project:agent
 - 2026-09-01T17:22:18.027824Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-09-01T17:22:40.531142Z | tool.prepared | run=tool-20260901t17221788294160z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:29:00.171861Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-01T17:34:49.014784Z | tool.prepared | run=tool-20260901t17341788294889z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:35:01.374362Z | tool.running | run=tool-20260901t17341788294889z actor=project:agent
+- 2026-09-01T17:35:01.409317Z | tool.completed | run=tool-20260901t17341788294889z exit-code=0
+- 2026-09-01T17:35:28.288627Z | artifact.added | kind=test-report uri=repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md actor=project:agent
+- 2026-09-01T17:35:28.564401Z | evidence.added | id=evidence-000007 type=review-remediation result=success revision=1 actor=project:agent
+- 2026-09-01T17:35:34.259123Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-01T17:35:38.415601Z | tool.prepared | run=tool-20260901t17351788294938z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:35:47.713031Z | tool.running | run=tool-20260901t17351788294938z actor=project:agent
+- 2026-09-01T17:35:47.737343Z | tool.completed | run=tool-20260901t17351788294938z exit-code=0
+- 2026-09-01T17:37:34.203253Z | work.block | from=active to=blocked actor=project:agent change=change-20260901t173734203141z
+- 2026-09-01T17:38:23.303542Z | work.resume | from=blocked to=active actor=project:agent change=change-20260901t173823303376z
+- 2026-09-01T17:38:52.577319Z | tool.prepared | run=tool-20260901t17381788295132z tool=repository operation=commit actor=project:agent
+- 2026-09-01T17:39:02.809847Z | tool.running | run=tool-20260901t17381788295132z actor=project:agent
+- 2026-09-01T17:39:02.833914Z | tool.completed | run=tool-20260901t17381788295132z exit-code=0
+- 2026-09-01T17:39:06.661499Z | tool.prepared | run=tool-20260901t17391788295146z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-01T17:39:19.652485Z | tool.running | run=tool-20260901t17391788295146z actor=project:agent
+- 2026-09-01T17:39:22.025480Z | tool.completed | run=tool-20260901t17391788295146z exit-code=0
+- 2026-09-01T17:39:38.497460Z | tool.prepared | run=tool-20260901t17391788295178z tool=repository operation=commit actor=project:agent
