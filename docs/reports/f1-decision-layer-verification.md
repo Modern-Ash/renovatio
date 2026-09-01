@@ -3,7 +3,7 @@
 - **Work item:** `decision-engine-f1/f1-decision-layer`
 - **Specification:** `docs/specs/f1-decision-layer.md`
 - **Implementation plan:** `docs/plans/f1-decision-layer.md`
-- **Tested commit:** `93f9b1b680bd138b5a30536d8d8cb4c7dcf864d5`
+- **Tested commit:** `58568dcac6842f4505494e05b73d41814bd8b2d2`
 - **Verification date:** 2026-09-01
 - **Overall result:** PASS WITH BASELINE BUILD-GATE EXCEPTION
 
@@ -32,6 +32,7 @@
 | `npm run lint` | PASS | ESLint completed without findings |
 | `npm run build` | PASS | Vite production build completed; 54 modules transformed |
 | `git diff --check` | PASS | No whitespace errors |
+| post-rebase API reactor and UI matrix | PASS | API reactor tests, 23 UI tests, lint, and production build passed on the tested commit after rebasing onto `origin/main@e487abc` |
 
 The first `mvn clean install` failure reproduces without any
 `renovatio-shared` change. A diagnostic attempt to cover its missing lines was

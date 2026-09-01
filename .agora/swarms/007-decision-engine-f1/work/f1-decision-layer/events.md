@@ -60,3 +60,6 @@
 - 2026-09-01T11:48:48.342639Z | evidence.added | id=evidence-000004 type=mcp-regression result=success revision=1 actor=project:agent
 - 2026-09-01T11:48:48.605868Z | evidence.added | id=evidence-000005 type=ui-tests result=success revision=1 actor=project:agent
 - 2026-09-01T11:48:48.874957Z | evidence.added | id=evidence-000006 type=compatibility result=success revision=1 actor=project:agent
+- 2026-09-01T11:51:25.536414Z | artifact.added | kind=verification-report uri=repo://docs/reports/f1-decision-layer-verification.md actor=project:agent
+- 2026-09-01T11:51:25.815853Z | evidence.added | id=evidence-000007 type=post-rebase-api-reactor result=success revision=1 actor=project:agent
+- 2026-09-01T11:51:26.087826Z | evidence.added | id=evidence-000008 type=post-rebase-ui-matrix result=success revision=1 actor=project:agent
