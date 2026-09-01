@@ -67,7 +67,7 @@ specification.
 
 ## Technology Stack
 
-- **Java 17+**: Core platform
+- **Java 21+**: Core platform
 - **Spring Boot**: Dependency injection and configuration
 - **Maven**: Build and dependency management
 - **OpenRewrite**: Java refactoring engine

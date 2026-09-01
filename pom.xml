@@ -19,9 +19,9 @@
     </parent>
 
     <properties>
-        <java.version>17</java.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <java.version>21</java.version>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
         <openrewrite.version>8.21.0</openrewrite.version>
         <springdoc.version>2.3.0</springdoc.version>
         <jackson.version>2.15.4</jackson.version>
