@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createBrowserAnalyzeJob, createJob, getJobStatus, subscribeToJob } from '../api/client'
 
 function StepAnalyze({ projectId, data, onChange, onNext, onBack }) {
-  const [jobId, setJobId] = useState(null)
   const [status, setStatus] = useState('idle')
   const [progress, setProgress] = useState(0)
   const [message, setMessage] = useState('')
@@ -97,7 +96,6 @@ function StepAnalyze({ projectId, data, onChange, onNext, onBack }) {
         })
       }
 
-      setJobId(job.id)
       setStatus('running')
 
       let unsubscribe = () => {}
@@ -239,7 +237,7 @@ function StepAnalyze({ projectId, data, onChange, onNext, onBack }) {
               ← Back
             </button>
             <button onClick={onNext} className="btn btn-primary">
-              Next: View Metrics →
+              Next: Review Decisions →
             </button>
           </div>
         </div>

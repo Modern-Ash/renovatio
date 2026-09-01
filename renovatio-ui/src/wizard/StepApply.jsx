@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { createJob, getJobStatus, subscribeToJob } from '../api/client'
 
 function StepApply({ projectId, data, onChange, onNext, onBack }) {
-  const [jobId, setJobId] = useState(null)
   const [status, setStatus] = useState('idle')
   const [progress, setProgress] = useState(0)
   const [message, setMessage] = useState('')
@@ -49,7 +48,6 @@ function StepApply({ projectId, data, onChange, onNext, onBack }) {
         dryRun: true,
         planSteps: data.planSteps
       })
-      setJobId(job.id)
       setStatus('running')
       setProgress(10)
       setMessage('Applying plan (dry run)...')

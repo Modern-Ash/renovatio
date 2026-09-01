@@ -8,7 +8,7 @@ const severityColors = {
   LOW: 'badge-low'
 };
 
-function StepReview({ projectId, data, onNext, onBack }) {
+function StepReview({ projectId, data: _data, onNext, onBack }) {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
 

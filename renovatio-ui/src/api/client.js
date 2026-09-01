@@ -1,19 +1,33 @@
 const API_BASE = '/api';
 
-async function apiCall(path, options = {}) {
+async function apiResponse(path, options = {}) {
   const role = localStorage.getItem('userRole') || 'ADMIN';
+  const { headers = {}, ...requestOptions } = options
   const response = await fetch(`${API_BASE}${path}`, {
+    ...requestOptions,
     headers: {
       'X-Role': role,
       'Content-Type': 'application/json',
-      ...options.headers
-    },
-    ...options
+      ...headers
+    }
   });
-  if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+  let payload = null
+  try {
+    payload = await response.json()
+  } catch {
+    payload = null
   }
-  return response.json();
+  if (!response.ok) {
+    const error = new Error(payload?.message || `API error: ${response.status}`)
+    error.status = response.status
+    error.payload = payload
+    throw error
+  }
+  return { response, payload }
+}
+
+async function apiCall(path, options = {}) {
+  return (await apiResponse(path, options)).payload
 }
 
 export function getProjects() {
@@ -108,6 +122,49 @@ export function updateActionItemStatus(id, status) {
 
 export function getMetrics(projectId) {
   return apiCall(`/projects/${projectId}/metrics`);
+}
+
+export async function getProjectProfile(projectId) {
+  const { response, payload } = await apiResponse(`/projects/${projectId}/profile`)
+  return { profile: payload, etag: response.headers.get('ETag') }
+}
+
+export async function putProjectProfile(projectId, profile, etag) {
+  const { response, payload } = await apiResponse(`/projects/${projectId}/profile`, {
+    method: 'PUT',
+    headers: { 'If-Match': etag },
+    body: JSON.stringify(profile)
+  })
+  return { profile: payload, etag: response.headers.get('ETag') }
+}
+
+export function getEffectiveProfile(projectId) {
+  return apiCall(`/projects/${projectId}/profile:effective`)
+}
+
+export function getProjectDecisions(projectId, filters = {}) {
+  const query = new URLSearchParams()
+  if (filters.category) query.set('category', filters.category)
+  if (filters.minConfidence !== '' && filters.minConfidence !== undefined && filters.minConfidence !== null) {
+    query.set('minConfidence', String(filters.minConfidence))
+  }
+  if (filters.status) query.set('status', filters.status)
+  const suffix = query.toString() ? `?${query}` : ''
+  return apiCall(`/projects/${projectId}/decisions${suffix}`)
+}
+
+export function patchProjectDecision(projectId, decisionId, chosenOption, revision) {
+  return apiCall(`/projects/${projectId}/decisions/${decisionId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ chosenOption, revision })
+  })
+}
+
+export function bulkConfirmProjectDecisions(projectId, minConfidence = 0.8) {
+  return apiCall(`/projects/${projectId}/decisions:bulk-confirm`, {
+    method: 'POST',
+    body: JSON.stringify({ minConfidence: Number(minConfidence) })
+  })
 }
 
 export function subscribeToJob(jobId, onEvent, onError) {
