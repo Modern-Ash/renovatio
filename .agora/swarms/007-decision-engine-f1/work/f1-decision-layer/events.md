@@ -16,3 +16,7 @@
 - 2026-09-01T11:06:38.326231Z | work.clarified-advisory | questions=5 actor=project:owner
 - 2026-09-01T11:10:01.146482Z | work.clarified-advisory | questions=5 actor=project:owner
 - 2026-09-01T11:11:36.824787Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-09-01T11:12:05.050496Z | tool.prepared | run=tool-20260901t11121788271925z tool=repository operation=commit actor=project:agent
+- 2026-09-01T11:12:05.053497Z | tool.running | run=tool-20260901t11121788271925z actor=project:agent
+- 2026-09-01T11:12:05.079853Z | tool.completed | run=tool-20260901t11121788271925z exit-code=0
+- 2026-09-01T11:12:09.474548Z | work.transitioned | from=drafting to=clarified actor=project:owner
