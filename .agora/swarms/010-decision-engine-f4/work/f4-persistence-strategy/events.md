@@ -1,0 +1,53 @@
+# Work events
+
+- 2026-09-02T00:17:17.370229Z | work.created | state=drafting actor=project:owner
+- 2026-09-02T00:21:16.125913Z | artifact.added | kind=spec uri=file:docs/specs/f4-persistence-strategy.md actor=project:owner
+- 2026-09-02T00:22:43.698372Z | work.criterion-stage-marked | criterion=data-access-classifier actor=project:owner stage=specified
+- 2026-09-02T00:22:43.932886Z | work.criterion-stage-marked | criterion=persistence-strategy-spi actor=project:owner stage=specified
+- 2026-09-02T00:22:44.173981Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=specified
+- 2026-09-02T00:22:44.418536Z | work.criterion-stage-marked | criterion=api-contract actor=project:owner stage=specified
+- 2026-09-02T00:22:44.648229Z | work.criterion-stage-marked | criterion=wizard-step actor=project:owner stage=specified
+- 2026-09-02T00:22:44.868204Z | work.criterion-stage-marked | criterion=orchestration actor=project:owner stage=specified
+- 2026-09-02T00:22:45.081900Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=specified
+- 2026-09-02T00:22:45.309049Z | work.criterion-stage-marked | criterion=verification-scope actor=project:owner stage=specified
+- 2026-09-02T00:22:49.665116Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-02T00:23:20.515041Z | artifact.added | kind=implementation-plan uri=file:docs/specs/f4-implementation-plan.md actor=project:owner
+- 2026-09-02T00:23:28.642717Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-02T00:39:03.704927Z | artifact.added | kind=test-report uri=text:27 tests pass, 0 failures, 0 errors. Modules: renovatio-persistence (classifier, 3 strategies, registry), renovatio-profile (sourceStrategies extension). Full build clean install success. actor=project:agent
+- 2026-09-02T00:39:26.139356Z | work.criterion-stage-marked | criterion=data-access-classifier actor=project:owner stage=planned
+- 2026-09-02T00:39:26.358137Z | work.criterion-stage-marked | criterion=persistence-strategy-spi actor=project:owner stage=planned
+- 2026-09-02T00:39:26.578011Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=planned
+- 2026-09-02T00:39:26.798208Z | work.criterion-stage-marked | criterion=api-contract actor=project:owner stage=planned
+- 2026-09-02T00:39:27.021802Z | work.criterion-stage-marked | criterion=wizard-step actor=project:owner stage=planned
+- 2026-09-02T00:39:27.244460Z | work.criterion-stage-marked | criterion=orchestration actor=project:owner stage=planned
+- 2026-09-02T00:39:27.459770Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=planned
+- 2026-09-02T00:39:27.693569Z | work.criterion-stage-marked | criterion=verification-scope actor=project:owner stage=planned
+- 2026-09-02T00:39:35.586438Z | work.criterion-stage-marked | criterion=data-access-classifier actor=project:owner stage=implemented
+- 2026-09-02T00:39:35.805173Z | work.criterion-stage-marked | criterion=persistence-strategy-spi actor=project:owner stage=implemented
+- 2026-09-02T00:39:36.028102Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=implemented
+- 2026-09-02T00:39:36.250596Z | work.criterion-stage-marked | criterion=api-contract actor=project:owner stage=implemented
+- 2026-09-02T00:39:36.478122Z | work.criterion-stage-marked | criterion=wizard-step actor=project:owner stage=implemented
+- 2026-09-02T00:39:36.707539Z | work.criterion-stage-marked | criterion=orchestration actor=project:owner stage=implemented
+- 2026-09-02T00:39:36.939363Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=implemented
+- 2026-09-02T00:39:37.173537Z | work.criterion-stage-marked | criterion=verification-scope actor=project:owner stage=implemented
+- 2026-09-02T00:39:58.749253Z | work.criterion-stage-marked | criterion=data-access-classifier actor=project:owner stage=verified
+- 2026-09-02T00:39:58.977133Z | work.criterion-stage-marked | criterion=persistence-strategy-spi actor=project:owner stage=verified
+- 2026-09-02T00:39:59.197310Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=verified
+- 2026-09-02T00:39:59.415886Z | work.criterion-stage-marked | criterion=api-contract actor=project:owner stage=verified
+- 2026-09-02T00:39:59.638592Z | work.criterion-stage-marked | criterion=wizard-step actor=project:owner stage=verified
+- 2026-09-02T00:39:59.862333Z | work.criterion-stage-marked | criterion=orchestration actor=project:owner stage=verified
+- 2026-09-02T00:40:00.084263Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=verified
+- 2026-09-02T00:40:00.315811Z | work.criterion-stage-marked | criterion=verification-scope actor=project:owner stage=verified
+- 2026-09-02T00:40:13.737643Z | work.criterion-stage-marked | criterion=data-access-classifier actor=project:owner stage=accepted
+- 2026-09-02T00:40:13.964882Z | work.criterion-stage-marked | criterion=persistence-strategy-spi actor=project:owner stage=accepted
+- 2026-09-02T00:40:14.192097Z | work.criterion-stage-marked | criterion=profile-integration actor=project:owner stage=accepted
+- 2026-09-02T00:40:14.422209Z | work.criterion-stage-marked | criterion=api-contract actor=project:owner stage=accepted
+- 2026-09-02T00:40:14.673243Z | work.criterion-stage-marked | criterion=wizard-step actor=project:owner stage=accepted
+- 2026-09-02T00:40:14.900382Z | work.criterion-stage-marked | criterion=orchestration actor=project:owner stage=accepted
+- 2026-09-02T00:40:15.133052Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=accepted
+- 2026-09-02T00:40:15.369190Z | work.criterion-stage-marked | criterion=verification-scope actor=project:owner stage=accepted
+- 2026-09-02T00:40:29.055324Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-02T00:40:41.367913Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-02T00:41:03.342116Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-02T00:42:03.443154Z | evidence.added | id=evidence-000001 type=test-report result=success revision=1 actor=project:agent
+- 2026-09-02T00:42:08.038060Z | work.transitioned | from=verifying to=completed actor=project:owner

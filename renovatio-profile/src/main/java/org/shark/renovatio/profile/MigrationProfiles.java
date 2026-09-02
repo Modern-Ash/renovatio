@@ -39,7 +39,7 @@ public final class MigrationProfiles {
                 new Target(Language.JAVA, "17"),
                 new Architecture(ArchitectureStyle.TRANSACTION_SCRIPT, ModuleGrouping.BY_PROGRAM),
                 new MigrationProfile.Runtime(Framework.SPRING_BOOT),
-                new Persistence(PersistenceStrategy.IN_MEMORY, TransactionBoundary.METHOD),
+                new Persistence(PersistenceStrategy.IN_MEMORY, TransactionBoundary.METHOD, null),
                 new Style(NumericPolicy.BIGDECIMAL, Nullability.NON_NULL_BY_DEFAULT,
                         ErrorHandling.EXCEPTIONS, Naming.JAVA_BEANS),
                 new Llm(false, false, 0));
@@ -118,7 +118,16 @@ public final class MigrationProfiles {
     private static Persistence merge(Persistence base, Persistence value) {
         return value == null ? base : new Persistence(
                 value.defaultStrategy() == null ? base.defaultStrategy() : value.defaultStrategy(),
-                value.transactionBoundary() == null ? base.transactionBoundary() : value.transactionBoundary());
+                value.transactionBoundary() == null ? base.transactionBoundary() : value.transactionBoundary(),
+                mergeSourceStrategies(base.sourceStrategies(), value.sourceStrategies()));
+    }
+
+    private static Map<String, String> mergeSourceStrategies(Map<String, String> base, Map<String, String> value) {
+        if (value == null || value.isEmpty()) return base;
+        if (base == null || base.isEmpty()) return value;
+        Map<String, String> merged = new LinkedHashMap<>(base);
+        merged.putAll(value);
+        return merged;
     }
 
     private static Style merge(Style base, Style value) {
