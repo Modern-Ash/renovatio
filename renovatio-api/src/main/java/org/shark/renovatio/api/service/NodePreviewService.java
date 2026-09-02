@@ -30,7 +30,7 @@ public class NodePreviewService {
         TargetModel model = TargetModel.from(program, MigrationProfiles.effective(profile,
                 Map.of(), Map.of(), List.of()));
         NodeEmitter emitter = new NodeEmitter(new DefaultNodeRenderer());
-        EmittedArtifacts artifacts = emitter.emit(model, profile);
+        EmittedArtifacts artifacts = emitter.emit(model, model.profile());
         return artifacts.utf8TextByPath();
     }
 }

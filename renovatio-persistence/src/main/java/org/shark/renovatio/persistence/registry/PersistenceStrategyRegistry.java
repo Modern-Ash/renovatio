@@ -15,7 +15,7 @@ import java.util.*;
  */
 public final class PersistenceStrategyRegistry {
 
-    private final Map<StrategyKey, PersistenceStrategy> strategies;
+    private final Map<StrategyKey, List<PersistenceStrategy>> strategies;
     private final MigrationProfile.PersistenceStrategy defaultStrategy;
 
     public PersistenceStrategyRegistry(Set<PersistenceStrategy> strategySet,
@@ -24,31 +24,24 @@ public final class PersistenceStrategyRegistry {
         this.defaultStrategy = Objects.requireNonNull(defaultStrategy, "defaultStrategy");
 
         for (PersistenceStrategy strategy : strategySet) {
-            // Index by all kind+target combinations the strategy supports
             for (DataAccessKind kind : DataAccessKind.values()) {
                 for (MigrationProfile.Language target : MigrationProfile.Language.values()) {
-                    // Create a dummy classification to test support
                     var dummy = createDummyClassification(kind);
                     if (strategy.supports(dummy, target)) {
                         var key = new StrategyKey(kind, target);
-                        strategies.put(key, strategy);
+                        strategies.computeIfAbsent(key, k -> new ArrayList<>()).add(strategy);
                     }
                 }
             }
         }
     }
 
-    /**
-     * Resolve the strategy for a classification + target language.
-     * Uses per-source override if present, otherwise falls back to default strategy mapping.
-     */
     public PersistenceStrategy resolve(DataAccessClassification classification,
                                        MigrationProfile.Language target,
                                        Map<String, String> sourceStrategies) {
         Objects.requireNonNull(classification, "classification");
         Objects.requireNonNull(target, "target");
 
-        // Check per-source override
         if (sourceStrategies != null && sourceStrategies.containsKey(classification.id())) {
             String overrideName = sourceStrategies.get(classification.id());
             MigrationProfile.PersistenceStrategy override = parseStrategyName(overrideName);
@@ -56,7 +49,6 @@ public final class PersistenceStrategyRegistry {
             if (resolved != null) return resolved;
         }
 
-        // Use default strategy
         PersistenceStrategy resolved = findStrategy(defaultStrategy, classification.kind(), target);
         if (resolved != null) return resolved;
 
@@ -64,9 +56,6 @@ public final class PersistenceStrategyRegistry {
                 classification.kind(), target, availableTargets(classification.kind()));
     }
 
-    /**
-     * Emit artifacts for a classification using the resolved strategy.
-     */
     public PersistenceArtifacts emit(DataAccessClassification classification,
                                      MigrationProfiles.EffectiveProfile profile) {
         Map<String, String> sourceStrategies = profile.profile().persistence().sourceStrategies() != null
@@ -78,12 +67,15 @@ public final class PersistenceStrategyRegistry {
     private PersistenceStrategy findStrategy(MigrationProfile.PersistenceStrategy name,
                                              DataAccessKind kind, MigrationProfile.Language target) {
         var key = new StrategyKey(kind, target);
-        PersistenceStrategy strategy = strategies.get(key);
-        if (strategy != null && matchesStrategyName(strategy, name)) {
-            return strategy;
+        List<PersistenceStrategy> candidates = strategies.get(key);
+        if (candidates == null || candidates.isEmpty()) return null;
+
+        for (PersistenceStrategy strategy : candidates) {
+            if (matchesStrategyName(strategy, name)) {
+                return strategy;
+            }
         }
-        // Fallback: find any strategy for this kind+target
-        return strategy;
+        return candidates.get(0);
     }
 
     private boolean matchesStrategyName(PersistenceStrategy strategy, MigrationProfile.PersistenceStrategy name) {
