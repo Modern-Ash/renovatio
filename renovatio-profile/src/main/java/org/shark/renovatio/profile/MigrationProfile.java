@@ -42,7 +42,13 @@ public record MigrationProfile(
     public record Runtime(Framework framework) { }
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Persistence(PersistenceStrategy defaultStrategy,
-                              TransactionBoundary transactionBoundary) { }
+                              TransactionBoundary transactionBoundary,
+                              Map<String, String> sourceStrategies) {
+        public Persistence {
+            sourceStrategies = sourceStrategies == null ? null
+                    : Collections.unmodifiableMap(new LinkedHashMap<>(sourceStrategies));
+        }
+    }
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record Style(NumericPolicy numericPolicy, Nullability nullability,
                         ErrorHandling errorHandling, Naming naming) { }
