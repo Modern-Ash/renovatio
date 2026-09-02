@@ -24,3 +24,25 @@
 - 2026-09-02T20:48:00.359578Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=planned
 - 2026-09-02T20:48:00.578709Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=planned
 - 2026-09-02T20:48:00.805585Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-02T22:37:47.959446Z | artifact.added | kind=test-report uri=file:docs/test-reports/f7-renovatio-jcl.md actor=project:agent
+- 2026-09-02T22:37:48.580084Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:agent stage=implemented
+- 2026-09-02T22:37:48.893168Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:agent stage=verified
+- 2026-09-02T22:37:49.202798Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:agent stage=implemented
+- 2026-09-02T22:37:49.511183Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:agent stage=verified
+- 2026-09-02T22:37:49.820828Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:agent stage=implemented
+- 2026-09-02T22:37:50.119894Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:agent stage=verified
+- 2026-09-02T22:37:50.423303Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:agent stage=implemented
+- 2026-09-02T22:37:50.728936Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:agent stage=verified
+- 2026-09-02T22:37:51.031512Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:agent stage=implemented
+- 2026-09-02T22:37:51.333333Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:agent stage=verified
+- 2026-09-02T22:37:51.635923Z | work.criterion-stage-marked | criterion=missing-proc actor=project:agent stage=implemented
+- 2026-09-02T22:37:51.931991Z | work.criterion-stage-marked | criterion=missing-proc actor=project:agent stage=verified
+- 2026-09-02T22:37:52.230247Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=implemented
+- 2026-09-02T22:37:52.538703Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=verified
+- 2026-09-02T22:37:52.863194Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:agent stage=implemented
+- 2026-09-02T22:37:53.175174Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:agent stage=verified
+- 2026-09-02T22:37:58.525743Z | evidence.added | id=evidence-000001 type=test-suite result=success revision=1 actor=project:agent
+- 2026-09-02T22:38:04.583342Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-02T22:39:01.077968Z | tool.prepared | run=tool-20260902t22391788399541z tool=repository operation=commit actor=project:agent
+- 2026-09-02T22:39:01.083523Z | tool.running | run=tool-20260902t22391788399541z actor=project:agent
+- 2026-09-02T22:39:01.099309Z | tool.failed | run=tool-20260902t22391788399541z exit-code=128

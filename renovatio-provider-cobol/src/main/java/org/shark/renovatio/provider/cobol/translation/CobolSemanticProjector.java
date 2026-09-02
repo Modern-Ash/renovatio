@@ -142,6 +142,7 @@ public final class CobolSemanticProjector {
         SemanticProgram.IntentKind kind = switch (payload.construction()) {
             case REDEFINES -> SemanticProgram.IntentKind.OVERLAPPING_STORAGE;
             case OCCURS_DEPENDING_ON -> SemanticProgram.IntentKind.DEPENDENT_CARDINALITY;
+            case MOVE_CORRESPONDING -> SemanticProgram.IntentKind.MOVE_CORRESPONDING;
         };
         return new SemanticProgram.DataIntent(SemanticProgram.Header.create(programId,
                 SemanticProgram.NodeKind.DATA_INTENT, "data-intent:" + annotation.annotationId(), span),

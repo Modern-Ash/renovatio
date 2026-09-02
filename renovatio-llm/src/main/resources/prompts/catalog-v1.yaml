@@ -13,3 +13,4 @@ prompts:
   - prompts/decision.persistence.v1.yaml
   - prompts/decision.naming.v1.yaml
   - prompts/decision.architecture.v1.yaml
+  - prompts/decision.batch.v1.yaml

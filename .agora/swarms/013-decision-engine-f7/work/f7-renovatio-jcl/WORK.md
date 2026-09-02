@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "f7-renovatio-jcl"
 swarm: "decision-engine-f7"
 title: "F7 \u00b7 renovatio-jcl: batch orchestration (issue #153)"
-state: "implementing"
+state: "verifying"
 revision: 1
 operational-status: "active"
 status-reason: null
@@ -11,7 +11,7 @@ status-by: null
 status-at: null
 acceptance-criteria: {"jcl-parse":"JCL 3-step con COND parsea a BatchJob con conditionGraph correcto","cond-truth-table":"Semantica COND (skip step si condicion verdadera) cubierta por tabla de verdad + tests dedicados","spring-batch-emit":"Job de 3 steps encadenados emite spring-batch que ejecuta los 3 programas migrados en orden respetando la condicion","sort-fixture":"SORT FIELDS= + INCLUDE COND= produce salida identica a fixture de referencia","dd-datasets":"DD secuencial in/out -> archivos correctos; temp dataset no persiste","missing-proc":"Proc catalogada faltante -> manual action item, sin crash","characterization":"Job destino produce los mismos outputs de datos que el batch original para el fixture (harness #122)","defaults-safe":"Sin JCL en el proyecto -> comportamiento actual intacto"}
 satisfied-criteria: []
-criterion-statuses: {"jcl-parse":["specified","planned"],"cond-truth-table":["specified","planned"],"spring-batch-emit":["specified","planned"],"sort-fixture":["specified","planned"],"dd-datasets":["specified","planned"],"missing-proc":["specified","planned"],"characterization":["specified","planned"],"defaults-safe":["specified","planned"]}
+criterion-statuses: {"jcl-parse":["specified","planned","implemented","verified"],"cond-truth-table":["specified","planned","implemented","verified"],"spring-batch-emit":["specified","planned","implemented","verified"],"sort-fixture":["specified","planned","implemented","verified"],"dd-datasets":["specified","planned","implemented","verified"],"missing-proc":["specified","planned","implemented","verified"],"characterization":["specified","planned","implemented","verified"],"defaults-safe":["specified","planned","implemented","verified"]}
 required-artifacts: ["spec","implementation-plan","test-report"]
 child-work-refs: []
 budget-limits: null
@@ -25,14 +25,14 @@ New renovatio-jcl module: JCL parser (JOB/EXEC PGM/EXEC PROC/DD/COND/IF-THEN-ELS
 
 ## Acceptance criteria
 
-- [ ] **jcl-parse:** JCL 3-step con COND parsea a BatchJob con conditionGraph correcto; stages: specified, planned
-- [ ] **cond-truth-table:** Semantica COND (skip step si condicion verdadera) cubierta por tabla de verdad + tests dedicados; stages: specified, planned
-- [ ] **spring-batch-emit:** Job de 3 steps encadenados emite spring-batch que ejecuta los 3 programas migrados en orden respetando la condicion; stages: specified, planned
-- [ ] **sort-fixture:** SORT FIELDS= + INCLUDE COND= produce salida identica a fixture de referencia; stages: specified, planned
-- [ ] **dd-datasets:** DD secuencial in/out -> archivos correctos; temp dataset no persiste; stages: specified, planned
-- [ ] **missing-proc:** Proc catalogada faltante -> manual action item, sin crash; stages: specified, planned
-- [ ] **characterization:** Job destino produce los mismos outputs de datos que el batch original para el fixture (harness #122); stages: specified, planned
-- [ ] **defaults-safe:** Sin JCL en el proyecto -> comportamiento actual intacto; stages: specified, planned
+- [ ] **jcl-parse:** JCL 3-step con COND parsea a BatchJob con conditionGraph correcto; stages: specified, planned, implemented, verified
+- [ ] **cond-truth-table:** Semantica COND (skip step si condicion verdadera) cubierta por tabla de verdad + tests dedicados; stages: specified, planned, implemented, verified
+- [ ] **spring-batch-emit:** Job de 3 steps encadenados emite spring-batch que ejecuta los 3 programas migrados en orden respetando la condicion; stages: specified, planned, implemented, verified
+- [ ] **sort-fixture:** SORT FIELDS= + INCLUDE COND= produce salida identica a fixture de referencia; stages: specified, planned, implemented, verified
+- [ ] **dd-datasets:** DD secuencial in/out -> archivos correctos; temp dataset no persiste; stages: specified, planned, implemented, verified
+- [ ] **missing-proc:** Proc catalogada faltante -> manual action item, sin crash; stages: specified, planned, implemented, verified
+- [ ] **characterization:** Job destino produce los mismos outputs de datos que el batch original para el fixture (harness #122); stages: specified, planned, implemented, verified
+- [ ] **defaults-safe:** Sin JCL en el proyecto -> comportamiento actual intacto; stages: specified, planned, implemented, verified
 
 ## Required artifacts
 
