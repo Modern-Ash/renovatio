@@ -1,0 +1,26 @@
+# Work events
+
+- 2026-09-02T20:41:01.555781Z | work.created | state=drafting actor=project:owner
+- 2026-09-02T20:43:09.778349Z | artifact.added | kind=spec uri=file:docs/specs/f7-renovatio-jcl.md actor=project:agent
+- 2026-09-02T20:43:10.000810Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:owner stage=specified
+- 2026-09-02T20:43:10.233653Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:owner stage=specified
+- 2026-09-02T20:43:10.459925Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:owner stage=specified
+- 2026-09-02T20:43:10.682301Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:owner stage=specified
+- 2026-09-02T20:43:10.897659Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:owner stage=specified
+- 2026-09-02T20:43:11.114825Z | work.criterion-stage-marked | criterion=missing-proc actor=project:owner stage=specified
+- 2026-09-02T20:43:11.351865Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=specified
+- 2026-09-02T20:43:11.574094Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=specified
+- 2026-09-02T20:43:25.020420Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-02T20:43:48.019098Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-02T20:47:12.657560Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-02T20:47:21.038042Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-02T20:47:58.789954Z | artifact.added | kind=implementation-plan uri=file:docs/specs/f7-implementation-plan.md actor=project:agent
+- 2026-09-02T20:47:59.030831Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:owner stage=planned
+- 2026-09-02T20:47:59.251589Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:owner stage=planned
+- 2026-09-02T20:47:59.484102Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:owner stage=planned
+- 2026-09-02T20:47:59.706213Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:owner stage=planned
+- 2026-09-02T20:47:59.926590Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:owner stage=planned
+- 2026-09-02T20:48:00.145798Z | work.criterion-stage-marked | criterion=missing-proc actor=project:owner stage=planned
+- 2026-09-02T20:48:00.359578Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=planned
+- 2026-09-02T20:48:00.578709Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=planned
+- 2026-09-02T20:48:00.805585Z | work.transitioned | from=planned to=implementing actor=project:agent
