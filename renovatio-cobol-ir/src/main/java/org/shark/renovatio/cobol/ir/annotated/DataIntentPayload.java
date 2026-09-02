@@ -12,5 +12,5 @@ public record DataIntentPayload(Construction construction, String interpretation
         assumptions = assumptions.stream().map(value -> AnnotatedContract.text(value, "assumption")).toList();
     }
 
-    public enum Construction { REDEFINES, OCCURS_DEPENDING_ON }
+    public enum Construction { REDEFINES, OCCURS_DEPENDING_ON, MOVE_CORRESPONDING }
 }

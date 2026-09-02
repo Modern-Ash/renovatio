@@ -6,6 +6,7 @@ public enum ResidualRoute {
     CONTROL_FLOW_PLAN("cobol.goto.restructure.v1"),
     REDEFINES_INTENT("cobol.redefines.intent.v1"),
     OCCURS_DEPENDING_ON_INTENT("cobol.occurs-depending.intent.v1"),
+    MOVE_CORRESPONDING_INTENT("cobol.move-corresponding.intent.v1"),
     UNSUPPORTED_EXPLANATION("cobol.unsupported.explain.v1"),
     DETERMINISTIC(null);
 

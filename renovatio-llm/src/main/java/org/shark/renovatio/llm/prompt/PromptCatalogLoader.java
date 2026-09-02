@@ -23,7 +23,8 @@ public final class PromptCatalogLoader {
             "(?:[a-z0-9.-]+/)*[a-z0-9]+(?:[.-][a-z0-9]+)*\\.v[1-9][0-9]*\\.schema\\.json");
     private static final Set<String> SELECTORS = Set.of(
             "DOMAIN_NAMING", "CONTROL_FLOW_PLAN", "DATA_INTENT.REDEFINES",
-            "DATA_INTENT.OCCURS_DEPENDING_ON", "UNSUPPORTED_EXPLANATION",
+            "DATA_INTENT.OCCURS_DEPENDING_ON", "DOCUMENTATION",
+            "DATA_INTENT.MOVE_CORRESPONDING", "UNSUPPORTED_EXPLANATION",
             "DECISION.NUMERIC", "DECISION.CONTROL_FLOW", "DECISION.DATA_SHAPE",
             "DECISION.PERSISTENCE", "DECISION.NAMING", "DECISION.ARCHITECTURE");
     private static final Set<String> VALIDATORS = Set.of(

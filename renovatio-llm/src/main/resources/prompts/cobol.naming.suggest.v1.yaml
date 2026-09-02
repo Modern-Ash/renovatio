@@ -1,0 +1,14 @@
+promptId: cobol.naming.suggest.v1
+appliesTo: DOMAIN_NAMING
+system: |
+  Suggest an idiomatic Java/TypeScript name for a COBOL identifier.
+  Preserve the original semantic meaning. Follow language naming conventions.
+  Return JSON with suggestedName, rationale, and confidence.
+fewShot:
+  - input: {nodeName: VAR-CLI-NUM-POL, context: "Policy number field in customer record"}
+    output: {suggestedName: policyNumber, rationale: "Direct translation of policy number field", confidence: 0.95}
+  - input: {nodeName: 1000-VALIDAR-ENTRADA, context: "Validation paragraph"}
+    output: {suggestedName: validateInput, rationale: "Validates input data", confidence: 0.9}
+outputSchema: schemas/naming-suggestion.v1.schema.json
+validators: [json-schema.v1, annotated-ir-reference.v1]
+fallback: fallbacks/cobol.naming.suggest.fallback.v1.yaml

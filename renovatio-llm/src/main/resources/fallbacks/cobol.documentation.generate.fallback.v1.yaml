@@ -1,0 +1,4 @@
+fallbackVersion: renovatio-llm-fallback.v1
+type: MANUAL_ACTION
+diagnosticCode: LLM_MANUAL_DOCUMENTATION_REQUIRED
+manualAction: Generate minimal documentation from deterministic analysis; mark for manual review.

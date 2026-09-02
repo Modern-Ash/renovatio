@@ -1,0 +1,12 @@
+promptId: cobol.move-corresponding.intent.v1
+appliesTo: DATA_INTENT.MOVE_CORRESPONDING
+system: |
+  Analyze a MOVE CORRESPONDING statement and determine the business intent.
+  Identify field mappings, potential data loss, and the recommended translation approach.
+  Return JSON with intent description, field mappings, and confidence.
+fewShot:
+  - input: {source: "WS-CUSTOMER", target: "DB-CUSTOMER", fields: ["NAME", "ADDRESS", "PHONE"]}
+    output: {intent: "Copy customer contact information from working storage to database record", fieldMappings: [{"source": "NAME", "target": "NAME", "type": "DIRECT"}, {"source": "ADDRESS", "target": "ADDRESS", "type": "DIRECT"}, {"source": "PHONE", "target": "PHONE", "type": "DIRECT"}], confidence: 0.9}
+outputSchema: schemas/data-intent.v1.schema.json
+validators: [json-schema.v1, annotated-ir-reference.v1]
+fallback: fallbacks/cobol.move-corresponding.intent.fallback.v1.yaml
