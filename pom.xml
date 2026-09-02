@@ -53,6 +53,7 @@
         <module>renovatio-decisions</module>
         <module>renovatio-llm</module>
         <module>renovatio-persistence</module>
+        <module>renovatio-emitter-node</module>
         <module>cobol-openrewrite-recipes</module>
         <module>renovatio-cobol-annotations</module>
     </modules>
@@ -143,6 +144,11 @@
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-cobol-annotations</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-emitter-node</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
