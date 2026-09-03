@@ -46,3 +46,17 @@
 - 2026-09-02T22:39:01.077968Z | tool.prepared | run=tool-20260902t22391788399541z tool=repository operation=commit actor=project:agent
 - 2026-09-02T22:39:01.083523Z | tool.running | run=tool-20260902t22391788399541z actor=project:agent
 - 2026-09-02T22:39:01.099309Z | tool.failed | run=tool-20260902t22391788399541z exit-code=128
+- 2026-09-02T22:39:35.895448Z | tool.prepared | run=tool-20260902t22391788399575z tool=repository operation=commit actor=project:agent
+- 2026-09-02T22:39:35.898892Z | tool.running | run=tool-20260902t22391788399575z actor=project:agent
+- 2026-09-02T22:39:35.934769Z | tool.completed | run=tool-20260902t22391788399575z exit-code=0
+- 2026-09-02T22:39:58.353372Z | evidence.added | id=evidence-000002 type=test-suite result=success revision=1 actor=project:agent
+- 2026-09-03T00:34:53.703764Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:owner stage=accepted
+- 2026-09-03T00:34:53.928597Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:owner stage=accepted
+- 2026-09-03T00:34:54.147434Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:owner stage=accepted
+- 2026-09-03T00:34:54.368243Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:owner stage=accepted
+- 2026-09-03T00:34:54.600242Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:owner stage=accepted
+- 2026-09-03T00:34:54.825538Z | work.criterion-stage-marked | criterion=missing-proc actor=project:owner stage=accepted
+- 2026-09-03T00:34:55.049600Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=accepted
+- 2026-09-03T00:34:55.269020Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=accepted
+- 2026-09-03T00:34:59.302123Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-03T00:35:12.721659Z | work.transitioned | from=verifying to=completed actor=project:owner
