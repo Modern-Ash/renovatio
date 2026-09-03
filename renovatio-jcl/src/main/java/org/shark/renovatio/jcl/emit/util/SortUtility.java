@@ -21,6 +21,9 @@ public final class SortUtility {
 
     public SortSpec parse(String controlStatements) {
         String controls = controlStatements == null ? "" : controlStatements.replace('\n', ' ').trim();
+        if (Pattern.compile("\\b(?:SUM|INREC|OUTREC|OUTFIL)\\b", Pattern.CASE_INSENSITIVE)
+                .matcher(controls).find())
+            throw new UnsupportedOperationException("Manual action: unsupported SORT transformation clause");
         Matcher fields = FIELDS.matcher(controls);
         if (!fields.find()) throw new UnsupportedOperationException("Manual action: unsupported SORT without FIELDS");
         List<String> tokens = split(fields.group(1));
@@ -32,7 +35,11 @@ public final class SortUtility {
         }
         if (parsedFields.isEmpty()) throw new UnsupportedOperationException("Manual action: unsupported SORT FIELDS subgrammar");
         Matcher filter = FILTER.matcher(controls);
-        Optional<Filter> parsedFilter = filter.find() ? Optional.of(new Filter(filter.group(1).equalsIgnoreCase("OMIT"),
+        boolean declaresFilter = Pattern.compile("\\b(?:INCLUDE|OMIT)\\s+COND=", Pattern.CASE_INSENSITIVE)
+                .matcher(controls).find();
+        if (declaresFilter && !filter.find())
+            throw new UnsupportedOperationException("Manual action: unsupported SORT filter subgrammar");
+        Optional<Filter> parsedFilter = declaresFilter ? Optional.of(new Filter(filter.group(1).equalsIgnoreCase("OMIT"),
                 Integer.parseInt(filter.group(2)), Integer.parseInt(filter.group(3)),
                 Format.valueOf(filter.group(4).toUpperCase(Locale.ROOT)), Operator.valueOf(filter.group(5).toUpperCase(Locale.ROOT)),
                 unquote(filter.group(6).trim()))) : Optional.empty();

@@ -13,8 +13,8 @@
 | `mvn -q -pl renovatio-jcl -am test` | PASS |
 | `mvn -q clean test` | PASS |
 | `git diff --check` | PASS |
-| Surefire aggregate | 1,057 tests, 0 failures, 0 errors, 0 skipped |
-| F7 coverage | 17 tests: 14 JCL, 1 semantic IR, 2 profile |
+| Surefire aggregate | 542 tests, 0 failures, 0 errors, 0 skipped |
+| F7 coverage | 22 tests: 19 JCL, 1 semantic IR, 2 profile |
 
 The full reactor initially exposed two compatibility defects already present in
 the F6 baseline: incomplete `MOVE_CORRESPONDING` projection and a Spring Boot 2
@@ -33,12 +33,12 @@ root.
 | `dd-datasets` | `F7AcceptanceTest`, `BatchJobTest` | PASS — sequential resources mapped and temporary data removed |
 | `missing-proc` | `JclParserTest` | PASS — unresolved PROC is recorded without throwing; known PROC expands with override precedence |
 | `characterization` | `BatchCharacterizationHarness`, `F7AcceptanceTest` | PASS — output records match reference and temporary dataset is absent |
-| `defaults-safe` | root `mvn -q clean test` | PASS — 1,057 repository tests green |
+| `defaults-safe` | root `mvn -q test` | PASS — 542 repository tests green |
 
 ## PR review regression evidence
 
-`ReviewRegressionTest`, `CondClauseTest`, and `JclParserTest` now cover all seven
-findings from PR #165:
+`ReviewRegressionTest`, `CondClauseTest`, and `JclParserTest` now cover all twelve
+findings from the two review rounds on PR #165:
 
 - passed temporary datasets reuse the same `memory:&&name` identity across steps;
 - `DD *` records survive projection and emission as an inspectable inline payload;
@@ -46,7 +46,12 @@ findings from PR #165:
 - the characterization harness evaluates both THEN and ELSE expressions;
 - truth tables cover all valid return codes from 0 through 4095;
 - compound `COND` clauses retain and evaluate every referenced step; and
-- unnamed DD concatenations attach to the preceding named DD in source order.
+- unnamed DD concatenations attach to the preceding named DD in source order;
+- a pending step is flushed when a subsequent JOB card starts;
+- procedure-local COND and IF references receive the invocation namespace;
+- `COND=ONLY` uses the PRIOR success/abend truth-table entries;
+- unsupported SORT transformations are rejected instead of silently ignored; and
+- unsupported IDCAMS controls classify as explicit residue.
 
 ## Additional invariants
 

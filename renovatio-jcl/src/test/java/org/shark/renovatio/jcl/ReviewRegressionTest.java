@@ -3,7 +3,9 @@ package org.shark.renovatio.jcl;
 import org.junit.jupiter.api.Test;
 import org.shark.renovatio.jcl.characterization.BatchCharacterizationHarness;
 import org.shark.renovatio.jcl.emit.SpringBatchBatchEmitter;
+import org.shark.renovatio.jcl.emit.util.SortUtility;
 import org.shark.renovatio.jcl.ir.BatchJobProjection;
+import org.shark.renovatio.jcl.parse.JclJob;
 import org.shark.renovatio.jcl.parse.JclParser;
 import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.semantic.ir.BatchDataset;
@@ -100,6 +102,64 @@ class ReviewRegressionTest {
                 new LinkedHashMap<>(), (step, datasets) -> codes.getOrDefault(step.stepName(), 0));
 
         assertEquals(List.of("S1", "S2"), result.executedSteps());
+    }
+
+    @Test
+    void flushesPendingStepBeforeStartingAnotherJob() {
+        List<JclJob> jobs = new JclParser().parseAll(List.of(new org.shark.renovatio.jcl.parse.JclSource(
+                "batch/jobs.jcl", "//ONE JOB\n//A EXEC PGM=A\n//TWO JOB\n//B EXEC PGM=B\n")));
+        assertEquals(List.of("A"), jobs.get(0).steps().stream().map(step -> step.stepName()).toList());
+        assertEquals(List.of("B"), jobs.get(1).steps().stream().map(step -> step.stepName()).toList());
+    }
+
+    @Test
+    void namespacesProcedureLocalCondAndIfReferences() {
+        JclJob parsed = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/main.jcl",
+                        "//MAINJOB JOB\n//CALL EXEC PROC=FLOW\n"),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/flow.jcl", """
+                        //FLOW PROC
+                        //EARLIER EXEC PGM=A
+                        //LATER EXEC PGM=B,COND=(0,NE,EARLIER)
+                        // IF EARLIER.RC = 0 THEN
+                        //FINAL EXEC PGM=C
+                        // ENDIF
+                        // PEND
+                        """))).stream().filter(job -> job.jobName().equals("MAINJOB")).findFirst().orElseThrow();
+        assertEquals("CALL_EARLIER", parsed.steps().get(1).condition().orElseThrow()
+                .predicates().get(0).referencedStep().orElseThrow());
+        assertEquals("CALL_EARLIER.RC = 0", parsed.steps().get(2).ifExpression().orElseThrow());
+        assertDoesNotThrow(() -> new BatchJobProjection().project(parsed, List.of(), "d".repeat(64)));
+    }
+
+    @Test
+    void characterizationHonorsOnlyAfterNormalCompletion() throws Exception {
+        BatchJob job = project("//ONLYJOB JOB\n//ONE EXEC PGM=A\n//TWO EXEC PGM=B,COND=ONLY\n");
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job, Map.of(),
+                (step, datasets) -> 0);
+        assertEquals(List.of("ONE"), result.executedSteps());
+    }
+
+    @Test
+    void rejectsUnsupportedSortTransformations() {
+        SortUtility sort = new SortUtility();
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.execute(List.of("001", "001"), "SORT FIELDS=(1,3,CH,A) SUM FIELDS=NONE"));
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.parse("SORT FIELDS=(1,3,CH,A) OUTREC FIELDS=(1,3)"));
+    }
+
+    @Test
+    void classifiesUnsupportedIdcamsControlAsResidue() {
+        BatchJob job = project("""
+                //IDCJOB JOB
+                //CAT EXEC PGM=IDCAMS
+                //SYSIN DD *
+                 LISTCAT ENT(TEST.DATA)
+                /*
+                """);
+        assertEquals(org.shark.renovatio.semantic.ir.BatchStep.Kind.RESIDUE, job.steps().get(0).kind());
+        assertTrue(job.steps().get(0).residueReason().orElseThrow().contains("unsupported IDCAMS"));
     }
 
     private static BatchJob project(String jcl) {

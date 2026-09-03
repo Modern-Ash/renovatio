@@ -102,3 +102,7 @@
 - 2026-09-03T11:49:25.574021Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=verified
 - 2026-09-03T11:49:25.870700Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:agent stage=verified
 - 2026-09-03T11:49:26.180230Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-03T11:49:58.361769Z | tool.prepared | run=tool-20260903t11491788446998z tool=repository operation=commit actor=project:agent
+- 2026-09-03T11:49:58.365656Z | tool.running | run=tool-20260903t11491788446998z actor=project:agent
+- 2026-09-03T11:49:58.380610Z | tool.failed | run=tool-20260903t11491788446998z exit-code=128
+- 2026-09-03T12:01:00.461226Z | work.transitioned | from=verifying to=implementing actor=project:agent

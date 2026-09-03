@@ -1,0 +1,31 @@
+---
+schema: "agora/tool-run/v1"
+id: "tool-20260903t11491788446998z"
+tool: "repository"
+operation: "commit"
+actor: "project:agent"
+swarm: "decision-engine-f7"
+work: "f7-renovatio-jcl"
+environment: null
+capability: "repository.write"
+risk: "write"
+inputs: {"message":"chore(agora): record F7 review revalidation"}
+command: ["git","commit","-m","chore(agora): record F7 review revalidation"]
+runtime-available: true
+status: "failed"
+result-kind: "repository-change"
+timeout-seconds: 300
+max-output-bytes: 1048576
+authentication-reference: "local-git-configuration"
+created-at: "2026-09-03T11:49:58.360534Z"
+exit-code: 128
+authentication-verified: false
+authentication-fingerprint: null
+authentication-public-key: null
+authorization-sha256: null
+authorization-signature: null
+---
+
+# Tool run tool-20260903t11491788446998z
+
+This record contains invocation metadata, not credentials. Authentication is resolved by the external executable and its environment.

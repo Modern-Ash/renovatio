@@ -41,6 +41,15 @@ public final class BatchCharacterizationHarness {
                 if (!IfExpression.evaluate(guard.predicate(), returnCodes)) return false;
                 continue;
             }
+            if (guard.truthTable().containsKey("PRIOR=SUCCESS")) {
+                Integer priorReturnCode = returnCodes.isEmpty() ? null : returnCodes.values().stream()
+                        .reduce((previous, current) -> current).orElse(null);
+                String priorState = priorReturnCode != null && priorReturnCode < 0
+                        ? "PRIOR=ABEND" : "PRIOR=SUCCESS";
+                Boolean run = guard.truthTable().get(priorState);
+                if (run != null && !run) return false;
+                continue;
+            }
             if (guard.referencedStepId().isEmpty()) continue;
             BatchStep referenced = job.steps().stream()
                     .filter(value -> value.id().equals(guard.referencedStepId().get())).findFirst().orElseThrow();

@@ -24,14 +24,28 @@ public final class StepClassifier {
         }
         Optional<String> utility = step.execKind() == JclStep.ExecKind.PROGRAM
                 ? utilities.recognize(executable) : Optional.empty();
+        if (utility.filter("IDCAMS"::equals).isPresent() && !supportedIdcamsControl(step)) utility = Optional.empty();
         if (utility.isPresent()) {
             return new Classification(BatchStep.Kind.STANDARD_UTILITY,
                     Optional.empty(), utility, Optional.empty());
         }
-        String reason = step.execKind() == JclStep.ExecKind.PROC
+        String reason = executable.equals("IDCAMS")
+                ? "Manual action: unsupported IDCAMS control statement"
+                : step.execKind() == JclStep.ExecKind.PROC
                 ? "Manual action: resolve catalogued PROC " + executable
                 : "Manual action: classify unsupported batch program " + executable;
         return new Classification(BatchStep.Kind.RESIDUE, Optional.empty(), Optional.empty(), Optional.of(reason));
+    }
+
+    private static boolean supportedIdcamsControl(JclStep step) {
+        Optional<String> controls = step.ddStatements().stream()
+                .filter(dd -> dd.ddName().equalsIgnoreCase("SYSIN"))
+                .flatMap(dd -> dd.instreamData().stream())
+                .map(String::trim).filter(value -> !value.isEmpty() && !value.startsWith("/*"))
+                .findFirst();
+        if (controls.isEmpty()) return true;
+        String operation = controls.orElseThrow().split("\\s+", 2)[0].toUpperCase(Locale.ROOT);
+        return Set.of("REPRO", "DELETE", "DEFINE").contains(operation);
     }
 
     public record Classification(BatchStep.Kind kind, Optional<String> programRef,

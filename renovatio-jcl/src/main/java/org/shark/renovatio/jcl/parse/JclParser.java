@@ -45,7 +45,10 @@ public final class JclParser {
                 case "PROC" -> inProc = true;
                 case "PEND" -> inProc = false;
                 case "JOB" -> {
-                    if (job != null) result.add(job.build());
+                    if (job != null) {
+                        if (step != null) job.steps.add(step.build());
+                        result.add(job.build());
+                    }
                     job = new JobBuilder(statement.name(), source.path(), sha256(source.content()));
                     step = null;
                 }
@@ -94,6 +97,11 @@ public final class JclParser {
         symbols.putAll(procedure.defaults);
         symbols.putAll(call.parameters);
         List<JclStep> result = new ArrayList<>();
+        java.util.Set<String> localStepNames = procedure.statements.stream()
+                .filter(statement -> statement.operation().equals("EXEC"))
+                .map(JclLexer.Statement::name)
+                .map(value -> value.toUpperCase(Locale.ROOT))
+                .collect(java.util.stream.Collectors.toUnmodifiableSet());
         StepBuilder current = null;
         String nestedIf = call.ifExpression.orElse(null);
         for (JclLexer.Statement statement : procedure.statements) {
@@ -108,6 +116,7 @@ public final class JclParser {
                             call.stepName + "_" + statement.name(), statement.operation(), statement.operands(),
                             statement.line(), statement.instreamData());
                     current = parseExec(named, symbols, nestedIf);
+                    current = namespaceProcReferences(current, call.stepName, localStepNames);
                     if (current.execKind == JclStep.ExecKind.PROC) {
                         ProcDefinition nested = procedures.get(current.executable);
                         if (nested != null && depth < 1) {
@@ -127,6 +136,25 @@ public final class JclParser {
         }
         if (current != null) result.add(current.build());
         return result;
+    }
+
+    private static StepBuilder namespaceProcReferences(StepBuilder step, String invocation,
+                                                        java.util.Set<String> localStepNames) {
+        Optional<CondClause> condition = step.condition.map(value -> new CondClause(value.kind(),
+                value.predicates().stream().map(predicate -> new CondClause.Predicate(predicate.code(),
+                        predicate.operator(), predicate.referencedStep().map(reference -> localStepNames.contains(reference)
+                                ? invocation + "_" + reference : reference))).toList(), value.source()));
+        Optional<String> ifExpression = step.ifExpression.map(expression -> {
+            String namespaced = expression;
+            for (String local : localStepNames) namespaced = namespaced.replaceAll(
+                    "(?i)(?<![A-Z0-9_$#@-])" + java.util.regex.Pattern.quote(local) + "(?=\\.RC\\b)",
+                    java.util.regex.Matcher.quoteReplacement(invocation + "_" + local));
+            return namespaced;
+        });
+        StepBuilder namespaced = new StepBuilder(step.stepName, step.execKind, step.executable, condition,
+                ifExpression, step.parameters, step.line);
+        namespaced.dds.addAll(step.dds);
+        return namespaced;
     }
 
     private static StepBuilder parseExec(JclLexer.Statement statement, Map<String, String> symbols,

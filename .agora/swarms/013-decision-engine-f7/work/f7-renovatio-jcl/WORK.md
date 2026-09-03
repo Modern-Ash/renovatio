@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "f7-renovatio-jcl"
 swarm: "decision-engine-f7"
 title: "F7 \u00b7 renovatio-jcl: batch orchestration (issue #153)"
-state: "verifying"
+state: "implementing"
 revision: 2
 operational-status: "active"
 status-reason: null
