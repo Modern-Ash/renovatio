@@ -170,7 +170,7 @@
       "type": "object", "additionalProperties": false,
       "required": ["construction", "interpretation", "assumptions"],
       "properties": {
-        "construction": { "enum": ["REDEFINES", "OCCURS_DEPENDING_ON"] },
+        "construction": { "enum": ["REDEFINES", "OCCURS_DEPENDING_ON", "MOVE_CORRESPONDING"] },
         "interpretation": { "$ref": "#/$defs/nonblank" }, "assumptions": { "$ref": "#/$defs/stringList" }
       }
     },

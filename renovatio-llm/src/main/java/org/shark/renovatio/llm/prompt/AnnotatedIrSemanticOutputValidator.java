@@ -68,7 +68,7 @@ final class AnnotatedIrSemanticOutputValidator {
         return switch (appliesTo) {
             case "DOMAIN_NAMING" -> AnnotationFamily.DOMAIN_NAMING;
             case "CONTROL_FLOW_PLAN" -> AnnotationFamily.CONTROL_FLOW_PLAN;
-            case "DATA_INTENT.REDEFINES", "DATA_INTENT.OCCURS_DEPENDING_ON" -> AnnotationFamily.DATA_INTENT;
+            case "DATA_INTENT.REDEFINES", "DATA_INTENT.OCCURS_DEPENDING_ON", "DATA_INTENT.MOVE_CORRESPONDING" -> AnnotationFamily.DATA_INTENT;
             case "UNSUPPORTED_EXPLANATION" -> AnnotationFamily.UNSUPPORTED_EXPLANATION;
             default -> throw new IllegalArgumentException("Unsupported annotation family");
         };
