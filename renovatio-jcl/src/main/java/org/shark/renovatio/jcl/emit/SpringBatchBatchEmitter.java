@@ -53,7 +53,8 @@ public final class SpringBatchBatchEmitter implements BatchEmitter {
                 .append("(JobRepository jobs, PlatformTransactionManager transactions, MigratedProgramInvoker programs, BatchRuntime runtime) {\n")
                 .append("    this.jobs = jobs; this.transactions = transactions; this.programs = programs; this.runtime = runtime;\n  }\n\n");
 
-        for (BatchStep step : job.steps()) emitStep(out, step, guards(job, step), datasets(job, step));
+        for (BatchStep step : job.steps())
+            emitStep(out, step, guards(job, step), datasets(job, step), job.jobId());
         out.append("  @Bean\n  public Job ").append(javaIdentifier(job.jobId())).append("Job() {\n")
                 .append("    return new JobBuilder(\"").append(escape(job.jobId())).append("\", jobs)");
         if (job.steps().isEmpty()) out.append(".preventRestart()") ;
@@ -74,12 +75,12 @@ public final class SpringBatchBatchEmitter implements BatchEmitter {
     }
 
     private static void emitStep(StringBuilder out, BatchStep step, List<ConditionGraph.Guard> guards,
-                                 List<BatchDataset> datasets) {
+                                 List<BatchDataset> datasets, String jobId) {
         out.append("  @Bean\n  public Step ").append(method(step)).append("() {\n")
                 .append("    return new StepBuilder(\"").append(escape(step.stepName())).append("\", jobs).tasklet((contribution, context) -> {\n");
         for (ConditionGraph.Guard guard : guards)
             out.append("      if (!runtime.shouldRun(\"").append(escape(guard.predicate())).append("\", context)) return org.springframework.batch.repeat.RepeatStatus.FINISHED;\n");
-        String resources = resourceMap(datasets);
+        String resources = resourceMap(datasets, jobId);
         switch (step.kind()) {
             case MIGRATED_PROGRAM_CALL -> out.append("      int returnCode = programs.run(\"").append(escape(step.programRef().orElseThrow()))
                     .append("\", ").append(resources).append(");\n");
@@ -105,14 +106,14 @@ public final class SpringBatchBatchEmitter implements BatchEmitter {
         return job.datasets().stream().filter(value -> step.datasetRefs().contains(value.id())).toList();
     }
 
-    private static String resourceMap(List<BatchDataset> datasets) {
+    private static String resourceMap(List<BatchDataset> datasets, String jobId) {
         if (datasets.isEmpty()) return "java.util.Map.of()";
         List<String> entries = new ArrayList<>();
         for (BatchDataset dataset : datasets) {
             List<String> resources = new ArrayList<>();
-            resources.add(resource(dataset, dataset.resourceReference(), dataset.inlineRecords()));
+            resources.add(resource(dataset, dataset.resourceReference(), dataset.inlineRecords(), jobId));
             dataset.concatenations().forEach(part ->
-                    resources.add(resource(dataset, part.resourceReference(), part.inlineRecords())));
+                    resources.add(resource(dataset, part.resourceReference(), part.inlineRecords(), jobId)));
             String values = resources.stream().map(value -> "\"" + escape(value) + "\"")
                     .reduce((left, right) -> left + ", " + right).orElseThrow();
             entries.add("java.util.Map.entry(\"" + escape(dataset.ddName()) + "\", java.util.List.of(" + values + "))");
@@ -121,12 +122,14 @@ public final class SpringBatchBatchEmitter implements BatchEmitter {
     }
 
     private static String resource(BatchDataset dataset, java.util.Optional<String> reference,
-                                   List<String> inlineRecords) {
+                                   List<String> inlineRecords, String jobId) {
         if (!inlineRecords.isEmpty()) return "inline-base64:" + Base64.getEncoder().encodeToString(
                 String.join("\n", inlineRecords).getBytes(StandardCharsets.UTF_8));
+        // Temporary datasets are scoped to one job so `&&TEMP` in different jobs (or concurrent
+        // runs of the same job, keyed further downstream) never share an in-memory resource.
         if (reference.filter(value -> value.startsWith("&&")).isPresent()
                 || dataset.access() == BatchDataset.AccessKind.TEMP)
-            return "memory:" + reference.orElse(dataset.id());
+            return "memory:" + jobId + "/" + reference.orElse(dataset.id());
         return reference.orElse(dataset.ddName());
     }
 

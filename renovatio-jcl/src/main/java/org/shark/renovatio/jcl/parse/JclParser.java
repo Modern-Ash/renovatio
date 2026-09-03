@@ -103,19 +103,23 @@ public final class JclParser {
                 .map(value -> value.toUpperCase(Locale.ROOT))
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
         StepBuilder current = null;
-        String nestedIf = call.ifExpression.orElse(null);
+        // Base frame = the invocation-level IF; procedure-internal IF/ELSE scopes stack on top and
+        // are AND-combined, so a nested block never drops the invocation or an enclosing guard.
+        java.util.ArrayDeque<String> ifStack = new java.util.ArrayDeque<>();
+        call.ifExpression.ifPresent(ifStack::push);
+        int baseFrames = ifStack.size();
         for (JclLexer.Statement statement : procedure.statements) {
             switch (statement.operation()) {
                 case "SET" -> symbols.putAll(assignments(statement.operands(), symbols));
-                case "IF" -> nestedIf = stripThen(substitute(statement.operands(), symbols));
-                case "ELSE" -> { if (nestedIf != null) nestedIf = "NOT (" + nestedIf + ")"; }
-                case "ENDIF" -> nestedIf = call.ifExpression.orElse(null);
+                case "IF" -> ifStack.push(stripThen(substitute(statement.operands(), symbols)));
+                case "ELSE" -> { if (ifStack.size() > baseFrames) ifStack.push("NOT (" + ifStack.pop() + ")"); }
+                case "ENDIF" -> { if (ifStack.size() > baseFrames) ifStack.pop(); }
                 case "EXEC" -> {
                     if (current != null) result.add(current.build());
                     JclLexer.Statement named = new JclLexer.Statement(
                             call.stepName + "_" + statement.name(), statement.operation(), statement.operands(),
                             statement.line(), statement.instreamData());
-                    current = parseExec(named, symbols, nestedIf);
+                    current = parseExec(named, symbols, combinedIf(ifStack));
                     current = namespaceProcReferences(current, call.stepName, localStepNames);
                     current = applyInvocationCondition(current, call.condition);
                     if (current.execKind == JclStep.ExecKind.PROC) {

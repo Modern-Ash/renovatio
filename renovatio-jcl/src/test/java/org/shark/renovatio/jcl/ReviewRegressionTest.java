@@ -45,7 +45,9 @@ class ReviewRegressionTest {
         assertEquals("SECOND.DATA", files.concatenations().get(0).resourceReference().orElseThrow());
 
         String source = emit(job);
-        assertEquals(2, occurrences(source, "memory:&&TEMP"));
+        // Producer and consumer share one key within the job; the job id namespaces it.
+        assertEquals(2, occurrences(source, "memory:DATAJOB/&&TEMP"));
+        assertEquals(0, occurrences(source, "\"memory:&&TEMP\""));
         String encoded = Base64.getEncoder().encodeToString(String.join("\n", sysin.inlineRecords())
                 .getBytes(StandardCharsets.UTF_8));
         assertTrue(source.contains("inline-base64:" + encoded));
@@ -235,6 +237,47 @@ class ReviewRegressionTest {
                 new LinkedHashMap<>(), (step, datasets) -> step.stepName().equals("A") ? 8 : 0);
 
         assertEquals(List.of("A", "E"), result.executedSteps());
+    }
+
+    @Test
+    void procInternalIfKeepsTheInvocationGuardActive() {
+        JclJob job = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/m.jcl",
+                        "//MJOB JOB\n//PRE EXEC PGM=PRE\n// IF (PRE.RC = 0) THEN\n//CALL EXEC PROC=FLOW\n// ENDIF\n"),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/flow.jcl", """
+                        //FLOW PROC
+                        //A EXEC PGM=A
+                        // IF A.RC = 0 THEN
+                        //B EXEC PGM=B
+                        // ENDIF
+                        // PEND
+                        """)))
+                .stream().filter(j -> j.jobName().equals("MJOB")).findFirst().orElseThrow();
+        String bGuard = job.steps().get(2).ifExpression().orElseThrow();
+        assertTrue(bGuard.contains("PRE.RC"), bGuard);
+        assertTrue(bGuard.contains("CALL_A.RC"), bGuard);
+    }
+
+    @Test
+    void sortStepWithUnsupportedControlCardClassifiesAsResidue() {
+        BatchJob job = project("""
+                //SRTJOB JOB
+                //S EXEC PGM=SORT
+                //SYSIN DD *
+                 SORT FIELDS=(1,3,CH,A)
+                 SUM FIELDS=NONE
+                /*
+                """);
+        assertEquals(org.shark.renovatio.semantic.ir.BatchStep.Kind.RESIDUE, job.steps().get(0).kind());
+    }
+
+    @Test
+    void temporaryKeysAreNamespacedPerJob() {
+        String a = emit(project("//JOBA JOB\n//W EXEC PGM=SORT\n//O DD DSN=&&T,DISP=(NEW,PASS)\n//R EXEC PGM=IEBGENER\n//I DD DSN=&&T,DISP=(OLD,PASS)\n"));
+        String b = emit(project("//JOBB JOB\n//W EXEC PGM=SORT\n//O DD DSN=&&T,DISP=(NEW,PASS)\n//R EXEC PGM=IEBGENER\n//I DD DSN=&&T,DISP=(OLD,PASS)\n"));
+        assertTrue(a.contains("memory:JOBA/&&T"));
+        assertTrue(b.contains("memory:JOBB/&&T"));
+        assertEquals(0, occurrences(a, "memory:JOBB/"));
     }
 
     @Test
