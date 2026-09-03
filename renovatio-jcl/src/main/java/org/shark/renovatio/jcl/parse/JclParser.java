@@ -38,7 +38,7 @@ public final class JclParser {
         List<JclJob> result = new ArrayList<>();
         JobBuilder job = null;
         StepBuilder step = null;
-        String ifExpression = null;
+        java.util.ArrayDeque<String> ifStack = new java.util.ArrayDeque<>();
         boolean inProc = false;
         for (JclLexer.Statement statement : statements) {
             switch (statement.operation()) {
@@ -55,13 +55,13 @@ public final class JclParser {
                 case "SET" -> {
                     if (job != null) job.symbols.putAll(assignments(statement.operands(), job.symbols));
                 }
-                case "IF" -> { if (job != null && !inProc) ifExpression = stripThen(substitute(statement.operands(), job.symbols)); }
-                case "ELSE" -> { if (ifExpression != null) ifExpression = "NOT (" + ifExpression + ")"; }
-                case "ENDIF" -> ifExpression = null;
+                case "IF" -> { if (job != null && !inProc) ifStack.push(stripThen(substitute(statement.operands(), job.symbols))); }
+                case "ELSE" -> { if (!ifStack.isEmpty()) ifStack.push("NOT (" + ifStack.pop() + ")"); }
+                case "ENDIF" -> { if (!ifStack.isEmpty()) ifStack.pop(); }
                 case "EXEC" -> {
                     if (job == null || inProc) break;
                     if (step != null) job.steps.add(step.build());
-                    StepBuilder parsed = parseExec(statement, job.symbols, ifExpression);
+                    StepBuilder parsed = parseExec(statement, job.symbols, combinedIf(ifStack));
                     if (parsed.execKind == JclStep.ExecKind.PROC) {
                         ProcDefinition proc = procedures.get(parsed.executable);
                         if (proc == null) {
@@ -299,6 +299,16 @@ public final class JclParser {
                     java.util.regex.Matcher.quoteReplacement(entry.getValue()));
         }
         return result;
+    }
+
+    /** AND-combines every still-open IF/ELSE scope so nested blocks keep the outer guard. */
+    private static String combinedIf(java.util.Deque<String> ifStack) {
+        if (ifStack.isEmpty()) return null;
+        if (ifStack.size() == 1) return ifStack.peek();
+        List<String> frames = new ArrayList<>(ifStack);
+        java.util.Collections.reverse(frames);
+        return frames.stream().map(frame -> "(" + frame + ")")
+                .collect(java.util.stream.Collectors.joining(" AND "));
     }
 
     private static String stripThen(String expression) {

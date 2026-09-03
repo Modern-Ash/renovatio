@@ -216,6 +216,28 @@ class ReviewRegressionTest {
     }
 
     @Test
+    void nestedIfScopesKeepTheOuterGuardActive() throws Exception {
+        BatchJob job = project("""
+                //NESTJOB JOB
+                //A EXEC PGM=A
+                // IF (A.RC = 0) THEN
+                //B EXEC PGM=B
+                // IF (B.RC = 0) THEN
+                //C EXEC PGM=C
+                // ENDIF
+                //D EXEC PGM=D
+                // ENDIF
+                //E EXEC PGM=E
+                """);
+
+        // A fails: the outer IF is false, so B, C and D are all bypassed; E always runs.
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job,
+                new LinkedHashMap<>(), (step, datasets) -> step.stepName().equals("A") ? 8 : 0);
+
+        assertEquals(List.of("A", "E"), result.executedSteps());
+    }
+
+    @Test
     void classifiesUnsupportedIdcamsControlAsResidue() {
         BatchJob job = project("""
                 //IDCJOB JOB
