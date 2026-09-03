@@ -106,3 +106,5 @@
 - 2026-09-03T11:49:58.365656Z | tool.running | run=tool-20260903t11491788446998z actor=project:agent
 - 2026-09-03T11:49:58.380610Z | tool.failed | run=tool-20260903t11491788446998z exit-code=128
 - 2026-09-03T12:01:00.461226Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-03T12:03:21.828148Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-03T12:03:39.833955Z | evidence.added | id=evidence-000004 type=review-revalidation result=success revision=2 actor=project:agent
