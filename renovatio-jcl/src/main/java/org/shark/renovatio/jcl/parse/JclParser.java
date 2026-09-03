@@ -52,7 +52,7 @@ public final class JclParser {
                 case "SET" -> {
                     if (job != null) job.symbols.putAll(assignments(statement.operands(), job.symbols));
                 }
-                case "IF" -> { if (job != null && !inProc) ifExpression = substitute(statement.operands(), job.symbols); }
+                case "IF" -> { if (job != null && !inProc) ifExpression = stripThen(substitute(statement.operands(), job.symbols)); }
                 case "ELSE" -> { if (ifExpression != null) ifExpression = "NOT (" + ifExpression + ")"; }
                 case "ENDIF" -> ifExpression = null;
                 case "EXEC" -> {
@@ -75,7 +75,7 @@ public final class JclParser {
                 }
                 case "DD" -> {
                     if (step != null && job != null && !inProc)
-                        step.dds.add(parseDd(statement, job.symbols));
+                        appendDd(step.dds, statement, job.symbols);
                 }
                 default -> { }
             }
@@ -99,7 +99,7 @@ public final class JclParser {
         for (JclLexer.Statement statement : procedure.statements) {
             switch (statement.operation()) {
                 case "SET" -> symbols.putAll(assignments(statement.operands(), symbols));
-                case "IF" -> nestedIf = substitute(statement.operands(), symbols);
+                case "IF" -> nestedIf = stripThen(substitute(statement.operands(), symbols));
                 case "ELSE" -> { if (nestedIf != null) nestedIf = "NOT (" + nestedIf + ")"; }
                 case "ENDIF" -> nestedIf = call.ifExpression.orElse(null);
                 case "EXEC" -> {
@@ -120,7 +120,7 @@ public final class JclParser {
                     }
                 }
                 case "DD" -> {
-                    if (current != null) current.dds.add(parseDd(statement, symbols));
+                    if (current != null) appendDd(current.dds, statement, symbols);
                 }
                 default -> { }
             }
@@ -148,12 +148,29 @@ public final class JclParser {
     }
 
     private static DdStatement parseDd(JclLexer.Statement statement, Map<String, String> symbols) {
+        if (statement.name().isBlank()) throw new IllegalArgumentException("unnamed DD requires a preceding named DD");
         String operands = substitute(statement.operands(), symbols);
         Map<String, String> values = assignments(operands, symbols);
         Optional<String> dsn = Optional.ofNullable(values.get("DSN"));
         String disposition = values.getOrDefault("DISP", "");
         boolean sysout = values.containsKey("SYSOUT") || statement.name().equals("SYSOUT");
         return new DdStatement(statement.name(), dsn, disposition, sysout, statement.instreamData(), values);
+    }
+
+    private static void appendDd(List<DdStatement> statements, JclLexer.Statement statement,
+                                 Map<String, String> symbols) {
+        if (!statement.name().isBlank()) {
+            statements.add(parseDd(statement, symbols));
+            return;
+        }
+        if (statements.isEmpty()) throw new IllegalArgumentException("unnamed DD requires a preceding named DD");
+        String operands = substitute(statement.operands(), symbols);
+        Map<String, String> values = assignments(operands, symbols);
+        DdStatement.Concatenation part = new DdStatement.Concatenation(
+                Optional.ofNullable(values.get("DSN")), values.getOrDefault("DISP", ""),
+                statement.instreamData(), values);
+        int last = statements.size() - 1;
+        statements.set(last, statements.get(last).append(part));
     }
 
     private static Optional<String> extractCond(String operands) {
@@ -218,6 +235,10 @@ public final class JclParser {
             result = result.replace("&" + entry.getKey() + ".", entry.getValue())
                     .replace("&" + entry.getKey(), entry.getValue());
         return result;
+    }
+
+    private static String stripThen(String expression) {
+        return expression.replaceFirst("(?i)\\s+THEN\\s*$", "").trim();
     }
 
     private static String firstToken(String value) {

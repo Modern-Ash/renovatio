@@ -2,7 +2,7 @@
 
 - Work: `decision-engine-f7/f7-renovatio-jcl`
 - Baseline: `a02f247e`
-- Verification date: 2026-09-02
+- Verification date: 2026-09-03
 - Runtime: Java 21, Maven reactor
 - Result: **PASS**
 
@@ -11,10 +11,10 @@
 | Check | Result |
 |---|---|
 | `mvn -q -pl renovatio-jcl -am test` | PASS |
-| `mvn -q test` | PASS |
+| `mvn -q clean test` | PASS |
 | `git diff --check` | PASS |
-| Surefire aggregate | 531 tests, 0 failures, 0 errors, 0 skipped |
-| New F7 coverage | 11 tests: 8 JCL, 1 semantic IR, 2 profile |
+| Surefire aggregate | 1,057 tests, 0 failures, 0 errors, 0 skipped |
+| F7 coverage | 17 tests: 14 JCL, 1 semantic IR, 2 profile |
 
 The full reactor initially exposed two compatibility defects already present in
 the F6 baseline: incomplete `MOVE_CORRESPONDING` projection and a Spring Boot 2
@@ -33,7 +33,20 @@ root.
 | `dd-datasets` | `F7AcceptanceTest`, `BatchJobTest` | PASS — sequential resources mapped and temporary data removed |
 | `missing-proc` | `JclParserTest` | PASS — unresolved PROC is recorded without throwing; known PROC expands with override precedence |
 | `characterization` | `BatchCharacterizationHarness`, `F7AcceptanceTest` | PASS — output records match reference and temporary dataset is absent |
-| `defaults-safe` | root `mvn -q test` | PASS — 531 repository tests green |
+| `defaults-safe` | root `mvn -q clean test` | PASS — 1,057 repository tests green |
+
+## PR review regression evidence
+
+`ReviewRegressionTest`, `CondClauseTest`, and `JclParserTest` now cover all seven
+findings from PR #165:
+
+- passed temporary datasets reuse the same `memory:&&name` identity across steps;
+- `DD *` records survive projection and emission as an inspectable inline payload;
+- program and utility return codes are persisted for later Spring Batch guards;
+- the characterization harness evaluates both THEN and ELSE expressions;
+- truth tables cover all valid return codes from 0 through 4095;
+- compound `COND` clauses retain and evaluate every referenced step; and
+- unnamed DD concatenations attach to the preceding named DD in source order.
 
 ## Additional invariants
 

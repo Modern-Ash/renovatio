@@ -7,7 +7,9 @@ import org.shark.renovatio.semantic.ir.BatchJob;
 import org.shark.renovatio.semantic.ir.BatchStep;
 import org.shark.renovatio.semantic.ir.ConditionGraph;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -33,6 +35,7 @@ public final class SpringBatchBatchEmitter implements BatchEmitter {
     private static String source(BatchJob job, String className) {
         StringBuilder out = new StringBuilder();
         out.append("package generated.batch;\n\n")
+                .append("import org.springframework.batch.core.ExitStatus;\n")
                 .append("import org.springframework.batch.core.Job;\n")
                 .append("import org.springframework.batch.core.Step;\n")
                 .append("import org.springframework.batch.core.job.builder.JobBuilder;\n")
@@ -60,10 +63,10 @@ public final class SpringBatchBatchEmitter implements BatchEmitter {
                 out.append(".next(").append(method(job.steps().get(index))).append("())");
         }
         out.append(".build();\n  }\n\n")
-                .append("  public interface MigratedProgramInvoker { void run(String program, java.util.Map<String,String> resources) throws Exception; }\n")
+                .append("  public interface MigratedProgramInvoker { int run(String program, java.util.Map<String,java.util.List<String>> resources) throws Exception; }\n")
                 .append("  public interface BatchRuntime {\n")
                 .append("    boolean shouldRun(String predicate, org.springframework.batch.core.scope.context.ChunkContext context);\n")
-                .append("    void utility(String utility, java.util.Map<String,String> resources) throws Exception;\n  }\n")
+                .append("    int utility(String utility, java.util.Map<String,java.util.List<String>> resources) throws Exception;\n  }\n")
                 .append("  public static final class UnsupportedResidueException extends RuntimeException {\n")
                 .append("    public UnsupportedResidueException(String message) { super(message); }\n  }\n")
                 .append("}\n");
@@ -78,15 +81,19 @@ public final class SpringBatchBatchEmitter implements BatchEmitter {
             out.append("      if (!runtime.shouldRun(\"").append(escape(guard.predicate())).append("\", context)) return org.springframework.batch.repeat.RepeatStatus.FINISHED;\n");
         String resources = resourceMap(datasets);
         switch (step.kind()) {
-            case MIGRATED_PROGRAM_CALL -> out.append("      programs.run(\"").append(escape(step.programRef().orElseThrow()))
+            case MIGRATED_PROGRAM_CALL -> out.append("      int returnCode = programs.run(\"").append(escape(step.programRef().orElseThrow()))
                     .append("\", ").append(resources).append(");\n");
-            case STANDARD_UTILITY -> out.append("      runtime.utility(\"").append(escape(step.utility().orElseThrow()))
+            case STANDARD_UTILITY -> out.append("      int returnCode = runtime.utility(\"").append(escape(step.utility().orElseThrow()))
                     .append("\", ").append(resources).append(");\n");
             case RESIDUE -> out.append("      throw new UnsupportedResidueException(\"")
                     .append(escape(step.residueReason().orElseThrow())).append("\");\n");
         }
-        if (step.kind() != BatchStep.Kind.RESIDUE)
-            out.append("      return org.springframework.batch.repeat.RepeatStatus.FINISHED;\n");
+        if (step.kind() != BatchStep.Kind.RESIDUE) {
+            out.append("      context.getStepContext().getStepExecution().getJobExecution().getExecutionContext().putInt(\"")
+                    .append(escape(step.stepName())).append(".RC\", returnCode);\n")
+                    .append("      contribution.setExitStatus(new ExitStatus(\"RC=\" + returnCode));\n")
+                    .append("      return org.springframework.batch.repeat.RepeatStatus.FINISHED;\n");
+        }
         out.append("    }, transactions).build();\n  }\n\n");
     }
 
@@ -102,11 +109,25 @@ public final class SpringBatchBatchEmitter implements BatchEmitter {
         if (datasets.isEmpty()) return "java.util.Map.of()";
         List<String> entries = new ArrayList<>();
         for (BatchDataset dataset : datasets) {
-            String resource = dataset.access() == BatchDataset.AccessKind.TEMP
-                    ? "memory:" + dataset.id() : dataset.resourceReference().orElse(dataset.ddName());
-            entries.add("java.util.Map.entry(\"" + escape(dataset.ddName()) + "\", \"" + escape(resource) + "\")");
+            List<String> resources = new ArrayList<>();
+            resources.add(resource(dataset, dataset.resourceReference(), dataset.inlineRecords()));
+            dataset.concatenations().forEach(part ->
+                    resources.add(resource(dataset, part.resourceReference(), part.inlineRecords())));
+            String values = resources.stream().map(value -> "\"" + escape(value) + "\"")
+                    .reduce((left, right) -> left + ", " + right).orElseThrow();
+            entries.add("java.util.Map.entry(\"" + escape(dataset.ddName()) + "\", java.util.List.of(" + values + "))");
         }
         return "java.util.Map.ofEntries(" + String.join(", ", entries) + ")";
+    }
+
+    private static String resource(BatchDataset dataset, java.util.Optional<String> reference,
+                                   List<String> inlineRecords) {
+        if (!inlineRecords.isEmpty()) return "inline-base64:" + Base64.getEncoder().encodeToString(
+                String.join("\n", inlineRecords).getBytes(StandardCharsets.UTF_8));
+        if (reference.filter(value -> value.startsWith("&&")).isPresent()
+                || dataset.access() == BatchDataset.AccessKind.TEMP)
+            return "memory:" + reference.orElse(dataset.id());
+        return reference.orElse(dataset.ddName());
     }
 
     private static String method(BatchStep step) { return javaIdentifier(step.stepName()) + "Step"; }

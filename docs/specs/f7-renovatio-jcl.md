@@ -97,8 +97,8 @@ single neutral model; everything else is in `renovatio-jcl`.
 |---|---|
 | `jobId` | normalized from the `JOB` card name |
 | `steps` | ordered `List<BatchStep>`; id = hash(jobId, stepName, ordinal) |
-| `datasets` | ordered `List<BatchDataset>`; ddName, access (`SEQ_IN`, `SEQ_OUT`, `VSAM`, `TEMP`, `STDIO`), resourceReference |
-| `conditionGraph` | ordered guarded groups: `Guard { predicate, referencedStep, truthTable }` → member step ids |
+| `datasets` | ordered `List<BatchDataset>`; ddName, access (`SEQ_IN`, `SEQ_OUT`, `VSAM`, `TEMP`, `STDIO`), resourceReference, in-stream records and ordered concatenated resource parts |
+| `conditionGraph` | ordered guarded groups: `Guard { predicate, referencedStep, truthTable }` → member step ids; compound `COND` clauses emit one guard per predicate/reference |
 | `sourceProvenance` | source path + span, matching `SemanticProgram` convention |
 
 `BatchStep`: `id`, `stepName`, `kind`, `programRef` (nullable), `utility`
@@ -110,7 +110,7 @@ For `COND=(code,op)` on a step: skip the step when `returnCode op code` is true
 (`op` ∈ `GT GE EQ LT LE NE`). `COND=EVEN` / `COND=ONLY` handled explicitly.
 `COND=(0,NE,STEP1)` references a specific prior step. The projection produces,
 for each step, a normalized boolean expression over prior return codes plus a
-rendered truth table (all relevant RC values → run/skip) that is attached as
+rendered truth table (every RC from 0 through 4095 → run/skip) that is attached as
 evidence and shown in the UI diff. Tests cover every operator and the
 `EVEN`/`ONLY` cases.
 
@@ -122,10 +122,12 @@ evidence and shown in the UI diff. Tests cover every operator and the
   `STANDARD_UTILITY` → utility template tasklet/chunk. `RESIDUE` → a tasklet that
   throws `UnsupportedResidueException` with the action-item text (never a silent
   no-op).
-- `conditionGraph` → Spring Batch flow with `on(...).to(...)` transitions derived
-  from the truth table; the exit status of each step exposes its return code.
+- `conditionGraph` → guarded Spring Batch tasklets derived from the truth table;
+  each program/utility returns its JCL return code, which is written both to the
+  step `ExitStatus` and the job `ExecutionContext` for later guards.
 - `DD` resources → `FlatFileItemReader`/`Writer` (SEQ), repository (VSAM, via F4),
-  `ByteArrayResource`/temp path (TEMP).
+  `inline-base64:` descriptors for `DD *` records, ordered descriptor lists for
+  concatenated DDs, and a shared `memory:&&name` identity for passed temp data.
 - Golden-file tests compare generated sources byte-for-byte against
   `src/test/resources/golden/`.
 

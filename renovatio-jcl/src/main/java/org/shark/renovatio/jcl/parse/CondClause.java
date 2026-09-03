@@ -9,7 +9,7 @@ import java.util.Optional;
 
 /** JCL COND semantics: a normal condition skips the step when any predicate is true. */
 public record CondClause(Kind kind, List<Predicate> predicates, String source) {
-    private static final List<Integer> REPRESENTATIVE_RETURN_CODES = List.of(0, 4, 8, 12, 16);
+    private static final int MAX_RETURN_CODE = 4095;
 
     public CondClause {
         if (kind == null) throw new NullPointerException("kind");
@@ -68,30 +68,19 @@ public record CondClause(Kind kind, List<Predicate> predicates, String source) {
             result.put("PRIOR=SUCCESS", false);
             result.put("PRIOR=ABEND", true);
         } else {
-            appendRows(result, new LinkedHashMap<>(), 0);
+            LinkedHashMap<String, List<Predicate>> grouped = new LinkedHashMap<>();
+            for (Predicate predicate : predicates)
+                grouped.computeIfAbsent(predicate.referencedStep().orElse("ANY"), ignored -> new ArrayList<>())
+                        .add(predicate);
+            grouped.forEach((label, matching) -> {
+                for (int rc = 0; rc <= MAX_RETURN_CODE; rc++) {
+                    int returnCode = rc;
+                    boolean skip = matching.stream().anyMatch(predicate -> predicate.matches(returnCode));
+                    result.put(label + ".RC=" + rc, !skip);
+                }
+            });
         }
         return java.util.Collections.unmodifiableMap(result);
-    }
-
-    private void appendRows(LinkedHashMap<String, Boolean> result, LinkedHashMap<String, Integer> row, int index) {
-        if (index == predicates.size()) {
-            String key = row.entrySet().stream().map(entry -> entry.getKey() + ".RC=" + entry.getValue())
-                    .reduce((left, right) -> left + "," + right).orElseThrow();
-            boolean skip = predicates.stream().anyMatch(predicate ->
-                    predicate.matches(row.get(predicate.referencedStep().orElse("ANY"))));
-            result.put(key, !skip);
-            return;
-        }
-        String label = predicates.get(index).referencedStep().orElse("ANY");
-        if (row.containsKey(label)) {
-            appendRows(result, row, index + 1);
-            return;
-        }
-        for (int rc : REPRESENTATIVE_RETURN_CODES) {
-            row.put(label, rc);
-            appendRows(result, row, index + 1);
-        }
-        row.remove(label);
     }
 
     public String normalizedExpression() {
@@ -166,7 +155,14 @@ public record CondClause(Kind kind, List<Predicate> predicates, String source) {
                 case NE -> returnCode != code;
             };
         }
-        String normalized() {
+        public Map<String, Boolean> truthTable() {
+            LinkedHashMap<String, Boolean> result = new LinkedHashMap<>();
+            String label = referencedStep.orElse("ANY");
+            for (int rc = 0; rc <= MAX_RETURN_CODE; rc++) result.put(label + ".RC=" + rc, !matches(rc));
+            return java.util.Collections.unmodifiableMap(result);
+        }
+
+        public String normalized() {
             return referencedStep.orElse("ANY") + ".RC " + operator + " " + code;
         }
     }

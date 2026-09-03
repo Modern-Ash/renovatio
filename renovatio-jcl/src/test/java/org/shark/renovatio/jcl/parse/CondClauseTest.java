@@ -32,7 +32,19 @@ class CondClauseTest {
         CondClause clause = CondClause.parse("((0,NE,S1),(4,LT,S2))");
         assertTrue(clause.shouldSkip(Map.of("S1", 0, "S2", 0), false));
         assertFalse(clause.shouldSkip(Map.of("S1", 0, "S2", 8), false));
-        assertEquals(25, clause.truthTable().size());
-        assertTrue(clause.truthTable().get("S1.RC=0,S2.RC=8"));
+        assertEquals(8192, clause.truthTable().size());
+        assertTrue(clause.truthTable().get("S1.RC=0"));
+        assertFalse(clause.truthTable().get("S1.RC=1"));
+        assertTrue(clause.truthTable().get("S2.RC=8"));
+        assertFalse(clause.truthTable().get("S2.RC=0"));
+    }
+
+    @Test
+    void truthTableCoversEveryValidReturnCode() {
+        CondClause clause = CondClause.parse("(0,NE,S1)");
+        assertEquals(4096, clause.truthTable().size());
+        assertTrue(clause.truthTable().get("S1.RC=0"));
+        assertFalse(clause.truthTable().get("S1.RC=1"));
+        assertFalse(clause.truthTable().get("S1.RC=4095"));
     }
 }

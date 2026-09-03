@@ -51,4 +51,21 @@ class JclParserTest {
         assertEquals("FROM.EXEC", parsed.steps().get(0).ddStatements().get(0).dsn().orElseThrow());
         assertTrue(parsed.unresolvedProcs().isEmpty());
     }
+
+    @Test
+    void attachesUnnamedDdConcatenationsToThePreviousDd() {
+        JclJob parsed = new JclParser().parse("batch/concat.jcl", """
+                //CONCAT JOB
+                //READ EXEC PGM=READER
+                //INPUT DD DSN=FIRST.DATA,DISP=SHR
+                // DD DSN=SECOND.DATA,DISP=SHR
+                // DD DSN=THIRD.DATA,DISP=SHR
+                """);
+
+        assertEquals(1, parsed.steps().get(0).ddStatements().size());
+        DdStatement input = parsed.steps().get(0).ddStatements().get(0);
+        assertEquals("FIRST.DATA", input.dsn().orElseThrow());
+        assertEquals(java.util.List.of("SECOND.DATA", "THIRD.DATA"), input.concatenations().stream()
+                .map(part -> part.dsn().orElseThrow()).toList());
+    }
 }
