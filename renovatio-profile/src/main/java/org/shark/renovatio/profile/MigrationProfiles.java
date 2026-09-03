@@ -151,6 +151,15 @@ public final class MigrationProfiles {
             result.add(new Violation("/schemaVersion", "UNSUPPORTED_VERSION", "must equal 1"));
         if (profile.extensions() == null)
             result.add(new Violation("/extensions", "REQUIRED", "is required"));
+        else if (profile.extensions().containsKey(BatchTargets.EXTENSION_KEY)) {
+            Object configured = profile.extensions().get(BatchTargets.EXTENSION_KEY);
+            try {
+                MigrationProfile.BatchTarget.valueOf(String.valueOf(configured).trim().toUpperCase(java.util.Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
+                result.add(new Violation("/extensions/batch.target", "UNSUPPORTED_VALUE",
+                        "must be SPRING_BATCH, CLI_PIPELINE, SCHEDULER, or WORKFLOW_ENGINE"));
+            }
+        }
         if (profile.target() != null && profile.target().languageVersion() != null) {
             String version = profile.target().languageVersion();
             if (version.isBlank() || version.length() > 32)

@@ -24,6 +24,7 @@ public record MigrationProfile(
     }
 
     public enum Language { JAVA, NODE, PYTHON }
+    public enum BatchTarget { SPRING_BATCH, CLI_PIPELINE, SCHEDULER, WORKFLOW_ENGINE }
     public enum ArchitectureStyle { TRANSACTION_SCRIPT, LAYERED_MVC, HEXAGONAL }
     public enum ModuleGrouping { BY_PROGRAM, BY_DOMAIN, SINGLE_MODULE }
     public enum Framework { SPRING_BOOT, NONE }

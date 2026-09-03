@@ -68,7 +68,7 @@ public record DecisionPoint(
         if (!condition) throw new IllegalArgumentException(message);
     }
 
-    public enum Category { NUMERIC, CONTROL_FLOW, DATA_SHAPE, PERSISTENCE, NAMING, ARCHITECTURE }
+    public enum Category { NUMERIC, CONTROL_FLOW, DATA_SHAPE, PERSISTENCE, NAMING, ARCHITECTURE, BATCH }
     public enum Source { HEURISTIC, LLM, USER }
     public enum Status { AUTO, SUGGESTED, CONFIRMED, OVERRIDDEN }
     public enum LlmFailureCategory {
