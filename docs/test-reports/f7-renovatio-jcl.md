@@ -66,3 +66,42 @@ findings from the two review rounds on PR #165:
   deterministic fallback remains `RESIDUE` and cannot emit final job code.
 - Generated residue steps throw `UnsupportedResidueException`; no unsupported
   work becomes a silent no-op.
+
+## PR review — rounds 3 and 4 (2026-09-03)
+
+Two further automated review passes on PR #165 (`@codex review` on commits
+`9e39ee1e` and `c6c3cb95`). Re-verification commit: `8a2ecfb1`. Suite:
+`mvn -B test -pl '!renovatio-api'` (the `renovatio-api` module needs an npm
+toolchain absent from this environment) — **520 tests, 0 failures, 0 errors,
+0 skipped**; `renovatio-jcl` alone: 26 tests incl. `ReviewRegressionTest` (16).
+
+Findings addressed (commits `c6c3cb95`, `0c32dca9`, `8a2ecfb1`):
+
+| Finding | Resolution |
+|---|---|
+| Compound `INCLUDE/OMIT COND` matched partially and corrupted the expected value | value restricted to one token or quoted literal; compound clause routes to residue |
+| Harness treated an absent RC from a bypassed prior step as "skip" | skip that guard, matching `CondClause.shouldSkip` |
+| `SET A=X,AB=Y` corrupted `&AB` into `XB` | longest-name-first substitution with a name terminator |
+| `EXEC PROC=…,COND=…` invocation condition dropped | OR-combined into every expanded step (EVEN/ONLY + step COND rejected) |
+| `DSN=PROD.INPUT,DISP=(OLD,PASS)` classified as temporary and purged | temporary only for `&&name` or DSN-less PASS allocations |
+| `BI` / `PD` SORT keys decoded as display text | rejected as unsupported, routed to residue |
+| Nested `IF` blocks overwrote the outer predicate | stack of open IF/ELSE scopes, AND-combined |
+
+## Open follow-ups (outside F7 scope)
+
+Recorded here and on PR #165 as deferred; each needs its own work item:
+
+1. **CLI/API pipeline integration** — `renovatio-jcl` ships as a library in F7;
+   wiring `.jcl` discovery and emitted-file output into a runtime migration path
+   is a successor (F7 spec §3 non-goals).
+2. **PROC invocation DD overrides** (`//STEP.DD DD …`) — not applied to expanded
+   steps (F7 spec §3 non-goals).
+3. **Spring Batch `COND=EVEN`/`ONLY` failure transitions** — the emitted job's
+   sequential flow stops on abend before those guards; needs explicit
+   `.on("FAILED")` transitions. The in-process characterization harness already
+   honours EVEN/ONLY.
+4. **Run the emitted Spring Batch source in the characterization gate** — the
+   gate currently exercises a hand-written executor, not compiled emitter output.
+5. **Unqualified `COND` vs prior return codes** — current behaviour skips when
+   the predicate is true against *any* prior step RC (IBM semantics). A reviewer
+   proposed comparing against the maximum prior RC; left for the spec owner.
