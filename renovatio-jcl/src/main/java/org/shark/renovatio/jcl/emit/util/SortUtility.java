@@ -33,7 +33,7 @@ public final class SortUtility {
         List<Field> parsedFields = new ArrayList<>();
         for (int index = 0; index + 3 < tokens.size(); index += 4) {
             parsedFields.add(new Field(Integer.parseInt(tokens.get(index)), Integer.parseInt(tokens.get(index + 1)),
-                    Format.valueOf(tokens.get(index + 2).toUpperCase(Locale.ROOT)),
+                    supported(Format.valueOf(tokens.get(index + 2).toUpperCase(Locale.ROOT))),
                     tokens.get(index + 3).equalsIgnoreCase("D")));
         }
         if (parsedFields.isEmpty()) throw new UnsupportedOperationException("Manual action: unsupported SORT FIELDS subgrammar");
@@ -44,9 +44,17 @@ public final class SortUtility {
             throw new UnsupportedOperationException("Manual action: unsupported SORT filter subgrammar");
         Optional<Filter> parsedFilter = declaresFilter ? Optional.of(new Filter(filter.group(1).equalsIgnoreCase("OMIT"),
                 Integer.parseInt(filter.group(2)), Integer.parseInt(filter.group(3)),
-                Format.valueOf(filter.group(4).toUpperCase(Locale.ROOT)), Operator.valueOf(filter.group(5).toUpperCase(Locale.ROOT)),
+                supported(Format.valueOf(filter.group(4).toUpperCase(Locale.ROOT))), Operator.valueOf(filter.group(5).toUpperCase(Locale.ROOT)),
                 unquote(filter.group(6).trim()))) : Optional.empty();
         return new SortSpec(parsedFields, parsedFilter);
+    }
+
+    // CH (character) and ZD (zoned/display numeric) decode from the record text. BI (binary) and
+    // PD (packed decimal) need encoding-aware decoding the template does not do, so route to residue.
+    private static Format supported(Format format) {
+        if (format == Format.BI || format == Format.PD)
+            throw new UnsupportedOperationException("Manual action: unsupported SORT field format " + format);
+        return format;
     }
 
     private static List<String> split(String value) {

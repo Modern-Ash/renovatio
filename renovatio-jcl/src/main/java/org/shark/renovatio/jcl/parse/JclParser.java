@@ -117,6 +117,7 @@ public final class JclParser {
                             statement.line(), statement.instreamData());
                     current = parseExec(named, symbols, nestedIf);
                     current = namespaceProcReferences(current, call.stepName, localStepNames);
+                    current = applyInvocationCondition(current, call.condition);
                     if (current.execKind == JclStep.ExecKind.PROC) {
                         ProcDefinition nested = procedures.get(current.executable);
                         if (nested != null && depth < 1) {
@@ -135,6 +136,34 @@ public final class JclParser {
             }
         }
         if (current != null) result.add(current.build());
+        return result;
+    }
+
+    /**
+     * Applies an {@code EXEC PROC=...,COND=...} invocation condition to each expanded step. JCL
+     * bypasses the whole procedure when the invocation COND is satisfied, so its predicates are
+     * OR-combined with any step-level normal COND (both mean "skip when any predicate is true").
+     */
+    private static StepBuilder applyInvocationCondition(StepBuilder step, Optional<CondClause> invocation) {
+        if (invocation.isEmpty()) return step;
+        CondClause invoked = invocation.get();
+        Optional<CondClause> combined;
+        if (step.condition.isEmpty()) {
+            combined = Optional.of(invoked);
+        } else {
+            CondClause own = step.condition.get();
+            if (invoked.kind() != CondClause.Kind.NORMAL || own.kind() != CondClause.Kind.NORMAL) {
+                throw new IllegalArgumentException(
+                        "unsupported: PROC invocation COND=EVEN/ONLY combined with a step-level COND");
+            }
+            List<CondClause.Predicate> predicates = new ArrayList<>(invoked.predicates());
+            predicates.addAll(own.predicates());
+            combined = Optional.of(new CondClause(CondClause.Kind.NORMAL, predicates,
+                    invoked.source() + " & " + own.source()));
+        }
+        StepBuilder result = new StepBuilder(step.stepName, step.execKind, step.executable, combined,
+                step.ifExpression, step.parameters, step.line);
+        result.dds.addAll(step.dds);
         return result;
     }
 
@@ -258,10 +287,17 @@ public final class JclParser {
     }
 
     private static String substitute(String value, Map<String, String> symbols) {
+        // Longest symbol name first, and require a name terminator (`.` or a non-symbol char) so
+        // that with SET A=X,AB=Y the reference &AB is not first mangled into XB.
+        List<Map.Entry<String, String>> ordered = new ArrayList<>(symbols.entrySet());
+        ordered.sort((left, right) -> Integer.compare(right.getKey().length(), left.getKey().length()));
         String result = value;
-        for (Map.Entry<String, String> entry : symbols.entrySet())
-            result = result.replace("&" + entry.getKey() + ".", entry.getValue())
-                    .replace("&" + entry.getKey(), entry.getValue());
+        for (Map.Entry<String, String> entry : ordered) {
+            result = result.replace("&" + entry.getKey() + ".", entry.getValue());
+            result = result.replaceAll("&" + java.util.regex.Pattern.quote(entry.getKey())
+                            + "(?![A-Za-z0-9#$@])",
+                    java.util.regex.Matcher.quoteReplacement(entry.getValue()));
+        }
         return result;
     }
 

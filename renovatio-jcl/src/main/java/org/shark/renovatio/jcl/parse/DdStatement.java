@@ -29,8 +29,10 @@ public record DdStatement(String ddName, Optional<String> dsn, String dispositio
     }
 
     public boolean temporary() {
-        return dsn.map(value -> value.startsWith("&&")).orElse(false)
-                || disposition.contains("PASS");
+        // A `&&name` dataset is always temporary. A DD with no DSN and a PASS disposition is a
+        // system-allocated temporary. A catalogued DSN keeps its file backing even with DISP=PASS.
+        return dsn.map(value -> value.startsWith("&&"))
+                .orElseGet(() -> disposition.contains("PASS"));
     }
 
     public DdStatement append(Concatenation concatenation) {

@@ -176,6 +176,46 @@ class ReviewRegressionTest {
     }
 
     @Test
+    void rejectsBinaryAndPackedSortKeysAsUnsupported() {
+        SortUtility sort = new SortUtility();
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.parse("SORT FIELDS=(1,4,BI,A)"));
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.parse("SORT FIELDS=(1,3,CH,A) INCLUDE COND=(5,2,PD,GT,10)"));
+    }
+
+    @Test
+    void substitutesExactSymbolicNamesWhenOnePrefixesAnother() {
+        JclJob job = new JclParser().parse("batch/sym.jcl",
+                "//SYMJOB JOB\n// SET A=X,AB=YY\n//S EXEC PGM=&AB\n");
+        assertEquals("YY", job.steps().get(0).executable());
+    }
+
+    @Test
+    void keepsCataloguedOldPassDatasetFileBacked() {
+        BatchJob job = project("""
+                //CATJOB JOB
+                //RUN EXEC PGM=IEBGENER
+                //IN DD DSN=PROD.INPUT,DISP=(OLD,PASS)
+                """);
+        BatchDataset in = job.datasets().stream().filter(d -> d.ddName().equals("IN"))
+                .findFirst().orElseThrow();
+        assertNotEquals(BatchDataset.AccessKind.TEMP, in.access());
+    }
+
+    @Test
+    void propagatesProcInvocationCondToExpandedSteps() {
+        JclJob job = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/m.jcl",
+                        "//MJOB JOB\n//PRE EXEC PGM=PRE\n//CALL EXEC PROC=FLOW,COND=(0,NE,PRE)\n"),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/flow.jcl",
+                        "//FLOW PROC\n//INNER EXEC PGM=INNER\n// PEND\n")))
+                .stream().filter(j -> j.jobName().equals("MJOB")).findFirst().orElseThrow();
+        var inner = job.steps().get(1).condition().orElseThrow();
+        assertEquals("PRE", inner.predicates().get(0).referencedStep().orElseThrow());
+    }
+
+    @Test
     void classifiesUnsupportedIdcamsControlAsResidue() {
         BatchJob job = project("""
                 //IDCJOB JOB
