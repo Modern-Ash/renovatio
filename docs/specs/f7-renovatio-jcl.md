@@ -67,6 +67,14 @@ F7 delivers:
 
 F7 does **not** deliver:
 
+- **CLI/API pipeline integration.** `renovatio-jcl` is a standalone library in F7:
+  `JclParser` → `BatchJobProjection` → `SpringBatchBatchEmitter` are exercised by
+  tests and the characterization harness, not yet wired into a runtime migration
+  path that discovers `.jcl`/`.job` inputs and adds the emitted orchestration to
+  migration output. That wiring is a follow-up work item.
+- **Procedure invocation DD overrides.** `//STEP.DDNAME DD ...` override cards on
+  an `EXEC PROC=` invocation are not applied to the expanded steps; a PROC is
+  expanded with its own DD statements only. Overrides are a follow-up.
 - More than one active `batch.target` (only `SPRING_BATCH`).
 - The full `SORT`/`IDCAMS`/`ICETOOL` grammar (common subset only).
 - GDG, system catalog, RACF, mainframe schedulers (OPC / Control-M), JCL→JCL.

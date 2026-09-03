@@ -54,7 +54,9 @@ public final class BatchCharacterizationHarness {
             BatchStep referenced = job.steps().stream()
                     .filter(value -> value.id().equals(guard.referencedStepId().get())).findFirst().orElseThrow();
             Integer rc = returnCodes.get(referenced.stepName());
-            if (rc == null) return false;
+            // The referenced step was itself bypassed (IF/COND): its return code is absent, so this
+            // predicate cannot be true. Matches CondClause.shouldSkip - an absent RC never skips.
+            if (rc == null) continue;
             Boolean run = guard.truthTable().get(referenced.stepName() + ".RC=" + rc);
             if (run == null) run = guard.truthTable().get("ANY.RC=" + rc);
             if (run != null && !run) return false;

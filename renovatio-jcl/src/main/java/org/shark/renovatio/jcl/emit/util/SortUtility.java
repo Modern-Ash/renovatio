@@ -12,7 +12,10 @@ import java.util.regex.Pattern;
 /** Executable common SORT subset used by emitted tasklets and characterization fixtures. */
 public final class SortUtility {
     private static final Pattern FIELDS = Pattern.compile("(?:SORT|MERGE)\\s+FIELDS=\\(([^)]*)\\)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern FILTER = Pattern.compile("(INCLUDE|OMIT)\\s+COND=\\((\\d+),(\\d+),([A-Z]+),(EQ|NE|GT|GE|LT|LE),([^)]*)\\)", Pattern.CASE_INSENSITIVE);
+    // Only a single simple predicate is supported. The expected value is one bare token or one
+    // quoted literal; a compound COND (e.g. ...,AND,...) leaves trailing tokens and fails to match,
+    // so parse() routes it to residue rather than silently truncating it.
+    private static final Pattern FILTER = Pattern.compile("(INCLUDE|OMIT)\\s+COND=\\((\\d+),(\\d+),([A-Z]+),(EQ|NE|GT|GE|LT|LE),(C?'[^']*'|[^,)]+)\\)", Pattern.CASE_INSENSITIVE);
 
     public List<String> execute(List<String> records, String controlStatements) {
         SortSpec spec = parse(controlStatements);

@@ -150,6 +150,32 @@ class ReviewRegressionTest {
     }
 
     @Test
+    void rejectsCompoundSortFilterInsteadOfPartiallyMatchingIt() {
+        SortUtility sort = new SortUtility();
+        assertThrows(UnsupportedOperationException.class, () -> sort.parse(
+                "SORT FIELDS=(1,3,CH,A) INCLUDE COND=(1,1,CH,EQ,C'A',AND,2,1,CH,EQ,C'B')"));
+        SortUtility.SortSpec simple = sort.parse("SORT FIELDS=(1,3,CH,A) INCLUDE COND=(4,1,CH,EQ,C'Y')");
+        assertTrue(simple.filter().isPresent());
+    }
+
+    @Test
+    void characterizationDoesNotSkipWhenAGuardReferencesABypassedStep() throws Exception {
+        BatchJob job = project("""
+                //CHAINJOB JOB
+                //S0 EXEC PGM=P0
+                // IF (S0.RC > 0) THEN
+                //S1 EXEC PGM=P1
+                // ENDIF
+                //S2 EXEC PGM=P2,COND=(0,NE,S1)
+                """);
+
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job,
+                new LinkedHashMap<>(), (step, datasets) -> 0);
+
+        assertEquals(List.of("S0", "S2"), result.executedSteps());
+    }
+
+    @Test
     void classifiesUnsupportedIdcamsControlAsResidue() {
         BatchJob job = project("""
                 //IDCJOB JOB
