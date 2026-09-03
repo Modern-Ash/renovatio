@@ -4,6 +4,7 @@ prompts:
   - prompts/cobol.redefines.intent.v1.yaml
   - prompts/cobol.occurs-depending.intent.v1.yaml
   - prompts/cobol.unsupported.explain.v1.yaml
+  - prompts/cobol.move-corresponding.intent.v1.yaml
   - prompts/decision.numeric.v1.yaml
   - prompts/decision.control-flow.v1.yaml
   - prompts/decision.data-shape.v1.yaml

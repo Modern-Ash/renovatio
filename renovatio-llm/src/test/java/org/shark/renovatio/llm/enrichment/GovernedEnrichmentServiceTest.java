@@ -132,6 +132,43 @@ class GovernedEnrichmentServiceTest {
     }
 
     @Test
+    void moveCorrespondingPromptAnsweringWrongConstructionFallsBackInsteadOfCaching() {
+        String nodeId = "b".repeat(64);
+        JsonNode input = JSON.createObjectNode().put("nodeId", nodeId).put("nodeKind", "DATA_ITEM")
+                .set("semanticNodes", JSON.createObjectNode().put(nodeId, "DATA_ITEM"));
+        JsonNode wrong = JSON.createObjectNode().put("construction", "REDEFINES")
+                .put("interpretation", "overlaid storage");
+        ((com.fasterxml.jackson.databind.node.ObjectNode) wrong).putArray("assumptions").add("same layout");
+        CommittedCacheIndex index = emptyIndex();
+
+        EnrichmentResult result = service(request -> new LlmResponse("anthropic", "model", wrong),
+                new CapturingGateway(false)).enrich("cobol.move-corresponding.intent.v1", input,
+                "anthropic", "model", JSON.createObjectNode().put("interpretation", "deterministic"),
+                index, new VerifiedPromotionManifest(VerifiedPromotionManifest.VERSION, index.digest(), Map.of()));
+
+        assertEquals(ResultDisposition.DETERMINISTIC_FALLBACK, result.envelope().resultDisposition());
+        assertEquals("VALIDATOR_REJECTED", result.envelope().failureCategory());
+    }
+
+    @Test
+    void moveCorrespondingPromptAnsweringItsOwnConstructionIsAccepted() {
+        String nodeId = "c".repeat(64);
+        JsonNode input = JSON.createObjectNode().put("nodeId", nodeId).put("nodeKind", "DATA_ITEM")
+                .set("semanticNodes", JSON.createObjectNode().put(nodeId, "DATA_ITEM"));
+        JsonNode ok = JSON.createObjectNode().put("construction", "MOVE_CORRESPONDING")
+                .put("interpretation", "copy matching contact fields");
+        ((com.fasterxml.jackson.databind.node.ObjectNode) ok).putArray("assumptions").add("only same-named items");
+        CommittedCacheIndex index = emptyIndex();
+
+        EnrichmentResult result = service(request -> new LlmResponse("anthropic", "model", ok),
+                new CapturingGateway(false)).enrich("cobol.move-corresponding.intent.v1", input,
+                "anthropic", "model", JSON.createObjectNode().put("interpretation", "deterministic"),
+                index, new VerifiedPromotionManifest(VerifiedPromotionManifest.VERSION, index.digest(), Map.of()));
+
+        assertEquals(ResultDisposition.MODEL_SUCCESS, result.envelope().resultDisposition());
+    }
+
+    @Test
     void providerRequestIsBoundToCatalogSystemFewShotAndInput() {
         java.util.concurrent.atomic.AtomicReference<org.shark.renovatio.llm.provider.LlmRequest> captured =
                 new java.util.concurrent.atomic.AtomicReference<>();

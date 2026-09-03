@@ -44,6 +44,8 @@ class ResidualEnrichmentCoordinatorTest {
                 router.route(intentRequest(ResidualConstruction.REDEFINES)).promptId());
         assertEquals("cobol.occurs-depending.intent.v1",
                 router.route(intentRequest(ResidualConstruction.OCCURS_DEPENDING_ON)).promptId());
+        assertEquals("cobol.move-corresponding.intent.v1",
+                router.route(moveCorrespondingRequest()).promptId());
         assertEquals("cobol.unsupported.explain.v1", router.route(unsupportedRequest()).promptId());
     }
 
@@ -60,6 +62,27 @@ class ResidualEnrichmentCoordinatorTest {
         assertEquals(ResidualRoute.DETERMINISTIC, new ResidualRouter().route(new ResidualEnrichmentRequest(
                 "cobol-ir.v1", "node-1", "CONTROL_FLOW", ResidualConstruction.CONTROL_FLOW_COMPONENT,
                 false, true, false, false, null, java.util.List.of(), false, null)));
+    }
+
+    @Test
+    void computeOverflowAlwaysDeterministic() {
+        assertEquals(ResidualRoute.DETERMINISTIC, new ResidualRouter().route(new ResidualEnrichmentRequest(
+                "cobol-ir.v1", "node-1", "COMPUTE", ResidualConstruction.COMPUTE_OVERFLOW,
+                false, false, false, false, null, java.util.List.of(), false, null)));
+    }
+
+    @Test
+    void moveCorrespondingWithBusinessIntentRoutesToMoveCorrespondingIntent() {
+        ResidualEnrichmentRequest request = moveCorrespondingRequest();
+        assertEquals(ResidualRoute.MOVE_CORRESPONDING_INTENT, new ResidualRouter().route(request));
+        assertEquals("cobol.move-corresponding.intent.v1", new ResidualRouter().route(request).promptId());
+    }
+
+    @Test
+    void moveCorrespondingWithoutBusinessIntentRemainsDeterministic() {
+        assertEquals(ResidualRoute.DETERMINISTIC, new ResidualRouter().route(new ResidualEnrichmentRequest(
+                "cobol-ir.v1", "node-1", "DATA_ITEM", ResidualConstruction.MOVE_CORRESPONDING,
+                false, false, false, false, null, java.util.List.of(), false, null)));
     }
 
     @Test
@@ -136,6 +159,12 @@ class ResidualEnrichmentCoordinatorTest {
     private static ResidualEnrichmentRequest unsupportedRequest() {
         return new ResidualEnrichmentRequest("cobol-ir.v1", "node-1", "STATEMENT",
                 ResidualConstruction.UNSUPPORTED, false, false, false, false, "COBOL_UNSUPPORTED",
+                java.util.List.of(), false, null);
+    }
+
+    private static ResidualEnrichmentRequest moveCorrespondingRequest() {
+        return new ResidualEnrichmentRequest("cobol-ir.v1", "node-1", "DATA_ITEM",
+                ResidualConstruction.MOVE_CORRESPONDING, false, false, false, true, null,
                 java.util.List.of(), false, null);
     }
 }

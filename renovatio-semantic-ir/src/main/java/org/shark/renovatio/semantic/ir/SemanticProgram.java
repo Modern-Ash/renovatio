@@ -92,7 +92,7 @@ public record SemanticProgram(String schemaVersion, Header header, String progra
         CONTROL_FLOW_NODE, CONTROL_FLOW_EDGE, UNCLASSIFIED_DATA_ACCESS }
     public enum TypeKind { TEXT, INTEGER, DECIMAL, BOOLEAN, GROUP, UNKNOWN }
     public enum Signedness { SIGNED, UNSIGNED, UNKNOWN }
-    public enum IntentKind { OVERLAPPING_STORAGE, DEPENDENT_CARDINALITY }
+    public enum IntentKind { OVERLAPPING_STORAGE, DEPENDENT_CARDINALITY, MOVE_CORRESPONDING }
     public enum EffectKind { STATE_READ, STATE_WRITE, EXTERNAL_CALL, UNKNOWN }
     public enum IoKind { FILE, DATABASE, TERMINAL, TRANSACTION, MESSAGE, UNKNOWN }
     public enum Direction { READ, WRITE, READ_WRITE, UNKNOWN }

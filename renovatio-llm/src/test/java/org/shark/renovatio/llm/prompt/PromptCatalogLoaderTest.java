@@ -21,6 +21,7 @@ class PromptCatalogLoaderTest {
                         "cobol.redefines.intent.v1",
                         "cobol.occurs-depending.intent.v1",
                         "cobol.unsupported.explain.v1",
+                        "cobol.move-corresponding.intent.v1",
                         "decision.numeric.v1",
                         "decision.control-flow.v1",
                         "decision.data-shape.v1",

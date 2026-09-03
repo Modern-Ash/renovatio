@@ -19,6 +19,11 @@ public final class ResidualRouter {
                     ResidualRoute.REDEFINES_INTENT);
             case OCCURS_DEPENDING_ON -> add(matches, request.residualBusinessIntent(),
                     ResidualRoute.OCCURS_DEPENDING_ON_INTENT);
+            case MOVE_CORRESPONDING -> add(matches, request.residualBusinessIntent(),
+                    ResidualRoute.MOVE_CORRESPONDING_INTENT);
+            case COMPUTE_OVERFLOW -> {
+                // COMPUTE with implicit overflow is always deterministic (use overflow policy)
+            }
             case UNSUPPORTED -> add(matches, request.unsupportedDiagnostic() != null,
                     ResidualRoute.UNSUPPORTED_EXPLANATION);
             default -> {
@@ -34,6 +39,7 @@ public final class ResidualRouter {
         if (request.irreducibleControlFlow() || request.containsGoTo()) families++;
         if (request.residualBusinessIntent()) families++;
         if (request.unsupportedDiagnostic() != null) families++;
+        if (request.construction() == ResidualConstruction.COMPUTE_OVERFLOW) families++;
         return families > 1;
     }
 

@@ -356,6 +356,7 @@ public final class AnnotationApplicator {
         return switch (kind) {
             case OVERLAPPING_STORAGE -> DataIntentPayload.Construction.REDEFINES.name();
             case DEPENDENT_CARDINALITY -> DataIntentPayload.Construction.OCCURS_DEPENDING_ON.name();
+            case MOVE_CORRESPONDING -> DataIntentPayload.Construction.MOVE_CORRESPONDING.name();
         };
     }
 

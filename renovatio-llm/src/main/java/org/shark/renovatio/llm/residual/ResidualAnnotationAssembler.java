@@ -59,7 +59,7 @@ public final class ResidualAnnotationAssembler {
         return switch (route) {
             case DOMAIN_NAMING -> AnnotationFamily.DOMAIN_NAMING;
             case CONTROL_FLOW_PLAN -> AnnotationFamily.CONTROL_FLOW_PLAN;
-            case REDEFINES_INTENT, OCCURS_DEPENDING_ON_INTENT -> AnnotationFamily.DATA_INTENT;
+            case REDEFINES_INTENT, OCCURS_DEPENDING_ON_INTENT, MOVE_CORRESPONDING_INTENT -> AnnotationFamily.DATA_INTENT;
             case UNSUPPORTED_EXPLANATION -> AnnotationFamily.UNSUPPORTED_EXPLANATION;
             case DETERMINISTIC -> throw new IllegalArgumentException("deterministic route has no annotation family");
         };
@@ -74,6 +74,8 @@ public final class ResidualAnnotationAssembler {
             case REDEFINES_INTENT -> dataIntent(output, DataIntentPayload.Construction.REDEFINES);
             case OCCURS_DEPENDING_ON_INTENT -> dataIntent(output,
                     DataIntentPayload.Construction.OCCURS_DEPENDING_ON);
+            case MOVE_CORRESPONDING_INTENT -> dataIntent(output,
+                    DataIntentPayload.Construction.MOVE_CORRESPONDING);
             case UNSUPPORTED_EXPLANATION -> new UnsupportedExplanationPayload(
                     requiredText(output, "construction"), requiredText(output, "explanation"),
                     requiredText(output, "manualAction"));
@@ -103,7 +105,8 @@ public final class ResidualAnnotationAssembler {
         if (route == ResidualRoute.DOMAIN_NAMING
                 || route == ResidualRoute.CONTROL_FLOW_PLAN
                 || route == ResidualRoute.REDEFINES_INTENT
-                || route == ResidualRoute.OCCURS_DEPENDING_ON_INTENT) {
+                || route == ResidualRoute.OCCURS_DEPENDING_ON_INTENT
+                || route == ResidualRoute.MOVE_CORRESPONDING_INTENT) {
             if (reviewer == null) throw new IllegalArgumentException("human reviewer is required for this route");
             return new AnnotationReview(AnnotationReview.ReviewState.NEEDS_REVIEW, reviewer, null, null);
         }
