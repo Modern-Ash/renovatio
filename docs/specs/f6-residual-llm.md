@@ -68,17 +68,17 @@ Prompt: `cobol.domain.naming.v1` (the wired `DOMAIN_NAMING` route).
 
 ### 4.2 Decision registration
 
-When LLM suggests a name:
-1. `DecisionTransitions.suggest()` creates a `NAMING` decision point
-2. Source = `LLM`, confidence from LLM output
-3. If confidence < 0.6 → human in the loop (status `SUGGESTED`, not `AUTO`)
-4. If confidence >= 0.6 → status `AUTO`, applied unless overridden
+When the LLM suggests a name it becomes a `DomainNamingPayload` annotation with
+review state `NEEDS_REVIEW` (the `domain-naming.v1` schema carries no model
+confidence, and `AnnotatedIrSemanticOutputValidator` records confidence as
+`0.0`). A confidence-driven `AUTO` vs `SUGGESTED` split is **not** part of F6;
+every LLM name suggestion goes through human review before it is applied.
 
 ### 4.3 Application
 
-The suggested name is applied to the semantic IR's `SemanticIdentity` via
-a deterministic pass. The original COBOL name is preserved in
-`annotations.cooriginalName` for traceability.
+Once accepted by a reviewer, the suggested name is applied to the semantic IR's
+`SemanticIdentity` via a deterministic pass. The original COBOL name is
+preserved for traceability.
 
 ## 5. Documentation enrichment — deferred
 
@@ -102,16 +102,18 @@ F6 adds:
 
 ### 7.1 New construction types
 
-Add to `ResidualConstruction` enum:
-- `REDEFINES_STATE_MACHINE` — REDEFINES used as state dispatch
-- `COMPUTE_OVERFLOW` — COMPUTE with implicit overflow
+Added to `ResidualConstruction`:
+- `COMPUTE_OVERFLOW` — COMPUTE with implicit overflow (always deterministic)
 - `MOVE_CORRESPONDING` — MOVE CORRESPONDING with field mismatches
+
+REDEFINES-as-state-machine keeps the existing `REDEFINES` construction and the
+`REDEFINES_INTENT` route; F6 adds no separate enum value for it.
 
 ### 7.2 New routes
 
 | Construction | Route | Prompt |
 |---|---|---|
-| `REDEFINES_STATE_MACHINE` | `REDEFINES_INTENT` | `cobol.redefines.intent.v1` (existing) |
+| `REDEFINES` | `REDEFINES_INTENT` | `cobol.redefines.intent.v1` (existing) |
 | `COMPUTE_OVERFLOW` | `DETERMINISTIC` | No LLM (use overflow policy) |
 | `MOVE_CORRESPONDING` | `MOVE_CORRESPONDING_INTENT` | `cobol.move-corresponding.intent.v1` (new) |
 
