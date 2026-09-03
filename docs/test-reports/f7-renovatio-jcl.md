@@ -67,15 +67,15 @@ findings from the two review rounds on PR #165:
 - Generated residue steps throw `UnsupportedResidueException`; no unsupported
   work becomes a silent no-op.
 
-## PR review — rounds 3 and 4 (2026-09-03)
+## PR review — rounds 3 to 5 (2026-09-03)
 
-Two further automated review passes on PR #165 (`@codex review` on commits
-`9e39ee1e` and `c6c3cb95`). Re-verification commit: `8a2ecfb1`. Suite:
+Three further automated review passes on PR #165 (`@codex review` on `9e39ee1e`,
+`c6c3cb95`, `8a2ecfb1`). Re-verification commit: `495f8010`. Suite:
 `mvn -B test -pl '!renovatio-api'` (the `renovatio-api` module needs an npm
-toolchain absent from this environment) — **520 tests, 0 failures, 0 errors,
-0 skipped**; `renovatio-jcl` alone: 26 tests incl. `ReviewRegressionTest` (16).
+toolchain absent from this environment) — **523 tests, 0 failures, 0 errors,
+0 skipped**; `renovatio-jcl` alone: 29 tests incl. `ReviewRegressionTest` (19).
 
-Findings addressed (commits `c6c3cb95`, `0c32dca9`, `8a2ecfb1`):
+Findings addressed (commits `c6c3cb95`, `0c32dca9`, `8a2ecfb1`, `495f8010`):
 
 | Finding | Resolution |
 |---|---|
@@ -86,6 +86,9 @@ Findings addressed (commits `c6c3cb95`, `0c32dca9`, `8a2ecfb1`):
 | `DSN=PROD.INPUT,DISP=(OLD,PASS)` classified as temporary and purged | temporary only for `&&name` or DSN-less PASS allocations |
 | `BI` / `PD` SORT keys decoded as display text | rejected as unsupported, routed to residue |
 | Nested `IF` blocks overwrote the outer predicate | stack of open IF/ELSE scopes, AND-combined |
+| `expandProc` kept a single `nestedIf`, dropping outer/invocation guards | same stacked scope handling inside procedure expansion |
+| SORT/MERGE with an out-of-subset control card still classified as a utility | `StepClassifier` parses SYSIN through `SortUtility` → `RESIDUE` on rejection |
+| `memory:&&TEMP` shared globally across jobs and concurrent runs | key namespaced as `memory:<jobId>/&&name` |
 
 ## Open follow-ups (outside F7 scope)
 
