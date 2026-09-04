@@ -6,6 +6,7 @@ import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.core.service.TargetEmitterRegistry;
 import org.shark.renovatio.shared.spi.BaseLanguageProvider;
+import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -167,6 +168,10 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     @Override
     public Optional<StubResult> generateStubs(NqlQuery query, Workspace workspace) {
         return generateStubs(query, workspace, javaGenerationService.effectiveProfile(workspace));
+    }
+
+    public List<SemanticProgram> semanticPrograms(NqlQuery query, Workspace workspace) throws Exception {
+        return javaGenerationService.semanticPrograms(query, workspace);
     }
 
     public Optional<StubResult> generateStubs(NqlQuery query, Workspace workspace,

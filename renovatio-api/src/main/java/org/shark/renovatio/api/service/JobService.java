@@ -44,6 +44,7 @@ public class JobService {
     private final ProjectService projectService;
     private final CobolLanguageProvider cobolLanguageProvider;
     private final DecisionLayerService decisionLayerService;
+    private final DataAccessService dataAccessService;
 
     public JobService(JobRepository jobRepo,
                       SseEventCollector eventCollector,
@@ -52,6 +53,7 @@ public class JobService {
                       ProjectService projectService,
                       CobolLanguageProvider cobolLanguageProvider,
                       DecisionLayerService decisionLayerService,
+                      DataAccessService dataAccessService,
                       @org.springframework.beans.factory.annotation.Qualifier("jobExecutor") Executor jobExecutor) {
         this.jobRepo = jobRepo;
         this.eventCollector = eventCollector;
@@ -60,6 +62,7 @@ public class JobService {
         this.projectService = projectService;
         this.cobolLanguageProvider = cobolLanguageProvider;
         this.decisionLayerService = decisionLayerService;
+        this.dataAccessService = dataAccessService;
         this.jobExecutor = jobExecutor;
     }
 
@@ -225,6 +228,17 @@ public class JobService {
         DecisionLayerService.AnalysisDecisionSummary decisionSummary =
                 decisionLayerService.upsertAnalysis(entity.getProjectId(), semanticIrHash);
 
+        List<org.shark.renovatio.semantic.ir.SemanticProgram> semanticPrograms;
+        try {
+            semanticPrograms = cobolLanguageProvider.semanticPrograms(query, workspace);
+        } catch (Exception exception) {
+            throw new IllegalStateException("Failed to project semantic programs for data-access classification",
+                    exception);
+        }
+        List<org.shark.renovatio.api.dto.DataAccessDto> dataAccesses =
+                dataAccessService.classifyFromPrograms(semanticPrograms,
+                        decisionLayerService.effective(entity.getProjectId()));
+
         Map<String, Object> response = new java.util.LinkedHashMap<>();
         response.put("status", "completed");
         response.put("operation", "analyze");
@@ -236,6 +250,7 @@ public class JobService {
         response.put("summary", summary);
         response.put("analysis", result.getData());
         response.put("decisions", decisionSummary);
+        response.put("dataAccesses", dataAccesses);
         response.put(
                 "message",
                 String.format(

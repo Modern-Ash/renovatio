@@ -1,6 +1,10 @@
 package org.shark.renovatio.api.service;
 
 import org.shark.renovatio.api.dto.DataAccessDto;
+import org.shark.renovatio.api.entity.JobEntity;
+import org.shark.renovatio.api.repository.JobRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.shark.renovatio.persistence.classifier.DataAccessClassification;
 import org.shark.renovatio.persistence.classifier.DataAccessClassifier;
 import org.shark.renovatio.persistence.classifier.DataAccessKind;
@@ -18,17 +22,34 @@ public class DataAccessService {
 
     private final DataAccessClassifier classifier;
     private final PersistenceStrategyRegistry registry;
+    private final JobRepository jobs;
+    private final ObjectMapper objectMapper;
 
-    public DataAccessService(DataAccessClassifier classifier, PersistenceStrategyRegistry registry) {
+    public DataAccessService(DataAccessClassifier classifier, PersistenceStrategyRegistry registry,
+                             JobRepository jobs, ObjectMapper objectMapper) {
         this.classifier = classifier;
         this.registry = registry;
+        this.jobs = jobs;
+        this.objectMapper = objectMapper;
     }
 
     public List<DataAccessDto> getClassifiedDataAccesses(String projectId) {
-        // Placeholder: in a real implementation, this would load the project's
-        // semantic programs from the analysis results store.
-        // For now, return empty list to indicate "no data yet analyzed".
-        return List.of();
+        List<JobEntity> analyses = jobs.findByProjectIdAndOperationAndStatusOrderByCompletedAtDesc(
+                projectId, "analyze", "COMPLETED");
+        if (analyses.isEmpty()) return List.of();
+        String resultJson = analyses.get(0).getResultJson();
+        if (resultJson == null || resultJson.isBlank()) return List.of();
+        try {
+            JsonNode accesses = objectMapper.readTree(resultJson).path("dataAccesses");
+            if (!accesses.isArray()) return List.of();
+            List<DataAccessDto> result = new ArrayList<>();
+            for (JsonNode access : accesses) {
+                result.add(objectMapper.treeToValue(access, DataAccessDto.class));
+            }
+            return List.copyOf(result);
+        } catch (Exception ignored) {
+            return List.of();
+        }
     }
 
     public List<DataAccessDto> classifyFromPrograms(

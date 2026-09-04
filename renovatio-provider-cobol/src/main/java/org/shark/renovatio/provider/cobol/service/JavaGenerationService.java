@@ -540,6 +540,20 @@ public class JavaGenerationService {
                 Optional.ofNullable(resolveDialect(query, workspace)), annotated.context());
     }
 
+    /**
+     * Projects every COBOL source in a workspace into the target-neutral semantic IR.
+     * This is intentionally exposed as a read-only analysis boundary so API consumers
+     * can reuse the same semantic programs that generation uses.
+     */
+    public List<SemanticProgram> semanticPrograms(NqlQuery query, Workspace workspace) throws Exception {
+        Path root = workspaceRoot(workspace);
+        List<SemanticProgram> result = new ArrayList<>();
+        for (Path source : parsingService.findCobolSourceFiles(root).stream().sorted().toList()) {
+            result.add(semanticProgram(source, query, workspace));
+        }
+        return List.copyOf(result);
+    }
+
     private SemanticProgram copybookSemanticProgram(Path source, NqlQuery query, Workspace workspace) throws Exception {
         Path root = Paths.get(workspace.getPath()).toAbsolutePath().normalize();
         Path normalizedSource = source.toAbsolutePath().normalize();
