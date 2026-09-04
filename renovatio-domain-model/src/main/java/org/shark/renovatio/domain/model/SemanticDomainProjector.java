@@ -4,6 +4,7 @@ import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.shark.renovatio.domain.model.DomainModel.*;
 
@@ -31,6 +32,25 @@ public final class SemanticDomainProjector {
             }
         }
         return new DomainModel(DomainModel.SCHEMA_VERSION, projectId, nodes, relations, List.of());
+    }
+
+    /** Conservative bridge for serialized provider analysis maps. */
+    public DomainModel projectSerialized(String projectId, Map<String, Object> analysis) {
+        List<DomainNode> nodes = new ArrayList<>();
+        Object raw = analysis == null ? null : analysis.get("programs");
+        if (raw instanceof List<?> programs) {
+            for (Object value : programs) {
+                if (!(value instanceof Map<?, ?> program)) continue;
+                Object idValue = program.get("programId");
+                if (!(idValue instanceof String id) || id.isBlank()) continue;
+                String source = String.valueOf(program.containsKey("sourcePath") ? program.get("sourcePath") : "analysis:" + id);
+                String hash = String.valueOf(program.containsKey("contentSha256") ? program.get("contentSha256") : "serialized-analysis");
+                Evidence evidence = new Evidence(source, hash, "serialized program identity");
+                nodes.add(new DomainNode("aggregate:" + id, Kind.AGGREGATE, id, List.of(evidence), Origin.DETERMINISTIC, 0.6));
+                nodes.add(new DomainNode("use-case:" + id, Kind.USE_CASE, "Process " + id, List.of(evidence), Origin.DETERMINISTIC, 0.5));
+            }
+        }
+        return new DomainModel(DomainModel.SCHEMA_VERSION, projectId, nodes, List.of(), List.of());
     }
 
     private Evidence evidence(SemanticProgram program, String rationale) {
