@@ -9,6 +9,9 @@
     <name>Renovatio Domain Model</name>
     <description>Versioned, target-neutral business domain model</description>
     <dependencies>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId><artifactId>renovatio-semantic-ir</artifactId>
+        </dependency>
         <dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
     </dependencies>
 </project>
