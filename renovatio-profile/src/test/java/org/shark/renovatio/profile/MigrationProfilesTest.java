@@ -67,6 +67,21 @@ class MigrationProfilesTest {
     }
 
     @Test
+    void documentationExtensionIsTypedAndDefaultsToDisabled() {
+        assertFalse(DocumentationSettings.enabled(MigrationProfiles.defaults()));
+        MigrationProfile enabled = new MigrationProfile("1", Map.of("documentation.enabled", true),
+                null, null, null, null, null, null);
+        assertTrue(DocumentationSettings.enabled(MigrationProfiles.resolve(enabled)));
+
+        MigrationProfile invalid = new MigrationProfile("1", Map.of("documentation.enabled", "true"),
+                null, null, null, null, null, null);
+        assertEquals(List.of(new MigrationProfiles.Violation(
+                        "/extensions/documentation.enabled", "INVALID_TYPE", "must be a boolean")),
+                MigrationProfiles.validateOverlay(invalid));
+        assertThrows(IllegalArgumentException.class, () -> DocumentationSettings.enabled(invalid));
+    }
+
+    @Test
     void canonicalHashIgnoresMapInsertionOrder() {
         Map<String, Object> first = new LinkedHashMap<>(); first.put("b", 2); first.put("a", 1);
         Map<String, Object> second = new LinkedHashMap<>(); second.put("a", 1); second.put("b", 2);

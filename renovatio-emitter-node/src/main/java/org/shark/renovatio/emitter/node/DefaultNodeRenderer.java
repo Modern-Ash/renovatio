@@ -1,8 +1,10 @@
 package org.shark.renovatio.emitter.node;
 
 import org.shark.renovatio.profile.MigrationProfile;
+import org.shark.renovatio.profile.DocumentationSettings;
 import org.shark.renovatio.shared.emission.EmittedArtifacts;
 import org.shark.renovatio.shared.emission.TargetModel;
+import org.shark.renovatio.shared.emission.TranslationDocumentation;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -14,7 +16,13 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
         Map<String, String> files = new LinkedHashMap<>();
         model.targetStructure().artifactPaths().stream()
                 .filter(path -> path.endsWith(".ts"))
-                .forEach(path -> files.put(path, generateProgramArtifact(model, path)));
+                .forEach(path -> {
+                    String content = generateProgramArtifact(model, path);
+                    if (DocumentationSettings.enabled(profile)) {
+                        content = TranslationDocumentation.tsdoc(model) + content;
+                    }
+                    files.put(path, content);
+                });
         files.put("src/main.ts", generateMain());
         files.put("package.json", generatePackageJson());
         files.put("tsconfig.json", generateTsConfig());

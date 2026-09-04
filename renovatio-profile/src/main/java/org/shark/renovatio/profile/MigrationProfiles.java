@@ -163,15 +163,22 @@ public final class MigrationProfiles {
         if (profile == null) return List.of(new Violation("/", "REQUIRED", "profile is required"));
         if (!SCHEMA_VERSION.equals(profile.schemaVersion()))
             result.add(new Violation("/schemaVersion", "UNSUPPORTED_VERSION", "must equal 1"));
-        if (profile.extensions() == null)
+        if (profile.extensions() == null) {
             result.add(new Violation("/extensions", "REQUIRED", "is required"));
-        else if (profile.extensions().containsKey(BatchTargets.EXTENSION_KEY)) {
-            Object configured = profile.extensions().get(BatchTargets.EXTENSION_KEY);
-            try {
-                MigrationProfile.BatchTarget.valueOf(String.valueOf(configured).trim().toUpperCase(java.util.Locale.ROOT));
-            } catch (IllegalArgumentException exception) {
-                result.add(new Violation("/extensions/batch.target", "UNSUPPORTED_VALUE",
-                        "must be SPRING_BATCH, CLI_PIPELINE, SCHEDULER, or WORKFLOW_ENGINE"));
+        } else {
+            if (profile.extensions().containsKey(BatchTargets.EXTENSION_KEY)) {
+                Object configured = profile.extensions().get(BatchTargets.EXTENSION_KEY);
+                try {
+                    MigrationProfile.BatchTarget.valueOf(String.valueOf(configured).trim().toUpperCase(java.util.Locale.ROOT));
+                } catch (IllegalArgumentException exception) {
+                    result.add(new Violation("/extensions/batch.target", "UNSUPPORTED_VALUE",
+                            "must be SPRING_BATCH, CLI_PIPELINE, SCHEDULER, or WORKFLOW_ENGINE"));
+                }
+            }
+            if (profile.extensions().containsKey(DocumentationSettings.EXTENSION_KEY)
+                    && !(profile.extensions().get(DocumentationSettings.EXTENSION_KEY) instanceof Boolean)) {
+                result.add(new Violation("/extensions/documentation.enabled", "INVALID_TYPE",
+                        "must be a boolean"));
             }
         }
         if (profile.target() != null && profile.target().languageVersion() != null) {

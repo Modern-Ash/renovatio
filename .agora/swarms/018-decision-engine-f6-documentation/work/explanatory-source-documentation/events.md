@@ -1,0 +1,41 @@
+# Work events
+
+- 2026-09-04T15:31:36.344807Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T15:32:19.994517Z | artifact.added | kind=spec uri=docs/specs/f6-explanatory-source-documentation.md actor=project:owner
+- 2026-09-04T15:32:20.256361Z | work.criterion-stage-marked | criterion=profile-contract actor=project:owner stage=specified
+- 2026-09-04T15:32:20.517513Z | work.criterion-stage-marked | criterion=traceable-content actor=project:owner stage=specified
+- 2026-09-04T15:32:20.784805Z | work.criterion-stage-marked | criterion=java-emission actor=project:owner stage=specified
+- 2026-09-04T15:32:21.066090Z | work.criterion-stage-marked | criterion=node-emission actor=project:owner stage=specified
+- 2026-09-04T15:32:21.333950Z | work.criterion-stage-marked | criterion=safety-determinism actor=project:owner stage=specified
+- 2026-09-04T15:32:21.605858Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=specified
+- 2026-09-04T15:32:21.880827Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T15:32:22.147361Z | artifact.added | kind=implementation-plan uri=docs/specs/f6-explanatory-source-documentation-plan.md actor=project:agent
+- 2026-09-04T15:32:22.420471Z | work.criterion-stage-marked | criterion=profile-contract actor=project:owner stage=planned
+- 2026-09-04T15:32:22.698680Z | work.criterion-stage-marked | criterion=traceable-content actor=project:owner stage=planned
+- 2026-09-04T15:32:22.968671Z | work.criterion-stage-marked | criterion=java-emission actor=project:owner stage=planned
+- 2026-09-04T15:32:23.247841Z | work.criterion-stage-marked | criterion=node-emission actor=project:owner stage=planned
+- 2026-09-04T15:32:23.515222Z | work.criterion-stage-marked | criterion=safety-determinism actor=project:owner stage=planned
+- 2026-09-04T15:32:23.779784Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=planned
+- 2026-09-04T15:32:28.938120Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T15:32:29.213194Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T15:39:02.051708Z | artifact.added | kind=verification-report uri=docs/reports/f6-explanatory-source-documentation-verification.md actor=project:agent
+- 2026-09-04T15:39:02.319548Z | artifact.added | kind=review-report uri=docs/reports/f6-explanatory-source-documentation-review.md actor=project:agent
+- 2026-09-04T15:39:02.587531Z | work.criterion-stage-marked | criterion=profile-contract actor=project:agent stage=implemented
+- 2026-09-04T15:39:02.863100Z | work.criterion-stage-marked | criterion=traceable-content actor=project:agent stage=implemented
+- 2026-09-04T15:39:03.132913Z | work.criterion-stage-marked | criterion=java-emission actor=project:agent stage=implemented
+- 2026-09-04T15:39:03.413668Z | work.criterion-stage-marked | criterion=node-emission actor=project:agent stage=implemented
+- 2026-09-04T15:39:03.681787Z | work.criterion-stage-marked | criterion=safety-determinism actor=project:agent stage=implemented
+- 2026-09-04T15:39:03.968989Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=implemented
+- 2026-09-04T15:39:04.248532Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T15:39:12.347716Z | evidence.added | id=evidence-000001 type=tdd result=success revision=1 actor=project:agent
+- 2026-09-04T15:39:12.616015Z | evidence.added | id=evidence-000002 type=focused-test result=success revision=1 actor=project:agent
+- 2026-09-04T15:39:12.882114Z | evidence.added | id=evidence-000003 type=reactor-test result=success revision=1 actor=project:agent
+- 2026-09-04T15:39:13.158751Z | evidence.added | id=evidence-000004 type=build result=success revision=1 actor=project:agent
+- 2026-09-04T15:39:13.438352Z | evidence.added | id=evidence-000005 type=whitespace result=success revision=1 actor=project:agent
+- 2026-09-04T15:39:13.723630Z | evidence.added | id=evidence-000006 type=review result=success revision=1 actor=project:agent
+- 2026-09-04T15:39:14.015871Z | work.criterion-stage-marked | criterion=profile-contract actor=project:agent stage=verified
+- 2026-09-04T15:39:14.310268Z | work.criterion-stage-marked | criterion=traceable-content actor=project:agent stage=verified
+- 2026-09-04T15:39:14.613178Z | work.criterion-stage-marked | criterion=java-emission actor=project:agent stage=verified
+- 2026-09-04T15:39:14.925929Z | work.criterion-stage-marked | criterion=node-emission actor=project:agent stage=verified
+- 2026-09-04T15:39:15.207158Z | work.criterion-stage-marked | criterion=safety-determinism actor=project:agent stage=verified
+- 2026-09-04T15:39:15.474460Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified

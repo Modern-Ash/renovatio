@@ -60,6 +60,25 @@ class NodeEmitterTest {
         assertFalse(firstFiles.get("package.json").contains("first"));
     }
 
+    @Test
+    void enabledDocumentationDecoratesProgramUnitsButNotSharedProjectFiles() {
+        TargetModel first = model("FIRST", List.of("src/first/domain/first.service.ts"),
+                Map.of("documentation.enabled", true));
+        TargetModel second = model("SECOND", List.of("src/second/domain/second.service.ts"),
+                Map.of("documentation.enabled", true));
+        DefaultNodeRenderer renderer = new DefaultNodeRenderer();
+
+        Map<String, String> firstFiles = renderer.render(first, first.profile()).utf8TextByPath();
+        Map<String, String> secondFiles = renderer.render(second, second.profile()).utf8TextByPath();
+
+        assertTrue(firstFiles.get("src/first/domain/first.service.ts")
+                .startsWith("/**\n * Migrated from COBOL program FIRST"));
+        for (String shared : List.of("src/main.ts", "package.json", "tsconfig.json")) {
+            assertEquals(firstFiles.get(shared), secondFiles.get(shared), shared);
+            assertFalse(firstFiles.get(shared).contains("Migrated from COBOL"), shared);
+        }
+    }
+
     private static TargetModel model() {
         SourceSpan span = new SourceSpan("src/program.cob", 1, 1, 1, 9);
         SourceProvenance provenance = new SourceProvenance("src/program.cob", "0".repeat(64),
@@ -73,6 +92,11 @@ class NodeEmitterTest {
     }
 
     private static TargetModel model(String programId, List<String> artifactPaths) {
+        return model(programId, artifactPaths, Map.of());
+    }
+
+    private static TargetModel model(String programId, List<String> artifactPaths,
+                                     Map<String, Object> extensions) {
         SourceSpan span = new SourceSpan("src/" + programId.toLowerCase() + ".cob", 1, 1, 1, 9);
         SourceProvenance provenance = new SourceProvenance(span.sourcePath(), "0".repeat(64),
                 "COBOL", Optional.empty(), List.of());
@@ -80,7 +104,7 @@ class NodeEmitterTest {
                 SemanticProgram.NodeKind.PROGRAM, "program", span), programId, provenance,
                 List.of(), List.of(), List.of(), List.of(),
                 new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
-        MigrationProfile overlay = new MigrationProfile("1", Map.of(),
+        MigrationProfile overlay = new MigrationProfile("1", extensions,
                 new MigrationProfile.Target(MigrationProfile.Language.NODE, "20"),
                 null, null, null, null, null);
         var effective = MigrationProfiles.effective(overlay, Map.of(), Map.of(), List.of());

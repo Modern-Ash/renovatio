@@ -103,6 +103,33 @@ class TargetEmissionContractTest {
                 EmittedArtifact.utf8("A.java", "A"), EmittedArtifact.utf8("A.java", "B"))));
     }
 
+    @Test
+    void explanatoryDocumentationIsOrderedRepeatableAndCommentSafe() {
+        SourceSpan span = new SourceSpan("src/bad*/name.cob", 1, 1, 1, 9);
+        SourceProvenance provenance = new SourceProvenance(span.sourcePath(), "0".repeat(64),
+                "COBOL", Optional.empty(), List.of());
+        SemanticProgram program = new SemanticProgram("1", SemanticProgram.Header.create("BAD*/\nID",
+                SemanticProgram.NodeKind.PROGRAM, "program", span), "BAD*/\nID", provenance,
+                List.of(), List.of(), List.of(), List.of(),
+                new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
+        MigrationProfile overlay = new MigrationProfile("1", Map.of("documentation.enabled", true),
+                null, null, null, null, null, null);
+        var effective = MigrationProfiles.effective(overlay,
+                Map.of("z*/choice", "line\nvalue", "a", "first"), Map.of(),
+                List.of("2".repeat(64), "1".repeat(64)));
+        TargetModel model = TargetModel.from(program, effective);
+
+        String first = TranslationDocumentation.javadoc(model);
+        String second = TranslationDocumentation.javadoc(model);
+
+        assertEquals(first, second);
+        assertTrue(first.contains("COBOL program BAD* / ID (src/bad* /name.cob)"), first);
+        assertTrue(first.indexOf("a=first") < first.indexOf("z* /choice=line value"), first);
+        assertTrue(first.indexOf("1".repeat(64)) < first.indexOf("2".repeat(64)), first);
+        assertEquals(first.indexOf("*/"), first.lastIndexOf("*/"), first);
+        assertTrue(TranslationDocumentation.tsdoc(model).contains("DecisionPoint references:"));
+    }
+
     private static SemanticProgram program() {
         SourceSpan span = new SourceSpan("src/program.cob", 1, 1, 1, 9);
         SourceProvenance provenance = new SourceProvenance("src/program.cob", "0".repeat(64),
