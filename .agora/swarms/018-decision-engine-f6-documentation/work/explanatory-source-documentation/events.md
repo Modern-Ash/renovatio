@@ -39,3 +39,7 @@
 - 2026-09-04T15:39:14.925929Z | work.criterion-stage-marked | criterion=node-emission actor=project:agent stage=verified
 - 2026-09-04T15:39:15.207158Z | work.criterion-stage-marked | criterion=safety-determinism actor=project:agent stage=verified
 - 2026-09-04T15:39:15.474460Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified
+- 2026-09-04T15:39:32.589008Z | tool.prepared | run=tool-20260904t15391788547172z tool=repository operation=commit actor=project:agent
+- 2026-09-04T15:39:32.592174Z | tool.running | run=tool-20260904t15391788547172z actor=project:agent
+- 2026-09-04T15:39:32.627127Z | tool.completed | run=tool-20260904t15391788547172z exit-code=0
+- 2026-09-04T15:39:41.093511Z | evidence.added | id=evidence-000007 type=tested-revision result=success revision=1 actor=project:agent
