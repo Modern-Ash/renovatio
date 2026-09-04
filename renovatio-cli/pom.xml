@@ -39,6 +39,10 @@
             <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-decisions</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-emitter-node</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>info.picocli</groupId>

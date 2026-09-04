@@ -5,6 +5,7 @@ import com.squareup.javapoet.*;
 import org.shark.renovatio.architecture.ArchitectureRequest;
 import org.shark.renovatio.architecture.ArchitectureResult;
 import org.shark.renovatio.architecture.ArchitectureTransformer;
+import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
 import org.shark.renovatio.architecture.GroupingConfiguration;
 import org.shark.renovatio.cobol.ir.model.CobolDataItem;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
@@ -70,8 +71,7 @@ public class JavaGenerationService {
     private final TargetEmitterRegistry emitterRegistry;
     private final EffectiveProfileResolver effectiveProfileResolver;
     private final CobolSemanticProjector semanticProjector = new CobolSemanticProjector();
-    private final ArchitectureTransformer architectureTransformer = new ArchitectureTransformer(
-            List.of(new JavaArchitectureLayoutPlanner()));
+    private final ArchitectureTransformer architectureTransformer;
     private final ArchitectureTransformer architectureTransformerWithoutLayout = new ArchitectureTransformer();
 
     public JavaGenerationService(CobolParsingService parsingService,
@@ -109,6 +109,20 @@ public class JavaGenerationService {
                                  boolean registryRouting,
                                  TargetEmitterRegistry emitterRegistry,
                                  EffectiveProfileResolver effectiveProfileResolver) {
+        this(parsingService, templateService, intermediateModelService, semanticTranspiler, objectMapper,
+                registryRouting, emitterRegistry, effectiveProfileResolver,
+                List.of(new JavaArchitectureLayoutPlanner()));
+    }
+
+    public JavaGenerationService(CobolParsingService parsingService,
+                                 TemplateCodeGenerationService templateService,
+                                 CobolIntermediateModelService intermediateModelService,
+                                 CobolSemanticTranspiler semanticTranspiler,
+                                 ObjectMapper objectMapper,
+                                 boolean registryRouting,
+                                 TargetEmitterRegistry emitterRegistry,
+                                 EffectiveProfileResolver effectiveProfileResolver,
+                                 List<ArtifactLayoutPlanner> layoutPlanners) {
         this.parsingService = parsingService;
         this.templateService = templateService;
         this.intermediateModelService = intermediateModelService;
@@ -120,6 +134,8 @@ public class JavaGenerationService {
         this.emitterRegistry = Objects.requireNonNull(emitterRegistry, "emitterRegistry");
         this.effectiveProfileResolver = effectiveProfileResolver == null
                 ? ignored -> defaultEffectiveProfile() : effectiveProfileResolver;
+        this.architectureTransformer = new ArchitectureTransformer(
+                List.copyOf(Objects.requireNonNull(layoutPlanners, "layoutPlanners")));
     }
 
     /**
@@ -171,6 +187,13 @@ public class JavaGenerationService {
             String outputPath = resolveOutputDir(workspace).toString();
             if (effective.profile().target().language() == org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
                 manualActionItemWriter.write(root.resolve(ManualActionItemWriter.DEFAULT_REPORT), actionItems.values());
+            }
+            boolean explicitOutput = workspace.getMetadata() != null
+                    && workspace.getMetadata().get("outputDir") != null
+                    && !workspace.getMetadata().get("outputDir").toString().isBlank();
+            if (!generatedFiles.isEmpty()
+                    && (effective.profile().target().language()
+                    == org.shark.renovatio.profile.MigrationProfile.Language.JAVA || explicitOutput)) {
                 outputPath = writeGeneratedFilesToDisk(generatedFiles, workspace);
             }
             StubResult result = new StubResult(!generatedFiles.isEmpty(), generatedFiles.isEmpty()
@@ -499,7 +522,8 @@ public class JavaGenerationService {
     }
 
     private static void putArtifact(Map<String, String> artifacts, String path, String content) {
-        if (artifacts.putIfAbsent(path, content) != null) {
+        String existing = artifacts.putIfAbsent(path, content);
+        if (existing != null && !existing.equals(content)) {
             throw new IllegalArgumentException("duplicate artifact path: " + path);
         }
     }
@@ -514,6 +538,20 @@ public class JavaGenerationService {
                 new AnnotatedContextResolver.Request(Optional.empty(), Optional.empty(), normalizedSource), model);
         return semanticProjector.project(model, relative, bytes,
                 Optional.ofNullable(resolveDialect(query, workspace)), annotated.context());
+    }
+
+    /**
+     * Projects every COBOL source in a workspace into the target-neutral semantic IR.
+     * This is intentionally exposed as a read-only analysis boundary so API consumers
+     * can reuse the same semantic programs that generation uses.
+     */
+    public List<SemanticProgram> semanticPrograms(NqlQuery query, Workspace workspace) throws Exception {
+        Path root = workspaceRoot(workspace);
+        List<SemanticProgram> result = new ArrayList<>();
+        for (Path source : parsingService.findCobolSourceFiles(root).stream().sorted().toList()) {
+            result.add(semanticProgram(source, query, workspace));
+        }
+        return List.copyOf(result);
     }
 
     private SemanticProgram copybookSemanticProgram(Path source, NqlQuery query, Workspace workspace) throws Exception {

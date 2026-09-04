@@ -37,6 +37,7 @@ class RenovatioCliSmokeTest {
         String output = stdout.toString(StandardCharsets.UTF_8);
         assertThat(output).contains("analyze");
         assertThat(output).contains("metrics");
+        assertThat(output).contains("generate");
         assertThat(output).contains("plan");
         assertThat(output).contains("apply");
         assertThat(output).contains("diff");
@@ -44,7 +45,18 @@ class RenovatioCliSmokeTest {
         assertThat(output).contains("report");
         assertThat(output).contains("serve");
         assertThat(output).contains("profile");
+        assertThat(output).contains("decisions");
         assertThat(output).contains("policy");
+    }
+
+    @Test
+    void newProfileAndGenerationCommandsExposeHelp() {
+        CommandLine commandLine = new CommandLine(new RenovatioCli());
+        commandLine.setOut(new PrintWriter(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
+        commandLine.setErr(new PrintWriter(new ByteArrayOutputStream(), true, StandardCharsets.UTF_8));
+
+        assertThat(commandLine.execute("profile", "init", "--help")).isZero();
+        assertThat(commandLine.execute("generate", "--help")).isZero();
     }
 
     @Test

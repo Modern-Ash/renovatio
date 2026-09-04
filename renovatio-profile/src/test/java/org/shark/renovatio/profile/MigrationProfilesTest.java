@@ -67,6 +67,21 @@ class MigrationProfilesTest {
     }
 
     @Test
+    void documentationExtensionIsTypedAndDefaultsToDisabled() {
+        assertFalse(DocumentationSettings.enabled(MigrationProfiles.defaults()));
+        MigrationProfile enabled = new MigrationProfile("1", Map.of("documentation.enabled", true),
+                null, null, null, null, null, null);
+        assertTrue(DocumentationSettings.enabled(MigrationProfiles.resolve(enabled)));
+
+        MigrationProfile invalid = new MigrationProfile("1", Map.of("documentation.enabled", "true"),
+                null, null, null, null, null, null);
+        assertEquals(List.of(new MigrationProfiles.Violation(
+                        "/extensions/documentation.enabled", "INVALID_TYPE", "must be a boolean")),
+                MigrationProfiles.validateOverlay(invalid));
+        assertThrows(IllegalArgumentException.class, () -> DocumentationSettings.enabled(invalid));
+    }
+
+    @Test
     void canonicalHashIgnoresMapInsertionOrder() {
         Map<String, Object> first = new LinkedHashMap<>(); first.put("b", 2); first.put("a", 1);
         Map<String, Object> second = new LinkedHashMap<>(); second.put("a", 1); second.put("b", 2);
@@ -88,5 +103,20 @@ class MigrationProfilesTest {
         assertEquals(Naming.FLUENT, result.profile().style().naming());
         assertEquals(List.of("a", "b"), result.appliedDecisionIds());
         assertEquals(64, result.profileHash().length());
+    }
+
+    @Test
+    void unboundLayeredProfileRetainsLegacyEffectiveHash() {
+        MigrationProfile overlay = new MigrationProfile("1", Map.of("dialect", "IBM"),
+                new Target(Language.JAVA, "21"), null, null, null, null, null);
+        Map<String, String> decisions = Map.of("java.accessor-convention", "FLUENT");
+        List<String> ids = List.of("b", "a");
+
+        var legacy = MigrationProfiles.effective(overlay, decisions, decisions, ids);
+        var layered = MigrationProfiles.effectiveLayers(MigrationProfiles.emptyOverlay(), Map.of(),
+                overlay, decisions, decisions, ids, Map.of());
+
+        assertEquals(legacy.profile(), layered.profile());
+        assertEquals(legacy.profileHash(), layered.profileHash());
     }
 }

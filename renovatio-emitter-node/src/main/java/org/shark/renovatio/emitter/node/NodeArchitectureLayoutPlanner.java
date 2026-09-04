@@ -4,9 +4,10 @@ import org.shark.renovatio.architecture.ArchitectureGraph;
 import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
 import org.shark.renovatio.profile.MigrationProfile;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public final class NodeArchitectureLayoutPlanner implements ArtifactLayoutPlanner {
     @Override
@@ -16,7 +17,7 @@ public final class NodeArchitectureLayoutPlanner implements ArtifactLayoutPlanne
 
     @Override
     public List<PlannedArtifact> plan(LayoutContext context) {
-        List<PlannedArtifact> artifacts = new ArrayList<>();
+        Map<String, PlannedArtifact> artifacts = new LinkedHashMap<>();
         String moduleDir = moduleDir(context.moduleName());
         String programId = context.program().programId();
 
@@ -30,10 +31,10 @@ public final class NodeArchitectureLayoutPlanner implements ArtifactLayoutPlanne
                 case OUTBOUND_PORT, ADAPTER -> moduleDir + "/api/" + programId.toLowerCase(Locale.ROOT) + ".controller.ts";
                 default -> moduleDir + "/domain/" + programId.toLowerCase(Locale.ROOT) + "." + role + ".ts";
             };
-            artifacts.add(new PlannedArtifact(path, componentId, role));
+            artifacts.putIfAbsent(path, new PlannedArtifact(path, componentId, role));
         }
 
-        return artifacts;
+        return List.copyOf(artifacts.values());
     }
 
     private String moduleDir(String moduleName) {

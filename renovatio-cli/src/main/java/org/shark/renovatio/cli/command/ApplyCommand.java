@@ -75,8 +75,8 @@ public final class ApplyCommand extends AbstractCoreCommand {
                 executionWorkspace = tempWorkspace;
             }
 
-            MigrationChain.Step applied = chain.apply(planned.engineId(), executionWorkspace.toString(), dryRun,
-                    executionOutputDir);
+            MigrationChain.Step applied = chain.apply(planned.engineId(), executionWorkspace.toString(),
+                    plan.workspacePath(), dryRun, executionOutputDir);
             if (!applied.ok()) {
                 return output().render(applied.result(), r -> { });
             }

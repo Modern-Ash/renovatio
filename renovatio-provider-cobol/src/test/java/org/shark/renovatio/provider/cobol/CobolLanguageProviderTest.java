@@ -90,6 +90,7 @@ class CobolLanguageProviderTest {
         assertTrue(capabilities.contains(LanguageProvider.Capabilities.DIFF));
         assertTrue(capabilities.contains(LanguageProvider.Capabilities.STUBS));
         assertTrue(capabilities.contains(LanguageProvider.Capabilities.METRICS));
+        assertTrue(provider.getTools().stream().anyMatch(tool -> "cobol.stubs".equals(tool.getName())));
     }
 
     @Test

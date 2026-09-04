@@ -28,7 +28,7 @@ public record MigrationProfile(
     public enum ArchitectureStyle { TRANSACTION_SCRIPT, LAYERED_MVC, HEXAGONAL }
     public enum ModuleGrouping { BY_PROGRAM, BY_DOMAIN, SINGLE_MODULE }
     public enum Framework { SPRING_BOOT, NONE }
-    public enum PersistenceStrategy { JPA, SPRING_DATA_JDBC, IN_MEMORY }
+    public enum PersistenceStrategy { JPA, SPRING_DATA_JDBC, IN_MEMORY, PRISMA }
     public enum TransactionBoundary { METHOD, PROGRAM, NONE }
     public enum NumericPolicy { BIGDECIMAL, SCALED_LONG }
     public enum Nullability { NON_NULL_BY_DEFAULT, NULLABLE }

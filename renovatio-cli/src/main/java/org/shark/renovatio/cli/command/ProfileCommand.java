@@ -3,6 +3,7 @@ package org.shark.renovatio.cli.command;
 import org.shark.renovatio.cli.OutputWriter;
 import org.shark.renovatio.cli.ReusableProjectStore;
 import org.shark.renovatio.profile.FileProfileTemplateRepository;
+import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.profile.ProfileTemplates;
 import org.shark.renovatio.profile.TemplateReference;
 import picocli.CommandLine.Command;
@@ -11,10 +12,12 @@ import picocli.CommandLine.Parameters;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 @Command(name = "profile", description = "Manage reusable migration profile templates",
-        subcommands = {ProfileCommand.Save.class, ProfileCommand.Apply.class,
+        subcommands = {ProfileCommand.Init.class, ProfileCommand.Save.class, ProfileCommand.Apply.class,
                 ProfileCommand.Diff.class, ProfileCommand.ListTemplates.class})
 public final class ProfileCommand implements Runnable {
     @Override public void run() { }
@@ -25,6 +28,29 @@ public final class ProfileCommand implements Runnable {
             return new FileProfileTemplateRepository(ReusableProjectStore.assetsRoot().resolve("profiles"));
         }
         OutputWriter output() { return new OutputWriter(json); }
+    }
+
+    @Command(name = "init", mixinStandardHelpOptions = true,
+            description = "Initialize a project's sparse migration profile")
+    static final class Init extends Base {
+        @Option(names = "--project", defaultValue = ".") Path project;
+        @Option(names = "--force", description = "Replace an existing project profile") boolean force;
+
+        @Override public Integer call() {
+            var store = new ReusableProjectStore(project);
+            if (store.hasProfile() && !force) {
+                return output().render(Map.of("success", false,
+                        "message", "migration profile already exists: " + store.profilePath()), ignored -> { });
+            }
+            var profile = MigrationProfiles.emptyOverlay();
+            store.profile(profile);
+            Map<String, Object> result = new LinkedHashMap<>();
+            result.put("success", true);
+            result.put("profilePath", store.profilePath().toString());
+            result.put("profile", profile);
+            return output().render(result,
+                    ignored -> output().line("Initialized migration profile " + store.profilePath()));
+        }
     }
 
     @Command(name = "save", description = "Save a project's profile as an immutable template version")

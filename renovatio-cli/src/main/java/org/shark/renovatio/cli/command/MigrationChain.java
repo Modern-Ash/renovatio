@@ -30,6 +30,7 @@ final class MigrationChain {
     Step replayPlan(PlanDescriptor descriptor) {
         Map<String, Object> args = new LinkedHashMap<>();
         args.put("workspacePath", descriptor.workspacePath());
+        args.put("projectId", descriptor.workspacePath());
         put(args, "scope", descriptor.scope());
         put(args, "nql", descriptor.nql());
         put(args, "strategy", descriptor.strategy());
@@ -38,9 +39,10 @@ final class MigrationChain {
         return new Step(result, asString(result.get("planId")));
     }
 
-    Step apply(String enginePlanId, String workspacePath, boolean dryRun, String outputDir) {
+    Step apply(String enginePlanId, String workspacePath, String projectId, boolean dryRun, String outputDir) {
         Map<String, Object> args = new LinkedHashMap<>();
         args.put("workspacePath", workspacePath);
+        args.put("projectId", projectId);
         args.put("planId", enginePlanId);
         args.put("dryRun", Boolean.toString(dryRun));
         put(args, "outputDir", outputDir);

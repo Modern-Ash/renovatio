@@ -9,6 +9,7 @@ import picocli.CommandLine.Command;
 @Command(name = "renovatio", subcommands = {
         AnalyzeCommand.class,
         MetricsCommand.class,
+        GenerateCommand.class,
         PlanCommand.class,
         ApplyCommand.class,
         DiffCommand.class,
