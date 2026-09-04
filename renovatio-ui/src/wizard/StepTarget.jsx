@@ -5,6 +5,7 @@ import {
   getProjectProfile,
   putProjectProfile
 } from '../api/client'
+import DomainModelReview from '../components/DomainModelReview'
 
 const ARCHITECTURES = [
   { value: 'TRANSACTION_SCRIPT', label: 'Transaction script', active: true },
@@ -341,6 +342,8 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
 
         <ArchitecturePreview preview={preview} loading={previewLoading} error={previewError}
           stale={Boolean(preview && previewSelection !== selectionKey)} />
+        {data?.domainModel && <DomainModelReview domainModel={data.domainModel}
+          onProject={(model) => onChange({ domainModelConfirmed: model })} />}
       </div>
 
       {violations.length > 0 && <div className="decision-alert decision-alert-error" role="alert">
