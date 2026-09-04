@@ -3,6 +3,8 @@ import { useMemo, useState } from 'react'
 /** Review gate for the target-neutral business model before architecture projection. */
 export default function DomainModelReview({ domainModel, onProject, disabled = false }) {
   const [confirmed, setConfirmed] = useState(false)
+  const [projecting, setProjecting] = useState(false)
+  const [error, setError] = useState('')
   const nodes = domainModel?.nodes || []
   const relations = domainModel?.relations || []
   const invariants = domainModel?.invariants || []
@@ -25,7 +27,12 @@ export default function DomainModelReview({ domainModel, onProject, disabled = f
     </ul>
     <label className="preview-status"><input type="checkbox" checked={confirmed} disabled={disabled}
       onChange={event => setConfirmed(event.target.checked)} /> Confirmo que este modelo representa el negocio</label>
-    <button className="button button-primary" type="button" disabled={!confirmed || disabled}
-      onClick={() => onProject?.(domainModel)}>Proyectar arquitectura</button>
+    {error && <div className="preview-error" role="alert">{error}</div>}
+    <button className="button button-primary" type="button" disabled={!confirmed || disabled || projecting}
+      onClick={async () => {
+        setProjecting(true); setError('')
+        try { await onProject?.(domainModel) } catch (reason) { setError(reason?.message || 'No se pudo proyectar la arquitectura.') }
+        finally { setProjecting(false) }
+      }}>{projecting ? 'Proyectando…' : 'Proyectar arquitectura'}</button>
   </section>
 }
