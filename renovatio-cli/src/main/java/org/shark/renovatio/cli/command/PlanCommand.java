@@ -34,6 +34,7 @@ public final class PlanCommand extends AbstractCoreCommand {
         String workspacePath = absolute(path);
         Map<String, Object> args = args();
         args.put("workspacePath", workspacePath);
+        args.put("projectId", workspacePath);
         putIfPresent(args, "scope", scope);
         putIfPresent(args, "nql", nql);
         putIfPresent(args, "strategy", strategy);

@@ -248,7 +248,9 @@ public final class MigrationProfiles {
         projection.put("profile", JSON.convertValue(profile, Object.class));
         projection.put("resolvedDecisions", ordered);
         projection.put("appliedDecisionIds", ids);
-        projection.put("bindings", new java.util.TreeMap<>(bindings == null ? Map.of() : bindings));
+        if (bindings != null && !bindings.isEmpty()) {
+            projection.put("bindings", new java.util.TreeMap<>(bindings));
+        }
         return new EffectiveProfile(profile, ordered, ids, sha256(canonical(projection)));
     }
 

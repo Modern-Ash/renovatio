@@ -42,7 +42,8 @@ public final class DiffCommand extends AbstractCoreCommand {
         if (!planned.ok()) {
             return output().render(planned.result(), r -> { });
         }
-        MigrationChain.Step applied = chain.apply(planned.engineId(), run.workspacePath(), true, null);
+        MigrationChain.Step applied = chain.apply(planned.engineId(), run.workspacePath(), run.workspacePath(),
+                true, null);
         if (!applied.ok()) {
             return output().render(applied.result(), r -> { });
         }

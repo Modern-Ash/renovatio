@@ -13,6 +13,10 @@ renovatio apply   <planId> [--dry-run | --no-dry-run] [--out <dir>] [--json]
 renovatio diff    <runId> [--format unified|semantic|both] [--json]
 renovatio review  [--report <path>] [--severity error|warning|info] [--json]
 renovatio report  [--html <file> | --pdf <file>]
+renovatio profile save|apply|diff|list ...
+renovatio decisions list --project <path>
+renovatio decisions set <decision-key-or-id> <option> --project <path>
+renovatio policy export|apply|list ...
 renovatio serve   [--http | --stdio] [-- <passthrough args>]
 ```
 
@@ -34,12 +38,25 @@ renovatio diff <runId>
 
 ## `.renovatio/` state directory
 
-Each workspace stores CLI-minted identifiers under `.renovatio/state/`:
+Each workspace stores CLI-minted identifiers and reusable decision inputs under `.renovatio/`:
 
 ```
+.renovatio/migration-profile.json   # effective local profile used by generation
+.renovatio/decisions.json           # decisions reconciled by `analyze`
+.renovatio/profile-template.json    # explicitly bound template version
+.renovatio/policy-catalog.json      # explicitly bound policy version
 .renovatio/state/
   plans/<planId>.json   # plan descriptor
   runs/<runId>.json     # run descriptor
+```
+
+A policy catalog can be created without editing project state by hand:
+
+```bash
+renovatio analyze <project>
+renovatio decisions list --project <project>
+renovatio decisions set java.accessor-convention JAVA_BEANS --project <project>
+renovatio policy export bank --version 1 --project <project>
 ```
 
 Add `.renovatio/` to your `.gitignore` to avoid committing local state.

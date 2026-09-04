@@ -3,6 +3,7 @@ package org.shark.renovatio.cli;
 import org.shark.renovatio.cli.command.AnalyzeCommand;
 import org.shark.renovatio.cli.command.ApplyCommand;
 import org.shark.renovatio.cli.command.DiffCommand;
+import org.shark.renovatio.cli.command.DecisionsCommand;
 import org.shark.renovatio.cli.command.MetricsCommand;
 import org.shark.renovatio.cli.command.PlanCommand;
 import org.shark.renovatio.cli.command.ReportCommand;
@@ -33,6 +34,7 @@ import picocli.CommandLine.Command;
                 ReviewCommand.class,
                 ReportCommand.class,
                 ProfileCommand.class,
+                DecisionsCommand.class,
                 PolicyCommand.class,
                 ServeCommand.class
         }

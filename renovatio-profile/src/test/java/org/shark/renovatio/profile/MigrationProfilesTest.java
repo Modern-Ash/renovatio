@@ -89,4 +89,19 @@ class MigrationProfilesTest {
         assertEquals(List.of("a", "b"), result.appliedDecisionIds());
         assertEquals(64, result.profileHash().length());
     }
+
+    @Test
+    void unboundLayeredProfileRetainsLegacyEffectiveHash() {
+        MigrationProfile overlay = new MigrationProfile("1", Map.of("dialect", "IBM"),
+                new Target(Language.JAVA, "21"), null, null, null, null, null);
+        Map<String, String> decisions = Map.of("java.accessor-convention", "FLUENT");
+        List<String> ids = List.of("b", "a");
+
+        var legacy = MigrationProfiles.effective(overlay, decisions, decisions, ids);
+        var layered = MigrationProfiles.effectiveLayers(MigrationProfiles.emptyOverlay(), Map.of(),
+                overlay, decisions, decisions, ids, Map.of());
+
+        assertEquals(legacy.profile(), layered.profile());
+        assertEquals(legacy.profileHash(), layered.profileHash());
+    }
 }

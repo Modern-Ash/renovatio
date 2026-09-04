@@ -67,6 +67,46 @@ class DecisionPoliciesTest {
     }
 
     @Test
+    void preservesLocallyConfirmedHeuristicAndLlmDecisions() {
+        DecisionPoint source = confirmed(F1DecisionCatalog.create("a".repeat(64), NOW).get(0));
+        source = DecisionTransitions.patch(source, source.options().get(1), source.revision(), NOW.plusSeconds(2));
+        var catalog = DecisionPolicies.exportCatalog("bank", "1", "project-a", "analyzer-1",
+                List.of(source), Map.of(), null, null, NOW);
+        DecisionPoint base = F1DecisionCatalog.create("b".repeat(64), NOW).get(0);
+        DecisionPoint heuristic = confirmed(base);
+        DecisionPoint llm = DecisionTransitions.suggest(base, base.chosenOption(), new BigDecimal("0.8"),
+                "A reviewable LLM suggestion.", NOW.plusSeconds(1));
+        llm = DecisionTransitions.patch(llm, llm.chosenOption(), llm.revision(), NOW.plusSeconds(2));
+
+        var result = DecisionPolicies.apply(catalog, List.of(heuristic, llm), "analyzer-1", Map.of(),
+                NOW.plusSeconds(3));
+
+        assertEquals(List.of(heuristic, llm), result.decisions());
+        assertEquals(0, result.report().autoConfirmed());
+        assertEquals(2, result.report().unmatched());
+    }
+
+    @Test
+    void reportsRemovedPolicyOptionAsStaleSuggestionWithoutApplyingIt() {
+        DecisionPoint source = F1DecisionCatalog.create("a".repeat(64), NOW).get(0);
+        source = DecisionTransitions.patch(source, source.options().get(1), source.revision(), NOW.plusSeconds(1));
+        var catalog = DecisionPolicies.exportCatalog("bank", "1", "project-a", "analyzer-1",
+                List.of(source), Map.of(), null, null, NOW);
+        DecisionPoint original = F1DecisionCatalog.create("b".repeat(64), NOW).get(0);
+        DecisionPoint changed = withOptions(original, List.of(original.options().get(0), "REPLACEMENT"));
+
+        var result = DecisionPolicies.apply(catalog, List.of(changed), "analyzer-1", Map.of(), NOW.plusSeconds(2));
+
+        assertEquals(changed, result.decisions().get(0));
+        assertEquals(0, result.report().autoConfirmed());
+        assertEquals(1, result.report().suggested());
+        assertEquals(0, result.report().unmatched());
+        assertEquals(DecisionPolicies.MatchKind.SUGGESTED, result.report().matches().get(0).kind());
+        assertTrue(result.report().matches().get(0).stale());
+        assertNotNull(result.report().matches().get(0).policyId());
+    }
+
+    @Test
     void storesExplicitCoexistingVersionsAndRejectsDifferentContent() {
         DecisionPoint source = confirmed(F1DecisionCatalog.create("a".repeat(64), NOW).get(0));
         var v1 = DecisionPolicies.exportCatalog("bank", "1", "project-a", "analyzer-1",
@@ -122,5 +162,13 @@ class DecisionPoliciesTest {
 
     private static DecisionPoint confirmed(DecisionPoint value) {
         return DecisionTransitions.patch(value, value.chosenOption(), value.revision(), NOW.plusSeconds(1));
+    }
+
+    private static DecisionPoint withOptions(DecisionPoint value, List<String> options) {
+        return new DecisionPoint(value.schemaVersion(), value.id(), value.category(), value.decisionKey(),
+                value.location(), value.question(), options, options.get(0), options.get(0), value.source(),
+                value.confidence(), value.rationale(), value.evidence(), value.status(), value.semanticIrHash(),
+                value.policyProvenance(), value.llmFailed(), value.llmFailureCategory(), value.revision(),
+                value.createdAt(), value.updatedAt(), value.active());
     }
 }

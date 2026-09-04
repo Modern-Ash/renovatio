@@ -1,10 +1,14 @@
 package org.shark.renovatio.cli.command;
 
+import org.shark.renovatio.cli.ReusableProjectStore;
+import org.shark.renovatio.profile.MigrationProfiles;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Command(name = "analyze", description = "Analyze the COBOL programs in a workspace.")
@@ -22,11 +26,21 @@ public final class AnalyzeCommand extends AbstractCoreCommand {
     @Override
     public Integer call() {
         Map<String, Object> args = args();
-        args.put("workspacePath", absolute(path));
+        String workspacePath = absolute(path);
+        args.put("workspacePath", workspacePath);
+        args.put("projectId", workspacePath);
         putIfPresent(args, "scope", scope);
         putIfPresent(args, "dialect", dialect);
 
         Map<String, Object> result = route("cobol.analyze", args);
+        if (Boolean.TRUE.equals(result.get("success"))) {
+            Map<String, Object> semanticProjection = new LinkedHashMap<>();
+            for (String key : new String[] {"data", "ast", "symbols", "dependencies"}) {
+                if (result.get(key) != null) semanticProjection.put(key, result.get(key));
+            }
+            String semanticIrHash = MigrationProfiles.sha256(MigrationProfiles.canonical(semanticProjection));
+            new ReusableProjectStore(path).reconcileAnalysis(semanticIrHash, Instant.now());
+        }
         return output().render(result, r -> {
             Object metrics = r.get("metrics");
             System.out.println("workspace: " + absolute(path));

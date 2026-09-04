@@ -53,6 +53,7 @@ public final class ProfileCommand implements Runnable {
             var store = new ReusableProjectStore(project);
             store.templateBinding(reference);
             var effective = ProfileTemplates.effective(template, store.profile());
+            store.profile(effective);
             if (json) output().writeJson(effective); else output().line("Applied profile template " + name + "@" + version);
             return 0;
         }

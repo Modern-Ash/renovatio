@@ -46,7 +46,10 @@ public final class DecisionPolicies {
         List<DecisionPoint> updated = new ArrayList<>();
         List<Match> matches = new ArrayList<>();
         for (DecisionPoint decision : decisions.stream().sorted(DecisionResolver.apiOrder()).toList()) {
-            if (!decision.active() || decision.status() == DecisionPoint.Status.OVERRIDDEN) {
+            boolean locallyFinal = decision.source() != DecisionPoint.Source.POLICY
+                    && (decision.status() == DecisionPoint.Status.CONFIRMED
+                    || decision.status() == DecisionPoint.Status.OVERRIDDEN);
+            if (!decision.active() || locallyFinal) {
                 updated.add(decision);
                 matches.add(new Match(decision.id(), MatchKind.UNMATCHED, BigDecimal.ZERO, null, false));
                 continue;
@@ -71,6 +74,7 @@ public final class DecisionPolicies {
             DecisionPolicyEntry selected = tied.get(0).entry();
             boolean stale = !catalog.analyzerVersion().equals(analyzerVersion)
                     || !catalog.signatureSchemaVersion().equals(signature.schemaVersion())
+                    || !selected.signature().optionVocabulary().equals(signature.optionVocabulary())
                     || !decision.options().contains(selected.chosenOption());
             boolean auto = !stale && best.compareTo(catalog.autoConfirmThreshold()) >= 0;
             PolicyProvenance provenance = new PolicyProvenance(catalog.name(), catalog.version(), selected.policyId(),
@@ -79,8 +83,7 @@ public final class DecisionPolicies {
                     ? DecisionTransitions.policy(decision, selected.chosenOption(), best, provenance, auto, now)
                     : decision;
             updated.add(next);
-            MatchKind kind = !decision.options().contains(selected.chosenOption()) ? MatchKind.UNMATCHED
-                    : auto ? MatchKind.AUTO_CONFIRMED : MatchKind.SUGGESTED;
+            MatchKind kind = auto ? MatchKind.AUTO_CONFIRMED : MatchKind.SUGGESTED;
             matches.add(new Match(decision.id(), kind, best, selected.policyId(), stale));
         }
         long auto = matches.stream().filter(value -> value.kind() == MatchKind.AUTO_CONFIRMED).count();

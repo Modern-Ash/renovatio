@@ -1,9 +1,13 @@
 package org.shark.renovatio.cli;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.shark.renovatio.profile.EffectiveProfileResolver;
+import org.shark.renovatio.profile.MigrationProfiles;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+
+import java.nio.file.Path;
 
 /**
  * Minimal Spring configuration for the headless CLI context. Scans the core engine and the
@@ -22,5 +26,13 @@ public class RenovatioCliConfiguration {
     @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper().findAndRegisterModules();
+    }
+
+    @Bean
+    public EffectiveProfileResolver localEffectiveProfileResolver() {
+        return projectId -> projectId == null || projectId.isBlank() || "default".equals(projectId)
+                ? MigrationProfiles.effective(MigrationProfiles.emptyOverlay(), java.util.Map.of(),
+                java.util.Map.of(), java.util.List.of())
+                : new ReusableProjectStore(Path.of(projectId)).effectiveProfile();
     }
 }

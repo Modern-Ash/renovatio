@@ -24,6 +24,7 @@ public class LanguageProviderRegistry {
     private static final Logger logger = LoggerFactory.getLogger(LanguageProviderRegistry.class);
     private static final Set<String> RESERVED_ARGUMENT_KEYS = Set.of(
             "workspacePath",
+            "projectId",
             "scope",
             "planId",
             "runId",
@@ -351,7 +352,7 @@ public class LanguageProviderRegistry {
 
     private Workspace createWorkspace(Map<String, Object> arguments) {
         Workspace workspace = new Workspace();
-        workspace.setId("default");
+        workspace.setId((String) arguments.getOrDefault("projectId", "default"));
         workspace.setPath((String) arguments.get("workspacePath"));
         workspace.setBranch("main");
         Object outputDir = arguments.get("outputDir");

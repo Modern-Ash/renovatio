@@ -3,6 +3,9 @@ package org.shark.renovatio.cli;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.shark.renovatio.decisions.DecisionPoint;
+import org.shark.renovatio.decisions.DecisionResolver;
+import org.shark.renovatio.decisions.DecisionTransitions;
+import org.shark.renovatio.decisions.F1DecisionCatalog;
 import org.shark.renovatio.decisions.PolicyReference;
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.profile.MigrationProfiles;
@@ -13,7 +16,10 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /** Small local-project adapter used by reusable profile/policy CLI commands. */
 public final class ReusableProjectStore {
@@ -44,6 +50,42 @@ public final class ReusableProjectStore {
     public void templateBinding(TemplateReference reference) { write(state.resolve("profile-template.json"), reference); }
     public void policyBinding(PolicyReference reference) { write(state.resolve("policy-catalog.json"), reference); }
 
+    public Optional<TemplateReference> templateBinding() {
+        return read(state.resolve("profile-template.json"), TemplateReference.class);
+    }
+
+    public Optional<PolicyReference> policyBinding() {
+        return read(state.resolve("policy-catalog.json"), PolicyReference.class);
+    }
+
+    /** Resolves the local CLI project using the same F8 precedence and hash envelope as the API. */
+    public MigrationProfiles.EffectiveProfile effectiveProfile() {
+        List<DecisionPoint> all = decisions();
+        List<DecisionPoint> inherited = all.stream()
+                .filter(value -> value.source() == DecisionPoint.Source.POLICY).toList();
+        List<DecisionPoint> local = all.stream()
+                .filter(value -> value.source() != DecisionPoint.Source.POLICY).toList();
+        return new DecisionResolver().resolve(MigrationProfiles.emptyOverlay(), templateBinding().orElse(null),
+                inherited, policyBinding().orElse(null), profile(), local);
+    }
+
+    /** Reconciles a successful CLI analysis into durable F1 decision state. */
+    public List<DecisionPoint> reconcileAnalysis(String semanticIrHash, Instant now) {
+        List<DecisionPoint> generated = F1DecisionCatalog.create(semanticIrHash, now);
+        List<DecisionPoint> current = decisions();
+        List<DecisionPoint> next = new ArrayList<>();
+        for (DecisionPoint heuristic : generated) {
+            DecisionPoint existing = current.stream()
+                    .filter(value -> value.id().equals(heuristic.id())).findFirst().orElse(null);
+            next.add(existing == null ? heuristic : DecisionTransitions.reconcile(existing, heuristic, now));
+        }
+        current.stream().filter(value -> generated.stream().noneMatch(item -> item.id().equals(value.id())))
+                .map(value -> DecisionTransitions.retire(value, now)).forEach(next::add);
+        List<DecisionPoint> ordered = next.stream().sorted(DecisionResolver.apiOrder()).toList();
+        decisions(ordered);
+        return ordered;
+    }
+
     public static Path assetsRoot() {
         String configured = System.getProperty("renovatio.assets.root");
         if (configured != null && !configured.isBlank()) return Path.of(configured);
@@ -62,5 +104,11 @@ public final class ReusableProjectStore {
                 }
             } finally { Files.deleteIfExists(temporary); }
         } catch (IOException exception) { throw new UncheckedIOException("Cannot write reusable project state", exception); }
+    }
+
+    private <T> Optional<T> read(Path file, Class<T> type) {
+        if (!Files.isRegularFile(file)) return Optional.empty();
+        try { return Optional.of(json.readValue(file.toFile(), type)); }
+        catch (IOException exception) { throw new UncheckedIOException(exception); }
     }
 }

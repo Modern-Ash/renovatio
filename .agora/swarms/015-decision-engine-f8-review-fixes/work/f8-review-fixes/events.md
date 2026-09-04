@@ -1,0 +1,42 @@
+# Work events
+
+- 2026-09-04T13:24:57.950164Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T13:28:54.047121Z | artifact.added | kind=spec uri=docs/specs/f8-review-fixes.md actor=project:owner
+- 2026-09-04T13:28:54.263740Z | work.criterion-stage-marked | criterion=local-confirmation-precedence actor=project:owner stage=specified
+- 2026-09-04T13:28:54.486004Z | work.criterion-stage-marked | criterion=legacy-hash-compatibility actor=project:owner stage=specified
+- 2026-09-04T13:28:54.702124Z | work.criterion-stage-marked | criterion=cli-profile-runtime actor=project:owner stage=specified
+- 2026-09-04T13:28:54.921068Z | work.criterion-stage-marked | criterion=cli-policy-export-runtime actor=project:owner stage=specified
+- 2026-09-04T13:28:55.134276Z | work.criterion-stage-marked | criterion=stale-policy-signaling actor=project:owner stage=specified
+- 2026-09-04T13:28:55.354523Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=specified
+- 2026-09-04T13:28:56.176191Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T13:28:56.418204Z | artifact.added | kind=implementation-plan uri=docs/specs/f8-review-fixes-plan.md actor=project:agent
+- 2026-09-04T13:28:56.652490Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T13:28:56.896634Z | work.criterion-stage-marked | criterion=local-confirmation-precedence actor=project:owner stage=planned
+- 2026-09-04T13:28:57.132999Z | work.criterion-stage-marked | criterion=legacy-hash-compatibility actor=project:owner stage=planned
+- 2026-09-04T13:28:57.375728Z | work.criterion-stage-marked | criterion=cli-profile-runtime actor=project:owner stage=planned
+- 2026-09-04T13:28:57.619404Z | work.criterion-stage-marked | criterion=cli-policy-export-runtime actor=project:owner stage=planned
+- 2026-09-04T13:28:57.844268Z | work.criterion-stage-marked | criterion=stale-policy-signaling actor=project:owner stage=planned
+- 2026-09-04T13:28:58.071912Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=planned
+- 2026-09-04T13:28:58.290293Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T13:40:23.487288Z | artifact.added | kind=verification-report uri=docs/test-reports/f8-review-fixes.md actor=project:agent
+- 2026-09-04T13:40:23.696568Z | artifact.added | kind=review-report uri=docs/reports/f8-review-fixes-review.md actor=project:agent
+- 2026-09-04T13:40:23.912850Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T13:40:57.243204Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-04T13:40:57.460918Z | evidence.added | id=evidence-000002 type=characterization result=success revision=1 actor=project:agent
+- 2026-09-04T13:40:57.703362Z | evidence.added | id=evidence-000003 type=ui-test result=success revision=1 actor=project:agent
+- 2026-09-04T13:40:57.930521Z | evidence.added | id=evidence-000004 type=build result=success revision=1 actor=project:agent
+- 2026-09-04T13:41:08.394341Z | work.criterion-stage-marked | criterion=local-confirmation-precedence actor=project:agent stage=implemented
+- 2026-09-04T13:41:08.602224Z | work.criterion-stage-marked | criterion=legacy-hash-compatibility actor=project:agent stage=implemented
+- 2026-09-04T13:41:08.817640Z | work.criterion-stage-marked | criterion=cli-profile-runtime actor=project:agent stage=implemented
+- 2026-09-04T13:41:09.032984Z | work.criterion-stage-marked | criterion=cli-policy-export-runtime actor=project:agent stage=implemented
+- 2026-09-04T13:41:09.245160Z | work.criterion-stage-marked | criterion=stale-policy-signaling actor=project:agent stage=implemented
+- 2026-09-04T13:41:09.460253Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=implemented
+- 2026-09-04T13:41:09.671537Z | work.criterion-stage-marked | criterion=local-confirmation-precedence actor=project:agent stage=verified
+- 2026-09-04T13:41:09.879658Z | work.criterion-stage-marked | criterion=legacy-hash-compatibility actor=project:agent stage=verified
+- 2026-09-04T13:41:10.094459Z | work.criterion-stage-marked | criterion=cli-profile-runtime actor=project:agent stage=verified
+- 2026-09-04T13:41:10.320722Z | work.criterion-stage-marked | criterion=cli-policy-export-runtime actor=project:agent stage=verified
+- 2026-09-04T13:41:10.536031Z | work.criterion-stage-marked | criterion=stale-policy-signaling actor=project:agent stage=verified
+- 2026-09-04T13:41:10.749732Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified
+- 2026-09-04T13:42:24.237633Z | tool.prepared | run=tool-20260904t13421788540144z tool=repository operation=commit actor=project:agent
+- 2026-09-04T13:42:24.240843Z | tool.running | run=tool-20260904t13421788540144z actor=project:agent
+- 2026-09-04T13:42:24.255439Z | tool.failed | run=tool-20260904t13421788540144z exit-code=128

@@ -44,6 +44,7 @@ class RenovatioCliSmokeTest {
         assertThat(output).contains("report");
         assertThat(output).contains("serve");
         assertThat(output).contains("profile");
+        assertThat(output).contains("decisions");
         assertThat(output).contains("policy");
     }
 

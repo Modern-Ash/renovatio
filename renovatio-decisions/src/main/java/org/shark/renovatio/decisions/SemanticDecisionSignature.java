@@ -59,7 +59,7 @@ public record SemanticDecisionSignature(
 
     public boolean compatibleWith(SemanticDecisionSignature other) {
         return other != null && category == other.category && decisionKey.equals(other.decisionKey)
-                && optionVocabulary.equals(other.optionVocabulary) && nodeKind.equals(other.nodeKind);
+                && nodeKind.equals(other.nodeKind);
     }
 
     /** Deterministic exact-value Jaccard score for normalized semantic feature maps. */
