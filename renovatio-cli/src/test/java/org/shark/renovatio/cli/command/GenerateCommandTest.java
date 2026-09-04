@@ -45,8 +45,9 @@ class GenerateCommandTest {
     }
 
     @Test
-    void explicitYamlProfileUsesPackagedNodeEmitter() throws Exception {
+    void explicitYamlProfileUsesPackagedNodeEmitterForEveryProgram() throws Exception {
         Path workspace = workspace("node");
+        Files.writeString(workspace.resolve("second.cob"), COBOL.replace("ROUTED", "SECOND"));
         Path profileFile = temporary.resolve("node-profile.yaml");
         MigrationProfile node = new MigrationProfile("1", Map.of(),
                 new MigrationProfile.Target(MigrationProfile.Language.NODE, "20"), null, null, null, null, null);
@@ -58,6 +59,8 @@ class GenerateCommandTest {
         assertEquals(0, exit);
         assertTrue(Files.isRegularFile(workspace.resolve("node-output/src/main.ts")));
         assertTrue(Files.isRegularFile(workspace.resolve("node-output/package.json")));
+        assertTrue(Files.isRegularFile(workspace.resolve("node-output/src/routed/domain/routed.service.ts")));
+        assertTrue(Files.isRegularFile(workspace.resolve("node-output/src/second/domain/second.service.ts")));
         assertEquals(MigrationProfile.Language.NODE,
                 new ReusableProjectStore(workspace).effectiveProfile().profile().target().language());
     }

@@ -43,3 +43,38 @@
 - 2026-09-04T14:21:46.200280Z | tool.running | run=tool-20260904t14211788542506z actor=project:agent
 - 2026-09-04T14:21:46.235170Z | tool.completed | run=tool-20260904t14211788542506z exit-code=0
 - 2026-09-04T14:22:07.662168Z | evidence.added | id=evidence-000007 type=tested-revision result=success revision=1 actor=project:agent
+- 2026-09-04T14:22:24.554963Z | tool.prepared | run=tool-20260904t14221788542544z tool=repository operation=commit actor=project:agent
+- 2026-09-04T14:22:24.558922Z | tool.running | run=tool-20260904t14221788542544z actor=project:agent
+- 2026-09-04T14:22:24.583678Z | tool.completed | run=tool-20260904t14221788542544z exit-code=0
+- 2026-09-04T14:22:46.642616Z | tool.prepared | run=tool-20260904t14221788542566z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-04T14:22:46.646876Z | tool.running | run=tool-20260904t14221788542566z actor=project:agent
+- 2026-09-04T14:22:49.400196Z | tool.completed | run=tool-20260904t14221788542566z exit-code=0
+- 2026-09-04T14:23:09.563447Z | tool.prepared | run=tool-20260904t14231788542589z tool=github-pull-requests operation=comment actor=project:agent
+- 2026-09-04T14:23:09.567591Z | tool.running | run=tool-20260904t14231788542589z actor=project:agent
+- 2026-09-04T14:23:10.926164Z | tool.completed | run=tool-20260904t14231788542589z exit-code=0
+- 2026-09-04T14:23:23.564478Z | tool.prepared | run=tool-20260904t14231788542603z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-04T14:23:23.567232Z | tool.running | run=tool-20260904t14231788542603z actor=project:agent
+- 2026-09-04T14:23:24.501025Z | tool.completed | run=tool-20260904t14231788542603z exit-code=0
+- 2026-09-04T14:23:27.859403Z | tool.prepared | run=tool-20260904t14231788542607z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:23:27.862187Z | tool.running | run=tool-20260904t14231788542607z actor=project:agent
+- 2026-09-04T14:23:29.240556Z | tool.completed | run=tool-20260904t14231788542607z exit-code=0
+- 2026-09-04T14:24:14.837937Z | tool.prepared | run=tool-20260904t14241788542654z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:24:14.840728Z | tool.running | run=tool-20260904t14241788542654z actor=project:agent
+- 2026-09-04T14:24:15.967498Z | tool.completed | run=tool-20260904t14241788542654z exit-code=0
+- 2026-09-04T14:25:00.189177Z | tool.prepared | run=tool-20260904t14251788542700z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:25:00.192255Z | tool.running | run=tool-20260904t14251788542700z actor=project:agent
+- 2026-09-04T14:25:01.390959Z | tool.completed | run=tool-20260904t14251788542700z exit-code=0
+- 2026-09-04T14:25:49.930642Z | tool.prepared | run=tool-20260904t14251788542749z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:25:49.933778Z | tool.running | run=tool-20260904t14251788542749z actor=project:agent
+- 2026-09-04T14:25:51.150289Z | tool.completed | run=tool-20260904t14251788542749z exit-code=0
+- 2026-09-04T14:26:34.895325Z | tool.prepared | run=tool-20260904t14261788542794z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:26:34.898217Z | tool.running | run=tool-20260904t14261788542794z actor=project:agent
+- 2026-09-04T14:26:36.056171Z | tool.completed | run=tool-20260904t14261788542794z exit-code=0
+- 2026-09-04T14:38:55.582482Z | work.criterion-stage-marked | criterion=profile-init actor=project:owner stage=accepted
+- 2026-09-04T14:38:55.857505Z | work.criterion-stage-marked | criterion=explicit-generation actor=project:owner stage=accepted
+- 2026-09-04T14:38:56.159107Z | work.criterion-stage-marked | criterion=target-availability actor=project:owner stage=accepted
+- 2026-09-04T14:38:56.443480Z | work.criterion-stage-marked | criterion=overlay-rebinding actor=project:owner stage=accepted
+- 2026-09-04T14:38:56.730745Z | work.criterion-stage-marked | criterion=cli-contract actor=project:owner stage=accepted
+- 2026-09-04T14:38:57.023091Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=accepted
+- 2026-09-04T14:39:00.693302Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-04T14:39:10.651178Z | work.transitioned | from=verifying to=completed actor=project:owner

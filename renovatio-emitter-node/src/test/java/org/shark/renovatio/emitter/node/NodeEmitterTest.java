@@ -9,6 +9,7 @@ import org.shark.renovatio.semantic.ir.SourceSpan;
 import org.shark.renovatio.shared.emission.EmittedArtifact;
 import org.shark.renovatio.shared.emission.EmittedArtifacts;
 import org.shark.renovatio.shared.emission.TargetModel;
+import org.shark.renovatio.shared.emission.TargetStructure;
 
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,33 @@ class NodeEmitterTest {
         assertThrows(IllegalArgumentException.class, () -> emitter.emit(model, different));
     }
 
+    @Test
+    void defaultRendererEmitsCanonicalProgramPathsAndStableProjectFiles() {
+        TargetModel first = model("FIRST", List.of(
+                "src/first/domain/first.entity.ts",
+                "src/first/domain/first.repository.ts",
+                "src/first/domain/first.service.ts",
+                "src/first/api/first.controller.ts"));
+        TargetModel second = model("SECOND", List.of(
+                "src/second/domain/second.service.ts"));
+        DefaultNodeRenderer renderer = new DefaultNodeRenderer();
+
+        Map<String, String> firstFiles = renderer.render(first, first.profile()).utf8TextByPath();
+        Map<String, String> secondFiles = renderer.render(second, second.profile()).utf8TextByPath();
+
+        assertTrue(firstFiles.keySet().containsAll(first.targetStructure().artifactPaths()));
+        assertTrue(secondFiles.keySet().containsAll(second.targetStructure().artifactPaths()));
+        assertTrue(firstFiles.get("src/first/domain/first.service.ts").contains("class FirstService"));
+        assertTrue(firstFiles.get("src/first/domain/first.entity.ts").contains("interface FirstEntity"));
+        assertTrue(firstFiles.get("src/first/domain/first.repository.ts").contains("interface FirstRepository"));
+        assertTrue(firstFiles.get("src/first/api/first.controller.ts").contains("firstController"));
+        for (String shared : List.of("src/main.ts", "package.json", "tsconfig.json")) {
+            assertEquals(firstFiles.get(shared), secondFiles.get(shared), shared);
+        }
+        assertFalse(firstFiles.get("src/main.ts").contains("FIRST"));
+        assertFalse(firstFiles.get("package.json").contains("first"));
+    }
+
     private static TargetModel model() {
         SourceSpan span = new SourceSpan("src/program.cob", 1, 1, 1, 9);
         SourceProvenance provenance = new SourceProvenance("src/program.cob", "0".repeat(64),
@@ -42,5 +70,24 @@ class NodeEmitterTest {
                 new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
         return TargetModel.from(program, MigrationProfiles.effective(MigrationProfiles.emptyOverlay(),
                 Map.of(), Map.of(), List.of()));
+    }
+
+    private static TargetModel model(String programId, List<String> artifactPaths) {
+        SourceSpan span = new SourceSpan("src/" + programId.toLowerCase() + ".cob", 1, 1, 1, 9);
+        SourceProvenance provenance = new SourceProvenance(span.sourcePath(), "0".repeat(64),
+                "COBOL", Optional.empty(), List.of());
+        SemanticProgram program = new SemanticProgram("1", SemanticProgram.Header.create(programId,
+                SemanticProgram.NodeKind.PROGRAM, "program", span), programId, provenance,
+                List.of(), List.of(), List.of(), List.of(),
+                new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
+        MigrationProfile overlay = new MigrationProfile("1", Map.of(),
+                new MigrationProfile.Target(MigrationProfile.Language.NODE, "20"),
+                null, null, null, null, null);
+        var effective = MigrationProfiles.effective(overlay, Map.of(), Map.of(), List.of());
+        return new TargetModel(program, effective.profile(), effective.resolvedDecisions(),
+                effective.appliedDecisionIds(), effective.profileHash(), provenance,
+                new TargetStructure("1", "1".repeat(64), "2".repeat(64),
+                        effective.profile().architecture().style(), effective.profile().architecture().style(),
+                        List.of(), artifactPaths, List.of()));
     }
 }

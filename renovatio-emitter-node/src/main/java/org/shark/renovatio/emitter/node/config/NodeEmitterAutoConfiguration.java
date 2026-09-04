@@ -1,6 +1,8 @@
 package org.shark.renovatio.emitter.node.config;
 
+import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
 import org.shark.renovatio.emitter.node.DefaultNodeRenderer;
+import org.shark.renovatio.emitter.node.NodeArchitectureLayoutPlanner;
 import org.shark.renovatio.emitter.node.NodeEmitter;
 import org.shark.renovatio.emitter.node.prisma.PrismaStrategy;
 import org.shark.renovatio.persistence.strategy.PersistenceStrategy;
@@ -13,6 +15,11 @@ public class NodeEmitterAutoConfiguration {
     @Bean
     public TargetEmitter nodeEmitter() {
         return new NodeEmitter(new DefaultNodeRenderer());
+    }
+
+    @Bean
+    public ArtifactLayoutPlanner nodeArchitectureLayoutPlanner() {
+        return new NodeArchitectureLayoutPlanner();
     }
 
     @Bean

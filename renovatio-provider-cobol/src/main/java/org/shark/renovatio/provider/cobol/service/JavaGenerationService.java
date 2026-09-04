@@ -5,6 +5,7 @@ import com.squareup.javapoet.*;
 import org.shark.renovatio.architecture.ArchitectureRequest;
 import org.shark.renovatio.architecture.ArchitectureResult;
 import org.shark.renovatio.architecture.ArchitectureTransformer;
+import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
 import org.shark.renovatio.architecture.GroupingConfiguration;
 import org.shark.renovatio.cobol.ir.model.CobolDataItem;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
@@ -70,8 +71,7 @@ public class JavaGenerationService {
     private final TargetEmitterRegistry emitterRegistry;
     private final EffectiveProfileResolver effectiveProfileResolver;
     private final CobolSemanticProjector semanticProjector = new CobolSemanticProjector();
-    private final ArchitectureTransformer architectureTransformer = new ArchitectureTransformer(
-            List.of(new JavaArchitectureLayoutPlanner()));
+    private final ArchitectureTransformer architectureTransformer;
     private final ArchitectureTransformer architectureTransformerWithoutLayout = new ArchitectureTransformer();
 
     public JavaGenerationService(CobolParsingService parsingService,
@@ -109,6 +109,20 @@ public class JavaGenerationService {
                                  boolean registryRouting,
                                  TargetEmitterRegistry emitterRegistry,
                                  EffectiveProfileResolver effectiveProfileResolver) {
+        this(parsingService, templateService, intermediateModelService, semanticTranspiler, objectMapper,
+                registryRouting, emitterRegistry, effectiveProfileResolver,
+                List.of(new JavaArchitectureLayoutPlanner()));
+    }
+
+    public JavaGenerationService(CobolParsingService parsingService,
+                                 TemplateCodeGenerationService templateService,
+                                 CobolIntermediateModelService intermediateModelService,
+                                 CobolSemanticTranspiler semanticTranspiler,
+                                 ObjectMapper objectMapper,
+                                 boolean registryRouting,
+                                 TargetEmitterRegistry emitterRegistry,
+                                 EffectiveProfileResolver effectiveProfileResolver,
+                                 List<ArtifactLayoutPlanner> layoutPlanners) {
         this.parsingService = parsingService;
         this.templateService = templateService;
         this.intermediateModelService = intermediateModelService;
@@ -120,6 +134,8 @@ public class JavaGenerationService {
         this.emitterRegistry = Objects.requireNonNull(emitterRegistry, "emitterRegistry");
         this.effectiveProfileResolver = effectiveProfileResolver == null
                 ? ignored -> defaultEffectiveProfile() : effectiveProfileResolver;
+        this.architectureTransformer = new ArchitectureTransformer(
+                List.copyOf(Objects.requireNonNull(layoutPlanners, "layoutPlanners")));
     }
 
     /**
@@ -506,7 +522,8 @@ public class JavaGenerationService {
     }
 
     private static void putArtifact(Map<String, String> artifacts, String path, String content) {
-        if (artifacts.putIfAbsent(path, content) != null) {
+        String existing = artifacts.putIfAbsent(path, content);
+        if (existing != null && !existing.equals(content)) {
             throw new IllegalArgumentException("duplicate artifact path: " + path);
         }
     }

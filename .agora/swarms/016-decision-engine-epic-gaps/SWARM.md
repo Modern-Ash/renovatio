@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "decision-engine-epic-gaps"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "fix/f8-review-findings"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

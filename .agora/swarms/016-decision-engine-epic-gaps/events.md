@@ -4,3 +4,4 @@
 - 2026-09-04T14:00:11.768355Z | swarm.actor-assigned | role=spec-owner actor=project:owner
 - 2026-09-04T14:00:11.993936Z | swarm.actor-assigned | role=developer actor=project:agent
 - 2026-09-04T14:01:17.398619Z | swarm.status-changed | from=ready to=running
+- 2026-09-04T14:39:10.654033Z | swarm.status-changed | from=running to=completed

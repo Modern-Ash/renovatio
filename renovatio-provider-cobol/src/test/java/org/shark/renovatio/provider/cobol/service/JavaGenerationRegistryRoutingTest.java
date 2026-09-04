@@ -236,6 +236,38 @@ class JavaGenerationRegistryRoutingTest {
 
         assertFalse(result.isSuccess());
         assertTrue(result.getMessage().contains("duplicate artifact path"), result.getMessage());
+        assertFalse(Files.exists(workspacePath.resolve("generated-java-stubs")));
+    }
+
+    @Test
+    void routedAggregationDeduplicatesByteIdenticalSharedArtifacts(@TempDir Path workspacePath) throws Exception {
+        Files.writeString(workspacePath.resolve("first.cob"), COBOL.replace("ROUTED", "FIRST"));
+        Files.writeString(workspacePath.resolve("second.cob"), COBOL.replace("ROUTED", "SECOND"));
+        var dependencies = dependencies();
+        TargetEmitter node = new TargetEmitter() {
+            @Override
+            public boolean supports(MigrationProfile.Language target) {
+                return target == MigrationProfile.Language.NODE;
+            }
+
+            @Override
+            public EmittedArtifacts emit(TargetModel model, MigrationProfile profile) {
+                String id = model.semanticProgram().programId().toLowerCase();
+                return EmittedArtifacts.of(List.of(
+                        EmittedArtifact.utf8("src/main.ts", "export const app = 'shared';"),
+                        EmittedArtifact.utf8("src/" + id + ".ts", "export const id = '" + id + "';")));
+            }
+        };
+        JavaGenerationService routed = new JavaGenerationService(dependencies.parsing(), dependencies.templates(),
+                dependencies.models(), dependencies.transpiler(), dependencies.mapper(), true,
+                new TargetEmitterRegistry(List.of(node)), ignored -> nodeProfile());
+
+        StubResult result = routed.generateInterfaceStubs(new NqlQuery(),
+                new Workspace("test", workspacePath.toString(), "main"));
+
+        assertTrue(result.isSuccess(), result.getMessage());
+        assertEquals(List.of("src/first.ts", "src/main.ts", "src/second.ts"),
+                result.getGeneratedCode().keySet().stream().sorted().toList());
     }
 
     @Test

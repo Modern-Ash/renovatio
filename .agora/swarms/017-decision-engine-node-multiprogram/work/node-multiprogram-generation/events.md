@@ -1,0 +1,47 @@
+# Work events
+
+- 2026-09-04T14:41:36.208028Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T14:43:00.968389Z | artifact.added | kind=spec uri=docs/specs/node-multiprogram-generation.md actor=project:owner
+- 2026-09-04T14:43:01.233362Z | work.criterion-stage-marked | criterion=program-artifacts actor=project:owner stage=specified
+- 2026-09-04T14:43:01.495323Z | work.criterion-stage-marked | criterion=shared-artifacts actor=project:owner stage=specified
+- 2026-09-04T14:43:01.759685Z | work.criterion-stage-marked | criterion=collision-safety actor=project:owner stage=specified
+- 2026-09-04T14:43:02.034636Z | work.criterion-stage-marked | criterion=cli-end-to-end actor=project:owner stage=specified
+- 2026-09-04T14:43:02.309427Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=specified
+- 2026-09-04T14:43:02.581653Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=specified
+- 2026-09-04T14:43:02.852787Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T14:43:03.136016Z | artifact.added | kind=implementation-plan uri=docs/specs/node-multiprogram-generation-plan.md actor=project:agent
+- 2026-09-04T14:43:03.419863Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T14:43:03.701415Z | work.criterion-stage-marked | criterion=program-artifacts actor=project:owner stage=planned
+- 2026-09-04T14:43:03.969542Z | work.criterion-stage-marked | criterion=shared-artifacts actor=project:owner stage=planned
+- 2026-09-04T14:43:04.225623Z | work.criterion-stage-marked | criterion=collision-safety actor=project:owner stage=planned
+- 2026-09-04T14:43:04.481824Z | work.criterion-stage-marked | criterion=cli-end-to-end actor=project:owner stage=planned
+- 2026-09-04T14:43:04.734494Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=planned
+- 2026-09-04T14:43:04.990583Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=planned
+- 2026-09-04T14:43:05.248225Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T14:52:15.625630Z | artifact.added | kind=verification-report uri=docs/reports/node-multiprogram-generation-verification.md actor=project:agent
+- 2026-09-04T14:52:15.836672Z | artifact.added | kind=review-report uri=docs/reports/node-multiprogram-generation-review.md actor=project:agent
+- 2026-09-04T14:52:22.470969Z | work.criterion-stage-marked | criterion=program-artifacts actor=project:agent stage=implemented
+- 2026-09-04T14:52:22.731853Z | work.criterion-stage-marked | criterion=shared-artifacts actor=project:agent stage=implemented
+- 2026-09-04T14:52:22.990510Z | work.criterion-stage-marked | criterion=collision-safety actor=project:agent stage=implemented
+- 2026-09-04T14:52:23.248430Z | work.criterion-stage-marked | criterion=cli-end-to-end actor=project:agent stage=implemented
+- 2026-09-04T14:52:23.522002Z | work.criterion-stage-marked | criterion=compatibility actor=project:agent stage=implemented
+- 2026-09-04T14:52:23.791977Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=implemented
+- 2026-09-04T14:52:24.055188Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T14:52:36.338579Z | evidence.added | id=evidence-000001 type=tdd result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:36.601016Z | evidence.added | id=evidence-000002 type=focused-test result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:36.866435Z | evidence.added | id=evidence-000003 type=reactor-test result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:37.122195Z | evidence.added | id=evidence-000004 type=build result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:37.390444Z | evidence.added | id=evidence-000005 type=whitespace result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:37.645145Z | evidence.added | id=evidence-000006 type=review result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:42.464345Z | work.criterion-stage-marked | criterion=program-artifacts actor=project:agent stage=verified
+- 2026-09-04T14:52:42.730785Z | work.criterion-stage-marked | criterion=shared-artifacts actor=project:agent stage=verified
+- 2026-09-04T14:52:42.998127Z | work.criterion-stage-marked | criterion=collision-safety actor=project:agent stage=verified
+- 2026-09-04T14:52:43.263689Z | work.criterion-stage-marked | criterion=cli-end-to-end actor=project:agent stage=verified
+- 2026-09-04T14:52:43.526075Z | work.criterion-stage-marked | criterion=compatibility actor=project:agent stage=verified
+- 2026-09-04T14:52:43.792325Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified
+- 2026-09-04T14:53:29.946233Z | tool.prepared | run=tool-20260904t14531788544409z tool=repository operation=commit actor=project:agent
+- 2026-09-04T14:53:29.949402Z | tool.running | run=tool-20260904t14531788544409z actor=project:agent
+- 2026-09-04T14:53:29.964529Z | tool.failed | run=tool-20260904t14531788544409z exit-code=128
+- 2026-09-04T14:53:54.326932Z | tool.prepared | run=tool-20260904t14531788544434z tool=repository operation=commit actor=project:agent
+- 2026-09-04T14:53:54.330185Z | tool.running | run=tool-20260904t14531788544434z actor=project:agent
+- 2026-09-04T14:53:54.355110Z | tool.failed | run=tool-20260904t14531788544434z exit-code=1
