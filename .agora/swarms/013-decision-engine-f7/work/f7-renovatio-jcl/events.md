@@ -117,3 +117,6 @@
 - 2026-09-04T09:57:52.255643Z | work.transitioned | from=verifying to=implementing actor=project:agent
 - 2026-09-04T09:57:52.484720Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-09-04T09:57:52.709562Z | evidence.added | id=evidence-000007 type=review-revalidation result=success revision=2 actor=project:agent
+- 2026-09-04T10:33:10.076303Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-04T10:33:10.309636Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T10:33:10.522939Z | evidence.added | id=evidence-000008 type=review-revalidation result=success revision=2 actor=project:agent
