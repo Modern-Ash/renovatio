@@ -89,6 +89,7 @@ Findings addressed (commits `c6c3cb95`, `0c32dca9`, `8a2ecfb1`, `495f8010`):
 | `expandProc` kept a single `nestedIf`, dropping outer/invocation guards | same stacked scope handling inside procedure expansion |
 | SORT/MERGE with an out-of-subset control card still classified as a utility | `StepClassifier` parses SYSIN through `SortUtility` → `RESIDUE` on rejection |
 | `memory:&&TEMP` shared globally across jobs and concurrent runs | key namespaced as `memory:<jobId>/&&name` |
+| `//procstep.ddname DD …` invocation override cards were dropped | buffered on the invocation and applied (replace/add) to the expanded steps |
 
 ## Open follow-ups (outside F7 scope)
 
@@ -97,14 +98,12 @@ Recorded here and on PR #165 as deferred; each needs its own work item:
 1. **CLI/API pipeline integration** — `renovatio-jcl` ships as a library in F7;
    wiring `.jcl` discovery and emitted-file output into a runtime migration path
    is a successor (F7 spec §3 non-goals).
-2. **PROC invocation DD overrides** (`//STEP.DD DD …`) — not applied to expanded
-   steps (F7 spec §3 non-goals).
-3. **Spring Batch `COND=EVEN`/`ONLY` failure transitions** — the emitted job's
+2. **Spring Batch `COND=EVEN`/`ONLY` failure transitions** — the emitted job's
    sequential flow stops on abend before those guards; needs explicit
    `.on("FAILED")` transitions. The in-process characterization harness already
    honours EVEN/ONLY.
-4. **Run the emitted Spring Batch source in the characterization gate** — the
+3. **Run the emitted Spring Batch source in the characterization gate** — the
    gate currently exercises a hand-written executor, not compiled emitter output.
-5. **Unqualified `COND` vs prior return codes** — current behaviour skips when
+4. **Unqualified `COND` vs prior return codes** — current behaviour skips when
    the predicate is true against *any* prior step RC (IBM semantics). A reviewer
    proposed comparing against the maximum prior RC; left for the spec owner.

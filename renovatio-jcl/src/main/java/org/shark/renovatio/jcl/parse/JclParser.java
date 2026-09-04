@@ -40,7 +40,15 @@ public final class JclParser {
         StepBuilder step = null;
         java.util.ArrayDeque<String> ifStack = new java.util.ArrayDeque<>();
         boolean inProc = false;
+        // A resolved EXEC PROC= is expanded lazily so trailing `//procstep.ddname DD ...` override
+        // cards on the invocation can be collected and applied to the expanded steps first.
+        PendingProc pending = null;
         for (JclLexer.Statement statement : statements) {
+            if (pending != null && !statement.operation().equals("DD")) {
+                job.steps.addAll(expandProc(pending.definition, pending.call, procedures, job,
+                        job.symbols, 0, pending.overrides));
+                pending = null;
+            }
             switch (statement.operation()) {
                 case "PROC" -> inProc = true;
                 case "PEND" -> inProc = false;
@@ -69,7 +77,7 @@ public final class JclParser {
                                     parsed.stepName, parsed.executable, statement.line()));
                             step = parsed;
                         } else {
-                            job.steps.addAll(expandProc(proc, parsed, procedures, job, job.symbols, 0));
+                            pending = new PendingProc(proc, parsed);
                             step = null;
                         }
                     } else {
@@ -77,11 +85,18 @@ public final class JclParser {
                     }
                 }
                 case "DD" -> {
-                    if (step != null && job != null && !inProc)
+                    if (pending != null && statement.name().contains(".")) {
+                        pending.overrides.add(statement);
+                    } else if (step != null && job != null && !inProc) {
                         appendDd(step.dds, statement, job.symbols);
+                    }
                 }
                 default -> { }
             }
+        }
+        if (pending != null) {
+            job.steps.addAll(expandProc(pending.definition, pending.call, procedures, job,
+                    job.symbols, 0, pending.overrides));
         }
         if (job != null) {
             if (step != null) job.steps.add(step.build());
@@ -90,9 +105,25 @@ public final class JclParser {
         return result;
     }
 
+    private static final class PendingProc {
+        final ProcDefinition definition;
+        final StepBuilder call;
+        final List<JclLexer.Statement> overrides = new ArrayList<>();
+        PendingProc(ProcDefinition definition, StepBuilder call) {
+            this.definition = definition; this.call = call;
+        }
+    }
+
     private static List<JclStep> expandProc(ProcDefinition procedure, StepBuilder call,
                                             Map<String, ProcDefinition> procedures, JobBuilder job,
                                             Map<String, String> inheritedSymbols, int depth) {
+        return expandProc(procedure, call, procedures, job, inheritedSymbols, depth, List.of());
+    }
+
+    private static List<JclStep> expandProc(ProcDefinition procedure, StepBuilder call,
+                                            Map<String, ProcDefinition> procedures, JobBuilder job,
+                                            Map<String, String> inheritedSymbols, int depth,
+                                            List<JclLexer.Statement> overrides) {
         LinkedHashMap<String, String> symbols = new LinkedHashMap<>(inheritedSymbols);
         symbols.putAll(procedure.defaults);
         symbols.putAll(call.parameters);
@@ -102,7 +133,18 @@ public final class JclParser {
                 .map(JclLexer.Statement::name)
                 .map(value -> value.toUpperCase(Locale.ROOT))
                 .collect(java.util.stream.Collectors.toUnmodifiableSet());
+        // Invocation DD overrides keyed by the proc step they target ("" = the whole invocation).
+        Map<String, List<JclLexer.Statement>> overridesByStep = new LinkedHashMap<>();
+        for (JclLexer.Statement override : overrides) {
+            int dot = override.name().indexOf('.');
+            String qualifier = override.name().substring(0, dot).toUpperCase(Locale.ROOT);
+            String ddName = override.name().substring(dot + 1).toUpperCase(Locale.ROOT);
+            String target = localStepNames.contains(qualifier) ? qualifier : "";
+            overridesByStep.computeIfAbsent(target, ignored -> new ArrayList<>())
+                    .add(override.withName(ddName));
+        }
         StepBuilder current = null;
+        String[] currentProcStep = {null};
         // Base frame = the invocation-level IF; procedure-internal IF/ELSE scopes stack on top and
         // are AND-combined, so a nested block never drops the invocation or an enclosing guard.
         java.util.ArrayDeque<String> ifStack = new java.util.ArrayDeque<>();
@@ -115,7 +157,8 @@ public final class JclParser {
                 case "ELSE" -> { if (ifStack.size() > baseFrames) ifStack.push("NOT (" + ifStack.pop() + ")"); }
                 case "ENDIF" -> { if (ifStack.size() > baseFrames) ifStack.pop(); }
                 case "EXEC" -> {
-                    if (current != null) result.add(current.build());
+                    if (current != null) result.add(applyOverrides(current, currentProcStep[0], overridesByStep, symbols).build());
+                    currentProcStep[0] = statement.name().toUpperCase(Locale.ROOT);
                     JclLexer.Statement named = new JclLexer.Statement(
                             call.stepName + "_" + statement.name(), statement.operation(), statement.operands(),
                             statement.line(), statement.instreamData());
@@ -139,8 +182,25 @@ public final class JclParser {
                 default -> { }
             }
         }
-        if (current != null) result.add(current.build());
+        if (current != null)
+            result.add(applyOverrides(current, currentProcStep[0], overridesByStep, symbols).build());
         return result;
+    }
+
+    /** Replaces (or adds) DDs on an expanded procedure step from invocation override cards. */
+    private static StepBuilder applyOverrides(StepBuilder step, String procStepName,
+                                             Map<String, List<JclLexer.Statement>> overridesByStep,
+                                             Map<String, String> symbols) {
+        List<JclLexer.Statement> matching = new ArrayList<>(
+                overridesByStep.getOrDefault("", List.of()));
+        if (procStepName != null) matching.addAll(overridesByStep.getOrDefault(procStepName, List.of()));
+        if (matching.isEmpty()) return step;
+        for (JclLexer.Statement override : matching) {
+            DdStatement replacement = parseDd(override, symbols);
+            step.dds.removeIf(dd -> dd.ddName().equalsIgnoreCase(replacement.ddName()));
+            step.dds.add(replacement);
+        }
+        return step;
     }
 
     /**

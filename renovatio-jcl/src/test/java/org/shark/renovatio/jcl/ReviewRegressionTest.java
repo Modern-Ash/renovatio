@@ -281,6 +281,28 @@ class ReviewRegressionTest {
     }
 
     @Test
+    void appliesProcInvocationDdOverridesToExpandedSteps() {
+        JclJob job = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/m.jcl", """
+                        //MJOB JOB
+                        //COPY EXEC PROC=GEN
+                        //COPY.SYSUT1 DD DSN=OVERRIDE.INPUT,DISP=SHR
+                        """),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/gen.jcl", """
+                        //GEN PROC
+                        //G EXEC PGM=IEBGENER
+                        //SYSUT1 DD DSN=PROC.DEFAULT,DISP=SHR
+                        //SYSUT2 DD DSN=OUT.DATA,DISP=(NEW,CATLG)
+                        // PEND
+                        """)))
+                .stream().filter(j -> j.jobName().equals("MJOB")).findFirst().orElseThrow();
+        var sysut1 = job.steps().get(0).ddStatements().stream()
+                .filter(dd -> dd.ddName().equals("SYSUT1")).findFirst().orElseThrow();
+        assertEquals("OVERRIDE.INPUT", sysut1.dsn().orElseThrow());
+        assertTrue(job.steps().get(0).ddStatements().stream().anyMatch(dd -> dd.ddName().equals("SYSUT2")));
+    }
+
+    @Test
     void classifiesUnsupportedIdcamsControlAsResidue() {
         BatchJob job = project("""
                 //IDCJOB JOB

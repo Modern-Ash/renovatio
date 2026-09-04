@@ -54,5 +54,6 @@ public final class JclLexer {
             instreamData = instreamData == null ? List.of() : List.copyOf(instreamData);
         }
         Statement withOperands(String value) { return new Statement(name, operation, value, line, instreamData); }
+        Statement withName(String value) { return new Statement(value, operation, operands, line, instreamData); }
     }
 }
