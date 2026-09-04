@@ -2,6 +2,7 @@ package org.shark.renovatio.api.controller;
 
 import org.shark.renovatio.api.dto.ArchitecturePreviewDto;
 import org.shark.renovatio.api.service.ApiAccessService;
+import org.shark.renovatio.api.service.ProjectDomainModelService;
 import org.shark.renovatio.api.service.ArchitecturePreviewService;
 import org.shark.renovatio.architecture.ArchitectureModel;
 import org.shark.renovatio.architecture.DomainArchitectureProjector;
@@ -18,16 +19,32 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 
 @RestController
 @RequestMapping("/api/projects/{projectId}")
 public class ArchitecturePreviewController {
     private final ArchitecturePreviewService previews;
     private final ApiAccessService access;
+    private final ProjectDomainModelService domainModels;
 
-    public ArchitecturePreviewController(ArchitecturePreviewService previews, ApiAccessService access) {
+    public ArchitecturePreviewController(ArchitecturePreviewService previews, ApiAccessService access, ProjectDomainModelService domainModels) {
         this.previews = previews;
         this.access = access;
+        this.domainModels = domainModels;
+    }
+
+    @GetMapping("/domain-model")
+    public ResponseEntity<DomainModel> domainModel(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role) {
+        if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        DomainModel model = domainModels.get(projectId);
+        return model == null ? ResponseEntity.notFound().build() : ResponseEntity.ok(model);
+    }
+
+    @PutMapping("/domain-model")
+    public ResponseEntity<DomainModel> saveDomainModel(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role, @RequestBody DomainModel model) {
+        if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.ok(domainModels.save(projectId, model, true));
     }
 
     @GetMapping("/architecture-preview")
