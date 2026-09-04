@@ -83,6 +83,7 @@ public final class PersistenceStrategyRegistry {
             case JPA -> strategy.getClass().getSimpleName().equals("JpaStrategy");
             case SPRING_DATA_JDBC -> strategy.getClass().getSimpleName().equals("SpringDataJdbcStrategy");
             case IN_MEMORY -> strategy.getClass().getSimpleName().equals("InMemoryStrategy");
+            case PRISMA -> strategy.getClass().getSimpleName().equals("PrismaStrategy");
         };
     }
 
@@ -91,7 +92,7 @@ public final class PersistenceStrategyRegistry {
             return MigrationProfile.PersistenceStrategy.valueOf(name.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Unknown persistence strategy: " + name
-                    + ". Valid values: JPA, SPRING_DATA_JDBC, IN_MEMORY");
+                    + ". Valid values: JPA, SPRING_DATA_JDBC, IN_MEMORY, PRISMA");
         }
     }
 

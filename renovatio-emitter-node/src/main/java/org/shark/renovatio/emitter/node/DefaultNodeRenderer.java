@@ -26,7 +26,39 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
         files.put("src/main.ts", generateMain());
         files.put("package.json", generatePackageJson());
         files.put("tsconfig.json", generateTsConfig());
+        if (profile.persistence() != null
+                && profile.persistence().defaultStrategy() == MigrationProfile.PersistenceStrategy.PRISMA) {
+            files.put("prisma/schema.prisma", generatePrismaSchema(model));
+            files.put("prisma/seed.ts", generatePrismaSeed());
+        }
         return EmittedArtifacts.fromUtf8(files);
+    }
+
+    private String generatePrismaSchema(TargetModel model) {
+        return """
+                generator client {
+                  provider = "prisma-client-js"
+                }
+
+                datasource db {
+                  provider = "postgresql"
+                  url      = env("DATABASE_URL")
+                }
+
+                model %s {
+                  id   Int    @id @default(autoincrement())
+                  data String
+                }
+                """.formatted(typeName(model.semanticProgram().programId()));
+    }
+
+    private String generatePrismaSeed() {
+        return """
+                import { PrismaClient } from '@prisma/client';
+
+                const prisma = new PrismaClient();
+                await prisma.$disconnect();
+                """;
     }
 
     private String generateProgramArtifact(TargetModel model, String path) {

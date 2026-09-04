@@ -79,6 +79,16 @@ class NodeEmitterTest {
         }
     }
 
+    @Test
+    void prismaProfileEmitsDeterministicSharedArtifacts() {
+        TargetModel model = model("PRISMA", List.of("src/prisma/domain/prisma.service.ts"), Map.of(),
+                MigrationProfile.PersistenceStrategy.PRISMA);
+        Map<String, String> files = new DefaultNodeRenderer().render(model, model.profile()).utf8TextByPath();
+        assertTrue(files.containsKey("prisma/schema.prisma"));
+        assertTrue(files.containsKey("prisma/seed.ts"));
+        assertTrue(files.get("prisma/schema.prisma").contains("model Prisma"));
+    }
+
     private static TargetModel model() {
         SourceSpan span = new SourceSpan("src/program.cob", 1, 1, 1, 9);
         SourceProvenance provenance = new SourceProvenance("src/program.cob", "0".repeat(64),
@@ -97,6 +107,12 @@ class NodeEmitterTest {
 
     private static TargetModel model(String programId, List<String> artifactPaths,
                                      Map<String, Object> extensions) {
+        return model(programId, artifactPaths, extensions, null);
+    }
+
+    private static TargetModel model(String programId, List<String> artifactPaths,
+                                     Map<String, Object> extensions,
+                                     MigrationProfile.PersistenceStrategy persistenceStrategy) {
         SourceSpan span = new SourceSpan("src/" + programId.toLowerCase() + ".cob", 1, 1, 1, 9);
         SourceProvenance provenance = new SourceProvenance(span.sourcePath(), "0".repeat(64),
                 "COBOL", Optional.empty(), List.of());
@@ -106,7 +122,8 @@ class NodeEmitterTest {
                 new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
         MigrationProfile overlay = new MigrationProfile("1", extensions,
                 new MigrationProfile.Target(MigrationProfile.Language.NODE, "20"),
-                null, null, null, null, null);
+                null, null, persistenceStrategy == null ? null : new MigrationProfile.Persistence(persistenceStrategy,
+                        MigrationProfile.TransactionBoundary.PROGRAM, Map.of()), null, null);
         var effective = MigrationProfiles.effective(overlay, Map.of(), Map.of(), List.of());
         return new TargetModel(program, effective.profile(), effective.resolvedDecisions(),
                 effective.appliedDecisionIds(), effective.profileHash(), provenance,
