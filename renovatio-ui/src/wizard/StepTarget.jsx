@@ -3,7 +3,8 @@ import {
   getArchitecturePreview,
   getEffectiveProfile,
   getProjectProfile,
-  putProjectProfile
+  putProjectProfile,
+  projectDomainArchitecture
 } from '../api/client'
 import DomainModelReview from '../components/DomainModelReview'
 
@@ -343,7 +344,10 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
         <ArchitecturePreview preview={preview} loading={previewLoading} error={previewError}
           stale={Boolean(preview && previewSelection !== selectionKey)} />
         {data?.domainModel && <DomainModelReview domainModel={data.domainModel}
-          onProject={(model) => onChange({ domainModelConfirmed: model })} />}
+          onProject={async (model) => {
+            const projection = await projectDomainArchitecture(id, model, form.architecture.style)
+            onChange({ domainModelConfirmed: model, architectureProjection: projection })
+          }} />}
       </div>
 
       {violations.length > 0 && <div className="decision-alert decision-alert-error" role="alert">
