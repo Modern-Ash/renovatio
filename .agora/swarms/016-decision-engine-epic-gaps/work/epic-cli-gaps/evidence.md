@@ -1,6 +1,6 @@
 ---
 schema: "agora/evidence/v2"
-results: ["success","success","success","success","success","success"]
+results: ["success","success","success","success","success","success","success"]
 ---
 
 # Evidence
@@ -13,3 +13,4 @@ results: ["success","success","success","success","success","success"]
 | build | success | docs/reports/epic-cli-gaps-verification.md | none | project:agent | 2026-09-04T14:20:01.562218Z |
 | cli-smoke | success | docs/reports/epic-cli-gaps-verification.md | none | project:agent | 2026-09-04T14:20:01.847314Z |
 | whitespace | success | docs/reports/epic-cli-gaps-verification.md | none | project:agent | 2026-09-04T14:20:02.133953Z |
+| tested-revision | success | docs/reports/epic-cli-gaps-verification.md | none | project:agent | 2026-09-04T14:22:07.661935Z |

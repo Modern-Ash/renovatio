@@ -39,3 +39,7 @@
 - 2026-09-04T14:20:09.479254Z | work.criterion-stage-marked | criterion=overlay-rebinding actor=project:agent stage=verified
 - 2026-09-04T14:20:09.766790Z | work.criterion-stage-marked | criterion=cli-contract actor=project:agent stage=verified
 - 2026-09-04T14:20:10.055626Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified
+- 2026-09-04T14:21:46.196693Z | tool.prepared | run=tool-20260904t14211788542506z tool=repository operation=commit actor=project:agent
+- 2026-09-04T14:21:46.200280Z | tool.running | run=tool-20260904t14211788542506z actor=project:agent
+- 2026-09-04T14:21:46.235170Z | tool.completed | run=tool-20260904t14211788542506z exit-code=0
+- 2026-09-04T14:22:07.662168Z | evidence.added | id=evidence-000007 type=tested-revision result=success revision=1 actor=project:agent
