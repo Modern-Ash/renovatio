@@ -56,6 +56,11 @@ function StepAnalyze({ projectId, data, onChange, onNext, onBack }) {
     })
   }
 
+  const persistDomainModel = (job) => {
+    const domainModel = job?.result?.domainModel
+    if (domainModel) onChange({ domainModel })
+  }
+
   const isAbsoluteWorkspacePath = (value) => {
     if (!value || typeof value !== 'string') {
       return false
@@ -110,6 +115,7 @@ function StepAnalyze({ projectId, data, onChange, onNext, onBack }) {
             setMessage(completedMessage)
             setSummary(completedSummary)
             persistAnalysisState(completedMessage, completedSummary)
+            persistDomainModel(event)
             unsubscribe()
           } else if (event.status === 'FAILED') {
             setStatus('failed')
@@ -133,6 +139,7 @@ function StepAnalyze({ projectId, data, onChange, onNext, onBack }) {
               setMessage(completedMessage)
               setSummary(completedSummary)
               persistAnalysisState(completedMessage, completedSummary)
+              persistDomainModel(current)
               return
             }
             if (current.status === 'FAILED') {
