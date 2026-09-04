@@ -26,5 +26,5 @@ public @interface CobolDataIntent {
 
     String[] assumptions();
 
-    enum Construction { REDEFINES, OCCURS_DEPENDING_ON }
+    enum Construction { REDEFINES, OCCURS_DEPENDING_ON, MOVE_CORRESPONDING }
 }

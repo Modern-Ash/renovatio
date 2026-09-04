@@ -1,4 +1,0 @@
-fallbackVersion: renovatio-llm-fallback.v1
-type: MANUAL_ACTION
-diagnosticCode: LLM_MANUAL_NAMING_REVIEW_REQUIRED
-manualAction: Retain the deterministic COBOL identifier name and request manual naming review.

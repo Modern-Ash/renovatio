@@ -27,7 +27,16 @@ final class AnnotatedIrSemanticOutputValidator {
     void validate(PreparedEnrichment prepared, JsonNode output) {
         try {
             JsonNode input = prepared.identity().canonicalInput();
-            AnnotationFamily family = family(prepared.definition().appliesTo());
+            String appliesTo = prepared.definition().appliesTo();
+            AnnotationFamily family = family(appliesTo);
+            // Route-discriminator guard: the shared data-intent.v1 schema accepts any construction,
+            // so a MOVE_CORRESPONDING prompt answering `construction: REDEFINES` would otherwise be
+            // cached as MODEL_SUCCESS and only rejected later by the assembler. Pin it here.
+            if (family == AnnotationFamily.DATA_INTENT && appliesTo.startsWith("DATA_INTENT.")
+                    && !appliesTo.substring("DATA_INTENT.".length())
+                            .equals(output.path("construction").asText())) {
+                throw new OutputValidationException(ProviderFailure.VALIDATOR_REJECTED);
+            }
             AnnotatedNodeKind defaultKind = switch (family) {
                 case DATA_INTENT -> AnnotatedNodeKind.DATA_ITEM;
                 default -> AnnotatedNodeKind.PARAGRAPH;
@@ -68,7 +77,7 @@ final class AnnotatedIrSemanticOutputValidator {
         return switch (appliesTo) {
             case "DOMAIN_NAMING" -> AnnotationFamily.DOMAIN_NAMING;
             case "CONTROL_FLOW_PLAN" -> AnnotationFamily.CONTROL_FLOW_PLAN;
-            case "DATA_INTENT.REDEFINES", "DATA_INTENT.OCCURS_DEPENDING_ON" -> AnnotationFamily.DATA_INTENT;
+            case "DATA_INTENT.REDEFINES", "DATA_INTENT.OCCURS_DEPENDING_ON", "DATA_INTENT.MOVE_CORRESPONDING" -> AnnotationFamily.DATA_INTENT;
             case "UNSUPPORTED_EXPLANATION" -> AnnotationFamily.UNSUPPORTED_EXPLANATION;
             default -> throw new IllegalArgumentException("Unsupported annotation family");
         };

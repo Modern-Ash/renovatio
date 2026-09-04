@@ -84,6 +84,23 @@ class ResidualAnnotationAssemblerTest {
     }
 
     @Test
+    void moveCorrespondingIntentBecomesValidatedDataIntentAnnotationPendingReview() {
+        var output = JSON.createObjectNode().put("construction", "MOVE_CORRESPONDING")
+                .put("interpretation", "Copy customer contact fields by matching name");
+        output.putArray("assumptions").add("Only identically named elementary items are copied");
+        AnnotatedCobolModel result = assembler.append(empty(), ResidualRoute.MOVE_CORRESPONDING_INTENT,
+                output, context(AnnotatedNodeKind.DATA_ITEM, List.of(), "project:owner"));
+
+        var annotation = result.annotations().get(0);
+        assertEquals(AnnotationFamily.DATA_INTENT, annotation.annotationFamily());
+        assertEquals(AnnotationReview.ReviewState.NEEDS_REVIEW, annotation.review().reviewState());
+        assertEquals(DataIntentPayload.Construction.MOVE_CORRESPONDING,
+                ((DataIntentPayload) annotation.payload()).construction());
+        assertTrue(new AnnotatedCobolValidator().validate(result, HASH,
+                Map.of(NODE, AnnotatedNodeKind.DATA_ITEM)).isEmpty());
+    }
+
+    @Test
     void deterministicOutputAndMismatchedBaseIrCannotEnterSidecar() {
         assertThrows(IllegalArgumentException.class, () -> assembler.append(empty(),
                 ResidualRoute.DETERMINISTIC, JSON.createObjectNode(),
