@@ -2,35 +2,57 @@ package org.shark.renovatio.api.service;
 
 import org.shark.renovatio.emitter.node.NodeEmitter;
 import org.shark.renovatio.emitter.node.DefaultNodeRenderer;
-import org.shark.renovatio.profile.MigrationProfile;
+import org.shark.renovatio.api.entity.ProjectEntity;
+import org.shark.renovatio.api.repository.ProjectRepository;
+import org.shark.renovatio.provider.cobol.service.JavaGenerationService;
 import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.shared.domain.Workspace;
+import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
-import org.shark.renovatio.semantic.ir.SourceProvenance;
-import org.shark.renovatio.semantic.ir.SourceSpan;
 import org.shark.renovatio.shared.emission.EmittedArtifacts;
 import org.shark.renovatio.shared.emission.TargetModel;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class NodePreviewService {
+    private final ProjectRepository projects;
+    private final JavaGenerationService generation;
+    private final DecisionLayerService decisions;
+
+    public NodePreviewService(ProjectRepository projects, JavaGenerationService generation,
+                              DecisionLayerService decisions) {
+        this.projects = projects;
+        this.generation = generation;
+        this.decisions = decisions;
+    }
 
     public Map<String, String> generateNodePreview(String projectId) {
-        SourceSpan span = new SourceSpan("src/program.cob", 1, 1, 1, 9);
-        SourceProvenance provenance = new SourceProvenance("src/program.cob", "0".repeat(64),
-                "COBOL", Optional.empty(), List.of());
-        SemanticProgram program = new SemanticProgram("1",
-                SemanticProgram.Header.create(projectId, SemanticProgram.NodeKind.PROGRAM, "program", span),
-                projectId, provenance, List.of(), List.of(), List.of(), List.of(),
-                new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
-        MigrationProfile profile = MigrationProfiles.emptyOverlay();
-        TargetModel model = TargetModel.from(program, MigrationProfiles.effective(profile,
-                Map.of(), Map.of(), List.of()));
+        ProjectEntity project = projects.findById(projectId)
+                .orElseThrow(() -> new ArchitecturePreviewService.ProjectNotFoundException(projectId));
+        Workspace workspace = new Workspace(project.getId(), project.getWorkspacePath(), project.getBranch());
+        MigrationProfiles.EffectiveProfile effective = decisions.effective(projectId);
+        List<SemanticProgram> programs;
+        try {
+            programs = generation.semanticPrograms(new NqlQuery(), workspace);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Unable to analyze project workspace: " + projectId, ex);
+        }
         NodeEmitter emitter = new NodeEmitter(new DefaultNodeRenderer());
-        EmittedArtifacts artifacts = emitter.emit(model, model.profile());
-        return artifacts.utf8TextByPath();
+        Map<String, String> files = new LinkedHashMap<>();
+        for (SemanticProgram program : programs) {
+            TargetModel model = TargetModel.from(program, effective);
+            EmittedArtifacts artifacts = emitter.emit(model, model.profile());
+            artifacts.utf8TextByPath().forEach((path, content) -> {
+                String previous = files.putIfAbsent(path, content);
+                if (previous != null && !previous.equals(content)) {
+                    throw new IllegalStateException("Conflicting Node preview artifact: " + path);
+                }
+            });
+        }
+        return Map.copyOf(files);
     }
 }
