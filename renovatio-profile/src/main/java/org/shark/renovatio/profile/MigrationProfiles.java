@@ -100,6 +100,20 @@ public final class MigrationProfiles {
                 merge(base.llm(), overlay.llm()));
     }
 
+    /** Applies one sparse overlay to an already-resolved or partially-resolved base. */
+    public static MigrationProfile overlay(MigrationProfile base, MigrationProfile overlay) {
+        List<Violation> baseViolations = validateOverlay(base);
+        if (!baseViolations.isEmpty()) throw new ProfileValidationException(baseViolations);
+        List<Violation> overlayViolations = validateOverlay(overlay);
+        if (!overlayViolations.isEmpty()) throw new ProfileValidationException(overlayViolations);
+        Map<String, Object> extensions = new LinkedHashMap<>(base.extensions());
+        extensions.putAll(overlay.extensions());
+        return new MigrationProfile(SCHEMA_VERSION, Map.copyOf(extensions),
+                merge(base.target(), overlay.target()), merge(base.architecture(), overlay.architecture()),
+                merge(base.runtime(), overlay.runtime()), merge(base.persistence(), overlay.persistence()),
+                merge(base.style(), overlay.style()), merge(base.llm(), overlay.llm()));
+    }
+
     private static Target merge(Target base, Target value) {
         return value == null ? base : new Target(value.language() == null ? base.language() : value.language(),
                 value.languageVersion() == null ? base.languageVersion() : value.languageVersion());
@@ -212,6 +226,45 @@ public final class MigrationProfiles {
         projection.put("resolvedDecisions", ordered);
         projection.put("appliedDecisionIds", ids);
         return new EffectiveProfile(profile, ordered, ids, sha256(canonical(projection)));
+    }
+
+    /**
+     * Resolves F8's explicit layer order while preserving the F1 result envelope.
+     * Binding metadata participates in the hash but not in generated profile fields.
+     */
+    public static EffectiveProfile effectiveLayers(MigrationProfile template,
+                                                    Map<String, String> policyDecisions,
+                                                    MigrationProfile projectOverlay,
+                                                    Map<String, String> resolvedDecisions,
+                                                    Map<String, String> projectDecisions,
+                                                    List<String> appliedDecisionIds,
+                                                    Map<String, String> bindings) {
+        MigrationProfile profile = applyAccepted(resolve(template == null ? emptyOverlay() : template), policyDecisions);
+        profile = overlay(profile, projectOverlay == null ? emptyOverlay() : projectOverlay);
+        profile = applyAccepted(profile, projectDecisions);
+        Map<String, String> ordered = new java.util.TreeMap<>(resolvedDecisions == null ? Map.of() : resolvedDecisions);
+        List<String> ids = appliedDecisionIds == null ? List.of() : appliedDecisionIds.stream().sorted().toList();
+        Map<String, Object> projection = new LinkedHashMap<>();
+        projection.put("profile", JSON.convertValue(profile, Object.class));
+        projection.put("resolvedDecisions", ordered);
+        projection.put("appliedDecisionIds", ids);
+        projection.put("bindings", new java.util.TreeMap<>(bindings == null ? Map.of() : bindings));
+        return new EffectiveProfile(profile, ordered, ids, sha256(canonical(projection)));
+    }
+
+    private static MigrationProfile applyAccepted(MigrationProfile profile, Map<String, String> accepted) {
+        if (accepted == null) return profile;
+        if ("FLUENT".equals(accepted.get("java.accessor-convention"))) {
+            profile = withNaming(profile, Naming.FLUENT);
+        } else if ("JAVA_BEANS".equals(accepted.get("java.accessor-convention"))) {
+            profile = withNaming(profile, Naming.JAVA_BEANS);
+        }
+        if ("PLAIN_JAVA".equals(accepted.get("java.framework-coupling"))) {
+            profile = withFramework(profile, Framework.NONE);
+        } else if ("SPRING_SERVICE".equals(accepted.get("java.framework-coupling"))) {
+            profile = withFramework(profile, Framework.SPRING_BOOT);
+        }
+        return profile;
     }
 
     private static MigrationProfile withNaming(MigrationProfile value, Naming naming) {

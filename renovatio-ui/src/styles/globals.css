@@ -24,6 +24,13 @@ body {
 
 .btn {
   @apply px-4 py-2 rounded-lg font-medium transition-colors;
+  min-height: 44px;
+}
+
+.btn:focus-visible,
+.asset-actions button:focus-visible,
+.sidebar-link:focus-visible {
+  @apply outline-none ring-2 ring-primary-500 ring-offset-2;
 }
 
 .btn:disabled {
@@ -412,11 +419,101 @@ body {
 .source-heuristic { @apply bg-sky-100 text-sky-800; }
 .source-llm { @apply bg-violet-100 text-violet-800; }
 .source-user { @apply bg-amber-100 text-amber-800; }
+.source-policy { @apply bg-teal-100 text-teal-900; }
 .status-auto { @apply bg-gray-100 text-gray-700; }
 .status-suggested { @apply bg-blue-100 text-blue-800; }
 .status-confirmed { @apply bg-green-100 text-green-800; }
 .status-overridden { @apply bg-amber-100 text-amber-800; }
 .fallback-badge { @apply bg-red-100 text-red-800; }
+
+.policy-provenance {
+  @apply my-3 grid gap-3 rounded-lg border border-teal-200 bg-teal-50 p-3 sm:grid-cols-2;
+}
+
+.policy-provenance > div { @apply flex flex-col; }
+.policy-provenance span { @apply text-[10px] font-bold uppercase tracking-widest text-teal-700; }
+.policy-provenance strong { @apply text-sm text-teal-950; }
+.policy-provenance p { @apply col-span-full border-t border-amber-200 pt-2 text-xs font-medium text-amber-800; }
+.policy-provenance-stale { @apply border-amber-300 bg-amber-50; }
+
+.project-inheritance {
+  @apply grid gap-4 rounded-xl border border-primary-200 bg-primary-50/60 p-4 md:grid-cols-2;
+}
+
+.project-inheritance legend { @apply px-2 text-sm font-bold text-primary-900; }
+.project-inheritance legend span { @apply ml-2 text-[10px] font-semibold uppercase tracking-wider text-primary-600; }
+.project-inheritance label { @apply flex flex-col gap-1; }
+.project-inheritance label > span { @apply text-xs font-bold uppercase tracking-wide text-gray-700; }
+.project-inheritance select { @apply min-h-11 rounded-lg border border-primary-200 bg-white px-3 outline-none focus:ring-2 focus:ring-primary-400; }
+.project-inheritance small { @apply text-xs text-gray-600; }
+.project-binding-tags { @apply mt-3 flex flex-wrap gap-2; }
+.project-binding-tags span { @apply rounded-full bg-teal-50 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-teal-800; }
+
+.assets-page { @apply space-y-6; }
+.assets-hero {
+  background-image: radial-gradient(circle at 82% 18%, rgba(45, 212, 191, .24), transparent 34%),
+    linear-gradient(135deg, #111827, #172554 58%, #0f766e);
+  @apply grid gap-6 overflow-hidden rounded-2xl p-6 text-white shadow-xl md:grid-cols-[1fr_auto] md:items-end md:p-8;
+}
+.assets-hero h1 { @apply text-3xl font-black tracking-tight md:text-5xl; }
+.assets-hero p:not(.wizard-kicker) { @apply mt-3 max-w-2xl text-sm leading-relaxed text-slate-200 md:text-base; }
+.assets-stat { @apply flex min-w-40 flex-col border-l border-white/30 pl-5; }
+.assets-stat strong { @apply text-4xl font-black text-teal-200; }
+.assets-stat span { @apply text-xs font-bold uppercase tracking-widest text-slate-300; }
+
+.asset-workbench { @apply rounded-2xl border border-gray-200 bg-white p-5 shadow-sm; }
+.asset-workbench h2 { @apply text-xl font-bold; }
+.asset-workbench form { @apply mt-4 grid items-end gap-3 md:grid-cols-[1fr_1.4fr_1fr_.8fr_auto]; }
+.asset-workbench label { @apply flex flex-col gap-1 text-xs font-bold uppercase tracking-wide text-gray-600; }
+.asset-workbench input,
+.asset-workbench select { @apply min-h-11 rounded-lg border border-gray-300 bg-white px-3 text-sm font-normal text-gray-900 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200; }
+.asset-loading { @apply rounded-xl border border-dashed border-gray-300 p-8 text-center text-gray-500; }
+.assets-grid { @apply grid gap-6 lg:grid-cols-2; }
+.asset-rail { @apply overflow-hidden rounded-2xl border bg-white shadow-sm; }
+.asset-rail > header { @apply flex items-end justify-between gap-4 border-b p-5; }
+.asset-rail > header p { @apply text-[10px] font-black uppercase tracking-[.2em]; }
+.asset-rail > header h2 { @apply mt-1 text-xl font-bold; }
+.asset-rail > header > span { @apply rounded-full px-3 py-1 text-xs font-semibold; }
+.asset-rail-profile > header { @apply border-sky-200 bg-sky-50; }
+.asset-rail-profile > header p { @apply text-sky-700; }
+.asset-rail-profile > header > span { @apply bg-sky-100 text-sky-800; }
+.asset-rail-policy > header { @apply border-teal-200 bg-teal-50; }
+.asset-rail-policy > header p { @apply text-teal-700; }
+.asset-rail-policy > header > span { @apply bg-teal-100 text-teal-900; }
+.asset-stack { @apply divide-y divide-gray-100; }
+.asset-card { @apply p-5 transition hover:bg-gray-50; }
+.asset-version { @apply flex items-center justify-between gap-3; }
+.asset-version strong { @apply text-base text-gray-950; }
+.asset-version code { @apply rounded bg-gray-900 px-2 py-1 text-[10px] font-bold text-teal-200; }
+.asset-card > p { @apply mt-2 text-sm text-gray-600; }
+.asset-meta { @apply mt-4 flex flex-wrap justify-between gap-2 font-mono text-[10px] uppercase tracking-wide text-gray-500; }
+.asset-card ul { @apply mt-3 flex flex-wrap gap-1; }
+.asset-card li { @apply rounded bg-gray-100 px-2 py-1 font-mono text-[10px] text-gray-600; }
+.asset-empty { @apply p-8 text-center text-sm leading-relaxed text-gray-500; }
+.asset-actions { @apply mt-2 flex flex-wrap gap-2; }
+.asset-actions button { @apply min-h-11 rounded-lg border border-gray-300 bg-white px-3 text-xs font-bold text-gray-700 transition hover:border-primary-400 hover:text-primary-700 disabled:opacity-50; }
+
+.binding-overview { @apply mb-8 rounded-2xl border border-gray-200 bg-white p-5 shadow-sm; }
+.binding-overview h2 { @apply text-xl font-bold; }
+.binding-cards { @apply mt-4 grid gap-3 md:grid-cols-2; }
+.binding-cards article { @apply flex flex-col rounded-xl border border-gray-200 bg-gray-50 p-4; }
+.binding-cards span { @apply text-[10px] font-bold uppercase tracking-widest text-gray-500; }
+.binding-cards strong { @apply mt-1 text-base text-gray-950; }
+.binding-cards small { @apply mt-2 text-xs text-gray-500; }
+.profile-diff { @apply mt-4 rounded-lg border border-gray-200 p-3; }
+.profile-diff summary { @apply cursor-pointer text-sm font-semibold; }
+.profile-diff ul { @apply mt-3 divide-y divide-gray-100; }
+.profile-diff li { @apply flex items-center justify-between gap-3 py-2 text-xs; }
+.profile-diff li span { @apply rounded bg-amber-100 px-2 py-1 font-bold uppercase text-amber-800; }
+
+@media (max-width: 640px) {
+  .assets-hero { @apply p-5; }
+  .assets-stat { @apply border-l-0 border-t border-white/30 pl-0 pt-4; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asset-card, .asset-actions button { transition: none; }
+}
 
 .confidence-meter {
   @apply relative min-w-24 overflow-hidden rounded bg-gray-100 px-2 py-1 text-right font-mono text-xs text-gray-700;

@@ -31,6 +31,14 @@
             <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-provider-cobol</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-profile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-decisions</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>info.picocli</groupId>
@@ -49,6 +57,10 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
         </dependency>
 
         <dependency>

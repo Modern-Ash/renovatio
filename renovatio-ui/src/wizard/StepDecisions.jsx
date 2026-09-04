@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { bulkConfirmProjectDecisions, getProjectDecisions, patchProjectDecision } from '../api/client'
 
-const CATEGORIES = ['', 'NUMERIC', 'CONTROL_FLOW', 'DATA_SHAPE', 'PERSISTENCE', 'NAMING', 'ARCHITECTURE']
+const CATEGORIES = ['', 'NUMERIC', 'CONTROL_FLOW', 'DATA_SHAPE', 'PERSISTENCE', 'NAMING', 'ARCHITECTURE', 'BATCH']
 const STATUSES = ['', 'AUTO', 'SUGGESTED', 'CONFIRMED', 'OVERRIDDEN']
 
 function sourceLabel(source) {
   if (source === 'LLM') return 'IA'
   if (source === 'USER') return 'user'
+  if (source === 'POLICY') return 'policy'
   return 'heuristic'
 }
 
@@ -130,6 +131,11 @@ function StepDecisions({ projectId, onNext, onBack }) {
                 <span className="confidence-meter" title={`Confidence ${decision.confidence}`}><i style={{ width: `${Number(decision.confidence) * 100}%` }} />{Math.round(Number(decision.confidence) * 100)}%</span>
               </header>
               <h3>{decision.question}</h3>
+              {decision.policyProvenance && <div className={`policy-provenance ${decision.policyProvenance.stale ? 'policy-provenance-stale' : ''}`}>
+                <div><span>Inherited policy</span><strong>{decision.policyProvenance.catalogName} · v{decision.policyProvenance.catalogVersion}</strong></div>
+                <div><span>Semantic match</span><strong>{Math.round(Number(decision.policyProvenance.matchConfidence) * 100)}%</strong></div>
+                {decision.policyProvenance.stale && <p role="status">Review required: this policy was produced by a different analyzer version.</p>}
+              </div>}
               <div className="decision-choice-row">
                 <label><span>Chosen option</span><select value={choice}
                   onChange={(event) => setSelected({ ...selected, [decision.id]: event.target.value })}>

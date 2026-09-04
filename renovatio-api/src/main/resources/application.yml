@@ -24,6 +24,8 @@ spring:
       path: /h2-console
 
 renovatio:
+  reusable-assets:
+    root: ${user.home}/.renovatio
   api:
     async:
       core-pool-size: 4

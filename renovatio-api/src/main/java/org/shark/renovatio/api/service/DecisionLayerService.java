@@ -1,6 +1,10 @@
 package org.shark.renovatio.api.service;
 
 import org.shark.renovatio.api.repository.ProjectRepository;
+import org.shark.renovatio.api.entity.ProjectEntity;
+import org.shark.renovatio.decisions.DecisionPolicies;
+import org.shark.renovatio.decisions.DecisionPolicyRepository;
+import org.shark.renovatio.decisions.PolicyReference;
 import org.shark.renovatio.decisions.DecisionPoint;
 import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.profile.EffectiveProfileResolver;
@@ -10,6 +14,8 @@ import org.shark.renovatio.decisions.F1DecisionCatalog;
 import org.shark.renovatio.decisions.ProfileStore;
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.profile.ProfileTemplateRepository;
+import org.shark.renovatio.profile.TemplateReference;
 import org.shark.renovatio.llm.decision.ArchitectureSuggestionGateway;
 import org.shark.renovatio.llm.decision.DecisionSuggestionService;
 import org.springframework.stereotype.Service;
@@ -26,11 +32,15 @@ public class DecisionLayerService implements EffectiveProfileResolver {
     private final ProfileStore profiles;
     private final DecisionStore decisions;
     private final ArchitectureSuggestionGateway architectureSuggestions;
+    private final ProfileTemplateRepository templates;
+    private final DecisionPolicyRepository policies;
     private final DecisionResolver resolver = new DecisionResolver();
     public DecisionLayerService(ProjectRepository projects, ProfileStore profiles, DecisionStore decisions,
-                                ArchitectureSuggestionGateway architectureSuggestions) {
+                                ArchitectureSuggestionGateway architectureSuggestions,
+                                ProfileTemplateRepository templates, DecisionPolicyRepository policies) {
         this.projects = projects; this.profiles = profiles; this.decisions = decisions;
         this.architectureSuggestions = architectureSuggestions;
+        this.templates = templates; this.policies = policies;
     }
 
     public ProfileStore.VersionedProfile profile(String projectId) {
@@ -65,7 +75,21 @@ public class DecisionLayerService implements EffectiveProfileResolver {
         return new DecisionTransitions.BulkResult(saved.size(), result.skipped(), saved);
     }
     public MigrationProfiles.EffectiveProfile effective(String projectId) {
-        return resolver.resolve(profile(projectId).profile(), decisions(projectId, null, null, null));
+        ProjectEntity project = projects.findById(projectId).orElseThrow(ResourceNotFoundException::new);
+        return effectiveFor(project, decisions(projectId, null, null, null));
+    }
+
+    private MigrationProfiles.EffectiveProfile effectiveFor(ProjectEntity project, List<DecisionPoint> all) {
+        TemplateReference templateReference = project.getProfileTemplateName() == null ? null
+                : new TemplateReference(project.getProfileTemplateName(), project.getProfileTemplateVersion());
+        PolicyReference policyReference = project.getPolicyCatalogName() == null ? null
+                : new PolicyReference(project.getPolicyCatalogName(), project.getPolicyCatalogVersion());
+        MigrationProfile template = templateReference == null ? MigrationProfiles.emptyOverlay()
+                : templates.find(templateReference).orElseThrow(ResourceNotFoundException::new).profile();
+        List<DecisionPoint> inherited = all.stream().filter(value -> value.source() == DecisionPoint.Source.POLICY).toList();
+        List<DecisionPoint> local = all.stream().filter(value -> value.source() != DecisionPoint.Source.POLICY).toList();
+        return resolver.resolve(template, templateReference, inherited, policyReference,
+                profile(project.getId()).profile(), local);
     }
 
     @Override
@@ -80,7 +104,7 @@ public class DecisionLayerService implements EffectiveProfileResolver {
 
     @Transactional
     public AnalysisDecisionSummary upsertAnalysis(String projectId, String semanticIrHash) {
-        requireProject(projectId);
+        ProjectEntity project = projects.findById(projectId).orElseThrow(ResourceNotFoundException::new);
         Instant now = Instant.now();
         List<DecisionPoint> generated = F1DecisionCatalog.create(semanticIrHash, now);
         List<DecisionPoint> current = decisions.findAll(projectId);
@@ -91,18 +115,30 @@ public class DecisionLayerService implements EffectiveProfileResolver {
         }
         current.stream().filter(value -> generated.stream().noneMatch(item -> item.id().equals(value.id())))
                 .map(value -> DecisionTransitions.retire(value, now)).forEach(next::add);
-        MigrationProfiles.EffectiveProfile effective = resolver.resolve(profile(projectId).profile(), next);
+        MigrationProfiles.EffectiveProfile effective = effectiveFor(project, next);
         DecisionSuggestionService.SuggestionBatch suggested = architectureSuggestions.suggest(next,
                 effective.profileHash(), effective.profile().llm(), now);
-        decisions.saveAll(projectId, suggested.decisions());
+        List<DecisionPoint> finalDecisions = suggested.decisions();
+        DecisionPolicies.ApplyReport policyReport = new DecisionPolicies.ApplyReport(0, 0,
+                finalDecisions.size(), List.of());
+        if (project.getPolicyCatalogName() != null) {
+            var reference = new PolicyReference(project.getPolicyCatalogName(), project.getPolicyCatalogVersion());
+            var catalog = policies.find(reference).orElseThrow(ResourceNotFoundException::new);
+            var applied = DecisionPolicies.apply(catalog, finalDecisions, ReusableAssetsService.ANALYZER_VERSION,
+                    java.util.Map.of(), now);
+            finalDecisions = applied.decisions();
+            policyReport = applied.report();
+        }
+        decisions.saveAll(projectId, finalDecisions);
         return new AnalysisDecisionSummary(suggested.decisions().size(), suggested.suggestionsAttempted(),
-                suggested.suggestionsFailed(), suggested.cacheHits());
+                suggested.suggestionsFailed(), suggested.cacheHits(), policyReport.autoConfirmed(), policyReport.suggested());
     }
 
     private void requireProject(String projectId) {
         if (!projects.existsById(projectId)) throw new ResourceNotFoundException();
     }
     public record AnalysisDecisionSummary(int total, int suggestionsAttempted,
-                                          int suggestionsFailed, int cacheHits) { }
+                                          int suggestionsFailed, int cacheHits,
+                                          int policyAutoConfirmed, int policySuggested) { }
     public static final class ResourceNotFoundException extends IllegalArgumentException { }
 }

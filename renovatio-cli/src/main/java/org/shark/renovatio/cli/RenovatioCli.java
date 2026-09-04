@@ -8,6 +8,8 @@ import org.shark.renovatio.cli.command.PlanCommand;
 import org.shark.renovatio.cli.command.ReportCommand;
 import org.shark.renovatio.cli.command.ReviewCommand;
 import org.shark.renovatio.cli.command.ServeCommand;
+import org.shark.renovatio.cli.command.ProfileCommand;
+import org.shark.renovatio.cli.command.PolicyCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -30,6 +32,8 @@ import picocli.CommandLine.Command;
                 DiffCommand.class,
                 ReviewCommand.class,
                 ReportCommand.class,
+                ProfileCommand.class,
+                PolicyCommand.class,
                 ServeCommand.class
         }
 )

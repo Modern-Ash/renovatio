@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard'
 import Projects from './pages/Projects'
 import ProjectDetail from './pages/ProjectDetail'
 import Wizard from './pages/Wizard'
+import ProfilesPolicies from './pages/ProfilesPolicies'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/projects/:id" element={<ProjectDetail />} />
           <Route path="/wizard" element={<Wizard />} />
           <Route path="/wizard/:projectId" element={<Wizard />} />
+          <Route path="/reusable-assets" element={<ProfilesPolicies />} />
         </Routes>
       </Layout>
     </Router>

@@ -26,6 +26,22 @@ public final class DecisionTransitions {
                 current.revision() + 1, now, current.active());
     }
 
+    public static DecisionPoint policy(DecisionPoint current, String option, BigDecimal confidence,
+                                       PolicyProvenance provenance, boolean autoConfirm, Instant now) {
+        if (!current.options().contains(option)) throw new InvalidOptionException();
+        if (current.status() == Status.OVERRIDDEN) return current;
+        Status nextStatus = autoConfirm ? Status.CONFIRMED : Status.SUGGESTED;
+        if (current.source() == Source.POLICY && current.chosenOption().equals(option)
+                && current.status() == nextStatus && current.confidence().compareTo(confidence) == 0
+                && java.util.Objects.equals(current.policyProvenance(), provenance)) return current;
+        return new DecisionPoint(current.schemaVersion(), current.id(), current.category(), current.decisionKey(),
+                current.location(), current.question(), current.options(), current.defaultOption(), option,
+                Source.POLICY, confidence, autoConfirm ? "Auto-confirmed by a reusable decision policy."
+                : "Suggested by a reusable decision policy.", current.evidence(),
+                nextStatus, current.semanticIrHash(), provenance,
+                false, null, current.revision() + 1, current.createdAt(), now, current.active());
+    }
+
     public static DecisionPoint suggest(DecisionPoint current, String option, BigDecimal confidence,
                                         String rationale, Instant now) {
         if (!current.options().contains(option)) throw new InvalidOptionException();
@@ -46,7 +62,7 @@ public final class DecisionTransitions {
             return new DecisionPoint(current.schemaVersion(), current.id(), heuristic.category(),
                     heuristic.decisionKey(), heuristic.location(), heuristic.question(), heuristic.options(),
                     heuristic.defaultOption(), current.chosenOption(), current.source(), current.confidence(),
-                    current.rationale(), heuristic.evidence(), current.status(), heuristic.semanticIrHash(),
+                    current.rationale(), heuristic.evidence(), current.status(), heuristic.semanticIrHash(), current.policyProvenance(),
                     false, null, current.revision() + 1, current.createdAt(), now, true);
         }
         List<String> evidence = new ArrayList<>(heuristic.evidence());
@@ -55,7 +71,7 @@ public final class DecisionTransitions {
         return new DecisionPoint(heuristic.schemaVersion(), current.id(), heuristic.category(),
                 heuristic.decisionKey(), heuristic.location(), heuristic.question(), heuristic.options(),
                 heuristic.defaultOption(), heuristic.defaultOption(), Source.HEURISTIC, BigDecimal.ONE,
-                heuristic.rationale(), evidence, Status.AUTO, heuristic.semanticIrHash(), false, null,
+                heuristic.rationale(), evidence, Status.AUTO, heuristic.semanticIrHash(), null, false, null,
                 current.revision() + 1, current.createdAt(), now, true);
     }
 
@@ -83,7 +99,7 @@ public final class DecisionTransitions {
                                       Instant updatedAt, boolean active) {
         return new DecisionPoint(value.schemaVersion(), value.id(), value.category(), value.decisionKey(),
                 value.location(), value.question(), value.options(), value.defaultOption(), option, source,
-                confidence, rationale, value.evidence(), status, value.semanticIrHash(), failed, failure,
+                confidence, rationale, value.evidence(), status, value.semanticIrHash(), value.policyProvenance(), failed, failure,
                 revision, value.createdAt(), updatedAt, active);
     }
 

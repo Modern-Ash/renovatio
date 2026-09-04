@@ -2,6 +2,7 @@ package org.shark.renovatio.api.service;
 
 import org.shark.renovatio.api.dto.ProjectDto;
 import org.shark.renovatio.api.entity.ProjectEntity;
+import org.shark.renovatio.api.dto.ReusableReferenceDto;
 import org.shark.renovatio.api.repository.ProjectRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,17 +14,23 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.shark.renovatio.profile.TemplateReference;
+import org.shark.renovatio.decisions.PolicyReference;
 
 @Service
 public class ProjectService {
     private final ProjectRepository projectRepo;
     private final DecisionLayerService decisionLayer;
+    private final ReusableAssetsService reusableAssets;
 
-    public ProjectService(ProjectRepository projectRepo, DecisionLayerService decisionLayer) {
+    public ProjectService(ProjectRepository projectRepo, DecisionLayerService decisionLayer,
+                          ReusableAssetsService reusableAssets) {
         this.projectRepo = projectRepo;
         this.decisionLayer = decisionLayer;
+        this.reusableAssets = reusableAssets;
     }
 
+    @Transactional
     public ProjectDto createProject(ProjectDto dto) {
         String workspacePath = dto != null ? dto.getWorkspacePath() : null;
         if (workspacePath == null || workspacePath.isBlank()) {
@@ -41,6 +48,15 @@ public class ProjectService {
                 .build();
 
         entity = projectRepo.save(entity);
+        if (dto.getProfileTemplate() != null) {
+            reusableAssets.bindTemplate(entity.getId(), new TemplateReference(
+                    dto.getProfileTemplate().name(), dto.getProfileTemplate().version()));
+        }
+        if (dto.getPolicyCatalog() != null) {
+            reusableAssets.bindPolicy(entity.getId(), new PolicyReference(
+                    dto.getPolicyCatalog().name(), dto.getPolicyCatalog().version()));
+        }
+        entity = projectRepo.findById(entity.getId()).orElseThrow();
         return toDto(entity);
     }
 
@@ -104,6 +120,10 @@ public class ProjectService {
                 .javaOutputPath(entity.getJavaOutputPath())
                 .javaPackage(entity.getJavaPackage())
                 .javaArchitecture(entity.getJavaArchitecture())
+                .profileTemplate(entity.getProfileTemplateName() == null ? null
+                        : new ReusableReferenceDto(entity.getProfileTemplateName(), entity.getProfileTemplateVersion()))
+                .policyCatalog(entity.getPolicyCatalogName() == null ? null
+                        : new ReusableReferenceDto(entity.getPolicyCatalogName(), entity.getPolicyCatalogVersion()))
                 .createdAt(entity.getCreatedAt())
                 .updatedAt(entity.getUpdatedAt())
                 .build();
