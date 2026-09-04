@@ -235,6 +235,10 @@ public class JobService {
         response.put("workspaceResolvedPath", workspacePath);
         response.put("summary", summary);
         response.put("analysis", result.getData());
+        org.shark.renovatio.domain.model.DomainModel domainModel =
+                new org.shark.renovatio.domain.model.SemanticDomainProjector()
+                        .projectSerialized(entity.getProjectId(), result.getData());
+        response.put("domainModel", domainModel);
         response.put("decisions", decisionSummary);
         response.put(
                 "message",
