@@ -263,7 +263,9 @@ public final class JclParser {
             kind = JclStep.ExecKind.PROC;
             executable = values.getOrDefault("PROC", firstToken(operands));
         }
-        Optional<CondClause> condition = extractCond(operands).map(CondClause::parse);
+        // COND must come from the top-level EXEC assignment, never a substring of PARM= or a
+        // parameter whose name merely ends in COND.
+        Optional<CondClause> condition = Optional.ofNullable(values.get("COND")).map(CondClause::parse);
         return new StepBuilder(statement.name(), kind, executable, condition,
                 Optional.ofNullable(ifExpression), values, statement.line());
     }
@@ -292,25 +294,6 @@ public final class JclParser {
                 statement.instreamData(), values);
         int last = statements.size() - 1;
         statements.set(last, statements.get(last).append(part));
-    }
-
-    private static Optional<String> extractCond(String operands) {
-        String upper = operands.toUpperCase(Locale.ROOT);
-        int start = upper.indexOf("COND=");
-        if (start < 0) return Optional.empty();
-        int valueStart = start + 5;
-        if (valueStart >= operands.length()) return Optional.empty();
-        if (operands.charAt(valueStart) != '(') {
-            int end = operands.indexOf(',', valueStart);
-            return Optional.of(operands.substring(valueStart, end < 0 ? operands.length() : end));
-        }
-        int depth = 0;
-        for (int index = valueStart; index < operands.length(); index++) {
-            if (operands.charAt(index) == '(') depth++;
-            else if (operands.charAt(index) == ')' && --depth == 0)
-                return Optional.of(operands.substring(valueStart, index + 1));
-        }
-        throw new IllegalArgumentException("unterminated COND");
     }
 
     private Map<String, ProcDefinition> collectProcedures(List<JclSource> sources) {

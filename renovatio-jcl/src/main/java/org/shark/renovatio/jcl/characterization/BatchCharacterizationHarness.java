@@ -12,15 +12,27 @@ import java.util.Map;
 
 /** In-process hook for comparing a projected batch job with reference fixture outputs. */
 public final class BatchCharacterizationHarness {
+    /** Return code recorded for a step whose executor threw, so PRIOR=ABEND guards can be evaluated. */
+    static final int ABEND_RETURN_CODE = -1;
+
     public RunResult run(BatchJob job, Map<String, List<String>> inputs, StepExecutor executor) throws Exception {
         LinkedHashMap<String, List<String>> data = new LinkedHashMap<>();
         if (inputs != null) inputs.forEach((key, value) -> data.put(key, new ArrayList<>(value)));
         LinkedHashMap<String, Integer> returnCodes = new LinkedHashMap<>();
         List<String> executed = new ArrayList<>();
+        List<String> abended = new ArrayList<>();
+        boolean priorAbend = false;
         for (BatchStep step : job.steps()) {
-            if (!shouldRun(job, step, returnCodes)) continue;
-            int returnCode = executor.execute(step, data);
-            returnCodes.put(step.stepName(), returnCode);
+            if (!shouldRun(job, step, returnCodes, priorAbend)) continue;
+            try {
+                int returnCode = executor.execute(step, data);
+                returnCodes.put(step.stepName(), returnCode);
+            } catch (Exception failure) {
+                // A step abend does not stop the run: later COND=EVEN/ONLY steps must still be evaluated.
+                returnCodes.put(step.stepName(), ABEND_RETURN_CODE);
+                abended.add(step.stepName());
+                priorAbend = true;
+            }
             executed.add(step.stepName());
         }
         job.datasets().stream().filter(dataset -> dataset.access() == BatchDataset.AccessKind.TEMP)
@@ -31,10 +43,15 @@ public final class BatchCharacterizationHarness {
         LinkedHashMap<String, List<String>> immutable = new LinkedHashMap<>();
         data.forEach((key, value) -> immutable.put(key, List.copyOf(value)));
         return new RunResult(java.util.Collections.unmodifiableMap(immutable),
-                java.util.Collections.unmodifiableMap(returnCodes), List.copyOf(executed));
+                java.util.Collections.unmodifiableMap(returnCodes), List.copyOf(executed), List.copyOf(abended));
     }
 
-    private static boolean shouldRun(BatchJob job, BatchStep step, Map<String, Integer> returnCodes) {
+    private static boolean shouldRun(BatchJob job, BatchStep step, Map<String, Integer> returnCodes,
+                                     boolean priorAbend) {
+        if (priorAbend && job.conditionGraph().guards().stream().noneMatch(guard ->
+                guard.memberStepIds().contains(step.id()) && guard.truthTable().containsKey("PRIOR=SUCCESS"))) {
+            return false; // after an abend only COND=EVEN/ONLY steps stay eligible
+        }
         for (ConditionGraph.Guard guard : job.conditionGraph().guards()) {
             if (!guard.memberStepIds().contains(step.id())) continue;
             if (guard.truthTable().containsKey("PREDICATE=TRUE")) {
@@ -185,5 +202,5 @@ public final class BatchCharacterizationHarness {
     }
 
     public record RunResult(Map<String, List<String>> datasets, Map<String, Integer> returnCodes,
-                            List<String> executedSteps) { }
+                            List<String> executedSteps, List<String> abendedSteps) { }
 }

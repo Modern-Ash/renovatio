@@ -130,10 +130,17 @@ public final class SpringBatchBatchEmitter implements BatchEmitter {
         if (reference.filter(value -> value.startsWith("&&")).isPresent()
                 || dataset.access() == BatchDataset.AccessKind.TEMP)
             return "memory:" + jobId + "/" + reference.orElse(dataset.id());
+        // VSAM datasets must be routed through the configured persistence strategy, not read as flat files.
+        if (dataset.access() == BatchDataset.AccessKind.VSAM)
+            return "vsam:" + reference.orElse(dataset.ddName());
         return reference.orElse(dataset.ddName());
     }
 
-    private static String method(BatchStep step) { return javaIdentifier(step.stepName()) + "Step"; }
+    private static String method(BatchStep step) {
+        // Distinct step names that only differ in national characters (A#B vs A@B) would otherwise
+        // collapse to the same identifier; the ordinal keeps the generated bean/method names unique.
+        return javaIdentifier(step.stepName()) + step.ordinal() + "Step";
+    }
     private static String javaName(String value) {
         StringBuilder result = new StringBuilder();
         for (String part : value.toLowerCase(Locale.ROOT).split("[^a-z0-9]+"))

@@ -303,6 +303,63 @@ class ReviewRegressionTest {
     }
 
     @Test
+    void characterizationEvaluatesEvenAndOnlyGuardsAfterAnAbend() throws Exception {
+        BatchJob job = project("""
+                //ABJOB JOB
+                //A EXEC PGM=A
+                //B EXEC PGM=B
+                //C EXEC PGM=C,COND=ONLY
+                //D EXEC PGM=D,COND=EVEN
+                """);
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job,
+                new LinkedHashMap<>(), (step, datasets) -> {
+                    if (step.stepName().equals("A")) throw new RuntimeException("S0C7");
+                    return 0;
+                });
+        assertEquals(List.of("A"), result.abendedSteps());
+        assertEquals(List.of("A", "C", "D"), result.executedSteps());
+    }
+
+    @Test
+    void sortOrdersNegativeZonedDecimalKeysWithOverpunchSign() {
+        SortUtility sort = new SortUtility();
+        assertEquals(List.of("01J", "005", "01A"),
+                sort.execute(List.of("005", "01A", "01J"), "SORT FIELDS=(1,3,ZD,A)"));
+    }
+
+    @Test
+    void emitsVsamResourcesWithAPersistencePrefix() {
+        String source = emit(project("//VJOB JOB\n//R EXEC PGM=IEBGENER\n//V DD DSN=CUST.KSDS,AMP=('AMORG'),DISP=SHR\n"));
+        assertTrue(source.contains("vsam:CUST.KSDS"), source);
+    }
+
+    @Test
+    void generatesCollisionFreeStepMethodNames() {
+        String source = emit(project("//NJOB JOB\n//A#B EXEC PGM=P1\n//A@B EXEC PGM=P2\n"));
+        assertTrue(source.contains("a_b0Step") && source.contains("a_b1Step"), source);
+    }
+
+    @Test
+    void idcamsWithAnUnsupportedTrailingCommandIsResidue() {
+        BatchJob job = project("""
+                //ICJOB JOB
+                //C EXEC PGM=IDCAMS
+                //SYSIN DD *
+                 REPRO INFILE(A) OUTFILE(B)
+                 LISTCAT ENT(X)
+                /*
+                """);
+        assertEquals(org.shark.renovatio.semantic.ir.BatchStep.Kind.RESIDUE, job.steps().get(0).kind());
+    }
+
+    @Test
+    void doesNotTreatCondSubstringOfAnotherParameterAsAStepCondition() {
+        JclJob job = new JclParser().parse("batch/p.jcl",
+                "//PJOB JOB\n//S EXEC PGM=P,PARM='COND=ABC'\n");
+        assertTrue(job.steps().get(0).condition().isEmpty());
+    }
+
+    @Test
     void classifiesUnsupportedIdcamsControlAsResidue() {
         BatchJob job = project("""
                 //IDCJOB JOB

@@ -91,17 +91,31 @@ Findings addressed (commits `c6c3cb95`, `0c32dca9`, `8a2ecfb1`, `495f8010`):
 | `memory:&&TEMP` shared globally across jobs and concurrent runs | key namespaced as `memory:<jobId>/&&name` |
 | `//procstep.ddname DD …` invocation override cards were dropped | buffered on the invocation and applied (replace/add) to the expanded steps |
 
+## PR #166 review — round 7 (2026-09-04)
+
+Re-review after re-targeting `main` (PR #166). Re-verification commit is the tip
+of `agora/decision-engine-f7`; suite `mvn -B test -pl '!renovatio-api'` —
+**533 tests, 0 failures**; `ReviewRegressionTest` now 26.
+
+| Finding | Resolution |
+|---|---|
+| Characterization run stopped on the first abending step, so later `COND=EVEN`/`ONLY` were never evaluated | executor exceptions are caught, recorded as a `-1` abend RC; EVEN/ONLY stay eligible, other steps skip; `RunResult.abendedSteps()` added |
+| Signed zoned-decimal keys lost their overpunch sign (`01J` parsed as `11`) | `SortUtility` decodes the trailing overpunch character for ZD fields |
+| VSAM DDs emitted as bare flat-file DSNs, losing the persistence route | emitted as `vsam:<dsn>` alongside `memory:` for temporaries |
+| National characters collapsed to `_`, so `A#B` and `A@B` produced one method | generated step method/bean names include the step ordinal |
+| Only the first IDCAMS SYSIN command was validated | every command record is checked; an unsupported command → `RESIDUE` |
+| `COND=` matched as a substring of `PARM='COND=…'` | `COND` is read from the top-level EXEC assignment map, not a substring scan |
+
 ## Open follow-ups (outside F7 scope)
 
-Recorded here and on PR #165 as deferred; each needs its own work item:
+Recorded here and on PR #166 as deferred; each needs its own work item:
 
 1. **CLI/API pipeline integration** — `renovatio-jcl` ships as a library in F7;
    wiring `.jcl` discovery and emitted-file output into a runtime migration path
    is a successor (F7 spec §3 non-goals).
-2. **Spring Batch `COND=EVEN`/`ONLY` failure transitions** — the emitted job's
+2. **Spring Batch `COND=EVEN`/`ONLY` failure transitions** — the *emitted* job's
    sequential flow stops on abend before those guards; needs explicit
-   `.on("FAILED")` transitions. The in-process characterization harness already
-   honours EVEN/ONLY.
+   `.on("FAILED")` transitions. The characterization harness now honours EVEN/ONLY.
 3. **Run the emitted Spring Batch source in the characterization gate** — the
    gate currently exercises a hand-written executor, not compiled emitter output.
 4. **Unqualified `COND` vs prior return codes** — current behaviour skips when

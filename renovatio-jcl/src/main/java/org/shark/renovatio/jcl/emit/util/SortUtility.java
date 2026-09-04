@@ -66,6 +66,20 @@ public final class SortUtility {
         return value.length() >= 2 && value.startsWith("'") && value.endsWith("'")
                 ? value.substring(1, value.length() - 1) : value;
     }
+    /** Decodes a zoned-decimal field, including a trailing overpunched sign digit (e.g. 01J = -11). */
+    private static BigDecimal zonedDecimal(String field) {
+        if (field.isEmpty()) return BigDecimal.ZERO;
+        char last = field.charAt(field.length() - 1);
+        String lead = field.substring(0, field.length() - 1).replaceAll("[^0-9]", "");
+        int overpunch = "{ABCDEFGHI".indexOf(Character.toUpperCase(last));
+        int negative = "}JKLMNOPQR".indexOf(Character.toUpperCase(last));
+        if (overpunch >= 0) return new BigDecimal(lead + overpunch);
+        if (negative >= 0) return new BigDecimal("-" + (lead + negative));
+        String digits = field.replaceAll("[^0-9]", "");
+        BigDecimal magnitude = digits.isEmpty() ? BigDecimal.ZERO : new BigDecimal(digits);
+        return field.startsWith("-") ? magnitude.negate() : magnitude;
+    }
+
     private static String slice(String record, int position, int length) {
         int start = position - 1;
         if (start >= record.length()) return "";
@@ -74,8 +88,7 @@ public final class SortUtility {
     private static Comparable<?> value(String record, int position, int length, Format format) {
         String field = slice(record, position, length);
         if (format == Format.CH) return field;
-        String numeric = field.trim().replaceAll("[^0-9+.-]", "");
-        return numeric.isEmpty() ? BigDecimal.ZERO : new BigDecimal(numeric);
+        return zonedDecimal(field.trim());
     }
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static int compare(Comparable left, Comparable right) { return left.compareTo(right); }

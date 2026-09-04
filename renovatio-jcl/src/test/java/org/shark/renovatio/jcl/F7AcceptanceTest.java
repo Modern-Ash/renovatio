@@ -42,8 +42,8 @@ class F7AcceptanceTest {
 
         String source = new SpringBatchBatchEmitter().emit(job, MigrationProfiles.defaults())
                 .files().values().iterator().next();
-        assertTrue(source.indexOf("oneStep()") < source.indexOf("twoStep()"));
-        assertTrue(source.indexOf("twoStep()") < source.indexOf("threeStep()"));
+        assertTrue(source.indexOf("one0Step()") < source.indexOf("two1Step()"));
+        assertTrue(source.indexOf("two1Step()") < source.indexOf("three2Step()"));
         assertTrue(source.contains("LOAD") || source.contains("ONE.RC NE 0"));
         assertTrue(source.contains("memory:"));
     }

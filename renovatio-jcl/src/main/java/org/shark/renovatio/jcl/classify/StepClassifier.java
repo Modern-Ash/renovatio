@@ -4,6 +4,7 @@ import org.shark.renovatio.jcl.emit.util.SortUtility;
 import org.shark.renovatio.jcl.parse.JclStep;
 import org.shark.renovatio.semantic.ir.BatchStep;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
@@ -42,15 +43,23 @@ public final class StepClassifier {
         return new Classification(BatchStep.Kind.RESIDUE, Optional.empty(), Optional.empty(), Optional.of(reason));
     }
 
+    private static final Set<String> SUPPORTED_IDCAMS = Set.of("REPRO", "DELETE", "DEFINE");
+
     private static boolean supportedIdcamsControl(JclStep step) {
-        Optional<String> controls = step.ddStatements().stream()
+        List<String> records = step.ddStatements().stream()
                 .filter(dd -> dd.ddName().equalsIgnoreCase("SYSIN"))
                 .flatMap(dd -> dd.instreamData().stream())
                 .map(String::trim).filter(value -> !value.isEmpty() && !value.startsWith("/*"))
-                .findFirst();
-        if (controls.isEmpty()) return true;
-        String operation = controls.orElseThrow().split("\\s+", 2)[0].toUpperCase(Locale.ROOT);
-        return Set.of("REPRO", "DELETE", "DEFINE").contains(operation);
+                .toList();
+        boolean continued = false;
+        for (String record : records) {
+            if (!continued) {
+                String verb = record.split("\\s+", 2)[0].toUpperCase(Locale.ROOT);
+                if (!SUPPORTED_IDCAMS.contains(verb)) return false; // every command must be supported
+            }
+            continued = record.endsWith("-") || record.endsWith("+");
+        }
+        return true;
     }
 
     /** A SORT/MERGE step is a supported utility only if its control cards parse in the F7 subset. */
