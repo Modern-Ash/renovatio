@@ -4,7 +4,8 @@ import {
   getEffectiveProfile,
   getProjectProfile,
   putProjectProfile,
-  projectDomainArchitecture
+  projectDomainArchitecture,
+  saveDomainModel
 } from '../api/client'
 import DomainModelReview from '../components/DomainModelReview'
 
@@ -345,6 +346,7 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
           stale={Boolean(preview && previewSelection !== selectionKey)} />
         {data?.domainModel && <DomainModelReview domainModel={data.domainModel}
           onProject={async (model) => {
+            await saveDomainModel(id, model)
             const projection = await projectDomainArchitecture(id, model, form.architecture.style)
             onChange({ domainModelConfirmed: model, architectureProjection: projection })
           }} />}

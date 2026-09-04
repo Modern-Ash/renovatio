@@ -157,6 +157,16 @@ export function projectDomainArchitecture(projectId, domainModel, style, { signa
   })
 }
 
+export function getDomainModel(projectId, { signal } = {}) {
+  return apiCall(`/projects/${projectId}/domain-model`, { signal })
+}
+
+export function saveDomainModel(projectId, domainModel) {
+  return apiCall(`/projects/${projectId}/domain-model`, {
+    method: 'PUT', body: JSON.stringify(domainModel)
+  })
+}
+
 export function getProjectDecisions(projectId, filters = {}) {
   const query = new URLSearchParams()
   if (filters.category) query.set('category', filters.category)
