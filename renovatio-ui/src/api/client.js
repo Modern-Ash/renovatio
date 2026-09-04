@@ -150,6 +150,13 @@ export function getArchitecturePreview(projectId, { style, moduleGrouping, signa
   return apiCall(`/projects/${projectId}/architecture-preview${suffix}`, { signal })
 }
 
+export function projectDomainArchitecture(projectId, domainModel, style, { signal } = {}) {
+  const query = new URLSearchParams({ style })
+  return apiCall(`/projects/${projectId}/architecture-projection?${query}`, {
+    method: 'POST', body: JSON.stringify(domainModel), signal
+  })
+}
+
 export function getProjectDecisions(projectId, filters = {}) {
   const query = new URLSearchParams()
   if (filters.category) query.set('category', filters.category)
