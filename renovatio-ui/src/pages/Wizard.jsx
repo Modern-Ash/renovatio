@@ -27,10 +27,17 @@ const steps = [
 function Wizard() {
   const { projectId } = useParams()
   const [currentStep, setCurrentStep] = useState(0)
-  const [data, setData] = useState({})
+  const storageKey = `renovatio:wizard:${projectId || 'default'}`
+  const [data, setData] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(storageKey) || '{}') } catch { return {} }
+  })
 
   const updateData = (newData) => {
-    setData((current) => ({ ...current, ...newData }))
+    setData((current) => {
+      const next = { ...current, ...newData }
+      try { localStorage.setItem(storageKey, JSON.stringify(next)) } catch { /* storage is optional */ }
+      return next
+    })
   }
 
   const goNext = () => {
