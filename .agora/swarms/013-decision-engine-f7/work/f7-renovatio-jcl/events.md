@@ -1,0 +1,125 @@
+# Work events
+
+- 2026-09-02T20:41:01.555781Z | work.created | state=drafting actor=project:owner
+- 2026-09-02T20:43:09.778349Z | artifact.added | kind=spec uri=file:docs/specs/f7-renovatio-jcl.md actor=project:agent
+- 2026-09-02T20:43:10.000810Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:owner stage=specified
+- 2026-09-02T20:43:10.233653Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:owner stage=specified
+- 2026-09-02T20:43:10.459925Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:owner stage=specified
+- 2026-09-02T20:43:10.682301Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:owner stage=specified
+- 2026-09-02T20:43:10.897659Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:owner stage=specified
+- 2026-09-02T20:43:11.114825Z | work.criterion-stage-marked | criterion=missing-proc actor=project:owner stage=specified
+- 2026-09-02T20:43:11.351865Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=specified
+- 2026-09-02T20:43:11.574094Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=specified
+- 2026-09-02T20:43:25.020420Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-02T20:43:48.019098Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-02T20:47:12.657560Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-02T20:47:21.038042Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-02T20:47:58.789954Z | artifact.added | kind=implementation-plan uri=file:docs/specs/f7-implementation-plan.md actor=project:agent
+- 2026-09-02T20:47:59.030831Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:owner stage=planned
+- 2026-09-02T20:47:59.251589Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:owner stage=planned
+- 2026-09-02T20:47:59.484102Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:owner stage=planned
+- 2026-09-02T20:47:59.706213Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:owner stage=planned
+- 2026-09-02T20:47:59.926590Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:owner stage=planned
+- 2026-09-02T20:48:00.145798Z | work.criterion-stage-marked | criterion=missing-proc actor=project:owner stage=planned
+- 2026-09-02T20:48:00.359578Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=planned
+- 2026-09-02T20:48:00.578709Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=planned
+- 2026-09-02T20:48:00.805585Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-02T22:37:47.959446Z | artifact.added | kind=test-report uri=file:docs/test-reports/f7-renovatio-jcl.md actor=project:agent
+- 2026-09-02T22:37:48.580084Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:agent stage=implemented
+- 2026-09-02T22:37:48.893168Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:agent stage=verified
+- 2026-09-02T22:37:49.202798Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:agent stage=implemented
+- 2026-09-02T22:37:49.511183Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:agent stage=verified
+- 2026-09-02T22:37:49.820828Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:agent stage=implemented
+- 2026-09-02T22:37:50.119894Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:agent stage=verified
+- 2026-09-02T22:37:50.423303Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:agent stage=implemented
+- 2026-09-02T22:37:50.728936Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:agent stage=verified
+- 2026-09-02T22:37:51.031512Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:agent stage=implemented
+- 2026-09-02T22:37:51.333333Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:agent stage=verified
+- 2026-09-02T22:37:51.635923Z | work.criterion-stage-marked | criterion=missing-proc actor=project:agent stage=implemented
+- 2026-09-02T22:37:51.931991Z | work.criterion-stage-marked | criterion=missing-proc actor=project:agent stage=verified
+- 2026-09-02T22:37:52.230247Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=implemented
+- 2026-09-02T22:37:52.538703Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=verified
+- 2026-09-02T22:37:52.863194Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:agent stage=implemented
+- 2026-09-02T22:37:53.175174Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:agent stage=verified
+- 2026-09-02T22:37:58.525743Z | evidence.added | id=evidence-000001 type=test-suite result=success revision=1 actor=project:agent
+- 2026-09-02T22:38:04.583342Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-02T22:39:01.077968Z | tool.prepared | run=tool-20260902t22391788399541z tool=repository operation=commit actor=project:agent
+- 2026-09-02T22:39:01.083523Z | tool.running | run=tool-20260902t22391788399541z actor=project:agent
+- 2026-09-02T22:39:01.099309Z | tool.failed | run=tool-20260902t22391788399541z exit-code=128
+- 2026-09-02T22:39:35.895448Z | tool.prepared | run=tool-20260902t22391788399575z tool=repository operation=commit actor=project:agent
+- 2026-09-02T22:39:35.898892Z | tool.running | run=tool-20260902t22391788399575z actor=project:agent
+- 2026-09-02T22:39:35.934769Z | tool.completed | run=tool-20260902t22391788399575z exit-code=0
+- 2026-09-02T22:39:58.353372Z | evidence.added | id=evidence-000002 type=test-suite result=success revision=1 actor=project:agent
+- 2026-09-03T00:34:53.703764Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:owner stage=accepted
+- 2026-09-03T00:34:53.928597Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:owner stage=accepted
+- 2026-09-03T00:34:54.147434Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:owner stage=accepted
+- 2026-09-03T00:34:54.368243Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:owner stage=accepted
+- 2026-09-03T00:34:54.600242Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:owner stage=accepted
+- 2026-09-03T00:34:54.825538Z | work.criterion-stage-marked | criterion=missing-proc actor=project:owner stage=accepted
+- 2026-09-03T00:34:55.049600Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=accepted
+- 2026-09-03T00:34:55.269020Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=accepted
+- 2026-09-03T00:34:59.302123Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-03T00:35:12.721659Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-09-03T01:21:01.112234Z | work.reopened | revision=2 source=github-pr-review actor=project:owner change=change-20260903t012101112125z
+- 2026-09-03T11:44:58.194673Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-03T11:45:13.955173Z | artifact.added | kind=spec uri=file:docs/specs/f7-renovatio-jcl.md actor=project:agent
+- 2026-09-03T11:45:14.193774Z | artifact.added | kind=implementation-plan uri=file:docs/specs/f7-implementation-plan.md actor=project:agent
+- 2026-09-03T11:45:14.430853Z | artifact.added | kind=test-report uri=file:docs/test-reports/f7-renovatio-jcl.md actor=project:agent
+- 2026-09-03T11:45:29.723497Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:owner stage=specified
+- 2026-09-03T11:45:29.960403Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:owner stage=planned
+- 2026-09-03T11:45:30.217500Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:agent stage=implemented
+- 2026-09-03T11:45:30.454206Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:owner stage=specified
+- 2026-09-03T11:45:30.673907Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:owner stage=planned
+- 2026-09-03T11:45:30.918073Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:agent stage=implemented
+- 2026-09-03T11:45:31.157639Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:owner stage=specified
+- 2026-09-03T11:45:31.405009Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:owner stage=planned
+- 2026-09-03T11:45:31.627412Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:agent stage=implemented
+- 2026-09-03T11:45:31.852367Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:owner stage=specified
+- 2026-09-03T11:45:32.085063Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:owner stage=planned
+- 2026-09-03T11:45:32.312577Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:agent stage=implemented
+- 2026-09-03T11:45:32.545045Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:owner stage=specified
+- 2026-09-03T11:45:32.768323Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:owner stage=planned
+- 2026-09-03T11:45:32.995583Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:agent stage=implemented
+- 2026-09-03T11:45:33.230031Z | work.criterion-stage-marked | criterion=missing-proc actor=project:owner stage=specified
+- 2026-09-03T11:45:33.451133Z | work.criterion-stage-marked | criterion=missing-proc actor=project:owner stage=planned
+- 2026-09-03T11:45:33.672349Z | work.criterion-stage-marked | criterion=missing-proc actor=project:agent stage=implemented
+- 2026-09-03T11:45:33.904547Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=specified
+- 2026-09-03T11:45:34.143025Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=planned
+- 2026-09-03T11:45:34.377104Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=implemented
+- 2026-09-03T11:45:34.627683Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=specified
+- 2026-09-03T11:45:34.868019Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=planned
+- 2026-09-03T11:45:35.108410Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:agent stage=implemented
+- 2026-09-03T11:46:07.109736Z | tool.prepared | run=tool-20260903t11461788446767z tool=repository operation=commit actor=project:agent
+- 2026-09-03T11:46:07.112748Z | tool.running | run=tool-20260903t11461788446767z actor=project:agent
+- 2026-09-03T11:46:07.137526Z | tool.completed | run=tool-20260903t11461788446767z exit-code=0
+- 2026-09-03T11:49:05.025636Z | evidence.added | id=evidence-000003 type=review-revalidation result=success revision=2 actor=project:agent
+- 2026-09-03T11:49:23.708502Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:agent stage=verified
+- 2026-09-03T11:49:24.028805Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:agent stage=verified
+- 2026-09-03T11:49:24.340339Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:agent stage=verified
+- 2026-09-03T11:49:24.644792Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:agent stage=verified
+- 2026-09-03T11:49:24.960604Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:agent stage=verified
+- 2026-09-03T11:49:25.269556Z | work.criterion-stage-marked | criterion=missing-proc actor=project:agent stage=verified
+- 2026-09-03T11:49:25.574021Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=verified
+- 2026-09-03T11:49:25.870700Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:agent stage=verified
+- 2026-09-03T11:49:26.180230Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-03T11:49:58.361769Z | tool.prepared | run=tool-20260903t11491788446998z tool=repository operation=commit actor=project:agent
+- 2026-09-03T11:49:58.365656Z | tool.running | run=tool-20260903t11491788446998z actor=project:agent
+- 2026-09-03T11:49:58.380610Z | tool.failed | run=tool-20260903t11491788446998z exit-code=128
+- 2026-09-03T12:01:00.461226Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-03T12:03:21.828148Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-03T12:03:39.833955Z | evidence.added | id=evidence-000004 type=review-revalidation result=success revision=2 actor=project:agent
+- 2026-09-03T22:12:26.592142Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-03T22:12:33.935269Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-03T22:12:47.730691Z | evidence.added | id=evidence-000005 type=review-revalidation result=success revision=2 actor=project:agent
+- 2026-09-03T22:19:21.775329Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-03T22:19:22.008654Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-03T22:19:22.230123Z | evidence.added | id=evidence-000006 type=review-revalidation result=success revision=2 actor=project:agent
+- 2026-09-04T09:57:52.255643Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-04T09:57:52.484720Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T09:57:52.709562Z | evidence.added | id=evidence-000007 type=review-revalidation result=success revision=2 actor=project:agent
+- 2026-09-04T10:33:10.076303Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-04T10:33:10.309636Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T10:33:10.522939Z | evidence.added | id=evidence-000008 type=review-revalidation result=success revision=2 actor=project:agent
+- 2026-09-04T10:48:41.990597Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-04T10:48:42.216954Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T10:48:42.437202Z | evidence.added | id=evidence-000009 type=review-revalidation result=success revision=2 actor=project:agent

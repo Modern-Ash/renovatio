@@ -26,7 +26,7 @@ public final class PromptCatalogLoader {
             "DATA_INTENT.OCCURS_DEPENDING_ON",
             "DATA_INTENT.MOVE_CORRESPONDING", "UNSUPPORTED_EXPLANATION",
             "DECISION.NUMERIC", "DECISION.CONTROL_FLOW", "DECISION.DATA_SHAPE",
-            "DECISION.PERSISTENCE", "DECISION.NAMING", "DECISION.ARCHITECTURE");
+            "DECISION.PERSISTENCE", "DECISION.NAMING", "DECISION.ARCHITECTURE", "DECISION.BATCH");
     private static final Set<String> VALIDATORS = Set.of(
             "json-schema.v1", "annotated-ir-reference.v1", "public-signature-preservation.v1",
             "sanitized-persistence.v1");

@@ -2,212 +2,296 @@
   <img src="docs/assets/renovatio-banner.png" alt="RENOVATIO — Engineering the transition" width="100%">
 </p>
 
-# Renovatio - MCP Server for Code Migration and Refactoring
+# Renovatio — the decision‑driven mainframe modernization engine
 
-**Renovatio** is a Model Content Protocol (MCP) server for automated code migration and refactoring, based on
-OpenRewrite concepts. It provides tools for migrating and upgrading COBOL and Java code with extensibility for
-additional languages.
+**Renovatio turns a COBOL/JCL codebase into a maintainable, idiomatic application on the
+stack *you* choose — without betting the business on a black box.**
 
+Legacy modernization projects fail for two reasons: the automated tools produce
+unreadable "Jabol" that nobody can own, and the manual rewrites take years and drift
+from the original behavior. Renovatio is built to avoid both. Every transformation is
+**deterministic, reproducible and auditable**; an LLM is used only on the residual ~20%
+that genuinely needs judgment, and it is never allowed to type the final file.
 
+You drive the migration by **decisions** — target language, architecture, persistence,
+framework — and Renovatio reduces the COBOL‑to‑modern impedance one decision at a time,
+recording the evidence for each one.
+
+---
+
+## Why Renovatio
+
+| Pain in a typical migration | How Renovatio answers it |
+|---|---|
+| Auto‑translated code is unreadable and unmaintainable | Deterministic transliteration through a neutral semantic IR, then **verified** OpenRewrite refactors toward idiomatic OOP/hexagonal code |
+| "Big bang" rewrites are unverifiable | **Characterization / golden‑master harness is a merge gate** — generated behavior is pinned before any refactor |
+| One tool = one target language and one architecture | **Decision engine**: pick Java, Node or Python; transaction‑script, layered‑MVC or hexagonal; pluggable persistence — defaults reproduce current behavior byte‑for‑byte |
+| LLMs hallucinate and can't be audited | LLM runs at temperature 0, schema‑validated, content‑addressed cache committed to the repo, every call recorded as governed evidence. Deterministic fallback always present |
+| The JCL that runs everything in production is lost | `renovatio-jcl` parses JCL (steps, `COND`, datasets, utilities) and emits a real orchestration (Spring Batch first) |
+| No traceability from old to new | Semantic diff maps every COBOL paragraph to its target use‑case/method; every decision is stored and attributable |
+| Modernization work itself is ungoverned | Built and shipped under **Agora** spec‑driven governance: spec → plan → implementation → verification, Test‑First, per‑phase acceptance criteria |
+
+---
+
+## How it works
+
+```mermaid
+flowchart TD
+    SRC["COBOL sources · JCL / PROCs · copybooks"]
+
+    subgraph P1["1 · Characterize"]
+        C["Characterization / golden-master tests<br/><i>safety net · merge gate</i>"]
+    end
+    subgraph P2["2 · Transliterate → neutral IR"]
+        IR["renovatio-cobol-ir · renovatio-semantic-ir<br/>runtime-backed COBOL semantics<br/>BatchJob projected from JCL"]
+    end
+    subgraph P3["3 · Decide"]
+        D["MigrationProfile + DecisionPoints<br/>target language · architecture · persistence · framework · batch.target<br/>low-confidence decisions → heuristic / LLM suggestion you confirm"]
+    end
+    subgraph P4["4 · Emit + Refactor"]
+        E["TargetEmitter SPI → Java / Node / Python<br/>renovatio-architecture (IR→IR) · cobol-openrewrite-recipes<br/>incremental, characterization-verified refactors"]
+    end
+    OUT["Idiomatic application on your chosen stack<br/>+ traceability report"]
+
+    SRC --> P1 --> P2 --> P3 --> P4 --> OUT
+
+    LLM["renovatio-llm<br/><i>temp 0 · schema-validated · cached · never types the final file</i>"]
+    LLM -. "residue only" .-> P3
+    LLM -. "residue only" .-> P4
+```
+
+**LLM only on the residue** — naming (`VAR-CLI-NUM-POL` → `policyNumber`), Javadoc/intent
+docs, GOTO/control‑flow structuring plans, `REDEFINES` intent, semantic diff. Pass A
+enriches the IR offline; Pass B deterministic recipes consume it; Pass C optional polish
+gated by characterization tests + human review.
+
+---
+
+## Capabilities today
+
+- **COBOL → Java** — parsing, metrics, migration plans, copybook and embedded‑DB2/EXEC‑SQL
+  code generation, OpenRewrite‑based modernization pipeline.
+- **COBOL → Node and COBOL → Python** — via the `TargetEmitter` SPI (`renovatio-emitter-node`,
+  `renovatio-provider-python`); Prisma persistence strategy and idiom catalog for Node.
+- **Architecture transform** — neutral IR→IR transformation into canonical transaction‑script
+  or hexagonal Java layouts, with a UI preview of the target architecture.
+- **Pluggable persistence** — `PersistenceStrategy` SPI (JPA, Prisma, …) chosen per migration.
+- **JCL batch orchestration** — `renovatio-jcl`: `JclParser` → `BatchJob` IR → `SpringBatchBatchEmitter`;
+  `COND`/`IF‑THEN‑ELSE` compiled to an auditable condition graph; `SORT`/`IEBGENER`/`IDCAMS`
+  utility templates; unsupported steps become explicit manual action items, never silent gaps.
+- **Governed LLM layer** — `renovatio-llm`: versioned `PromptCatalog`, `PromptOutputValidator`
+  + JSON schema, three‑hash deterministic cache, decisions recorded in `renovatio-decisions`.
+- **MCP server** — all of the above exposed as MCP tools over JSON‑RPC 2.0 for VS Code,
+  Copilot Workspace and other MCP clients, with per‑language tool filtering.
 
 ---
 
 ## Architecture
 
-Renovatio is organized as a multi-module Maven project with a clean separation between the MCP protocol implementation
-and the core migration engine:
+Renovatio is a multi‑module Maven project (Java 21) with a strict separation between the
+deterministic semantic core and everything that could introduce non‑determinism.
+
+```mermaid
+flowchart LR
+    subgraph edges["Governed edges"]
+        LLM["renovatio-llm"]
+        DEC["renovatio-decisions"]
+    end
+    subgraph core["Deterministic core"]
+        CIR["renovatio-cobol-ir"]
+        RT["renovatio-cobol-runtime"]
+        SIR["renovatio-semantic-ir"]
+        JCL["renovatio-jcl"]
+        ARC["renovatio-architecture"]
+        REC["cobol-openrewrite-recipes"]
+    end
+    subgraph emit["Emitters (TargetEmitter SPI)"]
+        J["provider-java"]
+        N["emitter-node"]
+        PY["provider-python"]
+        PERS["renovatio-persistence"]
+    end
+    subgraph surface["Surfaces"]
+        MCP["mcp-server"]
+        API["renovatio-api"]
+        CLI["renovatio-cli"]
+        UI["renovatio-ui"]
+    end
+
+    CIR --> SIR
+    RT --> SIR
+    JCL --> SIR
+    SIR --> ARC --> emit
+    REC --> emit
+    DEC --> emit
+    LLM -. residue .-> DEC
+    emit --> surface
+    PROF["renovatio-profile"] --> DEC
+```
 
 ```
 renovatio/
-├── renovatio-shared/         # Common interfaces and domain models
-├── renovatio-core/           # Core migration logic (protocol-agnostic)
-├── renovatio-provider-java/  # Java provider (OpenRewrite integration)
-├── renovatio-provider-cobol/ # COBOL provider (parsing and migration)
-└── renovatio-mcp-server/     # MCP protocol server implementation
+├── renovatio-shared/           # Common DTOs, SPI interfaces, NQL grammar
+├── renovatio-cobol-ir/         # COBOL Intermediate Representation
+├── renovatio-cobol-runtime/    # Zero‑dep runtime encapsulating COBOL semantics (PicType, decimals, EBCDIC)
+├── renovatio-semantic-ir/      # Target‑neutral semantic IR (SemanticProgram, BatchJob)
+├── renovatio-jcl/              # JCL parser → BatchJob projection → batch emitter SPI
+├── renovatio-profile/          # MigrationProfile + effective‑profile resolution
+├── renovatio-decisions/        # Decision points, decision records, suggestion service
+├── renovatio-architecture/     # Neutral IR→IR architecture transformation
+├── renovatio-persistence/      # PersistenceStrategy SPI (JPA, Prisma, …)
+├── renovatio-llm/              # Governed LLM: prompt catalog, validation, deterministic cache
+├── renovatio-emitter-node/     # Node/TypeScript TargetEmitter
+├── renovatio-provider-python/  # Python provider / emitter
+├── renovatio-provider-java/    # Java provider (OpenRewrite integration)
+├── renovatio-provider-cobol/   # COBOL provider (parsing, metrics, migration)
+├── cobol-openrewrite-recipes/  # OpenRewrite recipes for post‑generation refactoring
+├── renovatio-core/             # Protocol‑agnostic orchestration and tool registry
+├── renovatio-api/              # REST API
+├── renovatio-cli/              # Command‑line entrypoint
+├── renovatio-ui/               # Migration UI (target/decisions steps, architecture & semantic diff previews)
+└── renovatio-mcp-server/       # MCP protocol server (JSON‑RPC 2.0)
 ```
 
----
-
-## Module Responsibilities
-
-### renovatio-shared
-
-Common interfaces, domain models, and utilities shared across all modules.
-
-### renovatio-core
-
-Core migration logic, tool registry, and orchestration services independent of any protocol.
-
-### renovatio-provider-java
-
-Java language provider with OpenRewrite integration for Java refactoring and migration.
-
-### renovatio-provider-cobol
-
-COBOL language provider with parsing capabilities and Java code generation for COBOL-to-Java migration.
-
-### renovatio-mcp-server
-
-MCP protocol implementation that exposes the core migration capabilities as MCP tools following JSON-RPC 2.0
-specification.
-
----
-
-## Module READMEs
-
-- [renovatio-shared](./renovatio-shared/README.md) — Shared DTOs, SPI interfaces, utilities, and NQL grammar.
-- [renovatio-core](./renovatio-core/README.md) — Core MCP engine, tool catalog, and NQL routing.
-- [renovatio-provider-java](./renovatio-provider-java/README.md) — Java provider with OpenRewrite integration.
-- [renovatio-provider-cobol](./renovatio-provider-cobol/README.md) — COBOL provider (parsing, metrics, migration to Java).
-- [renovatio-cobol-ir](./renovatio-cobol-ir/README.md) — COBOL Intermediate Representation and utilities.
-- [cobol-openrewrite-recipes](./cobol-openrewrite-recipes/README.md) — OpenRewrite recipes for post-generation refactoring.
-- [renovatio-mcp-server](./renovatio-mcp-server/README.md) — Spring Boot MCP server exposing providers and tools.
-
----
-
-## Technology Stack
-
-- **Java 17+**: Core platform
-- **Spring Boot**: Dependency injection and configuration
-- **Maven**: Build and dependency management
-- **OpenRewrite**: Java refactoring engine
-- **MCP (Model Content Protocol)**: Tool exposure protocol
-- **JSON-RPC 2.0**: Communication protocol
+See **[ARCHITECTURE.md](./ARCHITECTURE.md)** for design principles and the per‑module READMEs
+linked in the Documentation Index below.
 
 ---
 
 ## Quick Start
 
-1. Build the project (root):
-
 ```bash
+# 1. Build (Java 21+, Maven)
 mvn clean install
-```
 
-2. Run the MCP server (HTTP mode):
-
-```bash
+# 2. Run the MCP server (HTTP mode)
 java -jar renovatio-mcp-server/target/renovatio-mcp-server-*.jar
+
+# 3. Or stdio mode, for direct MCP clients
+java -cp renovatio-mcp-server/target/renovatio-mcp-server-*.jar \
+     org.shark.renovatio.mcp.server.McpStdioServerApplication
 ```
 
-3. Run the MCP server (stdio mode, for direct MCP clients):
+Connect an MCP client (VS Code extension, Copilot Workspace, …) to access the migration
+tools. A sample `vscode-mcp-config.json` is included; pre‑configured setups live in
+[`examples/`](./examples/). Full walkthrough: **[MCP-CLIENT-GUIDE.md](./MCP-CLIENT-GUIDE.md)**.
 
-```bash
-# Using the stdio entrypoint class
-java -cp renovatio-mcp-server/target/renovatio-mcp-server-*.jar org.shark.renovatio.mcp.server.McpStdioServerApplication
-```
+### Language selection
 
-4. Connect MCP clients (VS Code extension, Copilot Workspace, etc.) to the server to access migration tools.
-
----
-
-## MCP Integration
-
-Renovatio implements the Model Content Protocol specification, making it compatible with MCP clients like VS Code
-extensions and Copilot Workspace. All tools are exposed following MCP standards with proper JSON-RPC 2.0 messaging.
-
-### 📖 Complete MCP Client Guide
-
-For detailed instructions on using Renovatio with MCP clients, including language-specific configurations and practical examples, see:
-
-**[MCP Client Guide](./MCP-CLIENT-GUIDE.md)** - Comprehensive guide with:
-- Language filtering (Java/COBOL)
-- Client configuration examples
-- Practical usage scenarios
-- Best practices and troubleshooting
-
-### Quick Start: Language Selection
-
-Clients can request tools for a specific language by passing a `language` parameter during initialization or when listing tools:
-
-**Initialize with language filter:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "1",
-  "method": "initialize",
-  "params": {
-    "language": "java"
-  }
-}
-```
-
-**List tools with language filter:**
-```json
-{
-  "jsonrpc": "2.0",
-  "id": "2",
-  "method": "tools/list",
-  "params": {
-    "language": "cobol"
-  }
-}
-```
-
-If `language` is omitted, all tools from all registered providers are returned.
-
-### Configuration Examples
-
-Pre-configured examples for different scenarios are available in the [`examples/`](./examples/) directory:
-- `vscode-java-only.json` - Java-only projects
-- `vscode-cobol-only.json` - COBOL migration projects
-- `vscode-multi-language.json` - Full stack (Java + COBOL)
-- `vscode-multiple-instances.json` - Multiple server instances
-
-### Tool name mapping (dot ↔ underscore)
-
-The MCP adapter sanitizes tool names for clients that do not support dots in method names. For example:
-- `java.analyze` will be exposed to some clients as `java_analyze`.
-- The server understands both forms and maps them internally.
-
-When invoking tools via `tools/call`, prefer the canonical dotted name if your client supports it.
+Clients can request tools for one language by passing a `language` parameter on
+`initialize` or `tools/list` (`"java"` or `"cobol"`); omit it to get every provider's tools.
 
 ---
 
 ## Available MCP Tools
 
-All provider tools accept a `workspacePath` parameter (added automatically by the server-side adapter when not present
-in the schema) to point to the workspace directory.
-
 ### Java provider
 
-General tools:
-- `java.discover` — Inspect workspace structure
-- `java.analyze` — Analyze Java sources with OpenRewrite
-- `java.plan` — Plan refactoring based on goals
-- `java.apply` — Apply OpenRewrite recipes
-- `java.diff` — Generate git-like diff between revisions
-- `java.review` — Summarize refactoring outcome
-- `java.format` — Format sources and remove unused imports
-- `java.test` — Run project tests
-- `java.metrics` — Collect high-level Java metrics
-- `java.recipe_list` — List available OpenRewrite recipes
-- `java.recipe_describe` — Describe a specific recipe
-- `java.pipeline` — Execute preset modernization pipeline
+`java.discover` · `java.analyze` · `java.plan` · `java.apply` · `java.diff` · `java.review` ·
+`java.format` · `java.test` · `java.metrics` · `java.recipe_list` · `java.recipe_describe` ·
+`java.pipeline`
 
-Dynamic recipes:
-- OpenRewrite recipes discovered on the classpath and in `rewrite.yml` are exposed as tools using the pattern
-  `java.<recipeId>` (e.g., `java.org.openrewrite.java.format.AutoFormat`).
+Plus dynamic recipe tools: every OpenRewrite recipe discovered on the classpath or in
+`rewrite.yml` is exposed as `java.<recipeId>`.
 
 ### COBOL provider
 
-- `cobol.analyze` — Analyze COBOL sources (parsing, AST, dependencies)
-- `cobol.metrics` — Collect high-level COBOL metrics (files, lines, copybooks)
-- `cobol.plan` — Create migration plan from COBOL to Java
-- `cobol.apply` — Apply a previously created migration plan
-- `cobol.diff` — Generate diff for the last migration run
-- `cobol.migrate_copybook` — Generate Java artifacts from a COBOL copybook (template-based)
-- `cobol.migrate_db2` — Generate JPA code from embedded DB2 EXEC SQL in COBOL programs
+`cobol.analyze` · `cobol.metrics` · `cobol.plan` · `cobol.apply` · `cobol.diff` ·
+`cobol.migrate_copybook` · `cobol.migrate_db2`
+
+All provider tools accept a `workspacePath` parameter (added automatically by the server
+adapter when absent). Tool names are also exposed in underscore form (`java_analyze`) for
+clients that don't support dots; both forms are understood.
+
+---
+
+## Roadmap
+
+Renovatio is being built out under Epic **[#152 — decision‑parameterized migration engine](https://github.com/Modern-Ash/renovatio/issues/152)**.
+Each phase is one governed Agora cycle with its own spec, plan and acceptance criteria.
+
+| Phase | Scope | Status |
+|---|---|---|
+| F0 | Decision‑model cartography spike (`docs/specs/decision-model-cartography.md`) | ✅ done |
+| F1 | `renovatio-profile` + `renovatio-decisions` + `DecisionSuggestionService` + Target/Decisions UI | ✅ done |
+| F2 | `renovatio-semantic-ir` + `TargetEmitter` SPI | ✅ done |
+| F3 | `renovatio-architecture` IR→IR (transaction‑script / hexagonal) | ✅ done |
+| F4 | Pluggable `PersistenceStrategy` SPI | ✅ done |
+| F5 | Node / Python emitter + Prisma strategy | ✅ done |
+| F6 | Residual LLM: naming, docs, control‑flow plans, semantic diff | ✅ done |
+| **F7** | **[`renovatio-jcl`](https://github.com/Modern-Ash/renovatio/issues/153) — batch orchestration (JCL steps, `COND`, datasets, utilities)** | ✅ delivered, in review |
+| **F8** | **[Reusable decision profiles & policy catalog](https://github.com/Modern-Ash/renovatio/issues/154)** — templates shared across projects | 🔜 open |
+
+**Invariants held across every phase:** defaults reproduce current behavior byte‑for‑byte;
+the characterization harness is the merge gate for anything on the COBOL→target path;
+the LLM never types the final file.
+
+---
+
+## Design principles
+
+1. **Deterministic core, governed edges.** The semantic IR and OpenRewrite recipes are
+   pure and reproducible. Non‑determinism is quarantined in `renovatio-llm` behind schema
+   validation and a committed cache.
+2. **Verify before you refactor.** Characterization tests pin behavior first; refactors are
+   applied incrementally and re‑verified.
+3. **Ports emerge, they are not imposed.** Hexagonal boundaries come from the call graph and
+   data ownership; start as a modular monolith.
+4. **Every decision is evidence.** Target, architecture, persistence and per‑identifier
+   choices are stored, attributable and reviewable.
+5. **No silent gaps.** Anything Renovatio can't translate deterministically becomes an
+   explicit manual action item.
+
+---
+
+## 📖 Documentation Index
+
+### Getting started
+- **[MCP-QUICK-REFERENCE.md](./MCP-QUICK-REFERENCE.md)** — quick reference for common tasks
+- **[MCP-CLIENT-GUIDE.md](./MCP-CLIENT-GUIDE.md)** — full MCP client guide (language filtering, examples, troubleshooting)
+- **[examples/](./examples/)** — pre‑configured client setups
+
+### Architecture & design
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** — system architecture and design principles
+- **[docs/specs/INDEX.md](./docs/specs/INDEX.md)** — technical specifications index
+- Decision engine specs: [decision-model-cartography](./docs/specs/decision-model-cartography.md) ·
+  [f1-decision-layer](./docs/specs/f1-decision-layer.md) ·
+  [f2-semantic-ir-emitter-spi](./docs/specs/f2-semantic-ir-emitter-spi.md) ·
+  [f3-architecture-transform](./docs/specs/f3-architecture-transform.md) ·
+  [f4-persistence-strategy](./docs/specs/f4-persistence-strategy.md) ·
+  [f5-node-emitter](./docs/specs/f5-node-emitter.md) ·
+  [f6-residual-llm](./docs/specs/f6-residual-llm.md) ·
+  [f7-renovatio-jcl](./docs/specs/f7-renovatio-jcl.md)
+- **[schemas/](./schemas/)** — JSON schemas for configuration validation
+
+### Module READMEs
+- [renovatio-shared](./renovatio-shared/README.md) — shared DTOs, SPI interfaces, NQL grammar
+- [renovatio-core](./renovatio-core/README.md) — core MCP engine, tool catalog, NQL routing
+- [renovatio-provider-java](./renovatio-provider-java/README.md) — Java provider (OpenRewrite)
+- [renovatio-provider-cobol](./renovatio-provider-cobol/README.md) — COBOL provider (parsing, metrics, migration)
+- [renovatio-cobol-ir](./renovatio-cobol-ir/README.md) — COBOL Intermediate Representation
+- [cobol-openrewrite-recipes](./cobol-openrewrite-recipes/README.md) — post‑generation refactoring recipes
+- [renovatio-mcp-server](./renovatio-mcp-server/README.md) — Spring Boot MCP server
+
+### COBOL → Python
+- **[docs/COBOL-TO-PYTHON-README.md](./docs/COBOL-TO-PYTHON-README.md)** — documentation index
+- **[docs/RESUMEN-EJECUTIVO-COBOL-PYTHON.md](./docs/RESUMEN-EJECUTIVO-COBOL-PYTHON.md)** — executive summary (Spanish)
+- **[docs/COBOL-TO-PYTHON-TECHNICAL-SPEC.md](./docs/COBOL-TO-PYTHON-TECHNICAL-SPEC.md)** — technical spec
+
+### Spec‑driven development & governance
+- **[docs/SPEC_DRIVEN_DEVELOPMENT.md](./docs/SPEC_DRIVEN_DEVELOPMENT.md)** — SDD in Renovatio (Java/Spring Boot/Maven)
+- **[.specify/memory/constitution.md](./.specify/memory/constitution.md)** — SDD principles and governance
+
+### Brand
+- **[docs/assets/README.md](./docs/assets/README.md)** — 🎨 logos, icons, banner, palette, usage rules
 
 ---
 
 ## Configuration (OpenRewrite)
 
-- Renovatio loads OpenRewrite configuration from a top-level `rewrite.yml` if present.
-- The Java provider discovers OpenRewrite recipes from the runtime classpath and from `rewrite.yml` and exposes them as
-  individual MCP tools (see "Dynamic recipes").
-
-Example `rewrite.yml` snippet:
+Renovatio loads OpenRewrite configuration from a top‑level `rewrite.yml` if present. The
+Java provider discovers recipes from the runtime classpath and from `rewrite.yml` and
+exposes each as an MCP tool.
 
 ```yaml
 rewrite:
@@ -218,117 +302,28 @@ rewrite:
 
 ---
 
-## Troubleshooting
+## Technology stack
 
-- "No real handler implemented for tool: java_analyze (internal: java.analyze)":
-  - Ensure the provider packages are scanned by Spring Boot when running the MCP server, especially in stdio mode.
-  - The stdio entrypoint `McpStdioServerApplication` must include provider packages in `scanBasePackages`, e.g.:
+Java 21 · Spring Boot · Maven · OpenRewrite · Lombok · MCP (Model Content Protocol) ·
+JSON‑RPC 2.0 · Spring Batch (JCL target) · Prisma (Node persistence)
 
-```java
-@SpringBootApplication(scanBasePackages = {
-    "org.shark.renovatio.mcp.server",
-    "org.shark.renovatio.core",
-    "org.shark.renovatio.provider.java",
-    "org.shark.renovatio.provider.cobol"
-})
-```
-
-- Tools not listed in `tools/list` for a given language:
-  - Verify the `language` parameter passed by the client.
-  - Confirm the provider module is on the classpath and built (`mvn clean install`).
-  - Check `rewrite.yml` and classpath for recipe discovery.
-
----
-
-## VS Code MCP client
-
-A sample configuration file `vscode-mcp-config.json` is provided. Point it to the appropriate server mode:
-- HTTP mode: the server runs as a web application.
-- stdio mode: use the stdio entrypoint class for direct protocol over stdio.
+**Lombok:** enable annotation processing in your IDE (IntelliJ: Settings → Build,
+Execution, Deployment → Compiler → Annotation Processors). Modules using Lombok declare
+`requires static lombok;` in `module-info.java`. Prefer Lombok annotations for new POJOs.
 
 ---
 
 ## Contributing
 
 - Code and documentation are in English (identifiers, comments, README, Javadoc).
-- Code reviews, comments, and review suggestions from maintainers may be provided in Spanish for developer convenience.
-- Follow conventional commit messages and keep modules self-contained.
+- Code reviews and review suggestions from maintainers may be in Spanish for convenience.
+- Follow conventional commit messages; keep modules self‑contained.
+- **Test‑First is non‑negotiable** (JUnit 5, `*Test.java`, `mvn test`). New work goes
+  through an Agora governed cycle — see the constitution.
+- Issues: **[GitHub Issues](https://github.com/Modern-Ash/renovatio/issues)**
 
 ---
 
-## Lombok migration notes
-
-This repository now uses Lombok to remove boilerplate (getters, setters, toString, and simple constructors) in core DTOs and models.
-
-- Annotation processors: ensure they are enabled in your IDE. In IntelliJ IDEA: Settings → Build, Execution, Deployment → Compiler → Annotation Processors → Enable annotation processing. Install the Lombok plugin if prompted.
-- JPMS (module-info.java): modules that use Lombok declare `requires static lombok;` so compilation works while keeping Lombok optional at runtime.
-- Build tooling: Maven is configured to include Lombok as an annotation processor; no extra steps are needed.
-
-If you introduce new POJOs, prefer Lombok annotations (e.g., `@Data`, or `@Getter/@Setter` plus `@NoArgsConstructor/@AllArgsConstructor`) and keep any custom setters where defensive copies are needed.
-
----
-
-## 📖 Documentation Index
-
-### Getting Started
-- **[README.md](./README.md)** (this file) - Project overview and quick start
-- **[MCP-QUICK-REFERENCE.md](./MCP-QUICK-REFERENCE.md)** - Quick reference for common tasks
-
-### MCP Client Integration
-- **[MCP-CLIENT-GUIDE.md](./MCP-CLIENT-GUIDE.md)** - Complete guide for MCP clients
-  - Language filtering strategies
-  - Practical usage examples
-  - Best practices and troubleshooting
-- **[examples/](./examples/)** - Pre-configured client setups
-  - Java-only configuration
-  - COBOL-only configuration
-  - Multi-language configuration
-  - Multiple server instances
-
-### Architecture & Design
-- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design principles
-- **[schemas/](./schemas/)** - JSON schemas for configuration validation
-
-### Brand
-- **[docs/assets/README.md](./docs/assets/README.md)** - 🎨 Brand kit: logos, icons, banner, palette, and usage rules
-
-### COBOL to Python Translation (NEW) 🐍
-- **[docs/COBOL-TO-PYTHON-README.md](./docs/COBOL-TO-PYTHON-README.md)** - 📚 Documentation index and quick overview
-- **[docs/RESUMEN-EJECUTIVO-COBOL-PYTHON.md](./docs/RESUMEN-EJECUTIVO-COBOL-PYTHON.md)** - 🎯 Executive summary (Spanish)
-- **[docs/COBOL-TO-PYTHON-IMPLEMENTATION-PLAN.md](./docs/COBOL-TO-PYTHON-IMPLEMENTATION-PLAN.md)** - 📋 Detailed implementation plan
-- **[docs/COBOL-TO-PYTHON-COMPONENT-ANALYSIS.md](./docs/COBOL-TO-PYTHON-COMPONENT-ANALYSIS.md)** - 🔍 Component reusability analysis
-- **[docs/COBOL-TO-PYTHON-TECHNICAL-SPEC.md](./docs/COBOL-TO-PYTHON-TECHNICAL-SPEC.md)** - 💻 Technical specification with code examples
-
-### Planning & Specifications
-
-**Start here for Spec-Driven Development (SDD) in Renovatio:**
-- **[docs/SPEC_DRIVEN_DEVELOPMENT.md](./docs/SPEC_DRIVEN_DEVELOPMENT.md)** - 🎯 Complete guide to spec-driven development in Renovatio (Java/Spring Boot/Maven)
-  - Workflow (4 phases: Specification, Design, Implementation, Validation)
-  - Constitutional compliance (5 core principles)
-  - Real examples and patterns
-  - Test-first development with JUnit 5
-  - MCP tool design and exposure
-
-**Additional Resources:**
-- **[.specify/README.md](./.specify/README.md)** - SDD framework overview and quick start
-- **[.specify/memory/constitution.md](./.specify/memory/constitution.md)** - Renovatio SDD principles and governance
-- **[.specify/memory/jira-mapping.md](./.specify/memory/jira-mapping.md)** - Example epic mapping (Java Recipe Framework)
-- **[SDD_CHANGES_SUMMARY.md](./SDD_CHANGES_SUMMARY.md)** - Summary of SDD adaptation to Renovatio stack
-
-**Legacy Spec Kit Documentation** (in Spanish, original framework):
-- **[docs/specs/INDEX.md](./docs/specs/INDEX.md)** - 📚 Índice central de especificaciones y guías Spec Kit
-- **[docs/SPEC-KIT-QUICK-START.md](./docs/SPEC-KIT-QUICK-START.md)** - ⚡ Guía rápida: Empieza en 5 minutos
-- **[docs/EXPLICACION-SPEC-KIT.md](./docs/EXPLICACION-SPEC-KIT.md)** - 📖 Qué es @github/spec-kit y cómo mejora Renovatio
-- **[docs/JIRA-GITHUB-INTEGRATION.md](./docs/JIRA-GITHUB-INTEGRATION.md)** - 🆕 🎯 Integración Jira-GitHub en spec-driven workflow
-- **[docs/spec-kit-integracion.md](./docs/spec-kit-integracion.md)** - 🔧 Guía detallada de integración
-- **[docs/specs/ejemplos/](./docs/specs/ejemplos/)** - 🎯 Especificaciones de ejemplo listas para usar
-
-### Tool Documentation
-- **Java Tools** - See section "Available MCP Tools" → "Java provider"
-- **COBOL Tools** - See section "Available MCP Tools" → "COBOL provider"
-
----
-
-**Renovatio** – Focused MCP server for code migration and modernization.
+**Renovatio** — engineering the transition from mainframe to modern, one auditable decision at a time.
 
 <sub>A <img src="docs/assets/modern-ash.png" alt="ModernAsh" height="18"> project · <a href="https://github.com/Modern-Ash">github.com/Modern-Ash</a></sub>
