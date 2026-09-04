@@ -39,6 +39,7 @@
 
     <modules>
         <module>renovatio-semantic-ir</module>
+        <module>renovatio-domain-model</module>
         <module>renovatio-jcl</module>
         <module>renovatio-shared</module>
         <module>renovatio-architecture</module>
