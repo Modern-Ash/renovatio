@@ -46,6 +46,12 @@ public final class SortUtility {
                 Integer.parseInt(filter.group(2)), Integer.parseInt(filter.group(3)),
                 supported(Format.valueOf(filter.group(4).toUpperCase(Locale.ROOT))), Operator.valueOf(filter.group(5).toUpperCase(Locale.ROOT)),
                 unquote(filter.group(6).trim()))) : Optional.empty();
+        // Anything left after removing the recognized FIELDS and INCLUDE/OMIT clauses (e.g. SKIPREC,
+        // STOPAFT, an OPTION statement) is outside the F7 subgrammar and must route to residue.
+        String residual = controls.replace(fields.group(), " ");
+        if (declaresFilter) residual = residual.replace(filter.group(), " ");
+        if (!residual.replaceAll("(?i)\\b(?:SORT|MERGE)\\b", " ").isBlank())
+            throw new UnsupportedOperationException("Manual action: unsupported SORT control clause");
         return new SortSpec(parsedFields, parsedFilter);
     }
 

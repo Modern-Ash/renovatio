@@ -360,6 +360,55 @@ class ReviewRegressionTest {
     }
 
     @Test
+    void doesNotConsumeDataclasParameterAsInStreamData() {
+        JclJob job = new JclParser().parse("batch/d.jcl", """
+                //DJOB JOB
+                //S1 EXEC PGM=P1
+                //OUT DD DATACLAS=STD,DISP=(NEW,CATLG)
+                //S2 EXEC PGM=P2
+                """);
+        assertEquals(List.of("S1", "S2"), job.steps().stream().map(s -> s.stepName()).toList());
+    }
+
+    @Test
+    void execProcOverrideBeatsProcedureSetValue() {
+        JclJob job = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/m.jcl",
+                        "//MJOB JOB\n//C EXEC PROC=GEN,PGMNAME=CALLER\n"),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/gen.jcl", """
+                        //GEN PROC PGMNAME=DEFAULT
+                        // SET PGMNAME=SETVALUE
+                        //G EXEC PGM=&PGMNAME
+                        // PEND
+                        """)))
+                .stream().filter(j -> j.jobName().equals("MJOB")).findFirst().orElseThrow();
+        assertEquals("CALLER", job.steps().get(0).executable());
+    }
+
+    @Test
+    void onlyStaysAbendBasedEvenAfterASuccessfulEvenStep() throws Exception {
+        BatchJob job = project("""
+                //ABJOB JOB
+                //A EXEC PGM=A
+                //E EXEC PGM=E,COND=EVEN
+                //O EXEC PGM=O,COND=ONLY
+                """);
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job,
+                new LinkedHashMap<>(), (step, datasets) -> {
+                    if (step.stepName().equals("A")) throw new RuntimeException("abend");
+                    return 0;
+                });
+        assertEquals(List.of("A", "E", "O"), result.executedSteps());
+    }
+
+    @Test
+    void rejectsSortControlClausesOutsideTheSubgrammar() {
+        SortUtility sort = new SortUtility();
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.parse("SORT FIELDS=(1,3,CH,A) SKIPREC=1"));
+    }
+
+    @Test
     void classifiesUnsupportedIdcamsControlAsResidue() {
         BatchJob job = project("""
                 //IDCJOB JOB

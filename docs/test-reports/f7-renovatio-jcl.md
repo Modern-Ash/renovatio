@@ -106,6 +106,18 @@ of `agora/decision-engine-f7`; suite `mvn -B test -pl '!renovatio-api'` —
 | Only the first IDCAMS SYSIN command was validated | every command record is checked; an unsupported command → `RESIDUE` |
 | `COND=` matched as a substring of `PARM='COND=…'` | `COND` is read from the top-level EXEC assignment map, not a substring scan |
 
+## PR #166 review — round 8 (2026-09-04)
+
+Suite `mvn -B test -pl '!renovatio-api'` — **537 tests, 0 failures**;
+`ReviewRegressionTest` now 30.
+
+| Finding | Resolution |
+|---|---|
+| `DD DATACLAS=…` misread as an in-stream `DD DATA`, swallowing later steps | lexer requires the standalone `DATA` / `DATA,` operand |
+| Procedure-local `SET` overrode an explicit `EXEC PROC=P,X=…` invocation value | caller-supplied symbols are never replaced by a proc `SET` |
+| EVEN/ONLY state derived from the last return code, so a successful EVEN step flipped ONLY to `PRIOR=SUCCESS` | EVEN/ONLY use the accumulated abend flag |
+| SORT control text outside `FIELDS` + `INCLUDE/OMIT COND` (e.g. `SKIPREC=`) silently ignored | any residual control text after the recognized clauses → residue |
+
 ## Open follow-ups (outside F7 scope)
 
 Recorded here and on PR #166 as deferred; each needs its own work item:

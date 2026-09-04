@@ -59,11 +59,9 @@ public final class BatchCharacterizationHarness {
                 continue;
             }
             if (guard.truthTable().containsKey("PRIOR=SUCCESS")) {
-                Integer priorReturnCode = returnCodes.isEmpty() ? null : returnCodes.values().stream()
-                        .reduce((previous, current) -> current).orElse(null);
-                String priorState = priorReturnCode != null && priorReturnCode < 0
-                        ? "PRIOR=ABEND" : "PRIOR=SUCCESS";
-                Boolean run = guard.truthTable().get(priorState);
+                // EVEN/ONLY depend on whether *any* prior step abended, not on the last return code
+                // (a successful EVEN step running in between must not flip the state back to SUCCESS).
+                Boolean run = guard.truthTable().get(priorAbend ? "PRIOR=ABEND" : "PRIOR=SUCCESS");
                 if (run != null && !run) return false;
                 continue;
             }

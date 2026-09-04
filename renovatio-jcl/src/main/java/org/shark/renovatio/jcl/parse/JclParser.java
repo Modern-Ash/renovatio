@@ -127,6 +127,9 @@ public final class JclParser {
         LinkedHashMap<String, String> symbols = new LinkedHashMap<>(inheritedSymbols);
         symbols.putAll(procedure.defaults);
         symbols.putAll(call.parameters);
+        // JCL precedence: EXEC PROC=... overrides win over procedure-local SET, which wins over
+        // the PROC statement defaults. Symbols the caller supplied are never replaced by a SET.
+        java.util.Set<String> callerSupplied = java.util.Set.copyOf(call.parameters.keySet());
         List<JclStep> result = new ArrayList<>();
         java.util.Set<String> localStepNames = procedure.statements.stream()
                 .filter(statement -> statement.operation().equals("EXEC"))
@@ -152,7 +155,9 @@ public final class JclParser {
         int baseFrames = ifStack.size();
         for (JclLexer.Statement statement : procedure.statements) {
             switch (statement.operation()) {
-                case "SET" -> symbols.putAll(assignments(statement.operands(), symbols));
+                case "SET" -> assignments(statement.operands(), symbols).forEach((key, value) -> {
+                    if (!callerSupplied.contains(key)) symbols.put(key, value);
+                });
                 case "IF" -> ifStack.push(stripThen(substitute(statement.operands(), symbols)));
                 case "ELSE" -> { if (ifStack.size() > baseFrames) ifStack.push("NOT (" + ifStack.pop() + ")"); }
                 case "ENDIF" -> { if (ifStack.size() > baseFrames) ifStack.pop(); }

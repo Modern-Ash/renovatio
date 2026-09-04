@@ -40,7 +40,9 @@ public final class JclLexer {
             } else continue;
 
             List<String> data = new ArrayList<>();
-            if (operation.equalsIgnoreCase("DD") && (operands.equals("*") || operands.startsWith("DATA"))) {
+            String ddOperand = operands.trim().toUpperCase(Locale.ROOT);
+            if (operation.equalsIgnoreCase("DD")
+                    && (ddOperand.equals("*") || ddOperand.equals("DATA") || ddOperand.startsWith("DATA,"))) {
                 while (++index < lines.length && !lines[index].startsWith("/*")) data.add(lines[index]);
             }
             result.add(new Statement(name.toUpperCase(Locale.ROOT), operation.toUpperCase(Locale.ROOT),
