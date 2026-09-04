@@ -81,4 +81,18 @@ describe('StepDecisions', () => {
     expect(await screen.findByText(/no decisions match/i)).toBeTruthy()
     expect(screen.getByRole('button', { name: /next: view metrics/i }).disabled).toBe(false)
   })
+
+  it('shows policy version, confidence, staleness, and keeps override available', async () => {
+    getDecisions.mockResolvedValue({ items: [{ ...decision, source: 'POLICY', status: 'CONFIRMED',
+      confidence: 1, policyProvenance: { catalogName: 'bank', catalogVersion: '1',
+        matchConfidence: 0.98, stale: true } }], total: 1 })
+    render(<StepDecisions projectId="p1" onNext={vi.fn()} onBack={vi.fn()} />)
+
+    expect(await screen.findByText('policy')).toBeTruthy()
+    expect(screen.getByText(/bank · v1/i)).toBeTruthy()
+    expect(screen.getByText('98%')).toBeTruthy()
+    expect(screen.getByText(/different analyzer version/i)).toBeTruthy()
+    fireEvent.change(screen.getByLabelText(/chosen option/i), { target: { value: 'FLUENT' } })
+    expect(screen.getByRole('button', { name: /save override/i })).toBeTruthy()
+  })
 })

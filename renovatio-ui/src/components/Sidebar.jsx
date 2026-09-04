@@ -4,6 +4,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: '📊' },
   { name: 'Projects', href: '/projects', icon: '📁' },
   { name: 'Wizard', href: '/wizard', icon: '🧙' },
+  { name: 'Profiles & Policies', href: '/reusable-assets', icon: '◈' },
 ]
 
 function Sidebar() {

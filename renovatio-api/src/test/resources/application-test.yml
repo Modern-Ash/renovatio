@@ -11,6 +11,9 @@ spring:
   h2:
     console:
       enabled: false
+renovatio:
+  reusable-assets:
+    root: ${java.io.tmpdir}/renovatio-api-tests-${random.uuid}
 debug: false
 logging:
   level:

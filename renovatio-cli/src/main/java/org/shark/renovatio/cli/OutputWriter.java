@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 public final class OutputWriter {
 
     private static final ObjectMapper MAPPER = new ObjectMapper()
+            .findAndRegisterModules()
             .enable(SerializationFeature.INDENT_OUTPUT)
             .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS);
 

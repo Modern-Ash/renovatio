@@ -8,6 +8,9 @@ import org.shark.renovatio.api.service.DecisionLayerService;
 import org.shark.renovatio.api.service.JpaProfileStore;
 import org.shark.renovatio.decisions.DecisionTransitions;
 import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.profile.FileProfileTemplateRepository;
+import org.shark.renovatio.decisions.FileDecisionPolicyRepository;
+import org.shark.renovatio.api.service.ReusableAssetsService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -20,7 +23,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RestControllerAdvice(assignableTypes = DecisionLayerController.class)
+@RestControllerAdvice(assignableTypes = {DecisionLayerController.class, ReusableAssetsController.class})
 public class DecisionLayerExceptionHandler {
     @ExceptionHandler(MigrationProfiles.ProfileValidationException.class)
     ResponseEntity<ProfileProblem> validation(MigrationProfiles.ProfileValidationException exception) {
@@ -30,6 +33,15 @@ public class DecisionLayerExceptionHandler {
     @ExceptionHandler(DecisionLayerService.ResourceNotFoundException.class)
     ResponseEntity<ApiProblem> missing() {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiProblem("NOT_FOUND", "Resource not found"));
+    }
+    @ExceptionHandler(ReusableAssetsService.ResourceNotFoundException.class)
+    ResponseEntity<ApiProblem> reusableMissing() {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiProblem("NOT_FOUND", "Resource not found"));
+    }
+    @ExceptionHandler({FileProfileTemplateRepository.VersionConflictException.class,
+            FileDecisionPolicyRepository.VersionConflictException.class})
+    ResponseEntity<ApiProblem> versionConflict(IllegalArgumentException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ApiProblem("VERSION_CONFLICT", safe(exception.getMessage())));
     }
     @ExceptionHandler({JpaProfileStore.ProfileConflictException.class, DecisionTransitions.StaleDecisionException.class,
             OptimisticLockingFailureException.class})

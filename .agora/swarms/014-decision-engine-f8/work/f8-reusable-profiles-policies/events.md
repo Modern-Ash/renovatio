@@ -1,0 +1,48 @@
+# Work events
+
+- 2026-09-04T11:29:05.003174Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T11:30:38.541460Z | artifact.added | kind=spec uri=file:docs/specs/f8-reusable-profiles-policies.md actor=project:agent
+- 2026-09-04T11:53:40.544036Z | work.criterion-stage-marked | criterion=template-reuse actor=project:owner stage=specified
+- 2026-09-04T11:53:40.774463Z | work.criterion-stage-marked | criterion=policy-reuse actor=project:owner stage=specified
+- 2026-09-04T11:53:41.006035Z | work.criterion-stage-marked | criterion=precedence-overrides actor=project:owner stage=specified
+- 2026-09-04T11:53:41.247513Z | work.criterion-stage-marked | criterion=version-safety actor=project:owner stage=specified
+- 2026-09-04T11:53:41.463316Z | work.criterion-stage-marked | criterion=ui-management actor=project:owner stage=specified
+- 2026-09-04T11:53:41.681479Z | work.criterion-stage-marked | criterion=compatibility-quality actor=project:owner stage=specified
+- 2026-09-04T11:53:42.134810Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T11:54:16.154492Z | artifact.added | kind=implementation-plan uri=file:docs/specs/f8-implementation-plan.md actor=project:agent
+- 2026-09-04T11:54:28.650385Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T11:54:28.889634Z | work.criterion-stage-marked | criterion=template-reuse actor=project:owner stage=planned
+- 2026-09-04T11:54:29.116775Z | work.criterion-stage-marked | criterion=policy-reuse actor=project:owner stage=planned
+- 2026-09-04T11:54:29.341108Z | work.criterion-stage-marked | criterion=precedence-overrides actor=project:owner stage=planned
+- 2026-09-04T11:54:29.565616Z | work.criterion-stage-marked | criterion=version-safety actor=project:owner stage=planned
+- 2026-09-04T11:54:29.790176Z | work.criterion-stage-marked | criterion=ui-management actor=project:owner stage=planned
+- 2026-09-04T11:54:30.006550Z | work.criterion-stage-marked | criterion=compatibility-quality actor=project:owner stage=planned
+- 2026-09-04T11:54:36.106795Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T12:15:17.610880Z | work.criterion-stage-marked | criterion=template-reuse actor=project:agent stage=implemented
+- 2026-09-04T12:15:17.860248Z | work.criterion-stage-marked | criterion=policy-reuse actor=project:agent stage=implemented
+- 2026-09-04T12:15:18.096949Z | work.criterion-stage-marked | criterion=precedence-overrides actor=project:agent stage=implemented
+- 2026-09-04T12:15:18.320177Z | work.criterion-stage-marked | criterion=version-safety actor=project:agent stage=implemented
+- 2026-09-04T12:15:18.562375Z | work.criterion-stage-marked | criterion=ui-management actor=project:agent stage=implemented
+- 2026-09-04T12:15:18.788309Z | work.criterion-stage-marked | criterion=compatibility-quality actor=project:agent stage=implemented
+- 2026-09-04T12:15:19.326411Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T12:18:29.909120Z | artifact.added | kind=verification-report uri=file:docs/test-reports/f8-reusable-profiles-policies.md actor=project:agent
+- 2026-09-04T12:18:30.146193Z | artifact.added | kind=consistency-report uri=file:docs/reports/f8-consistency-report.md actor=project:agent
+- 2026-09-04T12:18:30.396433Z | artifact.added | kind=review-report uri=file:docs/reports/f8-review-report.md actor=project:agent
+- 2026-09-04T12:18:41.465553Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-04T12:18:41.691869Z | evidence.added | id=evidence-000002 type=characterization result=success revision=1 actor=project:agent
+- 2026-09-04T12:18:41.914144Z | evidence.added | id=evidence-000003 type=ui-test result=success revision=1 actor=project:agent
+- 2026-09-04T12:18:42.136499Z | evidence.added | id=evidence-000004 type=build result=success revision=1 actor=project:agent
+- 2026-09-04T12:18:46.887175Z | work.criterion-stage-marked | criterion=template-reuse actor=project:agent stage=verified
+- 2026-09-04T12:18:47.114658Z | work.criterion-stage-marked | criterion=policy-reuse actor=project:agent stage=verified
+- 2026-09-04T12:18:47.337754Z | work.criterion-stage-marked | criterion=precedence-overrides actor=project:agent stage=verified
+- 2026-09-04T12:18:47.564231Z | work.criterion-stage-marked | criterion=version-safety actor=project:agent stage=verified
+- 2026-09-04T12:18:47.809033Z | work.criterion-stage-marked | criterion=ui-management actor=project:agent stage=verified
+- 2026-09-04T12:18:48.036142Z | work.criterion-stage-marked | criterion=compatibility-quality actor=project:agent stage=verified
+- 2026-09-04T12:19:44.153436Z | work.criterion-stage-marked | criterion=template-reuse actor=project:owner stage=accepted
+- 2026-09-04T12:19:44.397073Z | work.criterion-stage-marked | criterion=policy-reuse actor=project:owner stage=accepted
+- 2026-09-04T12:19:44.639639Z | work.criterion-stage-marked | criterion=precedence-overrides actor=project:owner stage=accepted
+- 2026-09-04T12:19:44.870760Z | work.criterion-stage-marked | criterion=version-safety actor=project:owner stage=accepted
+- 2026-09-04T12:19:45.096306Z | work.criterion-stage-marked | criterion=ui-management actor=project:owner stage=accepted
+- 2026-09-04T12:19:45.328142Z | work.criterion-stage-marked | criterion=compatibility-quality actor=project:owner stage=accepted
+- 2026-09-04T12:19:45.554146Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-04T12:19:53.891146Z | work.transitioned | from=verifying to=completed actor=project:owner

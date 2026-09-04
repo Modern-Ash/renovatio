@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { getProjects, createProject } from '../api/client'
+import { getProjects, createProject, getProfileTemplates, getPolicyCatalogs } from '../api/client'
 
 function Projects() {
   const [projects, setProjects] = useState([])
@@ -11,8 +11,12 @@ function Projects() {
     workspacePath: '',
     javaOutputPath: 'generated-java-stubs',
     javaPackage: '',
-    javaArchitecture: 'flat'
+    javaArchitecture: 'flat',
+    profileTemplate: null,
+    policyCatalog: null
   })
+  const [templates, setTemplates] = useState([])
+  const [policies, setPolicies] = useState([])
   const [folderMessage, setFolderMessage] = useState('')
   const [createError, setCreateError] = useState('')
   const [createInfo, setCreateInfo] = useState('')
@@ -34,6 +38,9 @@ function Projects() {
 
   useEffect(() => {
     fetchProjects()
+    Promise.all([getProfileTemplates(), getPolicyCatalogs()])
+      .then(([nextTemplates, nextPolicies]) => { setTemplates(nextTemplates || []); setPolicies(nextPolicies || []) })
+      .catch((error) => console.error('Failed to fetch reusable assets:', error))
   }, [])
 
   const resetCreateForm = () => {
@@ -42,7 +49,9 @@ function Projects() {
       workspacePath: '',
       javaOutputPath: 'generated-java-stubs',
       javaPackage: '',
-      javaArchitecture: 'flat'
+      javaArchitecture: 'flat',
+      profileTemplate: null,
+      policyCatalog: null
     })
     setFolderMessage('')
     setPickedFolder('')
@@ -282,6 +291,17 @@ function Projects() {
                 </p>
               </label>
             </div>
+            <fieldset className="project-inheritance mt-4">
+              <legend>Reusable starting point <span>optional · explicit versions</span></legend>
+              <label><span>Profile template</span><select value={newProject.profileTemplate ? `${newProject.profileTemplate.name}@${newProject.profileTemplate.version}` : ''}
+                onChange={(event) => { const item = templates.find((value) => `${value.name}@${value.version}` === event.target.value); setNewProject({ ...newProject, profileTemplate: item ? { name: item.name, version: item.version } : null }) }}>
+                <option value="">Start from defaults</option>{templates.map((item) => <option key={`${item.name}@${item.version}`} value={`${item.name}@${item.version}`}>{item.name} · v{item.version}</option>)}
+              </select><small>Seeds the migration profile while local changes stay independent.</small></label>
+              <label><span>Policy catalog</span><select value={newProject.policyCatalog ? `${newProject.policyCatalog.name}@${newProject.policyCatalog.version}` : ''}
+                onChange={(event) => { const item = policies.find((value) => `${value.name}@${value.version}` === event.target.value); setNewProject({ ...newProject, policyCatalog: item ? { name: item.name, version: item.version } : null }) }}>
+                <option value="">Review every decision</option>{policies.map((item) => <option key={`${item.name}@${item.version}`} value={`${item.name}@${item.version}`}>{item.name} · v{item.version}</option>)}
+              </select><small>High-confidence semantic matches arrive confirmed with provenance.</small></label>
+            </fieldset>
             {folderMessage && (
               <p className="text-sm mt-2 text-gray-700">{folderMessage}</p>
             )}
@@ -342,6 +362,10 @@ function Projects() {
               {project.javaArchitecture && (
                 <p className="text-xs text-gray-400 mt-1">Architecture: {project.javaArchitecture}</p>
               )}
+              {(project.profileTemplate || project.policyCatalog) && <div className="project-binding-tags">
+                {project.profileTemplate && <span>Template {project.profileTemplate.name}@{project.profileTemplate.version}</span>}
+                {project.policyCatalog && <span>Policy {project.policyCatalog.name}@{project.policyCatalog.version}</span>}
+              </div>}
               <p className="text-xs text-gray-400 mt-2">
                 Created: {new Date(project.createdAt).toLocaleDateString()}
               </p>

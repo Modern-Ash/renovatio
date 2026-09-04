@@ -1,5 +1,7 @@
 package org.shark.renovatio.decisions;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.HashSet;
@@ -23,6 +25,7 @@ public record DecisionPoint(
         List<String> evidence,
         Status status,
         String semanticIrHash,
+        @JsonInclude(JsonInclude.Include.NON_NULL) PolicyProvenance policyProvenance,
         boolean llmFailed,
         LlmFailureCategory llmFailureCategory,
         long revision,
@@ -61,6 +64,22 @@ public record DecisionPoint(
         Objects.requireNonNull(updatedAt, "updatedAt");
         require(source != Source.USER || status == Status.OVERRIDDEN,
                 "USER source is valid only for OVERRIDDEN decisions");
+        require(source != Source.POLICY || policyProvenance != null,
+                "POLICY source requires policy provenance");
+        require(policyProvenance == null || source == Source.POLICY || source == Source.USER,
+                "policy provenance is valid only for POLICY or USER sources");
+    }
+
+    /** Source-compatible constructor retained for F1-F7 call sites and stored JSON. */
+    public DecisionPoint(String schemaVersion, String id, Category category, String decisionKey,
+                         Location location, String question, List<String> options, String defaultOption,
+                         String chosenOption, Source source, BigDecimal confidence, String rationale,
+                         List<String> evidence, Status status, String semanticIrHash, boolean llmFailed,
+                         LlmFailureCategory llmFailureCategory, long revision, Instant createdAt,
+                         Instant updatedAt, boolean active) {
+        this(schemaVersion, id, category, decisionKey, location, question, options, defaultOption,
+                chosenOption, source, confidence, rationale, evidence, status, semanticIrHash, null,
+                llmFailed, llmFailureCategory, revision, createdAt, updatedAt, active);
     }
 
     private static boolean nonBlank(String value) { return value != null && !value.isBlank(); }
@@ -69,7 +88,7 @@ public record DecisionPoint(
     }
 
     public enum Category { NUMERIC, CONTROL_FLOW, DATA_SHAPE, PERSISTENCE, NAMING, ARCHITECTURE, BATCH }
-    public enum Source { HEURISTIC, LLM, USER }
+    public enum Source { HEURISTIC, LLM, POLICY, USER }
     public enum Status { AUTO, SUGGESTED, CONFIRMED, OVERRIDDEN }
     public enum LlmFailureCategory {
         PROVIDER_ERROR, ATTRIBUTION_ERROR, TIMEOUT, MALFORMED_JSON,

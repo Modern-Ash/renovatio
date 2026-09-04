@@ -18,6 +18,8 @@ public class ProjectDto {
     private String javaOutputPath;
     private String javaPackage;
     private String javaArchitecture;
+    private ReusableReferenceDto profileTemplate;
+    private ReusableReferenceDto policyCatalog;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

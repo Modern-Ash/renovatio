@@ -175,6 +175,34 @@ export function bulkConfirmProjectDecisions(projectId, minConfidence = 0.8) {
   })
 }
 
+export function getProfileTemplates() {
+  return apiCall('/profile-templates')
+}
+
+export function saveProfileTemplate(payload) {
+  return apiCall('/profile-templates', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export function bindProfileTemplate(projectId, reference) {
+  return apiCall(`/projects/${projectId}/profile-template`, { method: 'POST', body: JSON.stringify(reference) })
+}
+
+export function getProfileTemplateDiff(projectId) {
+  return apiCall(`/projects/${projectId}/profile-template/diff`)
+}
+
+export function getPolicyCatalogs() {
+  return apiCall('/policy-catalogs')
+}
+
+export function exportPolicyCatalog(payload) {
+  return apiCall('/policy-catalogs', { method: 'POST', body: JSON.stringify(payload) })
+}
+
+export function bindPolicyCatalog(projectId, reference) {
+  return apiCall(`/projects/${projectId}/policy-catalog`, { method: 'POST', body: JSON.stringify(reference) })
+}
+
 export function subscribeToJob(jobId, onEvent, onError) {
   const controller = new AbortController()
   const role = localStorage.getItem('userRole') || 'ADMIN'

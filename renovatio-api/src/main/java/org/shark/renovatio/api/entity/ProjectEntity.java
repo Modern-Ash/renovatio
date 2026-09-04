@@ -32,6 +32,11 @@ public class ProjectEntity {
 
     private String javaArchitecture;
 
+    private String profileTemplateName;
+    private String profileTemplateVersion;
+    private String policyCatalogName;
+    private String policyCatalogVersion;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
