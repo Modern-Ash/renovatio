@@ -2,8 +2,9 @@ package org.shark.renovatio.cli;
 
 import org.shark.renovatio.cli.command.AnalyzeCommand;
 import org.shark.renovatio.cli.command.ApplyCommand;
-import org.shark.renovatio.cli.command.DiffCommand;
 import org.shark.renovatio.cli.command.DecisionsCommand;
+import org.shark.renovatio.cli.command.DiffCommand;
+import org.shark.renovatio.cli.command.GenerateCommand;
 import org.shark.renovatio.cli.command.MetricsCommand;
 import org.shark.renovatio.cli.command.PlanCommand;
 import org.shark.renovatio.cli.command.ReportCommand;
@@ -28,6 +29,7 @@ import picocli.CommandLine.Command;
         subcommands = {
                 AnalyzeCommand.class,
                 MetricsCommand.class,
+                GenerateCommand.class,
                 PlanCommand.class,
                 ApplyCommand.class,
                 DiffCommand.class,

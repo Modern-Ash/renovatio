@@ -3,9 +3,11 @@ package org.shark.renovatio.cli;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.emitter.node.config.NodeEmitterAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 import java.nio.file.Path;
 
@@ -15,6 +17,7 @@ import java.nio.file.Path;
  * the MCP server, without starting any web server.
  */
 @Configuration
+@Import(NodeEmitterAutoConfiguration.class)
 @ComponentScan(basePackages = {
         "org.shark.renovatio.core",
         "org.shark.renovatio.shared",

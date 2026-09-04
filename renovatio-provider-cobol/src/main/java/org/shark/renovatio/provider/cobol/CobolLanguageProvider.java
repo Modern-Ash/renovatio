@@ -26,6 +26,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     private static final String TOOL_PLAN = "cobol.plan";
     private static final String TOOL_APPLY = "cobol.apply";
     private static final String TOOL_DIFF = "cobol.diff";
+    private static final String TOOL_STUBS = "cobol.stubs";
     private static final String TOOL_MIGRATE_COPYBOOK = "cobol.migrate_copybook";
     private static final String TOOL_MIGRATE_DB2 = "cobol.migrate_db2";
     private static final String TOOL_DECOMPOSE = "cobol.decompose";
@@ -387,6 +388,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         tools.add(new BasicTool(TOOL_PLAN, "Create migration plan from COBOL to Java", planSchema()));
         tools.add(new BasicTool(TOOL_APPLY, "Apply migration plan (code generation, transforms)", applySchema()));
         tools.add(new BasicTool(TOOL_DIFF, "Generate diff for last migration run", diffSchema()));
+        tools.add(new BasicTool(TOOL_STUBS, "Generate target artifacts from COBOL sources", stubsSchema()));
         // Extended provider-specific tools
         tools.add(new BasicTool(TOOL_MIGRATE_COPYBOOK, "Generate Java artifacts from a COBOL copybook (templates)", migrateCopybookSchema()));
         tools.add(new BasicTool(TOOL_MIGRATE_DB2, "Generate JPA code from embedded DB2 EXEC SQL in COBOL program", migrateDb2Schema()));
@@ -516,6 +518,17 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                 KEY_TYPE, KEY_ARRAY,
                 KEY_DESCRIPTION, "High-level migration goals (e.g., db2, jpa, rest)",
                 KEY_ITEMS, Map.of(KEY_TYPE, KEY_STRING)
+        ));
+        return schema;
+    }
+
+    private Map<String, Object> stubsSchema() {
+        Map<String, Object> schema = baseSchema();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> props = (Map<String, Object>) schema.get(KEY_PROPERTIES);
+        props.put("outputDir", Map.of(
+                KEY_TYPE, KEY_STRING,
+                KEY_DESCRIPTION, "Output directory for generated target artifacts"
         ));
         return schema;
     }

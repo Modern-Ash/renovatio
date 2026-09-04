@@ -277,6 +277,17 @@ public class LanguageProviderRegistry {
                             diffResult.isSuccess(), diffResult.getMessage());
                     return convertToMap(diffResult);
 
+                case "stubs":
+                    logger.debug("Calling provider.generateStubs()...");
+                    Optional<StubResult> stubResult = provider.generateStubs(query, workspace);
+                    if (stubResult.isEmpty()) {
+                        return createErrorResult("Provider returned no stub generation result");
+                    }
+                    StubResult generatedStubs = stubResult.orElseThrow();
+                    logger.debug("Provider.generateStubs() returned: success={}, message={}",
+                            generatedStubs.isSuccess(), generatedStubs.getMessage());
+                    return convertToMap(generatedStubs);
+
                 default:
                     return createErrorResult("Unsupported capability: " + capability);
             }
@@ -501,6 +512,15 @@ public class LanguageProviderRegistry {
             map.put("semanticDiff", dr.getSemanticDiff());
             map.put("hunks", dr.getHunks());
             map.put("type", "diff");
+        } else if (result instanceof StubResult stubResult) {
+            map.put("targetLanguage", stubResult.getTargetLanguage());
+            map.put("generatedFiles", stubResult.getGeneratedFiles());
+            map.put("generatedCode", stubResult.getGeneratedCode());
+            map.put("stubTemplate", stubResult.getStubTemplate());
+            Map<String, String> artifacts = stubResult.getGeneratedCode() != null
+                    ? stubResult.getGeneratedCode() : stubResult.getGeneratedFiles();
+            map.put("artifactCount", artifacts == null ? 0 : artifacts.size());
+            map.put("type", "stubs");
         } else {
             logger.warn("Unknown result type: {}", result != null ? result.getClass().getName() : "null");
             map.put("success", false);

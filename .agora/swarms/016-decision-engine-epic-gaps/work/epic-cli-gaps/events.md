@@ -1,0 +1,41 @@
+# Work events
+
+- 2026-09-04T14:00:12.223313Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T14:01:15.688049Z | artifact.added | kind=spec uri=docs/specs/epic-cli-gaps.md actor=project:owner
+- 2026-09-04T14:01:15.910244Z | work.criterion-stage-marked | criterion=profile-init actor=project:owner stage=specified
+- 2026-09-04T14:01:16.145991Z | work.criterion-stage-marked | criterion=explicit-generation actor=project:owner stage=specified
+- 2026-09-04T14:01:16.381022Z | work.criterion-stage-marked | criterion=target-availability actor=project:owner stage=specified
+- 2026-09-04T14:01:16.627346Z | work.criterion-stage-marked | criterion=overlay-rebinding actor=project:owner stage=specified
+- 2026-09-04T14:01:16.884920Z | work.criterion-stage-marked | criterion=cli-contract actor=project:owner stage=specified
+- 2026-09-04T14:01:17.139741Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=specified
+- 2026-09-04T14:01:17.396296Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T14:01:17.665863Z | artifact.added | kind=implementation-plan uri=docs/specs/epic-cli-gaps-plan.md actor=project:agent
+- 2026-09-04T14:01:17.961981Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T14:01:18.253271Z | work.criterion-stage-marked | criterion=profile-init actor=project:owner stage=planned
+- 2026-09-04T14:01:18.571692Z | work.criterion-stage-marked | criterion=explicit-generation actor=project:owner stage=planned
+- 2026-09-04T14:01:18.829785Z | work.criterion-stage-marked | criterion=target-availability actor=project:owner stage=planned
+- 2026-09-04T14:01:19.048881Z | work.criterion-stage-marked | criterion=overlay-rebinding actor=project:owner stage=planned
+- 2026-09-04T14:01:19.264629Z | work.criterion-stage-marked | criterion=cli-contract actor=project:owner stage=planned
+- 2026-09-04T14:01:19.502379Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=planned
+- 2026-09-04T14:01:19.721004Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T14:19:28.270639Z | artifact.added | kind=verification-report uri=docs/reports/epic-cli-gaps-verification.md actor=project:agent
+- 2026-09-04T14:19:28.538403Z | artifact.added | kind=review-report uri=docs/reports/epic-cli-gaps-review.md actor=project:agent
+- 2026-09-04T14:19:28.806810Z | work.criterion-stage-marked | criterion=profile-init actor=project:agent stage=implemented
+- 2026-09-04T14:19:29.084563Z | work.criterion-stage-marked | criterion=explicit-generation actor=project:agent stage=implemented
+- 2026-09-04T14:19:29.348093Z | work.criterion-stage-marked | criterion=target-availability actor=project:agent stage=implemented
+- 2026-09-04T14:19:29.615543Z | work.criterion-stage-marked | criterion=overlay-rebinding actor=project:agent stage=implemented
+- 2026-09-04T14:19:29.889380Z | work.criterion-stage-marked | criterion=cli-contract actor=project:agent stage=implemented
+- 2026-09-04T14:19:30.167838Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=implemented
+- 2026-09-04T14:19:30.443287Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T14:20:00.742687Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-04T14:20:01.019501Z | evidence.added | id=evidence-000002 type=characterization result=success revision=1 actor=project:agent
+- 2026-09-04T14:20:01.289764Z | evidence.added | id=evidence-000003 type=ui-test result=success revision=1 actor=project:agent
+- 2026-09-04T14:20:01.562406Z | evidence.added | id=evidence-000004 type=build result=success revision=1 actor=project:agent
+- 2026-09-04T14:20:01.847510Z | evidence.added | id=evidence-000005 type=cli-smoke result=success revision=1 actor=project:agent
+- 2026-09-04T14:20:02.134147Z | evidence.added | id=evidence-000006 type=whitespace result=success revision=1 actor=project:agent
+- 2026-09-04T14:20:08.636024Z | work.criterion-stage-marked | criterion=profile-init actor=project:agent stage=verified
+- 2026-09-04T14:20:08.913500Z | work.criterion-stage-marked | criterion=explicit-generation actor=project:agent stage=verified
+- 2026-09-04T14:20:09.191205Z | work.criterion-stage-marked | criterion=target-availability actor=project:agent stage=verified
+- 2026-09-04T14:20:09.479254Z | work.criterion-stage-marked | criterion=overlay-rebinding actor=project:agent stage=verified
+- 2026-09-04T14:20:09.766790Z | work.criterion-stage-marked | criterion=cli-contract actor=project:agent stage=verified
+- 2026-09-04T14:20:10.055626Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified

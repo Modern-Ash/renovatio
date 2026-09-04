@@ -7,6 +7,7 @@ import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.decisions.DecisionTransitions;
 import org.shark.renovatio.decisions.F1DecisionCatalog;
 import org.shark.renovatio.decisions.PolicyReference;
+import org.shark.renovatio.profile.FileProfileTemplateRepository;
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.profile.TemplateReference;
@@ -31,13 +32,17 @@ public final class ReusableProjectStore {
     }
 
     public MigrationProfile profile() {
-        Path file = state.resolve("migration-profile.json");
+        Path file = profilePath();
         if (!Files.isRegularFile(file)) return MigrationProfiles.emptyOverlay();
         try { return MigrationProfiles.readJson(Files.readString(file)); }
         catch (IOException exception) { throw new UncheckedIOException(exception); }
     }
 
-    public void profile(MigrationProfile profile) { write(state.resolve("migration-profile.json"), profile); }
+    public void profile(MigrationProfile profile) { write(profilePath(), profile); }
+
+    public Path profilePath() { return state.resolve("migration-profile.json"); }
+
+    public boolean hasProfile() { return Files.isRegularFile(profilePath()); }
 
     public List<DecisionPoint> decisions() {
         Path file = state.resolve("decisions.json");
@@ -65,7 +70,12 @@ public final class ReusableProjectStore {
                 .filter(value -> value.source() == DecisionPoint.Source.POLICY).toList();
         List<DecisionPoint> local = all.stream()
                 .filter(value -> value.source() != DecisionPoint.Source.POLICY).toList();
-        return new DecisionResolver().resolve(MigrationProfiles.emptyOverlay(), templateBinding().orElse(null),
+        TemplateReference templateReference = templateBinding().orElse(null);
+        MigrationProfile template = templateReference == null ? MigrationProfiles.emptyOverlay()
+                : new FileProfileTemplateRepository(assetsRoot().resolve("profiles")).find(templateReference)
+                .orElseThrow(() -> new IllegalStateException("Bound profile template not found: "
+                        + templateReference.name() + "@" + templateReference.version())).profile();
+        return new DecisionResolver().resolve(template, templateReference,
                 inherited, policyBinding().orElse(null), profile(), local);
     }
 

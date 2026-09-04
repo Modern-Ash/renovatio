@@ -46,7 +46,7 @@ class ReusableCommandsTest {
         assertEquals(0, cli.execute("profile", "save", "bank", "--version", "1", "--project", source.toString()));
         assertEquals(0, cli.execute("profile", "apply", "bank", "--version", "1", "--project", target.toString()));
         assertTrue(Files.isRegularFile(target.resolve(".renovatio/profile-template.json")));
-        assertEquals(MigrationProfiles.resolve(sourceStore.profile()), targetStore.profile());
+        assertEquals(MigrationProfiles.emptyOverlay(), targetStore.profile());
         assertEquals(MigrationProfile.Language.JAVA, new RenovatioCliConfiguration().localEffectiveProfileResolver()
                 .resolve(target.toAbsolutePath().normalize().toString()).profile().target().language());
         Workspace workspace = new Workspace();
@@ -69,5 +69,44 @@ class ReusableCommandsTest {
         assertEquals(0, cli.execute("policy", "apply", "bank", "--version", "1", "--project", target.toString()));
         assertEquals(7, targetStore.decisions().stream().filter(value -> value.source() == DecisionPoint.Source.POLICY).count());
         assertTrue(Files.isRegularFile(target.resolve(".renovatio/policy-catalog.json")));
+    }
+
+    @Test
+    void profileInitIsNonDestructiveAndTemplateRebindingPreservesSparseOverlay() throws Exception {
+        System.setProperty("renovatio.assets.root", temporary.resolve("assets").toString());
+        Path templateA = Files.createDirectories(temporary.resolve("template-a"));
+        Path templateB = Files.createDirectories(temporary.resolve("template-b"));
+        Path project = Files.createDirectories(temporary.resolve("project"));
+        var a = new ReusableProjectStore(templateA);
+        var b = new ReusableProjectStore(templateB);
+        var local = new ReusableProjectStore(project);
+        a.profile(new MigrationProfile("1", Map.of(),
+                new MigrationProfile.Target(MigrationProfile.Language.JAVA, "21"), null, null, null, null, null));
+        b.profile(new MigrationProfile("1", Map.of(),
+                new MigrationProfile.Target(MigrationProfile.Language.NODE, "20"), null, null, null, null, null));
+        MigrationProfile sparse = new MigrationProfile("1", Map.of(), null,
+                new MigrationProfile.Architecture(MigrationProfile.ArchitectureStyle.HEXAGONAL, null),
+                null, null, null, null);
+        CommandLine cli = new CommandLine(new RenovatioCli());
+
+        assertEquals(0, cli.execute("profile", "init", "--project", project.toString()));
+        assertEquals(MigrationProfiles.emptyOverlay(), local.profile());
+        local.profile(sparse);
+        assertEquals(1, cli.execute("profile", "init", "--project", project.toString()));
+        assertEquals(sparse, local.profile());
+        assertEquals(0, cli.execute("profile", "save", "a", "--version", "1", "--project", templateA.toString()));
+        assertEquals(0, cli.execute("profile", "save", "b", "--version", "1", "--project", templateB.toString()));
+
+        assertEquals(0, cli.execute("profile", "apply", "a", "--version", "1", "--project", project.toString()));
+        assertEquals(sparse, local.profile());
+        assertEquals(MigrationProfile.Language.JAVA, local.effectiveProfile().profile().target().language());
+        assertEquals(0, cli.execute("profile", "apply", "b", "--version", "1", "--project", project.toString()));
+
+        assertEquals(sparse, local.profile());
+        assertEquals(MigrationProfile.Language.NODE, local.effectiveProfile().profile().target().language());
+        assertEquals(MigrationProfile.ArchitectureStyle.HEXAGONAL,
+                local.effectiveProfile().profile().architecture().style());
+        assertEquals(0, cli.execute("profile", "init", "--project", project.toString(), "--force"));
+        assertEquals(MigrationProfiles.emptyOverlay(), local.profile());
     }
 }

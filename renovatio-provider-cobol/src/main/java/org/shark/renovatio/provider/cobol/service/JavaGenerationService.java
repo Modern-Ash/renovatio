@@ -171,6 +171,13 @@ public class JavaGenerationService {
             String outputPath = resolveOutputDir(workspace).toString();
             if (effective.profile().target().language() == org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
                 manualActionItemWriter.write(root.resolve(ManualActionItemWriter.DEFAULT_REPORT), actionItems.values());
+            }
+            boolean explicitOutput = workspace.getMetadata() != null
+                    && workspace.getMetadata().get("outputDir") != null
+                    && !workspace.getMetadata().get("outputDir").toString().isBlank();
+            if (!generatedFiles.isEmpty()
+                    && (effective.profile().target().language()
+                    == org.shark.renovatio.profile.MigrationProfile.Language.JAVA || explicitOutput)) {
                 outputPath = writeGeneratedFilesToDisk(generatedFiles, workspace);
             }
             StubResult result = new StubResult(!generatedFiles.isEmpty(), generatedFiles.isEmpty()
