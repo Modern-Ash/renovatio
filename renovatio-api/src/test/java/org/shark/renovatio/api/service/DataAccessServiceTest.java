@@ -6,6 +6,7 @@ import org.shark.renovatio.api.entity.JobEntity;
 import org.shark.renovatio.api.repository.JobRepository;
 import org.shark.renovatio.persistence.classifier.DataAccessClassifier;
 import org.shark.renovatio.persistence.registry.PersistenceStrategyRegistry;
+import org.shark.renovatio.profile.MigrationProfiles;
 
 import java.util.List;
 import java.util.Set;
@@ -13,13 +14,20 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
 
 class DataAccessServiceTest {
     private final JobRepository jobs = mock(JobRepository.class);
+    private final DecisionLayerService decisions = mock(DecisionLayerService.class);
     private final DataAccessService service = new DataAccessService(
             new DataAccessClassifier(), new PersistenceStrategyRegistry(Set.of(),
                     org.shark.renovatio.profile.MigrationProfile.PersistenceStrategy.IN_MEMORY), jobs,
-            new ObjectMapper().findAndRegisterModules());
+            new ObjectMapper().findAndRegisterModules(), decisions);
+
+    DataAccessServiceTest() {
+        when(decisions.effective(anyString())).thenReturn(MigrationProfiles.effective(
+                MigrationProfiles.emptyOverlay(), java.util.Map.of(), java.util.Map.of(), List.of()));
+    }
 
     @Test
     void readsLatestCompletedAnalysisDataAccessesForProject() {

@@ -24,13 +24,16 @@ public class DataAccessService {
     private final PersistenceStrategyRegistry registry;
     private final JobRepository jobs;
     private final ObjectMapper objectMapper;
+    private final DecisionLayerService decisionLayerService;
 
     public DataAccessService(DataAccessClassifier classifier, PersistenceStrategyRegistry registry,
-                             JobRepository jobs, ObjectMapper objectMapper) {
+                             JobRepository jobs, ObjectMapper objectMapper,
+                             DecisionLayerService decisionLayerService) {
         this.classifier = classifier;
         this.registry = registry;
         this.jobs = jobs;
         this.objectMapper = objectMapper;
+        this.decisionLayerService = decisionLayerService;
     }
 
     public List<DataAccessDto> getClassifiedDataAccesses(String projectId) {
@@ -43,8 +46,14 @@ public class DataAccessService {
             JsonNode accesses = objectMapper.readTree(resultJson).path("dataAccesses");
             if (!accesses.isArray()) return List.of();
             List<DataAccessDto> result = new ArrayList<>();
+            Map<String, String> sourceStrategies = decisionLayerService.effective(projectId)
+                    .profile().persistence().sourceStrategies();
             for (JsonNode access : accesses) {
-                result.add(objectMapper.treeToValue(access, DataAccessDto.class));
+                DataAccessDto dto = objectMapper.treeToValue(access, DataAccessDto.class);
+                if (dto.getId() != null && sourceStrategies != null) {
+                    dto.setCurrentStrategy(sourceStrategies.getOrDefault(dto.getId(), dto.getSuggestedStrategy()));
+                }
+                result.add(dto);
             }
             return List.copyOf(result);
         } catch (Exception ignored) {
