@@ -5,12 +5,15 @@ import org.shark.renovatio.profile.DocumentationSettings;
 import org.shark.renovatio.shared.emission.EmittedArtifacts;
 import org.shark.renovatio.shared.emission.TargetModel;
 import org.shark.renovatio.shared.emission.TranslationDocumentation;
+import org.shark.renovatio.emitter.node.catalog.NodeIdiomCatalog;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
 public final class DefaultNodeRenderer implements NodeArtifactRenderer {
+    private final NodeIdiomCatalog idiomCatalog = new NodeIdiomCatalog();
+
     @Override
     public EmittedArtifacts render(TargetModel model, MigrationProfile profile) {
         Map<String, String> files = new LinkedHashMap<>();
@@ -26,12 +29,27 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
         files.put("src/main.ts", generateMain());
         files.put("package.json", generatePackageJson());
         files.put("tsconfig.json", generateTsConfig());
+        files.put("docs/node-idioms.md", generateIdiomReport());
         if (profile.persistence() != null
                 && profile.persistence().defaultStrategy() == MigrationProfile.PersistenceStrategy.PRISMA) {
             files.put("prisma/schema.prisma", generatePrismaSchema(model));
             files.put("prisma/seed.ts", generatePrismaSeed());
         }
         return EmittedArtifacts.fromUtf8(files);
+    }
+
+    private String generateIdiomReport() {
+        StringBuilder report = new StringBuilder("# Node idiom mapping\n\n");
+        idiomCatalog.allIdioms().entrySet().stream().sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> report.append("- `").append(entry.getKey()).append("`: ")
+                        .append(entry.getValue()).append('\n'));
+        if (!idiomCatalog.missingPatterns().isEmpty()) {
+            report.append("\n## Manual action items\n\n");
+            idiomCatalog.missingPatterns().stream().sorted()
+                    .forEach(pattern -> report.append("- Review unsupported construct `")
+                            .append(pattern).append("`\n"));
+        }
+        return report.toString();
     }
 
     private String generatePrismaSchema(TargetModel model) {

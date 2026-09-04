@@ -58,6 +58,7 @@ class NodeEmitterTest {
         }
         assertFalse(firstFiles.get("src/main.ts").contains("FIRST"));
         assertFalse(firstFiles.get("package.json").contains("first"));
+        assertTrue(firstFiles.get("docs/node-idioms.md").contains("`MOVE`: assignment"));
     }
 
     @Test
