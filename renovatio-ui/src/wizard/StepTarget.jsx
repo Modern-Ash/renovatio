@@ -5,7 +5,8 @@ import {
   getProjectProfile,
   putProjectProfile,
   projectDomainArchitecture,
-  saveDomainModel
+  saveDomainModel,
+  getDomainModel
 } from '../api/client'
 import DomainModelReview from '../components/DomainModelReview'
 
@@ -178,6 +179,15 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
       })
       .catch((reason) => active && setError(reason.message))
       .finally(() => active && setLoading(false))
+    return () => { active = false }
+    }, [id])
+
+  useEffect(() => {
+    if (data?.domainModel) return undefined
+    let active = true
+    getDomainModel(id).then((model) => {
+      if (active && model) onChange({ domainModel: model })
+    }).catch(() => { /* first run has no persisted model */ })
     return () => { active = false }
   }, [id])
 
