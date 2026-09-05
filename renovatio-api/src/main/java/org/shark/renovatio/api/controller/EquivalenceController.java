@@ -34,7 +34,7 @@ public class EquivalenceController {
     @PostMapping("/replay")
     public ResponseEntity<?> replay(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role, @RequestBody ReplayRequest request) {
         if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        return ResponseEntity.ok(replay.replay(request.caseId(), request.input(), request.ignoredFields()));
+        return ResponseEntity.ok(replay.replay(projectId, request.caseId(), request.input(), request.ignoredFields()));
     }
     public record ReplayRequest(String caseId, java.util.Map<String, ?> input, java.util.Set<String> ignoredFields) { }
 }
