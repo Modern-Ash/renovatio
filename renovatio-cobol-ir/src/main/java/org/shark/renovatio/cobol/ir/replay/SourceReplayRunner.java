@@ -32,8 +32,9 @@ public final class SourceReplayRunner implements ReplayRunner {
         input.values().forEach((k,v) -> state.put(k.toUpperCase(Locale.ROOT), v));
         List<String> changes = new ArrayList<>();
         List<String> calls = new ArrayList<>();
+        Map<String,Integer> cursors = new HashMap<>();
         try {
-            execute(program.getEntryParagraph(), state, changes, calls, new HashSet<>());
+            execute(program.getEntryParagraph(), state, changes, calls, new HashSet<>(), cursors);
             Map<String,Object> output = new LinkedHashMap<>();
             program.getDataItems().forEach(item -> output.put(item.name(), state.getOrDefault(item.name(), defaultValue(item))));
             state.forEach(output::putIfAbsent);
@@ -45,56 +46,56 @@ public final class SourceReplayRunner implements ReplayRunner {
         }
     }
 
-    private void execute(CobolParagraph p, Map<String,Object> state, List<String> changes, List<String> calls, Set<String> stack) {
+    private void execute(CobolParagraph p, Map<String,Object> state, List<String> changes, List<String> calls, Set<String> stack, Map<String,Integer> cursors) {
         if (!stack.add(p.name())) throw new UnsupportedOperationException("Recursive PERFORM: " + p.name());
         for (CobolStatement s : p.statements()) {
             if (s instanceof MoveStatement m) assign(m.target(), value(m.source(), state), state, changes);
             else if (s instanceof ComputeStatement c) assign(c.target(), arithmetic(c.expression(), state), state, changes);
             else if (s instanceof PerformStatement f) {
                 CobolParagraph target = program.findParagraph(f.paragraph()).orElseThrow(() -> new UnsupportedOperationException("Missing paragraph: " + f.paragraph()));
-                execute(target, state, changes, calls, stack);
+                execute(target, state, changes, calls, stack, cursors);
             } else if (s instanceof CallStatement c) calls.add(c.target());
-            else if (s instanceof FileOperationStatement f) fileOperation(f, state, changes);
+            else if (s instanceof FileOperationStatement f) fileOperation(f, state, changes, cursors);
             else if (s instanceof Db2Statement d) db2Operation(d, state, calls);
             else if (s instanceof IfStatement i) {
                 List<CobolStatement> branch = condition(i.condition(), state) ? i.thenStatements() : i.elseStatements();
-                executeStatements(branch, state, changes, calls, stack);
+                executeStatements(branch, state, changes, calls, stack, cursors);
             }
-            else if (s instanceof EvaluateStatement e) executeEvaluate(e, state, changes, calls, stack);
+            else if (s instanceof EvaluateStatement e) executeEvaluate(e, state, changes, calls, stack, cursors);
             else throw new UnsupportedOperationException("Unsupported statement: " + s.getClass().getSimpleName());
         }
         stack.remove(p.name());
     }
-    private void executeStatements(List<CobolStatement> statements, Map<String,Object> state, List<String> changes, List<String> calls, Set<String> stack) {
+    private void executeStatements(List<CobolStatement> statements, Map<String,Object> state, List<String> changes, List<String> calls, Set<String> stack, Map<String,Integer> cursors) {
         for (CobolStatement statement : statements) {
             if (statement instanceof MoveStatement m) assign(m.target(), value(m.source(), state), state, changes);
             else if (statement instanceof ComputeStatement c) assign(c.target(), arithmetic(c.expression(), state), state, changes);
             else if (statement instanceof CallStatement c) calls.add(c.target());
-            else if (statement instanceof FileOperationStatement f) fileOperation(f, state, changes);
+            else if (statement instanceof FileOperationStatement f) fileOperation(f, state, changes, cursors);
             else if (statement instanceof Db2Statement d) db2Operation(d, state, calls);
-            else if (statement instanceof IfStatement i) executeStatements(condition(i.condition(), state) ? i.thenStatements() : i.elseStatements(), state, changes, calls, stack);
-            else if (statement instanceof EvaluateStatement e) executeEvaluate(e, state, changes, calls, stack);
+            else if (statement instanceof IfStatement i) executeStatements(condition(i.condition(), state) ? i.thenStatements() : i.elseStatements(), state, changes, calls, stack, cursors);
+            else if (statement instanceof EvaluateStatement e) executeEvaluate(e, state, changes, calls, stack, cursors);
             else throw new UnsupportedOperationException("Unsupported nested statement: " + statement.getClass().getSimpleName());
         }
     }
-    private void executeEvaluate(EvaluateStatement evaluate, Map<String,Object> state, List<String> changes, List<String> calls, Set<String> stack) {
+    private void executeEvaluate(EvaluateStatement evaluate, Map<String,Object> state, List<String> changes, List<String> calls, Set<String> stack, Map<String,Integer> cursors) {
         Object subject = value(evaluate.expression(), state);
         EvaluateStatement.EvaluateWhenBranch other = null;
         for (var branch : evaluate.branches()) {
             String c = branch.condition().trim();
             if (c.equalsIgnoreCase("OTHER")) { other = branch; continue; }
             if (String.valueOf(subject).equalsIgnoreCase(String.valueOf(value(c, state)))) {
-                executeStatements(branch.statements(), state, changes, calls, stack);
+                executeStatements(branch.statements(), state, changes, calls, stack, cursors);
                 return;
             }
         }
-        if (other != null) executeStatements(other.statements(), state, changes, calls, stack);
+        if (other != null) executeStatements(other.statements(), state, changes, calls, stack, cursors);
     }
-    private void fileOperation(FileOperationStatement operation, Map<String,Object> state, List<String> changes) {
+    private void fileOperation(FileOperationStatement operation, Map<String,Object> state, List<String> changes, Map<String,Integer> cursors) {
         String name = operation.fileName().toUpperCase(Locale.ROOT);
         List<Map<String, ?>> records = files.getOrDefault(name, List.of());
         switch (operation.operationType()) {
-            case READ -> { if (records.isEmpty()) { state.put("FILE-STATUS", "10"); return; } records.get(0).forEach((k,v) -> state.put(k.toUpperCase(Locale.ROOT), v)); state.put("FILE-STATUS", "00"); changes.add("READ:" + name); }
+            case READ -> { int index = cursors.getOrDefault(name, 0); if (index >= records.size()) { state.put("FILE-STATUS", "10"); return; } records.get(index).forEach((k,v) -> state.put(k.toUpperCase(Locale.ROOT), v)); cursors.put(name, index + 1); state.put("FILE-STATUS", "00"); changes.add("READ:" + name + ":" + index); }
             case WRITE, REWRITE -> { state.put("FILE-STATUS", "00"); changes.add(operation.operationType() + ":" + name); }
             case OPEN, CLOSE, DELETE -> changes.add(operation.operationType() + ":" + name);
         }
