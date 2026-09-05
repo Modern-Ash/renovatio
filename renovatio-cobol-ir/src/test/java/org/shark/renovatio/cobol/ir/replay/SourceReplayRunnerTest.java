@@ -44,4 +44,14 @@ class SourceReplayRunnerTest {
         assertEquals("SUCCESS", result.status());
         assertEquals("ABC", result.output().get("A"));
     }
+
+    @Test void replaysDb2ResponseDeterministically() {
+        String cobol = "IDENTIFICATION DIVISION. PROGRAM-ID. DEMO.\nDATA DIVISION. WORKING-STORAGE SECTION.\n01 A PIC X(3).\nPROCEDURE DIVISION.\nMAIN.\n EXEC SQL\n SELECT NAME INTO :A FROM CUSTOMER\n END-EXEC.\n GOBACK.";
+        var source = new org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser().parse(cobol);
+        var runner = new SourceReplayRunner(source, Map.of(), Map.of("SELECT NAME INTO :A FROM CUSTOMER", Map.of("A", "ACME")));
+        var result = runner.run(new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput("case-6", Map.of()));
+        assertEquals("SUCCESS", result.status());
+        assertEquals("ACME", result.output().get("A"));
+        assertEquals(0, result.output().get("SQLCODE"));
+    }
 }

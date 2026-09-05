@@ -33,6 +33,7 @@ public final class SourceReplayRunner implements ReplayRunner {
             execute(program.getEntryParagraph(), state, changes, calls, new HashSet<>());
             Map<String,Object> output = new LinkedHashMap<>();
             program.getDataItems().forEach(item -> output.put(item.name(), state.getOrDefault(item.name(), defaultValue(item))));
+            state.forEach(output::putIfAbsent);
             return new ReplayResult("SUCCESS", output, changes, calls, null);
         } catch (UnsupportedOperationException ex) {
             return new ReplayResult("UNSUPPORTED", state, changes, calls, ex.getMessage());
