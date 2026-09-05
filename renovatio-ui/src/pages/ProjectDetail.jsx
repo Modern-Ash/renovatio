@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom'
 import { getProject, createJob, getActionItems, getProfileTemplateDiff } from '../api/client'
 import MetricCard from '../dashboard/MetricCard'
 import ActionItems from '../dashboard/ActionItems'
+import SourceReplayPanel from '../components/SourceReplayPanel'
 
 function ProjectDetail() {
   const { id } = useParams()
@@ -107,6 +108,7 @@ function ProjectDetail() {
       </div>
 
       <ActionItems items={actionItems} onStatusChange={fetchData} />
+      <SourceReplayPanel projectId={id} />
     </div>
   )
 }
