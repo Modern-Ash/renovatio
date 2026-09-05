@@ -62,6 +62,19 @@ public class EquivalenceController {
                                       java.util.Map<String, java.util.List<java.util.Map<String, ?>>> files,
                                       java.util.Map<String, java.util.Map<String, ?>> db2Responses) { }
 
+    @PostMapping("/source-compare")
+    public ResponseEntity<?> sourceCompare(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role, @RequestBody SourceCompareRequest request) {
+        if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        if (request == null || request.baselineSource() == null || request.baselineSource().isBlank() || request.candidateSource() == null || request.candidateSource().isBlank()) return ResponseEntity.badRequest().body(java.util.Map.of("error", "baselineSource and candidateSource are required"));
+        var input = new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput(request.caseId() == null ? "source-compare" : request.caseId(), request.input());
+        var baseline = new SourceReplayRunner(request.baselineSource(), request.files(), request.db2Responses()).run(input);
+        var candidate = new SourceReplayRunner(request.candidateSource(), request.files(), request.db2Responses()).run(input);
+        return ResponseEntity.ok(EquivalenceComparator.compare(baseline.output(), candidate.output(), request.ignoredFields()));
+    }
+    public record SourceCompareRequest(String caseId, String baselineSource, String candidateSource, java.util.Map<String, ?> input,
+                                       java.util.Map<String, java.util.List<java.util.Map<String, ?>>> files,
+                                       java.util.Map<String, java.util.Map<String, ?>> db2Responses, java.util.Set<String> ignoredFields) { }
+
     @GetMapping("/history")
     public ResponseEntity<?> history(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role) {
         if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
