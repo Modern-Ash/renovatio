@@ -12,12 +12,16 @@ import java.util.*;
 public final class SourceReplayRunner implements ReplayRunner {
     private final CobolIntermediateModel program;
     private final Map<String, List<Map<String, ?>>> files;
+    private final Map<String, Map<String, ?>> db2Responses;
 
     public SourceReplayRunner(Path source) throws IOException { this(new SimpleCobolIrParser().parse(source)); }
     public SourceReplayRunner(String source) { this(new SimpleCobolIrParser().parse(source)); }
-    public SourceReplayRunner(CobolIntermediateModel program) { this(program, Map.of()); }
+    public SourceReplayRunner(CobolIntermediateModel program) { this(program, Map.of(), Map.of()); }
     public SourceReplayRunner(CobolIntermediateModel program, Map<String, List<Map<String, ?>>> files) {
-        this.program = Objects.requireNonNull(program); this.files = files == null ? Map.of() : Map.copyOf(files);
+        this(program, files, Map.of());
+    }
+    public SourceReplayRunner(CobolIntermediateModel program, Map<String, List<Map<String, ?>>> files, Map<String, Map<String, ?>> db2Responses) {
+        this.program = Objects.requireNonNull(program); this.files = files == null ? Map.of() : Map.copyOf(files); this.db2Responses = db2Responses == null ? Map.of() : Map.copyOf(db2Responses);
     }
 
     @Override public ReplayResult run(ReplayInput input) {
@@ -47,6 +51,7 @@ public final class SourceReplayRunner implements ReplayRunner {
                 execute(target, state, changes, calls, stack);
             } else if (s instanceof CallStatement c) calls.add(c.target());
             else if (s instanceof FileOperationStatement f) fileOperation(f, state, changes);
+            else if (s instanceof Db2Statement d) db2Operation(d, state, calls);
             else if (s instanceof IfStatement i) {
                 List<CobolStatement> branch = condition(i.condition(), state) ? i.thenStatements() : i.elseStatements();
                 executeStatements(branch, state, changes, calls, stack);
@@ -62,6 +67,7 @@ public final class SourceReplayRunner implements ReplayRunner {
             else if (statement instanceof ComputeStatement c) assign(c.target(), arithmetic(c.expression(), state), state, changes);
             else if (statement instanceof CallStatement c) calls.add(c.target());
             else if (statement instanceof FileOperationStatement f) fileOperation(f, state, changes);
+            else if (statement instanceof Db2Statement d) db2Operation(d, state, calls);
             else if (statement instanceof IfStatement i) executeStatements(condition(i.condition(), state) ? i.thenStatements() : i.elseStatements(), state, changes, calls, stack);
             else if (statement instanceof EvaluateStatement e) executeEvaluate(e, state, changes, calls, stack);
             else throw new UnsupportedOperationException("Unsupported nested statement: " + statement.getClass().getSimpleName());
@@ -88,6 +94,12 @@ public final class SourceReplayRunner implements ReplayRunner {
             case WRITE, REWRITE -> { state.put("FILE-STATUS", "00"); changes.add(operation.operationType() + ":" + name); }
             case OPEN, CLOSE, DELETE -> changes.add(operation.operationType() + ":" + name);
         }
+    }
+    private void db2Operation(Db2Statement statement, Map<String,Object> state, List<String> calls) {
+        String sql = statement.sql().trim(); calls.add("DB2:" + sql);
+        Map<String, ?> response = db2Responses.get(sql);
+        if (response == null) { state.put("SQLCODE", -811); return; }
+        response.forEach((k, v) -> state.put(k.toUpperCase(Locale.ROOT), v)); state.putIfAbsent("SQLCODE", 0);
     }
     private static boolean condition(String expression, Map<String,Object> state) {
         String c = expression.trim().replaceAll("\\s+", " ");
