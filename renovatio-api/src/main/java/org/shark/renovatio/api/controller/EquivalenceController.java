@@ -69,7 +69,10 @@ public class EquivalenceController {
         var input = new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput(request.caseId() == null ? "source-compare" : request.caseId(), request.input());
         var baseline = new SourceReplayRunner(request.baselineSource(), request.files(), request.db2Responses()).run(input);
         var candidate = new SourceReplayRunner(request.candidateSource(), request.files(), request.db2Responses()).run(input);
-        return ResponseEntity.ok(EquivalenceComparator.compare(baseline.output(), candidate.output(), request.ignoredFields()));
+        var comparison = EquivalenceComparator.compare(baseline.output(), candidate.output(), request.ignoredFields());
+        try { executions.save(new ReplayExecutionEntity(projectId, input.caseId(), mapper.writeValueAsString(comparison), comparison.equivalent())); }
+        catch (Exception e) { return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Map.of("error", "Unable to persist source comparison")); }
+        return ResponseEntity.ok(comparison);
     }
     public record SourceCompareRequest(String caseId, String baselineSource, String candidateSource, java.util.Map<String, ?> input,
                                        java.util.Map<String, java.util.List<java.util.Map<String, ?>>> files,
