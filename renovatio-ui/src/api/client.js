@@ -167,6 +167,12 @@ export function saveDomainModel(projectId, domainModel) {
   })
 }
 
+export function evaluateEquivalenceGate(projectId, metrics) {
+  return apiCall(`/projects/${projectId}/equivalence/gate`, {
+    method: 'POST', body: JSON.stringify(metrics)
+  })
+}
+
 export function getProjectDecisions(projectId, filters = {}) {
   const query = new URLSearchParams()
   if (filters.category) query.set('category', filters.category)
