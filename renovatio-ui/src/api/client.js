@@ -185,6 +185,16 @@ export function runEquivalenceReplay(projectId, request) {
   })
 }
 
+export function runSourceEquivalenceReplay(projectId, request) {
+  return apiCall(`/projects/${projectId}/equivalence/source-replay`, {
+    method: 'POST', body: JSON.stringify(request)
+  })
+}
+
+export function getEquivalenceReplayHistory(projectId, { signal } = {}) {
+  return apiCall(`/projects/${projectId}/equivalence/history`, { signal })
+}
+
 export function evaluateLlmDataset(projectId, summary) {
   return apiCall(`/projects/${projectId}/llm-evaluation/gate`, {
     method: 'POST', body: JSON.stringify(summary)
