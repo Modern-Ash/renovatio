@@ -46,6 +46,7 @@ public final class SourceReplayRunner implements ReplayRunner {
                 List<CobolStatement> branch = condition(i.condition(), state) ? i.thenStatements() : i.elseStatements();
                 executeStatements(branch, state, changes, calls, stack);
             }
+            else if (s instanceof EvaluateStatement e) executeEvaluate(e, state, changes, calls, stack);
             else throw new UnsupportedOperationException("Unsupported statement: " + s.getClass().getSimpleName());
         }
         stack.remove(p.name());
@@ -56,8 +57,22 @@ public final class SourceReplayRunner implements ReplayRunner {
             else if (statement instanceof ComputeStatement c) assign(c.target(), arithmetic(c.expression(), state), state, changes);
             else if (statement instanceof CallStatement c) calls.add(c.target());
             else if (statement instanceof IfStatement i) executeStatements(condition(i.condition(), state) ? i.thenStatements() : i.elseStatements(), state, changes, calls, stack);
+            else if (statement instanceof EvaluateStatement e) executeEvaluate(e, state, changes, calls, stack);
             else throw new UnsupportedOperationException("Unsupported nested statement: " + statement.getClass().getSimpleName());
         }
+    }
+    private void executeEvaluate(EvaluateStatement evaluate, Map<String,Object> state, List<String> changes, List<String> calls, Set<String> stack) {
+        Object subject = value(evaluate.expression(), state);
+        EvaluateStatement.EvaluateWhenBranch other = null;
+        for (var branch : evaluate.branches()) {
+            String c = branch.condition().trim();
+            if (c.equalsIgnoreCase("OTHER")) { other = branch; continue; }
+            if (String.valueOf(subject).equalsIgnoreCase(String.valueOf(value(c, state)))) {
+                executeStatements(branch.statements(), state, changes, calls, stack);
+                return;
+            }
+        }
+        if (other != null) executeStatements(other.statements(), state, changes, calls, stack);
     }
     private static boolean condition(String expression, Map<String,Object> state) {
         String c = expression.trim().replaceAll("\\s+", " ");
