@@ -173,6 +173,12 @@ export function evaluateEquivalenceGate(projectId, metrics) {
   })
 }
 
+export function compareEquivalenceFixture(projectId, fixture) {
+  return apiCall(`/projects/${projectId}/equivalence/compare`, {
+    method: 'POST', body: JSON.stringify(fixture)
+  })
+}
+
 export function getProjectDecisions(projectId, filters = {}) {
   const query = new URLSearchParams()
   if (filters.category) query.set('category', filters.category)
