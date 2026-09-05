@@ -471,3 +471,12 @@ renovatio:
 - Database migrations (uses Hibernate auto-DDL)
 - Pagination (can be added later)
 - OpenAPI/Swagger documentation (can be added later)
+
+## 11. Equivalence desde fuente COBOL
+
+`POST /api/projects/{projectId}/equivalence/source-replay` ejecuta un programa COBOL mediante
+el IR determinista, sin requerir un ejecutable externo. El payload acepta `caseId`, `source`,
+`input`, `files` (registros secuenciales en memoria) y `db2Responses` (respuestas SQL simuladas).
+El resultado se persiste y queda disponible en `GET /api/projects/{projectId}/equivalence/history`.
+Este modo cubre el subconjunto soportado por el IR; la validación de cutover debe repetirse con
+el runtime COBOL productivo.
