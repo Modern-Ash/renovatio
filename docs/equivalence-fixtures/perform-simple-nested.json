@@ -1,0 +1,9 @@
+{
+  "caseId": "perform-simple-nested",
+  "source": "renovatio-provider-cobol/src/test/resources/characterization/perform-simple-nested/input.cob",
+  "input": {"execution": "characterization"},
+  "baseline": {"status": "SUCCESS", "output": {"program": "PERFORM-SIMPLE-NESTED"}, "stateChanges": [], "externalCalls": [], "error": null},
+  "candidate": {"status": "SUCCESS", "output": {"program": "PERFORM-SIMPLE-NESTED"}, "stateChanges": [], "externalCalls": [], "error": null},
+  "ignoredFields": ["traceId", "timestamp"],
+  "expected": {"equivalent": true, "minimumRate": 1.0}
+}
