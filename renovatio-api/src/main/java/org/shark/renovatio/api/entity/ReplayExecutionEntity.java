@@ -8,4 +8,5 @@ public class ReplayExecutionEntity {
  protected ReplayExecutionEntity(){}
  public ReplayExecutionEntity(String projectId,String caseId,String fixtureJson,boolean equivalent){this.projectId=projectId;this.caseId=caseId;this.fixtureJson=fixtureJson;this.equivalent=equivalent;}
  @PrePersist void touch(){createdAt=Instant.now();}
+ public String getCaseId(){return caseId;} public boolean isEquivalent(){return equivalent;} public Instant getCreatedAt(){return createdAt;}
 }

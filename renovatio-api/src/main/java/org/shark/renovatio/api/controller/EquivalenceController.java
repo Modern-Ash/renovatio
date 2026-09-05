@@ -37,4 +37,10 @@ public class EquivalenceController {
         return ResponseEntity.ok(replay.replay(projectId, request.caseId(), request.input(), request.ignoredFields()));
     }
     public record ReplayRequest(String caseId, java.util.Map<String, ?> input, java.util.Set<String> ignoredFields) { }
+
+    @GetMapping("/history")
+    public ResponseEntity<?> history(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role) {
+        if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.ok(replay.history(projectId));
+    }
 }

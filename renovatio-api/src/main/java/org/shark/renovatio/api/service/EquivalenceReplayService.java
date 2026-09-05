@@ -23,4 +23,5 @@ public class EquivalenceReplayService {
   return fixture;
  }
  private static Path path(String value) { return value == null || value.isBlank() ? null : Path.of(value); }
+ public java.util.List<java.util.Map<String,Object>> history(String projectId) { return history.findByProjectIdOrderByCreatedAtDesc(projectId).stream().map(e -> { java.util.Map<String,Object> m = new java.util.LinkedHashMap<>(); m.put("caseId", e.getCaseId()); m.put("equivalent", e.isEquivalent()); m.put("createdAt", e.getCreatedAt()); return m; }).toList(); }
 }
