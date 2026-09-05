@@ -9,4 +9,5 @@ public class LlmEvaluationEntity {
  protected LlmEvaluationEntity() {}
  public LlmEvaluationEntity(String projectId, String datasetId, int total, int accepted, int schemaFailures, int provenanceFailures, double rate, boolean passes) { this.projectId=projectId; this.datasetId=datasetId; this.total=total; this.accepted=accepted; this.schemaFailures=schemaFailures; this.provenanceFailures=provenanceFailures; this.acceptanceRate=rate; this.passes=passes; }
  @PrePersist void touch(){createdAt=Instant.now();}
+ public String getDatasetId(){return datasetId;} public int getTotal(){return total;} public int getAccepted(){return accepted;} public double getAcceptanceRate(){return acceptanceRate;} public boolean isPasses(){return passes;} public Instant getCreatedAt(){return createdAt;}
 }

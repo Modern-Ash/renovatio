@@ -25,4 +25,12 @@ public class LlmEvaluationController {
     public record Request(String datasetId, int total, int accepted, int schemaFailures, int provenanceFailures,
                           java.util.List<String> failures, double minimumAcceptanceRate) { }
     public record Result(LlmEvaluation evaluation, boolean passes) { }
+
+    @GetMapping
+    public ResponseEntity<?> history(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role) {
+        if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.ok(repository.findByProjectIdOrderByCreatedAtDesc(projectId).stream().map(e -> java.util.Map.of(
+                "datasetId", e.getDatasetId(), "total", e.getTotal(), "accepted", e.getAccepted(),
+                "acceptanceRate", e.getAcceptanceRate(), "passes", e.isPasses(), "createdAt", e.getCreatedAt())).toList());
+    }
 }
