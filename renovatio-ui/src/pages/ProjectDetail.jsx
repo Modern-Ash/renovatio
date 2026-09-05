@@ -4,6 +4,7 @@ import { getProject, createJob, getActionItems, getProfileTemplateDiff } from '.
 import MetricCard from '../dashboard/MetricCard'
 import ActionItems from '../dashboard/ActionItems'
 import SourceReplayPanel from '../components/SourceReplayPanel'
+import SourceComparePanel from '../components/SourceComparePanel'
 
 function ProjectDetail() {
   const { id } = useParams()
@@ -109,6 +110,7 @@ function ProjectDetail() {
 
       <ActionItems items={actionItems} onStatusChange={fetchData} />
       <SourceReplayPanel projectId={id} />
+      <SourceComparePanel projectId={id} />
     </div>
   )
 }
