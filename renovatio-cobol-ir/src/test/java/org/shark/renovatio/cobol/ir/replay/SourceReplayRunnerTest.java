@@ -14,4 +14,11 @@ class SourceReplayRunnerTest {
         assertEquals(2d, result.output().get("A"));
         assertEquals(5d, result.output().get("B"));
     }
+
+    @Test void replaysIfElseFromSource() {
+        String cobol = "IDENTIFICATION DIVISION. PROGRAM-ID. DEMO.\nDATA DIVISION. WORKING-STORAGE SECTION.\n01 A PIC 9(3).\n01 B PIC X(3).\nPROCEDURE DIVISION.\nMAIN.\n MOVE 2 TO A.\n IF A = 2\n   MOVE 'YES' TO B\n ELSE\n   MOVE 'NO' TO B\n END-IF.\n GOBACK.";
+        var result = new SourceReplayRunner(cobol).run(new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput("case-2", Map.of()));
+        assertEquals("SUCCESS", result.status());
+        assertEquals("YES", result.output().get("B"));
+    }
 }

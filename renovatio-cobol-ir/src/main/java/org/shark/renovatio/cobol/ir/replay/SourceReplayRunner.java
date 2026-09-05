@@ -42,10 +42,33 @@ public final class SourceReplayRunner implements ReplayRunner {
                 CobolParagraph target = program.findParagraph(f.paragraph()).orElseThrow(() -> new UnsupportedOperationException("Missing paragraph: " + f.paragraph()));
                 execute(target, state, changes, calls, stack);
             } else if (s instanceof CallStatement c) calls.add(c.target());
-            else if (s instanceof IfStatement) throw new UnsupportedOperationException("IF replay requires runtime condition evaluator");
+            else if (s instanceof IfStatement i) {
+                List<CobolStatement> branch = condition(i.condition(), state) ? i.thenStatements() : i.elseStatements();
+                executeStatements(branch, state, changes, calls, stack);
+            }
             else throw new UnsupportedOperationException("Unsupported statement: " + s.getClass().getSimpleName());
         }
         stack.remove(p.name());
+    }
+    private void executeStatements(List<CobolStatement> statements, Map<String,Object> state, List<String> changes, List<String> calls, Set<String> stack) {
+        for (CobolStatement statement : statements) {
+            if (statement instanceof MoveStatement m) assign(m.target(), value(m.source(), state), state, changes);
+            else if (statement instanceof ComputeStatement c) assign(c.target(), arithmetic(c.expression(), state), state, changes);
+            else if (statement instanceof CallStatement c) calls.add(c.target());
+            else if (statement instanceof IfStatement i) executeStatements(condition(i.condition(), state) ? i.thenStatements() : i.elseStatements(), state, changes, calls, stack);
+            else throw new UnsupportedOperationException("Unsupported nested statement: " + statement.getClass().getSimpleName());
+        }
+    }
+    private static boolean condition(String expression, Map<String,Object> state) {
+        String c = expression.trim().replaceAll("\\s+", " ");
+        String[] parts = c.split("\\s+(IS NOT|NOT EQUAL TO|EQUAL TO|GREATER THAN|LESS THAN|=|>|<)\\s+", 2);
+        if (parts.length != 2) throw new UnsupportedOperationException("Unsupported IF condition: " + expression);
+        String op = c.substring(parts[0].length(), c.length() - parts[1].length()).trim().toUpperCase(Locale.ROOT);
+        Object left = value(parts[0], state), right = value(parts[1], state);
+        int cmp;
+        if (left instanceof Number l && right instanceof Number r) cmp = Double.compare(l.doubleValue(), r.doubleValue());
+        else cmp = String.valueOf(left).compareTo(String.valueOf(right));
+        return switch (op) { case "=", "EQUAL TO" -> cmp == 0; case "IS NOT", "NOT EQUAL TO" -> cmp != 0; case ">", "GREATER THAN" -> cmp > 0; case "<", "LESS THAN" -> cmp < 0; default -> throw new UnsupportedOperationException("Unsupported IF operator: " + op); };
     }
     private static void assign(String target, Object value, Map<String,Object> state, List<String> changes) {
         String key = target.trim().toUpperCase(Locale.ROOT); state.put(key, value); changes.add(key);
