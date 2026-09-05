@@ -11,6 +11,8 @@ import org.shark.renovatio.llm.residual.ResidualAnnotationAssembler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.shark.renovatio.api.config.EquivalenceRunnerProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 
@@ -21,6 +23,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
     "org.shark.renovatio.provider.cobol",
     "org.shark.renovatio.api"
 })
+@EnableConfigurationProperties(EquivalenceRunnerProperties.class)
 @EnableAsync
 public class RenovatioApiApplication {
     public static void main(String[] args) {

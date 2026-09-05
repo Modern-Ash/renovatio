@@ -24,6 +24,11 @@ spring:
       path: /h2-console
 
 renovatio:
+  equivalence:
+    baseline-command: []
+    baseline-working-directory: ""
+    candidate-command: []
+    candidate-working-directory: ""
   reusable-assets:
     root: ${user.home}/.renovatio
   api:
