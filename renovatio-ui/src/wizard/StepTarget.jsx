@@ -65,6 +65,12 @@ function ArchitectureDiagram({ preview }) {
 }
 
 function ArchitecturePreview({ preview, loading, error, stale }) {
+  const [artifactQuery, setArtifactQuery] = useState('')
+  const normalizedQuery = artifactQuery.trim().toLowerCase()
+  const filteredModules = useMemo(() => (preview?.modules || []).map((module) => ({
+    ...module,
+    programIds: module.programIds.filter((programId) => !normalizedQuery || `${module.name} ${programId}`.toLowerCase().includes(normalizedQuery))
+  })).filter((module) => module.programIds.length > 0), [preview, normalizedQuery])
   return (
     <aside className="architecture-preview" aria-label="Generated architecture preview" aria-busy={loading}>
       <div className="preview-header">
@@ -93,23 +99,25 @@ function ArchitecturePreview({ preview, loading, error, stale }) {
         </div>}
 
         <section className="preview-section" aria-labelledby="artifact-tree-heading">
-          <div className="preview-section-title">
-            <h4 id="artifact-tree-heading">Artifact tree</h4>
-            <span>{preview.artifacts.length} files</span>
+          <div className="preview-section-title artifact-tree-heading-row">
+            <div><h4 id="artifact-tree-heading">Artifact tree</h4><p className="section-subtitle">Navegá por módulos y programas</p></div>
+            <span>{preview.modules.length} módulos · {preview.artifacts.length} archivos</span>
           </div>
+          <input className="artifact-search" value={artifactQuery} onChange={(event) => setArtifactQuery(event.target.value)} placeholder="Buscar módulo o programa…" aria-label="Buscar artefactos" />
           <div className="artifact-tree">
-            {preview.modules.map((module) => <section key={module.id} className="artifact-module">
-              <h5><span aria-hidden="true">◇</span>{module.name}</h5>
+            {filteredModules.map((module) => <details key={module.id} className="artifact-module">
+              <summary><span aria-hidden="true">◇</span><strong>{module.name}</strong><em>{module.programIds.length} programas</em></summary>
               {module.programIds.map((programId) => {
                 const artifacts = preview.artifacts.filter((artifact) => artifact.moduleId === module.id && artifact.programId === programId)
-                return <div key={programId} className="artifact-program">
-                  <strong>{programId}</strong>
+                return <details key={programId} className="artifact-program">
+                  <summary><strong>{programId}</strong><span>{artifacts.length} archivos</span></summary>
                   {artifacts.length > 0
                     ? <ul>{artifacts.map((artifact) => <li key={artifact.id}><code>{artifact.path}</code></li>)}</ul>
                     : <p>No planned artifacts.</p>}
-                </div>
+                </details>
               })}
-            </section>)}
+            </details>)}
+            {filteredModules.length === 0 && <p className="preview-empty">No hay coincidencias para “{artifactQuery}”.</p>}
           </div>
         </section>
 

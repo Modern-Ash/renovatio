@@ -235,8 +235,38 @@ body {
   @apply space-y-3;
 }
 
+.artifact-search {
+  @apply mb-3 w-full rounded-md border border-gray-700 bg-gray-950/80 px-3 py-2 font-mono text-xs text-gray-100 outline-none placeholder:text-gray-500 focus:border-teal-300 focus:ring-1 focus:ring-teal-300/40;
+}
+
+.section-subtitle {
+  @apply mt-1 text-[11px] text-gray-500;
+}
+
 .artifact-module {
   @apply border-l border-teal-400/50 pl-3;
+}
+
+.artifact-module > summary,
+.artifact-program > summary {
+  @apply flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-2 transition-colors hover:bg-teal-300/10;
+}
+
+.artifact-module > summary::-webkit-details-marker,
+.artifact-program > summary::-webkit-details-marker { display: none; }
+
+.artifact-module > summary::before,
+.artifact-program > summary::before {
+  content: '›';
+  @apply text-teal-300 transition-transform;
+}
+
+.artifact-module[open] > summary::before,
+.artifact-program[open] > summary::before { transform: rotate(90deg); }
+
+.artifact-module summary em,
+.artifact-program summary span {
+  @apply ml-auto font-mono text-[10px] not-italic text-gray-500;
 }
 
 .artifact-module h5 {
@@ -247,7 +277,7 @@ body {
   @apply mt-2 border-l border-gray-700 pl-4;
 }
 
-.artifact-program > strong {
+.artifact-program > summary strong {
   @apply font-mono text-[10px] tracking-wider text-gray-400;
 }
 
