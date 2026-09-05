@@ -179,6 +179,12 @@ export function compareEquivalenceFixture(projectId, fixture) {
   })
 }
 
+export function evaluateLlmDataset(projectId, summary) {
+  return apiCall(`/projects/${projectId}/llm-evaluation/gate`, {
+    method: 'POST', body: JSON.stringify(summary)
+  })
+}
+
 export function getProjectDecisions(projectId, filters = {}) {
   const query = new URLSearchParams()
   if (filters.category) query.set('category', filters.category)
