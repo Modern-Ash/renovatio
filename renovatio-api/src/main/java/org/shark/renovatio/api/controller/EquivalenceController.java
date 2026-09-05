@@ -47,8 +47,13 @@ public class EquivalenceController {
     @PostMapping("/source-replay")
     public ResponseEntity<?> sourceReplay(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role, @RequestBody SourceReplayRequest request) {
         if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        if (request == null || request.caseId() == null || request.caseId().isBlank() || request.source() == null || request.source().isBlank()) {
+            return ResponseEntity.badRequest().body(java.util.Map.of("error", "caseId and source are required"));
+        }
         var runner = new SourceReplayRunner(request.source(), request.files(), request.db2Responses());
-        var result = runner.run(new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput(request.caseId(), request.input()));
+        org.shark.renovatio.domain.model.ReplayRunner.ReplayResult result;
+        try { result = runner.run(new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput(request.caseId(), request.input())); }
+        catch (RuntimeException e) { return ResponseEntity.badRequest().body(java.util.Map.of("error", "Invalid replay payload", "detail", e.getMessage())); }
         try { executions.save(new ReplayExecutionEntity(projectId, request.caseId(), mapper.writeValueAsString(result), "SUCCESS".equals(result.status()))); }
         catch (Exception e) { return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Map.of("error", "Unable to persist source replay")); }
         return ResponseEntity.ok(result);
