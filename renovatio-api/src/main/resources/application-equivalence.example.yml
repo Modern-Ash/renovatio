@@ -1,0 +1,7 @@
+# Copy the values into application.yml or an environment-specific profile.
+renovatio:
+  equivalence:
+    baseline-command: ["/opt/renovatio/bin/cobol-baseline", "--case"]
+    baseline-working-directory: "/opt/renovatio/cobol-baseline"
+    candidate-command: ["/opt/renovatio/bin/generated-target", "--case"]
+    candidate-working-directory: "/opt/renovatio/generated-target"
