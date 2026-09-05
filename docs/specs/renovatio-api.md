@@ -480,3 +480,7 @@ el IR determinista, sin requerir un ejecutable externo. El payload acepta `caseI
 El resultado se persiste y queda disponible en `GET /api/projects/{projectId}/equivalence/history`.
 Este modo cubre el subconjunto soportado por el IR; la validación de cutover debe repetirse con
 el runtime COBOL productivo.
+
+`POST /api/projects/{projectId}/equivalence/source-compare` ejecuta baseline y candidate desde
+fuente bajo los mismos inputs, archivos y respuestas DB2 simuladas. Acepta `ignoredFields` para
+valores no deterministas y persiste el resultado en el historial de equivalencia.
