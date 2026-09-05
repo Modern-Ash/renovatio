@@ -185,6 +185,10 @@ export function evaluateLlmDataset(projectId, summary) {
   })
 }
 
+export function getLlmEvaluationHistory(projectId, { signal } = {}) {
+  return apiCall(`/projects/${projectId}/llm-evaluation`, { signal })
+}
+
 export function getProjectDecisions(projectId, filters = {}) {
   const query = new URLSearchParams()
   if (filters.category) query.set('category', filters.category)
