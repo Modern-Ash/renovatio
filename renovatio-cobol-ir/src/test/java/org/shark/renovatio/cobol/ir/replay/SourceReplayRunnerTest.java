@@ -28,4 +28,11 @@ class SourceReplayRunnerTest {
         assertEquals("SUCCESS", result.status());
         assertEquals("TWO", result.output().get("B"));
     }
+
+    @Test void replaysCobolArithmeticVerbs() {
+        String cobol = "IDENTIFICATION DIVISION. PROGRAM-ID. DEMO.\nDATA DIVISION. WORKING-STORAGE SECTION.\n01 A PIC 9(3).\nPROCEDURE DIVISION.\nMAIN.\n MOVE 10 TO A.\n ADD 2 TO A.\n SUBTRACT 1 FROM A.\n MULTIPLY 2 BY A.\n DIVIDE A BY 3 GIVING A.\n GOBACK.";
+        var result = new SourceReplayRunner(cobol).run(new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput("case-4", Map.of()));
+        assertEquals("SUCCESS", result.status());
+        assertEquals(7.333333333333333d, result.output().get("A"));
+    }
 }

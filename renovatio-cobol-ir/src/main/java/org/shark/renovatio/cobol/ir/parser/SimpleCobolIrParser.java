@@ -686,6 +686,16 @@ public class SimpleCobolIrParser {
     private ComputeStatement parseMultiply(String line) {
         String trimmed = line.replace(Symbols.DOT, Symbols.EMPTY).trim();
         String remainder = trimmed.substring(Keywords.MULTIPLY.length()).trim();
+        // MULTIPLY source BY factor GIVING target
+        if (remainder.toUpperCase(Locale.ROOT).contains(Keywords.GIVING)) {
+            String[] givingParts = remainder.split(Regexes.GIVING, 2);
+            if (givingParts.length == 2) {
+                String[] byParts = givingParts[0].split(Regexes.BY, 2);
+                if (byParts.length == 2) {
+                    return new ComputeStatement(givingParts[1].trim(), byParts[0].trim() + " * " + byParts[1].trim());
+                }
+            }
+        }
         // MULTIPLY source BY target
         String[] parts = remainder.split(Regexes.BY, 2);
         if (parts.length == 2) {
