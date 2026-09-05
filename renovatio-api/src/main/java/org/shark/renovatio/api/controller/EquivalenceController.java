@@ -5,6 +5,9 @@ import org.shark.renovatio.api.service.EquivalenceReplayService;
 import org.shark.renovatio.domain.model.EquivalenceGate;
 import org.shark.renovatio.domain.model.EquivalenceComparator;
 import org.shark.renovatio.cobol.ir.replay.SourceReplayRunner;
+import org.shark.renovatio.api.entity.ReplayExecutionEntity;
+import org.shark.renovatio.api.repository.ReplayExecutionRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.shark.renovatio.shared.domain.AccessRole;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +17,9 @@ import org.springframework.web.bind.annotation.*;
 public class EquivalenceController {
     private final ApiAccessService access;
     private final EquivalenceReplayService replay;
-    public EquivalenceController(ApiAccessService access, EquivalenceReplayService replay) { this.access = access; this.replay = replay; }
+    private final ReplayExecutionRepository executions;
+    private final ObjectMapper mapper;
+    public EquivalenceController(ApiAccessService access, EquivalenceReplayService replay, ReplayExecutionRepository executions, ObjectMapper mapper) { this.access = access; this.replay = replay; this.executions = executions; this.mapper = mapper; }
     @PostMapping("/gate")
     public ResponseEntity<EquivalenceGate.Decision> gate(@RequestHeader(value = "X-Role", required = false) String role,
                                                           @RequestBody GateRequest request) {
@@ -43,7 +48,10 @@ public class EquivalenceController {
     public ResponseEntity<?> sourceReplay(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role, @RequestBody SourceReplayRequest request) {
         if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         var runner = new SourceReplayRunner(request.source(), request.files(), request.db2Responses());
-        return ResponseEntity.ok(runner.run(new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput(request.caseId(), request.input())));
+        var result = runner.run(new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput(request.caseId(), request.input()));
+        try { executions.save(new ReplayExecutionEntity(projectId, request.caseId(), mapper.writeValueAsString(result), "SUCCESS".equals(result.status()))); }
+        catch (Exception e) { return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(java.util.Map.of("error", "Unable to persist source replay")); }
+        return ResponseEntity.ok(result);
     }
     public record SourceReplayRequest(String caseId, String source, java.util.Map<String, ?> input,
                                       java.util.Map<String, java.util.List<java.util.Map<String, ?>>> files,
