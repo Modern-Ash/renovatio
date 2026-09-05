@@ -1,0 +1,20 @@
+{
+  "caseId": "business-case-001",
+  "input": { "field": "value" },
+  "baseline": {
+    "status": "SUCCESS",
+    "output": {},
+    "stateChanges": [],
+    "externalCalls": [],
+    "error": null
+  },
+  "candidate": {
+    "status": "SUCCESS",
+    "output": {},
+    "stateChanges": [],
+    "externalCalls": [],
+    "error": null
+  },
+  "ignoredFields": ["traceId", "timestamp"],
+  "notes": "Replace with a redacted, reproducible business case."
+}
