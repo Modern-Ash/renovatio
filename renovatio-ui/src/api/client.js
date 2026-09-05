@@ -191,6 +191,12 @@ export function runSourceEquivalenceReplay(projectId, request) {
   })
 }
 
+export function compareSourceEquivalence(projectId, request) {
+  return apiCall(`/projects/${projectId}/equivalence/source-compare`, {
+    method: 'POST', body: JSON.stringify(request)
+  })
+}
+
 export function getEquivalenceReplayHistory(projectId, { signal } = {}) {
   return apiCall(`/projects/${projectId}/equivalence/history`, { signal })
 }
