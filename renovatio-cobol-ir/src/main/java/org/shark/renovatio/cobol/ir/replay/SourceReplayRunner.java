@@ -11,10 +11,14 @@ import java.util.*;
 /** Replay adapter for the deterministic COBOL subset represented by the IR. */
 public final class SourceReplayRunner implements ReplayRunner {
     private final CobolIntermediateModel program;
+    private final Map<String, List<Map<String, ?>>> files;
 
     public SourceReplayRunner(Path source) throws IOException { this(new SimpleCobolIrParser().parse(source)); }
     public SourceReplayRunner(String source) { this(new SimpleCobolIrParser().parse(source)); }
-    public SourceReplayRunner(CobolIntermediateModel program) { this.program = Objects.requireNonNull(program); }
+    public SourceReplayRunner(CobolIntermediateModel program) { this(program, Map.of()); }
+    public SourceReplayRunner(CobolIntermediateModel program, Map<String, List<Map<String, ?>>> files) {
+        this.program = Objects.requireNonNull(program); this.files = files == null ? Map.of() : Map.copyOf(files);
+    }
 
     @Override public ReplayResult run(ReplayInput input) {
         Map<String,Object> state = new LinkedHashMap<>();
@@ -42,6 +46,7 @@ public final class SourceReplayRunner implements ReplayRunner {
                 CobolParagraph target = program.findParagraph(f.paragraph()).orElseThrow(() -> new UnsupportedOperationException("Missing paragraph: " + f.paragraph()));
                 execute(target, state, changes, calls, stack);
             } else if (s instanceof CallStatement c) calls.add(c.target());
+            else if (s instanceof FileOperationStatement f) fileOperation(f, state, changes);
             else if (s instanceof IfStatement i) {
                 List<CobolStatement> branch = condition(i.condition(), state) ? i.thenStatements() : i.elseStatements();
                 executeStatements(branch, state, changes, calls, stack);
@@ -56,6 +61,7 @@ public final class SourceReplayRunner implements ReplayRunner {
             if (statement instanceof MoveStatement m) assign(m.target(), value(m.source(), state), state, changes);
             else if (statement instanceof ComputeStatement c) assign(c.target(), arithmetic(c.expression(), state), state, changes);
             else if (statement instanceof CallStatement c) calls.add(c.target());
+            else if (statement instanceof FileOperationStatement f) fileOperation(f, state, changes);
             else if (statement instanceof IfStatement i) executeStatements(condition(i.condition(), state) ? i.thenStatements() : i.elseStatements(), state, changes, calls, stack);
             else if (statement instanceof EvaluateStatement e) executeEvaluate(e, state, changes, calls, stack);
             else throw new UnsupportedOperationException("Unsupported nested statement: " + statement.getClass().getSimpleName());
@@ -73,6 +79,15 @@ public final class SourceReplayRunner implements ReplayRunner {
             }
         }
         if (other != null) executeStatements(other.statements(), state, changes, calls, stack);
+    }
+    private void fileOperation(FileOperationStatement operation, Map<String,Object> state, List<String> changes) {
+        String name = operation.fileName().toUpperCase(Locale.ROOT);
+        List<Map<String, ?>> records = files.getOrDefault(name, List.of());
+        switch (operation.operationType()) {
+            case READ -> { if (records.isEmpty()) { state.put("FILE-STATUS", "10"); return; } records.get(0).forEach((k,v) -> state.put(k.toUpperCase(Locale.ROOT), v)); state.put("FILE-STATUS", "00"); changes.add("READ:" + name); }
+            case WRITE, REWRITE -> { state.put("FILE-STATUS", "00"); changes.add(operation.operationType() + ":" + name); }
+            case OPEN, CLOSE, DELETE -> changes.add(operation.operationType() + ":" + name);
+        }
     }
     private static boolean condition(String expression, Map<String,Object> state) {
         String c = expression.trim().replaceAll("\\s+", " ");

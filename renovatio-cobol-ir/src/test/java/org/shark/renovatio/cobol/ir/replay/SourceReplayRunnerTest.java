@@ -35,4 +35,13 @@ class SourceReplayRunnerTest {
         assertEquals("SUCCESS", result.status());
         assertEquals(7.333333333333333d, result.output().get("A"));
     }
+
+    @Test void replaysSequentialReadFromInMemoryFile() {
+        String cobol = "IDENTIFICATION DIVISION. PROGRAM-ID. DEMO.\nDATA DIVISION. WORKING-STORAGE SECTION.\n01 A PIC X(3).\nPROCEDURE DIVISION.\nMAIN.\n READ INPUT-FILE.\n GOBACK.";
+        var source = new org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser().parse(cobol);
+        var runner = new SourceReplayRunner(source, Map.of("INPUT-FILE", java.util.List.of(Map.of("A", "ABC"))));
+        var result = runner.run(new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput("case-5", Map.of()));
+        assertEquals("SUCCESS", result.status());
+        assertEquals("ABC", result.output().get("A"));
+    }
 }
