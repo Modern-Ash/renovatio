@@ -16,6 +16,9 @@ public final class SourceReplayRunner implements ReplayRunner {
 
     public SourceReplayRunner(Path source) throws IOException { this(new SimpleCobolIrParser().parse(source)); }
     public SourceReplayRunner(String source) { this(new SimpleCobolIrParser().parse(source)); }
+    public SourceReplayRunner(String source, Map<String, List<Map<String, ?>>> files, Map<String, Map<String, ?>> db2Responses) {
+        this(new SimpleCobolIrParser().parse(source), files, db2Responses);
+    }
     public SourceReplayRunner(CobolIntermediateModel program) { this(program, Map.of(), Map.of()); }
     public SourceReplayRunner(CobolIntermediateModel program, Map<String, List<Map<String, ?>>> files) {
         this(program, files, Map.of());

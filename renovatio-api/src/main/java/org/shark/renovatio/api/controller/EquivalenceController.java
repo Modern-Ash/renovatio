@@ -4,6 +4,7 @@ import org.shark.renovatio.api.service.ApiAccessService;
 import org.shark.renovatio.api.service.EquivalenceReplayService;
 import org.shark.renovatio.domain.model.EquivalenceGate;
 import org.shark.renovatio.domain.model.EquivalenceComparator;
+import org.shark.renovatio.cobol.ir.replay.SourceReplayRunner;
 import org.shark.renovatio.shared.domain.AccessRole;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -37,6 +38,16 @@ public class EquivalenceController {
         return ResponseEntity.ok(replay.replay(projectId, request.caseId(), request.input(), request.ignoredFields()));
     }
     public record ReplayRequest(String caseId, java.util.Map<String, ?> input, java.util.Set<String> ignoredFields) { }
+
+    @PostMapping("/source-replay")
+    public ResponseEntity<?> sourceReplay(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role, @RequestBody SourceReplayRequest request) {
+        if (!access.canView(AccessRole.fromString(role))) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        var runner = new SourceReplayRunner(request.source(), request.files(), request.db2Responses());
+        return ResponseEntity.ok(runner.run(new org.shark.renovatio.domain.model.ReplayRunner.ReplayInput(request.caseId(), request.input())));
+    }
+    public record SourceReplayRequest(String caseId, String source, java.util.Map<String, ?> input,
+                                      java.util.Map<String, java.util.List<java.util.Map<String, ?>>> files,
+                                      java.util.Map<String, java.util.Map<String, ?>> db2Responses) { }
 
     @GetMapping("/history")
     public ResponseEntity<?> history(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role) {
