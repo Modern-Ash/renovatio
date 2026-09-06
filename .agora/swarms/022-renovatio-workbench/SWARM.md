@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "renovatio-workbench"
 method: "spec-driven"
-status: "running"
+status: "blocked"
 branch: "agora/renovatio-workbench"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
