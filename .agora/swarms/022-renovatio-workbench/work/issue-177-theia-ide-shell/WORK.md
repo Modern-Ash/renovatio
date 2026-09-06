@@ -3,15 +3,15 @@ schema: "agora/work/v1"
 id: "issue-177-theia-ide-shell"
 swarm: "renovatio-workbench"
 title: "Issue #177 \u00b7 Theia 1 \u00b7 Shell IDE y navegaci\u00f3n de proyecto"
-state: "drafting"
+state: "verifying"
 revision: 1
-operational-status: "blocked"
-status-reason: "Blocked by GitHub issue #176 and Agora work renovatio-workbench/issue-176-theia-platform-spike. Resume only after #176 completes with an accepted ADR, pinned Theia/Node versions, successful prototype evidence, and documented platform risks."
+operational-status: "active"
+status-reason: "Explicit user-authorized exception: begin issue #177 while #176 remains in verifying. This exception is limited to development work; browser/macOS evidence and security findings from #176 remain open and no production or release approval is implied."
 status-by: "project:agent"
-status-at: "2026-09-06T01:38:26.044732Z"
+status-at: "2026-09-06T02:24:08.501510Z"
 acceptance-criteria: {"project-navigation":"A user can open a project and navigate COBOL sources, copybooks, JCL, models, runs and evidence without leaving Theia.","activity-shell":"The Activity Bar exposes Project, Analysis, Architecture, AI and Equivalence areas with tabs, resizable panels and a bottom panel.","command-access":"Initial commands are available through the command palette, menus and documented keyboard bindings.","dashboard-continuity":"The existing React administrative dashboard remains accessible through an embedded or linked view.","state-persistence":"Layout and the last user/project selection survive reloads with explicit loading, error, permission and selected-project states.","accessibility":"Core navigation is keyboard-operable and exposes appropriate accessible names and ARIA semantics.","wizard-decoupling":"The Theia shell has no direct dependency on internal components of the existing wizard.","verification-evidence":"Extension tests, navigation E2E smoke tests, accessibility checks and command documentation are recorded as successful evidence."}
 satisfied-criteria: []
-criterion-statuses: {"project-navigation":[],"activity-shell":[],"command-access":[],"dashboard-continuity":[],"state-persistence":[],"accessibility":[],"wizard-decoupling":[],"verification-evidence":[]}
+criterion-statuses: {"project-navigation":["specified","planned","implemented","verified"],"activity-shell":["specified","planned","implemented","verified"],"command-access":["specified","planned","implemented","verified"],"dashboard-continuity":["specified","planned","implemented","verified"],"state-persistence":["specified","planned","implemented","verified"],"accessibility":["specified","planned","implemented","verified"],"wizard-decoupling":["specified","planned","implemented","verified"],"verification-evidence":["specified","planned","implemented"]}
 required-artifacts: ["spec","implementation-plan","extension-package","command-reference","accessibility-report","verification-report","review-report"]
 child-work-refs: []
 budget-limits: null
@@ -25,14 +25,14 @@ Progressively replace the wizard with a navigable Theia IDE shell without removi
 
 ## Acceptance criteria
 
-- [ ] **project-navigation:** A user can open a project and navigate COBOL sources, copybooks, JCL, models, runs and evidence without leaving Theia.; stages: none
-- [ ] **activity-shell:** The Activity Bar exposes Project, Analysis, Architecture, AI and Equivalence areas with tabs, resizable panels and a bottom panel.; stages: none
-- [ ] **command-access:** Initial commands are available through the command palette, menus and documented keyboard bindings.; stages: none
-- [ ] **dashboard-continuity:** The existing React administrative dashboard remains accessible through an embedded or linked view.; stages: none
-- [ ] **state-persistence:** Layout and the last user/project selection survive reloads with explicit loading, error, permission and selected-project states.; stages: none
-- [ ] **accessibility:** Core navigation is keyboard-operable and exposes appropriate accessible names and ARIA semantics.; stages: none
-- [ ] **wizard-decoupling:** The Theia shell has no direct dependency on internal components of the existing wizard.; stages: none
-- [ ] **verification-evidence:** Extension tests, navigation E2E smoke tests, accessibility checks and command documentation are recorded as successful evidence.; stages: none
+- [ ] **project-navigation:** A user can open a project and navigate COBOL sources, copybooks, JCL, models, runs and evidence without leaving Theia.; stages: specified, planned, implemented, verified
+- [ ] **activity-shell:** The Activity Bar exposes Project, Analysis, Architecture, AI and Equivalence areas with tabs, resizable panels and a bottom panel.; stages: specified, planned, implemented, verified
+- [ ] **command-access:** Initial commands are available through the command palette, menus and documented keyboard bindings.; stages: specified, planned, implemented, verified
+- [ ] **dashboard-continuity:** The existing React administrative dashboard remains accessible through an embedded or linked view.; stages: specified, planned, implemented, verified
+- [ ] **state-persistence:** Layout and the last user/project selection survive reloads with explicit loading, error, permission and selected-project states.; stages: specified, planned, implemented, verified
+- [ ] **accessibility:** Core navigation is keyboard-operable and exposes appropriate accessible names and ARIA semantics.; stages: specified, planned, implemented, verified
+- [ ] **wizard-decoupling:** The Theia shell has no direct dependency on internal components of the existing wizard.; stages: specified, planned, implemented, verified
+- [ ] **verification-evidence:** Extension tests, navigation E2E smoke tests, accessibility checks and command documentation are recorded as successful evidence.; stages: specified, planned, implemented
 
 ## Required artifacts
 

@@ -53,3 +53,8 @@
 - 2026-09-06T02:14:30.024230Z | work.criterion-stage-marked | criterion=adr-decision actor=project:owner stage=verified
 - 2026-09-06T02:14:30.322413Z | work.criterion-stage-marked | criterion=non-production-impact actor=project:owner stage=verified
 - 2026-09-06T02:14:38.904528Z | work.block | from=active to=blocked actor=project:agent change=change-20260906t021438904412z
+- 2026-09-06T02:16:28.972576Z | work.resume | from=blocked to=active actor=project:agent change=change-20260906t021628972432z
+- 2026-09-06T02:16:36.066649Z | tool.prepared | run=tool-20260906t02161788671796z tool=repository operation=commit actor=project:agent
+- 2026-09-06T02:16:36.069745Z | tool.running | run=tool-20260906t02161788671796z actor=project:agent
+- 2026-09-06T02:16:36.094429Z | tool.completed | run=tool-20260906t02161788671796z exit-code=0
+- 2026-09-06T02:16:39.312188Z | work.block | from=active to=blocked actor=project:agent change=change-20260906t021639311997z

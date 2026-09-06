@@ -45,6 +45,7 @@ workspace service rather than exposing an arbitrary host directory.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `RENOVATIO_BACKEND_URL` | `http://127.0.0.1:8080` | Existing Spring Boot API base URL. |
+| `RENOVATIO_DASHBOARD_URL` | `http://127.0.0.1:5173/` | Existing administrative dashboard URL, opened as an external labelled link. |
 | `RENOVATIO_AUTH_MODE` | `existing-backend` | Names the existing auth adapter; this spike adds no auth protocol. |
 | `RENOVATIO_TELEMETRY_ENABLED` | `false` | Explicit opt-in signal; Theia telemetry preference is also off. |
 | `RENOVATIO_WORKSPACE_ROOT` | `/workspace` | Displayed workspace policy/root. |

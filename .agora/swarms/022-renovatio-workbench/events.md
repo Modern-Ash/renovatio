@@ -5,3 +5,6 @@
 - 2026-09-06T01:37:47.288394Z | swarm.actor-assigned | role=developer actor=project:agent
 - 2026-09-06T01:40:30.358351Z | swarm.status-changed | from=ready to=running
 - 2026-09-06T02:14:38.906680Z | swarm.status-changed | from=running to=blocked
+- 2026-09-06T02:16:28.974959Z | swarm.status-changed | from=blocked to=running
+- 2026-09-06T02:16:39.314340Z | swarm.status-changed | from=running to=blocked
+- 2026-09-06T02:24:08.503959Z | swarm.status-changed | from=blocked to=running
