@@ -27,13 +27,24 @@ public class ArchitecturePreviewService {
     @Transactional(readOnly = true)
     public ArchitecturePreviewDto preview(String projectId, MigrationProfile.ArchitectureStyle style,
                                           MigrationProfile.ModuleGrouping moduleGrouping) {
+        return preview(projectId, style, moduleGrouping, java.util.Map.of());
+    }
+
+    @Transactional(readOnly = true)
+    public ArchitecturePreviewDto preview(String projectId, MigrationProfile.ArchitectureStyle style,
+                                          MigrationProfile.ModuleGrouping moduleGrouping,
+                                          java.util.Map<String, String> options) {
         ProjectEntity project = projects.findById(projectId)
                 .orElseThrow(() -> new ProjectNotFoundException(projectId));
         Workspace workspace = new Workspace(project.getId(), project.getWorkspacePath(), project.getBranch());
         MigrationProfiles.EffectiveProfile effective = decisions.effective(projectId);
         MigrationProfile.Architecture current = effective.profile().architecture();
         MigrationProfile profile = effective.profile();
-        MigrationProfile draft = new MigrationProfile(profile.schemaVersion(), profile.extensions(), profile.target(),
+        java.util.Map<String, Object> extensions = new java.util.LinkedHashMap<>(profile.extensions());
+        (options == null ? java.util.Map.<String, String>of() : options).forEach((key, value) -> {
+            if (key.startsWith("java.layout.") && value != null && !value.isBlank()) extensions.put(key, value);
+        });
+        MigrationProfile draft = new MigrationProfile(profile.schemaVersion(), extensions, profile.target(),
                 new MigrationProfile.Architecture(style == null ? current.style() : style,
                         moduleGrouping == null ? current.moduleGrouping() : moduleGrouping),
                 profile.runtime(), profile.persistence(), profile.style(), profile.llm());

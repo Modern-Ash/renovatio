@@ -52,11 +52,12 @@ public class ArchitecturePreviewController {
             @PathVariable String projectId,
             @RequestHeader(value = "X-Role", required = false) String role,
             @RequestParam(required = false) MigrationProfile.ArchitectureStyle style,
-            @RequestParam(required = false) MigrationProfile.ModuleGrouping moduleGrouping) {
+            @RequestParam(required = false) MigrationProfile.ModuleGrouping moduleGrouping,
+            @RequestParam java.util.Map<String, String> options) {
         if (!access.canView(AccessRole.fromString(role))) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        return ResponseEntity.ok(previews.preview(projectId, style, moduleGrouping));
+        return ResponseEntity.ok(previews.preview(projectId, style, moduleGrouping, options));
     }
 
     /** Projects a confirmed, versioned DomainModel for dashboard/workbench use. */

@@ -142,10 +142,13 @@ export function getEffectiveProfile(projectId) {
   return apiCall(`/projects/${projectId}/profile:effective`)
 }
 
-export function getArchitecturePreview(projectId, { style, moduleGrouping, signal } = {}) {
+export function getArchitecturePreview(projectId, { style, moduleGrouping, namingOptions, signal } = {}) {
   const query = new URLSearchParams()
   if (style) query.set('style', style)
   if (moduleGrouping) query.set('moduleGrouping', moduleGrouping)
+  Object.entries(namingOptions || {}).filter(([key]) => key.startsWith('java.layout.')).forEach(([key, value]) => {
+    if (value) query.set(key, value)
+  })
   const suffix = query.toString() ? `?${query}` : ''
   return apiCall(`/projects/${projectId}/architecture-preview${suffix}`, { signal })
 }

@@ -223,9 +223,10 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
     setPreviewLoading(true)
     setPreviewError('')
     const timer = window.setTimeout(() => {
-      getArchitecturePreview(id, {
+        getArchitecturePreview(id, {
         style: form.architecture.style,
         moduleGrouping: form.architecture.moduleGrouping,
+        namingOptions: form.extensions,
         signal: controller.signal
       }).then((result) => {
         if (!active) return
