@@ -29,18 +29,25 @@ public final class JavaArchitectureLayoutPlanner implements ArtifactLayoutPlanne
                 ArchitectureGraph.ComponentKind.SERVICE, ArchitectureGraph.ComponentKind.INBOUND_PORT);
         String prefix = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.HEXAGONAL
                 ? "modules/" + context.moduleName() + "/" : "";
+        if (context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC) {
+            prefix = "modules/" + context.moduleName() + "/";
+        }
         List<PlannedArtifact> result = new ArrayList<>();
-        result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "domain/model/")
+        String modelPath = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "model/" : "domain/model/";
+        String contractPath = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "service/" : "application/port/in/";
+        String implementationPath = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "service/" : "application/service/";
+        result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : modelPath)
                 + classBase + "DTO.java", model, "data-transfer-object"));
-        result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "application/port/in/")
+        result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : contractPath)
                 + classBase + "Service.java", contract, "service-contract"));
-        result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "application/service/")
+        result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : implementationPath)
                 + classBase + "ServiceImpl.java", implementation, "service-implementation"));
         if (context.program().ioOperations().stream()
                 .anyMatch(operation -> operation.ioKind() == SemanticProgram.IoKind.TRANSACTION)) {
             String adapter = component(context, ArchitectureGraph.ComponentKind.ADAPTER,
                     ArchitectureGraph.ComponentKind.OUTBOUND_PORT, ArchitectureGraph.ComponentKind.SERVICE);
-            result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "adapter/in/web/")
+            String webPath = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "web/" : "adapter/in/web/";
+            result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : webPath)
                     + classBase + "CicsController.java", adapter, "cics-controller"));
         }
         return List.copyOf(result);
