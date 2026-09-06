@@ -1,0 +1,6 @@
+{
+  "files": [],
+  "references": [
+    { "path": "extensions/renovatio-core-ui" }
+  ]
+}

@@ -1,0 +1,178 @@
+.renovatio-workbench-widget {
+    --renovatio-ink: #eef8f5;
+    --renovatio-muted: #92aaa4;
+    --renovatio-grid: rgba(45, 225, 194, 0.13);
+    --renovatio-accent: #2de1c2;
+    --renovatio-hazard: #ffb400;
+    --renovatio-panel: rgba(9, 21, 23, 0.9);
+    background:
+        linear-gradient(135deg, rgba(45, 225, 194, 0.05), transparent 42%),
+        repeating-linear-gradient(135deg, transparent 0 14px, var(--renovatio-grid) 15px 16px),
+        #071012;
+    color: var(--renovatio-ink);
+    font-family: Barlow, "Segoe UI", sans-serif;
+    overflow: auto;
+}
+
+.renovatio-workbench-widget:focus-visible {
+    outline: 2px solid var(--renovatio-hazard);
+    outline-offset: -3px;
+}
+
+.renovatio-surface {
+    min-height: 100%;
+    padding: clamp(20px, 4vw, 48px);
+    box-sizing: border-box;
+}
+
+.renovatio-header {
+    border-left: 5px solid var(--renovatio-hazard);
+    padding: 8px 0 12px 20px;
+    margin-bottom: 28px;
+}
+
+.renovatio-kicker,
+.renovatio-coordinate {
+    color: var(--renovatio-accent);
+    font: 600 11px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.14em;
+}
+
+.renovatio-header h1 {
+    font: 800 clamp(28px, 5vw, 58px)/0.95 "Arial Narrow", "Roboto Condensed", sans-serif;
+    letter-spacing: -0.035em;
+    margin: 10px 0;
+}
+
+.renovatio-header p {
+    color: var(--renovatio-muted);
+    font-size: 15px;
+    margin: 0;
+    max-width: 56ch;
+}
+
+.renovatio-status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.renovatio-panel,
+.renovatio-flow {
+    background: var(--renovatio-panel);
+    border: 1px solid rgba(238, 248, 245, 0.22);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+    padding: 18px;
+    position: relative;
+}
+
+.renovatio-panel::after,
+.renovatio-flow::after {
+    border-right: 8px solid var(--renovatio-accent);
+    border-top: 8px solid transparent;
+    bottom: 4px;
+    content: "";
+    position: absolute;
+    right: 4px;
+}
+
+.renovatio-panel-primary {
+    border-top: 3px solid var(--renovatio-hazard);
+}
+
+.renovatio-panel h2,
+.renovatio-flow h2 {
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    margin: 14px 0;
+}
+
+.renovatio-signal-row {
+    align-items: center;
+    display: flex;
+    gap: 9px;
+    min-height: 34px;
+}
+
+.renovatio-signal {
+    background: var(--renovatio-accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 5px rgba(45, 225, 194, 0.12);
+    height: 9px;
+    width: 9px;
+}
+
+.renovatio-panel dl,
+.renovatio-panel dd {
+    margin: 0;
+}
+
+.renovatio-panel dl > div {
+    border-top: 1px solid rgba(238, 248, 245, 0.13);
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 90px minmax(0, 1fr);
+    padding: 8px 0;
+}
+
+.renovatio-panel dt {
+    color: var(--renovatio-muted);
+}
+
+.renovatio-panel dd {
+    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-flow {
+    align-items: center;
+    display: grid;
+    gap: 28px;
+    grid-template-columns: minmax(160px, 0.65fr) 2fr;
+    margin-top: 12px;
+}
+
+.renovatio-flow ol {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(3, 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-flow li {
+    border-left: 2px solid var(--renovatio-accent);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 7px 10px;
+}
+
+.renovatio-flow li span {
+    color: var(--renovatio-muted);
+    font-size: 12px;
+}
+
+@media (max-width: 860px) {
+    .renovatio-status-grid,
+    .renovatio-flow,
+    .renovatio-flow ol {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .renovatio-panel,
+    .renovatio-flow {
+        animation: renovatio-enter 280ms linear both;
+    }
+
+    .renovatio-panel:nth-child(2) { animation-delay: 60ms; }
+    .renovatio-panel:nth-child(3) { animation-delay: 120ms; }
+}
+
+@keyframes renovatio-enter {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}

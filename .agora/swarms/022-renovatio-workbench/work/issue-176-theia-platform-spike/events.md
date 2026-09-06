@@ -1,0 +1,26 @@
+# Work events
+
+- 2026-09-06T01:38:05.832343Z | work.created | state=drafting actor=project:owner
+- 2026-09-06T01:39:32.916630Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-06T01:40:12.063048Z | artifact.added | kind=spec uri=.agora/swarms/022-renovatio-workbench/work/issue-176-theia-platform-spike/spec.md actor=project:owner
+- 2026-09-06T01:40:19.954923Z | work.criterion-stage-marked | criterion=prototype-build actor=project:owner stage=specified
+- 2026-09-06T01:40:20.182421Z | work.criterion-stage-marked | criterion=renovatio-widget actor=project:owner stage=specified
+- 2026-09-06T01:40:20.400948Z | work.criterion-stage-marked | criterion=platform-distribution actor=project:owner stage=specified
+- 2026-09-06T01:40:20.637252Z | work.criterion-stage-marked | criterion=extension-compatibility actor=project:owner stage=specified
+- 2026-09-06T01:40:20.869276Z | work.criterion-stage-marked | criterion=environment-security actor=project:owner stage=specified
+- 2026-09-06T01:40:21.091358Z | work.criterion-stage-marked | criterion=adr-decision actor=project:owner stage=specified
+- 2026-09-06T01:40:21.321939Z | work.criterion-stage-marked | criterion=non-production-impact actor=project:owner stage=specified
+- 2026-09-06T01:40:21.545205Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=specified
+- 2026-09-06T01:40:30.355728Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-06T01:40:53.827068Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-06T01:48:00.709104Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-06T01:48:24.297861Z | artifact.added | kind=implementation-plan uri=repo://.agora/swarms/022-renovatio-workbench/work/issue-176-theia-platform-spike/implementation-plan.md actor=project:agent
+- 2026-09-06T01:48:24.564314Z | work.criterion-stage-marked | criterion=prototype-build actor=project:owner stage=planned
+- 2026-09-06T01:48:24.824001Z | work.criterion-stage-marked | criterion=renovatio-widget actor=project:owner stage=planned
+- 2026-09-06T01:48:25.083682Z | work.criterion-stage-marked | criterion=platform-distribution actor=project:owner stage=planned
+- 2026-09-06T01:48:25.343104Z | work.criterion-stage-marked | criterion=extension-compatibility actor=project:owner stage=planned
+- 2026-09-06T01:48:25.576286Z | work.criterion-stage-marked | criterion=environment-security actor=project:owner stage=planned
+- 2026-09-06T01:48:25.817939Z | work.criterion-stage-marked | criterion=adr-decision actor=project:owner stage=planned
+- 2026-09-06T01:48:26.050370Z | work.criterion-stage-marked | criterion=non-production-impact actor=project:owner stage=planned
+- 2026-09-06T01:48:26.274179Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=planned
+- 2026-09-06T01:48:40.740482Z | work.transitioned | from=planned to=implementing actor=project:agent
