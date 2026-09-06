@@ -13,7 +13,7 @@ import DomainModelReview from '../components/DomainModelReview'
 const ARCHITECTURES = [
   { value: 'TRANSACTION_SCRIPT', label: 'Transaction script', active: true },
   { value: 'HEXAGONAL', label: 'Hexagonal', active: true },
-  { value: 'LAYERED_MVC', label: 'Layered MVC · later', active: false }
+  { value: 'LAYERED_MVC', label: 'Layered MVC', active: true }
 ]
 
 const GROUPINGS = [
