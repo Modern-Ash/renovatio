@@ -114,7 +114,8 @@ public final class ArchitectureTransformer {
         if (planner == null) return List.of();
         List<ArtifactLayoutPlanner.PlannedArtifact> planned = List.copyOf(Objects.requireNonNull(planner.plan(
                 new ArtifactLayoutPlanner.LayoutContext(request.requestHash(), moduleId, moduleName, program,
-                        transformed.effectiveStyle(), transformed.components())), "artifact plan"));
+                        transformed.effectiveStyle(), transformed.components(),
+                        request.effectiveProfile().profile().extensions())), "artifact plan"));
         return planned.stream().map(value -> new ArtifactManifest.Artifact(
                 ArchitectureSupport.id(request.requestHash(), "ARTIFACT", moduleId, program.programId(),
                         value.role()), value.path(), value.componentId(), moduleId, program.programId(), language,

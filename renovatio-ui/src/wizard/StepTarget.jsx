@@ -202,16 +202,18 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
     }, [id])
 
   useEffect(() => {
-    if (data?.domainModel) return undefined
+    let loadDomainModel
+    try { loadDomainModel = getDomainModel } catch { return undefined }
+    if (data?.domainModel || typeof loadDomainModel !== 'function') return undefined
     let active = true
-    getDomainModel(id).then((model) => {
+    loadDomainModel(id).then((model) => {
       if (active && model) onChange({ domainModel: model })
     }).catch(() => { /* first run has no persisted model */ })
     return () => { active = false }
   }, [id])
 
   const selectionKey = form
-    ? `${form.architecture.style}:${form.architecture.moduleGrouping}`
+    ? `${form.architecture.style}:${form.architecture.moduleGrouping}:${JSON.stringify(form.extensions || {})}`
     : ''
 
   useEffect(() => {
@@ -251,6 +253,12 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
     setError('')
   }
 
+  const updateLayoutOption = (key, value) => {
+    setForm((current) => ({ ...current, extensions: { ...(current.extensions || {}), [key]: value } }))
+    setViolations([])
+    setError('')
+  }
+
   const toggleSuggestions = (enabled) => {
     setForm((current) => ({
       ...current,
@@ -265,7 +273,7 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
     const overlay = {
       ...stored,
       schemaVersion: '1',
-      extensions: stored?.extensions || {},
+      extensions: { ...(stored?.extensions || {}), ...(form.extensions || {}) },
       target: form.target,
       architecture: form.architecture,
       runtime: form.runtime,
@@ -347,6 +355,32 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
             </select>
             <p className="preview-note">Only source-proven components and relations appear in the topology.</p>
           </fieldset>
+
+          {form.target.language === 'JAVA' && <fieldset className="control-panel">
+            <legend>Java package & naming</legend>
+            <p className="preview-note">Editable convention. The shadow preview updates immediately; blank values restore Java defaults.</p>
+            <div className="compact-control-grid">
+              <label><span className="field-label">Model package</span>
+                <input className="input" value={form.extensions?.['java.layout.modelPackage'] || ''} placeholder="model" onChange={(event) => updateLayoutOption('java.layout.modelPackage', event.target.value)} />
+              </label>
+              <label><span className="field-label">Service package</span>
+                <input className="input" value={form.extensions?.['java.layout.servicePackage'] || ''} placeholder="service" onChange={(event) => updateLayoutOption('java.layout.servicePackage', event.target.value)} />
+              </label>
+              <label><span className="field-label">Controller package</span>
+                <input className="input" value={form.extensions?.['java.layout.controllerPackage'] || ''} placeholder="web (MVC)" onChange={(event) => updateLayoutOption('java.layout.controllerPackage', event.target.value)} />
+              </label>
+              <label><span className="field-label">DTO suffix</span>
+                <input className="input" value={form.extensions?.['java.layout.dtoSuffix'] || ''} placeholder="DTO" onChange={(event) => updateLayoutOption('java.layout.dtoSuffix', event.target.value)} />
+              </label>
+              <label><span className="field-label">Service suffix</span>
+                <input className="input" value={form.extensions?.['java.layout.serviceSuffix'] || ''} placeholder="Service" onChange={(event) => updateLayoutOption('java.layout.serviceSuffix', event.target.value)} />
+              </label>
+              <label><span className="field-label">Controller suffix</span>
+                <input className="input" value={form.extensions?.['java.layout.controllerSuffix'] || ''} placeholder="Controller" onChange={(event) => updateLayoutOption('java.layout.controllerSuffix', event.target.value)} />
+              </label>
+            </div>
+            <p className="preview-note">Ejemplo MVC: <code>...modules.cbtrn02c.model</code>, <code>...service</code>, <code>...web</code>.</p>
+          </fieldset>}
 
           <div className="control-panel compact-control-grid">
             <label><span className="field-label">Framework</span>

@@ -4,6 +4,7 @@ import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 /** Target adapter boundary for producing a canonical pre-emission path plan. */
@@ -14,7 +15,13 @@ public interface ArtifactLayoutPlanner {
 
     record LayoutContext(String requestHash, String moduleId, String moduleName,
                          SemanticProgram program, MigrationProfile.ArchitectureStyle effectiveStyle,
-                         List<ArchitectureGraph.Component> components) {
+                         List<ArchitectureGraph.Component> components,
+                         Map<String, Object> namingOptions) {
+        public LayoutContext(String requestHash, String moduleId, String moduleName,
+                             SemanticProgram program, MigrationProfile.ArchitectureStyle effectiveStyle,
+                             List<ArchitectureGraph.Component> components) {
+            this(requestHash, moduleId, moduleName, program, effectiveStyle, components, Map.of());
+        }
         public LayoutContext {
             requestHash = ArchitectureSupport.hash(requestHash, "requestHash");
             moduleId = ArchitectureSupport.hash(moduleId, "moduleId");
@@ -22,6 +29,7 @@ public interface ArtifactLayoutPlanner {
             Objects.requireNonNull(program, "program");
             Objects.requireNonNull(effectiveStyle, "effectiveStyle");
             components = List.copyOf(Objects.requireNonNull(components, "components"));
+            namingOptions = namingOptions == null ? Map.of() : Map.copyOf(namingOptions);
             for (ArchitectureGraph.Component component : components) {
                 if (!moduleId.equals(component.moduleId())
                         || !program.programId().equals(component.programId())) {

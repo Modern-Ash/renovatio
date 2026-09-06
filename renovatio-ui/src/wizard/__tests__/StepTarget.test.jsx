@@ -53,7 +53,7 @@ describe('StepTarget', () => {
     expect(await screen.findByRole('heading', { name: /choose the target shape/i })).toBeTruthy()
     expect(screen.getByLabelText(/node · later/i).disabled).toBe(true)
     expect(screen.getByLabelText(/python · later/i).disabled).toBe(true)
-    expect(screen.getByLabelText(/layered mvc · later/i).disabled).toBe(true)
+    expect(screen.getByLabelText(/layered mvc/i).disabled).toBe(false)
     expect(await screen.findByRole('heading', { name: /artifact tree/i })).toBeTruthy()
     expect(screen.getByText('PreviewDTO.java')).toBeTruthy()
     expect(screen.getByRole('img', { name: /architecture component diagram/i })).toBeTruthy()

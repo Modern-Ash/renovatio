@@ -9,6 +9,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 /** Canonical Java layout shared by preview and Java emission orchestration. */
 public final class JavaArchitectureLayoutPlanner implements ArtifactLayoutPlanner {
@@ -33,24 +35,45 @@ public final class JavaArchitectureLayoutPlanner implements ArtifactLayoutPlanne
             prefix = "modules/" + context.moduleName() + "/";
         }
         List<PlannedArtifact> result = new ArrayList<>();
-        String modelPath = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "model/" : "domain/model/";
-        String contractPath = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "service/" : "application/port/in/";
-        String implementationPath = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "service/" : "application/service/";
+        String modelPath = path(context, "java.layout.modelPackage",
+                context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "model" : "domain/model");
+        String contractPath = path(context, "java.layout.servicePackage",
+                context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "service" : "application/port/in");
+        String implementationPath = path(context, "java.layout.servicePackage",
+                context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "service" : "application/service");
+        String dtoSuffix = option(context, "java.layout.dtoSuffix", "DTO");
+        String serviceSuffix = option(context, "java.layout.serviceSuffix", "Service");
+        String serviceImplSuffix = option(context, "java.layout.serviceImplSuffix", "ServiceImpl");
         result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : modelPath)
-                + classBase + "DTO.java", model, "data-transfer-object"));
+                + classBase + dtoSuffix + ".java", model, "data-transfer-object"));
         result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : contractPath)
-                + classBase + "Service.java", contract, "service-contract"));
+                + classBase + serviceSuffix + ".java", contract, "service-contract"));
         result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : implementationPath)
-                + classBase + "ServiceImpl.java", implementation, "service-implementation"));
+                + classBase + serviceImplSuffix + ".java", implementation, "service-implementation"));
         if (context.program().ioOperations().stream()
                 .anyMatch(operation -> operation.ioKind() == SemanticProgram.IoKind.TRANSACTION)) {
             String adapter = component(context, ArchitectureGraph.ComponentKind.ADAPTER,
                     ArchitectureGraph.ComponentKind.OUTBOUND_PORT, ArchitectureGraph.ComponentKind.SERVICE);
-            String webPath = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "web/" : "adapter/in/web/";
+            String webPath = path(context, "java.layout.controllerPackage",
+                    context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "web" : "adapter/in/web");
+            String controllerSuffix = option(context, "java.layout.controllerSuffix", "Controller");
             result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : webPath)
-                    + classBase + "CicsController.java", adapter, "cics-controller"));
+                    + classBase + controllerSuffix + ".java", adapter, "cics-controller"));
         }
         return List.copyOf(result);
+    }
+
+    private static String path(LayoutContext context, String key, String fallback) {
+        String value = option(context, key, fallback).replace('.', '/').replaceAll("/+", "/");
+        if (value.startsWith("/") || value.contains("..")) throw new IllegalArgumentException("invalid Java layout path: " + value);
+        return value.endsWith("/") ? value : value + "/";
+    }
+
+    private static String option(LayoutContext context, String key, String fallback) {
+        Object value = context.namingOptions().get(key);
+        String text = value == null ? fallback : String.valueOf(value).trim();
+        if (text.isBlank() || !text.matches("[A-Za-z][A-Za-z0-9_.-]*")) return fallback;
+        return text;
     }
 
     private static String component(LayoutContext context, ArchitectureGraph.ComponentKind... preferred) {
