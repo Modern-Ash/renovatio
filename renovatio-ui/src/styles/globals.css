@@ -298,8 +298,28 @@ body {
   @apply mt-2 text-xs text-gray-400;
 }
 
+.architecture-diagram-shell {
+  @apply overflow-hidden rounded border border-gray-700 bg-gray-950/70;
+}
+
+.architecture-diagram-viewport {
+  @apply max-h-[430px] overflow-auto;
+}
+
 .architecture-diagram {
-  @apply w-full rounded border border-gray-700 bg-gray-950/70;
+  @apply block min-w-full rounded bg-gray-950/70 transition-[width] duration-200;
+}
+
+.diagram-controls {
+  @apply flex items-center justify-end gap-2 border-b border-gray-800 px-2 py-1.5;
+}
+
+.diagram-controls button {
+  @apply rounded border border-gray-700 bg-gray-900 px-2 py-1 font-mono text-[10px] text-gray-300 transition-colors hover:border-teal-300 hover:text-teal-200 focus:outline-none focus:ring-1 focus:ring-teal-300;
+}
+
+.diagram-controls span {
+  @apply min-w-[42px] text-center font-mono text-[10px] text-gray-500;
 }
 
 .diagram-node {

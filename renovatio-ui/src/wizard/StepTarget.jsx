@@ -23,6 +23,7 @@ const GROUPINGS = [
 ]
 
 function ArchitectureDiagram({ preview }) {
+  const [zoom, setZoom] = useState(1)
   const layout = useMemo(() => {
     const columns = 2
     const width = 640
@@ -39,7 +40,15 @@ function ArchitectureDiagram({ preview }) {
   }, [preview])
 
   return (
-    <svg className="architecture-diagram" viewBox={`0 0 ${layout.width} ${layout.height}`}
+    <div className="architecture-diagram-shell">
+      <div className="diagram-controls" role="group" aria-label="Controles del mapa">
+        <button type="button" onClick={() => setZoom(Math.max(.7, zoom - .1))} aria-label="Alejar mapa">−</button>
+        <span>{Math.round(zoom * 100)}%</span>
+        <button type="button" onClick={() => setZoom(Math.min(1.8, zoom + .1))} aria-label="Acercar mapa">+</button>
+        <button type="button" onClick={() => setZoom(1)} aria-label="Restablecer zoom">Restablecer</button>
+      </div>
+      <div className="architecture-diagram-viewport">
+    <svg className="architecture-diagram" style={{ width: `${zoom * 100}%` }} viewBox={`0 0 ${layout.width} ${layout.height}`}
       role="img" aria-labelledby="architecture-diagram-title architecture-diagram-description">
       <title id="architecture-diagram-title">Architecture component diagram</title>
       <desc id="architecture-diagram-description">
@@ -61,6 +70,8 @@ function ArchitectureDiagram({ preview }) {
         </g>
       })}
     </svg>
+      </div>
+    </div>
   )
 }
 
