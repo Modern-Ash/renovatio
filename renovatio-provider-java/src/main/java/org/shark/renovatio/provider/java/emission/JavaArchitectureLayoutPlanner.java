@@ -55,7 +55,7 @@ public final class JavaArchitectureLayoutPlanner implements ArtifactLayoutPlanne
             String adapter = component(context, ArchitectureGraph.ComponentKind.ADAPTER,
                     ArchitectureGraph.ComponentKind.OUTBOUND_PORT, ArchitectureGraph.ComponentKind.SERVICE);
             String webPath = path(context, "java.layout.controllerPackage",
-                    context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "web" : "adapter/in/web");
+                    context.effectiveStyle() == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "controller" : "adapter/in/web");
             String controllerSuffix = option(context, "java.layout.controllerSuffix", "Controller");
             result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : webPath)
                     + classBase + controllerSuffix + ".java", adapter, "cics-controller"));

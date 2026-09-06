@@ -368,7 +368,7 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
                 <input className="input" value={form.extensions?.['java.layout.servicePackage'] || ''} placeholder="service" onChange={(event) => updateLayoutOption('java.layout.servicePackage', event.target.value)} />
               </label>
               <label><span className="field-label">Controller package</span>
-                <input className="input" value={form.extensions?.['java.layout.controllerPackage'] || ''} placeholder="web (MVC)" onChange={(event) => updateLayoutOption('java.layout.controllerPackage', event.target.value)} />
+                <input className="input" value={form.extensions?.['java.layout.controllerPackage'] || ''} placeholder="controller" onChange={(event) => updateLayoutOption('java.layout.controllerPackage', event.target.value)} />
               </label>
               <label><span className="field-label">DTO suffix</span>
                 <input className="input" value={form.extensions?.['java.layout.dtoSuffix'] || ''} placeholder="DTO" onChange={(event) => updateLayoutOption('java.layout.dtoSuffix', event.target.value)} />
@@ -380,7 +380,7 @@ function StepTarget({ projectId, data, onChange, onNext, onBack }) {
                 <input className="input" value={form.extensions?.['java.layout.controllerSuffix'] || ''} placeholder="Controller" onChange={(event) => updateLayoutOption('java.layout.controllerSuffix', event.target.value)} />
               </label>
             </div>
-            <p className="preview-note">Ejemplo MVC: <code>...modules.cbtrn02c.model</code>, <code>...service</code>, <code>...web</code>.</p>
+            <p className="preview-note">Ejemplo MVC: <code>...modules.cbtrn02c.model</code>, <code>...service</code>, <code>...controller</code>.</p>
           </fieldset>}
 
           <div className="control-panel compact-control-grid">
