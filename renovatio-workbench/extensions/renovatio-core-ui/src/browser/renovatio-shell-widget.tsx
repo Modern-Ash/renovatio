@@ -61,7 +61,11 @@ type ChangeSetFile = { path: string; action: string; beforeHash: string; afterHa
 type ChangeSetDiff = { summary: string; requiredBeforeApproval: string[]; files: Array<{ path: string; action: string; beforeHash: string; afterHash: string; preview: string }> };
 type ChangeSetAudit = { actor: string; action: string; at: string; reason: string; manifestHash: string };
 type WorkbenchChangeSet = { id: string; projectId: string; title: string; state: string; dangerous: boolean; manifestHash: string; approvedManifestHash: string | null; files: ChangeSetFile[]; decisions: string[]; evidence: string[]; diff: ChangeSetDiff; history: ChangeSetAudit[] };
-type WorkbenchEquivalence = { evidence: Array<{ id: string; name: string }>; generatedTargets: Array<{ id: string; name: string }>; verdicts: Array<{ fixtureId: string; classification: string; reason: string; blocksRelease: boolean }> };
+type EquivalenceFixture = { id: string; name: string; sourceId: string; baselineId: string; candidateId: string; inputs: { fields: Record<string, string>; sequentialFiles: Array<{ ddName: string; contentHash: string; preview: string }>; db2Responses: Array<{ statementId: string; sqlState: string; rows: Record<string, string>[] }> }; evidenceRefs: string[]; reproducibilityHash: string };
+type EquivalenceDivergence = { id: string; kind: string; severity: string; evidenceRef: string; summary: string; triageStatus: string; triageReason: string };
+type EquivalenceRun = { id: string; fixtureId: string; state: string; progress: number; startedAt: string; finishedAt: string | null; baselineHash: string; candidateHash: string; commit: string; profileHash: string; changeSetId: string; logs: string[]; comparison: { state: string; outputsMatch: boolean; filesMatch: boolean; sqlMatches: boolean; comparedArtifacts: string[] }; divergences: EquivalenceDivergence[]; reportHash: string };
+type EquivalenceGate = { promotable: boolean; status: string; blockers: string[]; readinessReason: string };
+type WorkbenchEquivalence = { evidence: Array<{ id: string; name: string }>; generatedTargets: Array<{ id: string; name: string }>; verdicts: Array<{ fixtureId: string; classification: string; reason: string; blocksRelease: boolean }>; fixtures: EquivalenceFixture[]; runs: EquivalenceRun[]; gate: EquivalenceGate; history: Array<{ actor: string; action: string; at: string; targetId: string; reason: string; hash: string }> };
 type ShadowStage = { name: string; revision: number; hash: string; itemCount: number; status: string };
 type ShadowSourceImpact = { sourcePath: string; kind: string; symbolCount: number; domainElementIds: string[]; artifactPaths: string[] };
 type ShadowArtifactImpact = { path: string; role: string; layer: string; componentId: string; status: string; determinism: string; sourceRefs: string[]; domainElementIds: string[]; evidenceRefs: string[] };
@@ -136,6 +140,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected changeSetNotice = '';
     protected equivalence?: WorkbenchEquivalence;
     protected equivalenceState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
+    protected equivalenceNotice = '';
     protected shadowImpact?: WorkbenchShadowImpact;
     protected shadowImpactState: AreaState = 'idle';
     protected shadowImpactRequest = 0;
@@ -467,9 +472,65 @@ export class RenovatioShellWidget extends ReactWidget {
             const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/equivalence`);
             if (!response.ok) throw new Error(`Equivalence adapter returned ${response.status}`);
             this.equivalence = await response.json() as WorkbenchEquivalence;
-            this.equivalenceState = this.equivalence.evidence.length || this.equivalence.generatedTargets.length || this.equivalence.verdicts.length ? 'ready' : 'empty';
-        } catch { this.equivalenceState = 'error'; }
+            this.equivalenceState = this.equivalence.evidence.length || this.equivalence.generatedTargets.length || this.equivalence.verdicts.length || this.equivalence.fixtures.length || this.equivalence.runs.length ? 'ready' : 'empty';
+            this.equivalenceNotice = this.equivalence.gate.promotable ? 'Equivalence gate is ready for promotion.' : this.equivalence.gate.readinessReason;
+        } catch { this.equivalenceState = 'error'; this.equivalenceNotice = 'Equivalence Lab is unavailable; no promotion gate can pass.'; }
         this.update();
+    }
+
+    protected async startEquivalenceRun(fixture: EquivalenceFixture): Promise<void> {
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/equivalence/runs`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ fixtureId: fixture.id, baselineId: fixture.baselineId, candidateId: fixture.candidateId, inputOverrides: fixture.inputs.fields })
+            });
+            if (!response.ok) throw new Error(`Equivalence run rejected ${response.status}`);
+            await this.loadEquivalence();
+        } catch { this.equivalenceState = 'error'; this.equivalenceNotice = 'The equivalence run was rejected or could not start.'; this.update(); }
+    }
+
+    protected async repeatEquivalenceRun(run: EquivalenceRun): Promise<void> {
+        await this.postEquivalenceRunAction(run, 'repeat');
+    }
+
+    protected async cancelEquivalenceRun(run: EquivalenceRun): Promise<void> {
+        await this.postEquivalenceRunAction(run, 'cancel');
+    }
+
+    protected async triageEquivalenceDivergence(run: EquivalenceRun, divergence: EquivalenceDivergence, action: 'accepted-difference' | 'defect' | 'needs-ai-analysis'): Promise<void> {
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/equivalence/runs/${encodeURIComponent(run.id)}/divergences/${encodeURIComponent(divergence.id)}:triage`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, reason: `Marked ${action} from Theia Equivalence Lab` })
+            });
+            if (!response.ok) throw new Error(`Triage rejected ${response.status}`);
+            await this.loadEquivalence();
+        } catch { this.equivalenceState = 'error'; this.equivalenceNotice = 'Divergence triage was rejected; promotion remains blocked.'; this.update(); }
+    }
+
+    protected async postEquivalenceRunAction(run: EquivalenceRun, action: 'repeat' | 'cancel'): Promise<void> {
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/equivalence/runs/${encodeURIComponent(run.id)}:${action}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }
+            });
+            if (!response.ok) throw new Error(`Equivalence ${action} rejected ${response.status}`);
+            await this.loadEquivalence();
+        } catch { this.equivalenceState = 'error'; this.equivalenceNotice = `Equivalence ${action} was rejected.`; this.update(); }
+    }
+
+    protected async exportEquivalenceReport(run: EquivalenceRun): Promise<void> {
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/equivalence/runs/${encodeURIComponent(run.id)}/report`);
+            if (!response.ok) throw new Error('Report unavailable');
+            const report = await response.json();
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.download = `renovatio-equivalence-${this.selectedProject}-${run.reportHash.slice(7, 19)}.json`;
+            anchor.click();
+            URL.revokeObjectURL(url);
+        } catch { this.equivalenceNotice = 'Equivalence report export failed.'; this.update(); }
     }
 
     protected async loadShadowImpact(): Promise<void> {
@@ -1372,6 +1433,82 @@ export class RenovatioShellWidget extends ReactWidget {
         </section>;
     }
 
+    protected renderEquivalenceLab(): React.ReactNode {
+        const lab = this.equivalence;
+        return <section className='renovatio-equivalence-lab' aria-label='Integrated Equivalence Lab'>
+            <div className='renovatio-architecture-toolbar'>
+                <strong>EQUIVALENCE LAB · {this.equivalenceState.toUpperCase()}</strong>
+                <button type='button' onClick={() => void this.loadEquivalence()} disabled={this.equivalenceState === 'loading'}>Refresh</button>
+            </div>
+            {this.equivalenceNotice && <p>{this.equivalenceNotice}</p>}
+            {lab && <div className='renovatio-equivalence-grid'>
+                <section aria-label='Equivalence fixture selector'>
+                    <h3>Sources, cases, baseline and candidate</h3>
+                    <ol>{lab.fixtures.map(fixture => <li key={fixture.id} className='renovatio-equivalence-card'>
+                        <strong>{fixture.name}</strong>
+                        <span>source {fixture.sourceId} · baseline {fixture.baselineId} · candidate {fixture.candidateId}</span>
+                        <small>repeat hash {fixture.reproducibilityHash}</small>
+                        <small>evidence {fixture.evidenceRefs.join(', ') || 'none'}</small>
+                        <button type='button' onClick={() => void this.startEquivalenceRun(fixture)}>Run COBOL case in Theia</button>
+                    </li>)}</ol>
+                </section>
+                <section aria-label='Input editor for sequential files and DB2 responses'>
+                    <h3>Inputs, sequential files and DB2 responses</h3>
+                    {lab.fixtures.map(fixture => <article key={`${fixture.id}:inputs`} className='renovatio-equivalence-card'>
+                        <strong>{fixture.id}</strong>
+                        <p>Fields: {Object.entries(fixture.inputs.fields).map(([key, value]) => `${key}=${value}`).join(' · ') || 'none'}</p>
+                        <p>Sequential files: {fixture.inputs.sequentialFiles.map(file => `${file.ddName}:${file.contentHash.slice(0, 18)}…`).join(' · ') || 'none'}</p>
+                        <p>DB2 responses: {fixture.inputs.db2Responses.map(row => `${row.statementId}:${row.sqlState}`).join(' · ') || 'none'}</p>
+                    </article>)}
+                </section>
+                <section aria-label='Async execution progress logs and cancellation'>
+                    <h3>Async runs, progress, logs and cancellation</h3>
+                    {lab.runs.length ? <ol>{lab.runs.map(run => <li key={run.id} className={`renovatio-equivalence-card state-${run.state}`}>
+                        <strong>{run.fixtureId} · {run.state} · {run.progress}%</strong>
+                        <span>commit {run.commit} · profile {run.profileHash} · change set {run.changeSetId}</span>
+                        <small>baseline {run.baselineHash.slice(0, 24)}… · candidate {run.candidateHash.slice(0, 24)}… · report {run.reportHash.slice(0, 24)}…</small>
+                        <p>{run.logs.join(' | ')}</p>
+                        <div>
+                            <button type='button' onClick={() => void this.repeatEquivalenceRun(run)}>Repeat exactly</button>
+                            <button type='button' onClick={() => void this.cancelEquivalenceRun(run)} disabled={run.state === 'cancelled'}>Cancel run</button>
+                            <button type='button' onClick={() => void this.exportEquivalenceReport(run)}>Export audited report</button>
+                        </div>
+                    </li>)}</ol> : <p>No runs yet. Select a fixture to execute COBOL/candidate equivalence without leaving Theia.</p>}
+                </section>
+                <section aria-label='State output file SQL comparison and divergences'>
+                    <h3>Comparison and divergences</h3>
+                    {lab.runs.flatMap(run => run.divergences.map(divergence => ({ run, divergence }))).length ? <ol>{lab.runs.flatMap(run => run.divergences.map(divergence => ({ run, divergence }))).map(({ run, divergence }) =>
+                        <li key={`${run.id}:${divergence.id}`} className='renovatio-equivalence-card severity-warning'>
+                            <strong>{divergence.kind} · {divergence.severity}</strong>
+                            <span>{divergence.summary}</span>
+                            <small>evidence {divergence.evidenceRef} · triage {divergence.triageStatus} · {divergence.triageReason}</small>
+                            <div>
+                                <button type='button' onClick={() => void this.triageEquivalenceDivergence(run, divergence, 'accepted-difference')}>Accept difference</button>
+                                <button type='button' onClick={() => void this.triageEquivalenceDivergence(run, divergence, 'defect')}>Mark defect</button>
+                                <button type='button' onClick={() => void this.triageEquivalenceDivergence(run, divergence, 'needs-ai-analysis')}>Ask AI analysis</button>
+                            </div>
+                        </li>)}</ol> : <p>No divergences have been recorded for the selected runs.</p>}
+                </section>
+                <section aria-label='Equivalence promotion gate and readiness'>
+                    <h3>Promotion gate</h3>
+                    <p>{lab.gate.status} · promotable: {String(lab.gate.promotable)} · {lab.gate.readinessReason}</p>
+                    <ol>{lab.gate.blockers.map(blocker => <li key={blocker}>{blocker}</li>)}</ol>
+                    <p>Gate blocks promotion when completed runs are missing or any divergence remains unaccepted.</p>
+                </section>
+                <section aria-label='Equivalence history linked to commit profile change set and hashes'>
+                    <h3>Audit history</h3>
+                    <ol>{lab.history.map(event => <li key={`${event.action}:${event.at}`}>
+                        <strong>{event.action}</strong>
+                        <span>{event.actor} · {event.targetId} · {event.at}</span>
+                        <small>{event.reason} · {event.hash.slice(0, 24)}…</small>
+                    </li>)}</ol>
+                </section>
+            </div>}
+            {this.equivalenceState === 'empty' && <p>No fixtures, persisted evidence or generated targets are available. This is not an equivalence verdict.</p>}
+            {this.equivalenceState === 'error' && <p>Equivalence Lab is unavailable; no comparison, triage or promotion can occur here.</p>}
+        </section>;
+    }
+
     protected renderArea(): React.ReactNode {
         const area = AREAS.find(candidate => candidate.id === this.activeArea) ?? AREAS[0];
         return <section className='renovatio-area-content' aria-labelledby='renovatio-area-heading'>
@@ -1380,12 +1517,12 @@ export class RenovatioShellWidget extends ReactWidget {
             <p>{area.summary}</p>
             <article className='renovatio-asset-preview' aria-label='Selected shell context'>
                 <span>{this.activeArea === 'project' ? 'SELECTED ASSET' : 'WORKBENCH AREA'}</span>
-                <strong>{this.activeArea === 'project' ? this.selectedAsset : this.activeArea === 'domain' ? `DOMAINMODEL / REV ${this.domain?.revision ?? 0}` : this.activeArea === 'architecture' && this.architecture ? `ARCHITECTURE / REV ${this.architecture.revision}` : this.activeArea === 'shadow' && this.shadowImpact ? `SHADOW / ${this.shadowImpact.canonicalHash.slice(0, 22)}` : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'EQUIVALENCE / INVENTORY READY' : `${area.label.toUpperCase()} / READY FOR ADAPTER`}</strong>
+                <strong>{this.activeArea === 'project' ? this.selectedAsset : this.activeArea === 'domain' ? `DOMAINMODEL / REV ${this.domain?.revision ?? 0}` : this.activeArea === 'architecture' && this.architecture ? `ARCHITECTURE / REV ${this.architecture.revision}` : this.activeArea === 'shadow' && this.shadowImpact ? `SHADOW / ${this.shadowImpact.canonicalHash.slice(0, 22)}` : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? `EQUIVALENCE LAB / GATE ${this.equivalence?.gate.status.toUpperCase() ?? 'UNKNOWN'}` : `${area.label.toUpperCase()} / READY FOR ADAPTER`}</strong>
                 <p>{this.activeArea === 'project'
                     ? 'Source content remains inside the configured workspace boundary.'
                     : this.activeArea === 'architecture' && this.architecture ? 'Editable target architecture profile, shadow manifest and dependency validation are loaded from the governed backend contract.'
                         : this.activeArea === 'shadow' && this.shadowImpact ? 'Read-only impact report links planned artifacts back to source evidence before generation.'
-                        : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'Read-only inventory is loaded from the governed backend contract; it does not imply an equivalence verdict.'
+                        : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'Equivalence Lab can execute, repeat, cancel, triage divergences and export audited runs through the governed backend contract.'
                             : 'UI boundary is available; live data remains governed by the existing backend contract.'}</p>
             </article>
             {this.activeArea === 'project' && <section className='renovatio-asset-editor' aria-label='Selected asset content'>
@@ -1406,15 +1543,7 @@ export class RenovatioShellWidget extends ReactWidget {
             {this.activeArea === 'shadow' && this.renderShadowImpact()}
             {this.activeArea === 'ai' && this.renderGovernedAi()}
             {this.activeArea === 'changes' && this.renderChangeSets()}
-            {this.activeArea === 'equivalence' && <section className='renovatio-asset-editor' aria-label='Equivalence evidence'>
-                <div><span>EQUIVALENCE EVIDENCE · {this.equivalenceState.toUpperCase()}</span></div>
-                {this.equivalenceState === 'ready' && <><p>Evidence: {this.equivalence?.evidence.map(item => item.name).join(', ') || 'none'}</p>
-                    <p>Generated targets: {this.equivalence?.generatedTargets.map(item => item.name).join(', ') || 'none'}</p>
-                    <p>Verdicts: {this.equivalence?.verdicts.map(verdict => `${verdict.fixtureId} · ${verdict.classification} · ${verdict.reason}${verdict.blocksRelease ? ' · RELEASE BLOCKED' : ''}`).join(' | ') || 'none'}</p>
-                    <p>Only persisted reports are shown; an inventory alone implies no equivalence verdict.</p></>}
-                {this.equivalenceState === 'empty' && <p>No persisted evidence or generated targets are available. This is not an equivalence verdict.</p>}
-                {this.equivalenceState === 'error' && <p>Equivalence evidence is unavailable; no comparison or acceptance can occur here.</p>}
-            </section>}
+            {this.activeArea === 'equivalence' && this.renderEquivalenceLab()}
         </section>;
     }
 

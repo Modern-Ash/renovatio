@@ -1139,6 +1139,52 @@
     white-space: pre-wrap;
 }
 
+.renovatio-equivalence-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+}
+
+.renovatio-equivalence-grid section,
+.renovatio-equivalence-card {
+    background: var(--renovatio-panel);
+    border: 1px solid var(--renovatio-border);
+    border-radius: 16px;
+    box-shadow: var(--renovatio-shadow);
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+}
+
+.renovatio-equivalence-card.state-completed {
+    border-left: 3px solid var(--renovatio-success);
+}
+
+.renovatio-equivalence-card.state-cancelled {
+    border-left: 3px solid var(--renovatio-warning);
+}
+
+.renovatio-equivalence-grid ol {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-equivalence-card div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.renovatio-equivalence-card code,
+.renovatio-equivalence-card span,
+.renovatio-equivalence-card small {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
 @media (max-width: 1280px) {
     .renovatio-architecture-grid {
         grid-template-columns: minmax(190px, 0.8fr) minmax(300px, 1.2fr);
@@ -1154,7 +1200,8 @@
     .renovatio-architecture-grid,
     .renovatio-shadow-grid,
     .renovatio-ai-grid,
-    .renovatio-change-grid {
+    .renovatio-change-grid,
+    .renovatio-equivalence-grid {
         grid-template-columns: 1fr;
     }
 
