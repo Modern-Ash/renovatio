@@ -47,7 +47,15 @@ type ArchitectureManifestEntry = { path: string; role: string; layer: string; cl
 type ArchitectureVersion = { revision: number; canonicalHash: string; savedAt: string; style: ArchitectureStyle };
 type ArchitectureComparison = { added: DomainChange[]; removed: DomainChange[]; changed: DomainChange[] };
 type WorkbenchArchitecture = { revision: number; canonicalHash: string; savedAt: string | null; profile: ArchitectureProfileDraft; preview: { modules: unknown[]; components: unknown[]; relations: unknown[]; diagnostics: unknown[]; hasFallback: boolean }; canvas: ArchitectureCanvasNode[]; dependencyRules: ArchitectureRule[]; dependencyDiagnostics: ArchitectureDiagnostic[]; manifest: ArchitectureManifestEntry[] };
-type WorkbenchAi = { items: Array<{ id: string; category: string; source: string; status: string; confidence: number; evidenceCount: number; llmFailed: boolean }> };
+type WorkbenchAiAgent = { id: string; name: string; purpose: string; promptId: string; promptVersion: string; slashCommands: string[]; contextScopes: string[] };
+type WorkbenchAiPrompt = { id: string; version: string; agentId: string; variables: string[]; guardrails: string[] };
+type WorkbenchAiCommand = { command: string; agentId: string; description: string; toolCall: string; mutates: boolean; humanConfirmationRequired: boolean };
+type WorkbenchAiContextSource = { scope: string; reference: string; hash: string; itemCount: number; status: string };
+type WorkbenchAiContext = { projectId: string; canonicalHash: string; sources: WorkbenchAiContextSource[] };
+type WorkbenchAiPolicy = { directFileWritesAllowed: boolean; mutationsRequireHumanConfirmation: boolean; allowedReadTools: string[]; mutatingTools: string[] };
+type WorkbenchAiItem = { id: string; category: string; source: string; status: string; confidence: number; evidenceCount: number; llmFailed: boolean; promptId: string; promptVersion: string; question: string; chosenOption: string; rationale: string; evidence: string[]; reviewActions: string[]; approvalStatus: string };
+type WorkbenchAiAudit = { id: string; suggestionId: string; model: string; promptId: string; promptVersion: string; contextHash: string; responseHash: string; toolCalls: string[]; status: string; approvalRequired: boolean; approvalStatus: string };
+type WorkbenchAi = { agents: WorkbenchAiAgent[]; prompts: WorkbenchAiPrompt[]; slashCommands: WorkbenchAiCommand[]; context: WorkbenchAiContext; toolPolicy: WorkbenchAiPolicy; items: WorkbenchAiItem[]; auditTrail: WorkbenchAiAudit[]; limits: string[] };
 type WorkbenchEquivalence = { evidence: Array<{ id: string; name: string }>; generatedTargets: Array<{ id: string; name: string }>; verdicts: Array<{ fixtureId: string; classification: string; reason: string; blocksRelease: boolean }> };
 type ShadowStage = { name: string; revision: number; hash: string; itemCount: number; status: string };
 type ShadowSourceImpact = { sourcePath: string; kind: string; symbolCount: number; domainElementIds: string[]; artifactPaths: string[] };
@@ -117,7 +125,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected architectureCompareTo = 0;
     protected architecturePreviewRequest = 0;
     protected ai?: WorkbenchAi;
-    protected aiState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
+    protected aiState: AreaState = 'idle';
     protected equivalence?: WorkbenchEquivalence;
     protected equivalenceState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
     protected shadowImpact?: WorkbenchShadowImpact;
@@ -398,9 +406,10 @@ export class RenovatioShellWidget extends ReactWidget {
         this.aiState = 'loading'; this.update();
         try {
             const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/ai`);
+            if (response.status === 401 || response.status === 403) { this.aiState = 'permission-denied'; this.update(); return; }
             if (!response.ok) throw new Error(`AI adapter returned ${response.status}`);
             this.ai = await response.json() as WorkbenchAi;
-            this.aiState = this.ai.items.length ? 'ready' : 'empty';
+            this.aiState = this.ai.agents.length || this.ai.items.length ? 'ready' : 'empty';
         } catch { this.aiState = 'error'; }
         this.update();
     }
@@ -1188,6 +1197,82 @@ export class RenovatioShellWidget extends ReactWidget {
         </section>;
     }
 
+    protected renderGovernedAi(): React.ReactNode {
+        const view = this.ai;
+        return <section className='renovatio-governed-ai' aria-label='Governed AI agents and explainability'>
+            <div className='renovatio-architecture-toolbar'>
+                <strong>GOVERNED AI AGENTS · {this.aiState.toUpperCase()}</strong>
+                <button type='button' onClick={() => void this.loadAi()} disabled={this.aiState === 'loading'}>Refresh</button>
+            </div>
+            {view && <div className='renovatio-ai-grid'>
+                <section aria-label='Specialized AI agents'>
+                    <h3>Specialized agents</h3>
+                    <ol>{view.agents.map(agent => <li key={agent.id} className='renovatio-ai-card'>
+                        <strong>{agent.name}</strong>
+                        <span>{agent.purpose}</span>
+                        <small>{agent.promptId} · {agent.promptVersion}</small>
+                        <small>commands {agent.slashCommands.join(', ')}</small>
+                        <small>context {agent.contextScopes.join(', ')}</small>
+                    </li>)}</ol>
+                </section>
+                <section aria-label='Slash command catalog'>
+                    <h3>Slash commands</h3>
+                    <ol>{view.slashCommands.map(command => <li key={command.command} className={command.humanConfirmationRequired ? 'severity-warning' : ''}>
+                        <code>{command.command}</code>
+                        <span>{command.description}</span>
+                        <small>{command.toolCall} · mutates: {String(command.mutates)} · human confirmation: {String(command.humanConfirmationRequired)}</small>
+                    </li>)}</ol>
+                </section>
+                <section aria-label='Reproducible AI context'>
+                    <h3>Context snapshot</h3>
+                    <p className='renovatio-domain-diff'>Context hash {view.context.canonicalHash}. Responses can be reproduced from this hash, prompt id and prompt version.</p>
+                    <ol>{view.context.sources.map(source => <li key={source.scope}>
+                        <strong>{source.scope}</strong>
+                        <span>{source.reference} · {source.itemCount} items · {source.status}</span>
+                        <code>{source.hash ? `${source.hash.slice(0, 24)}…` : 'unavailable'}</code>
+                    </li>)}</ol>
+                </section>
+                <section aria-label='Prompt catalog guardrails'>
+                    <h3>Prompt catalog</h3>
+                    <ol>{view.prompts.map(prompt => <li key={prompt.id}>
+                        <strong>{prompt.id}</strong>
+                        <span>{prompt.version} · agent {prompt.agentId}</span>
+                        <small>variables {prompt.variables.join(', ')}</small>
+                        <small>guardrails {prompt.guardrails.join(' · ')}</small>
+                    </li>)}</ol>
+                </section>
+                <section aria-label='Reviewable AI suggestions'>
+                    <h3>Reviewable suggestions</h3>
+                    {view.items.length ? <ol>{view.items.map(item => <li key={item.id} className='renovatio-ai-card'>
+                        <strong>{item.category} · {item.status}</strong>
+                        <span>{item.question}</span>
+                        <small>{item.source} · confidence {(item.confidence * 100).toFixed(0)}% · evidence {item.evidenceCount} · approval {item.approvalStatus}</small>
+                        <p>{item.rationale}</p>
+                        <div>
+                            {item.reviewActions.map(action => <button key={`${item.id}:${action}`} type='button' disabled>{action}</button>)}
+                        </div>
+                    </li>)}</ol> : <p>No governed suggestions are available for this project.</p>}
+                    <p className='renovatio-domain-diff'>AI never writes final files directly; accepted, edited or rejected suggestions must go through the human review controls in the owning workbench area.</p>
+                </section>
+                <section aria-label='AI audit trail and tool policy'>
+                    <h3>Audit trail and tool policy</h3>
+                    <p>Direct file writes: {String(view.toolPolicy.directFileWritesAllowed)} · Mutations require human confirmation: {String(view.toolPolicy.mutationsRequireHumanConfirmation)}</p>
+                    <small>read tools {view.toolPolicy.allowedReadTools.join(', ')}</small>
+                    <small>mutating tools {view.toolPolicy.mutatingTools.join(', ')}</small>
+                    <ol>{view.auditTrail.slice(0, 8).map(event => <li key={event.id}>
+                        <code>{event.suggestionId.slice(0, 12)}</code>
+                        <span>{event.model} · {event.promptId} · {event.status} · {event.approvalStatus}</span>
+                        <small>response {event.responseHash.slice(0, 24)}… · tools {event.toolCalls.join(', ')}</small>
+                    </li>)}</ol>
+                    {view.limits.map(limit => <p key={limit} className='renovatio-domain-diff'>{limit}</p>)}
+                </section>
+            </div>}
+            {this.aiState === 'empty' && <p>No governed suggestions are available for this project.</p>}
+            {this.aiState === 'permission-denied' && <p>You do not have permission to inspect AI suggestions or audit context.</p>}
+            {this.aiState === 'error' && <p>Suggestion data is unavailable; no recommendation can be applied here.</p>}
+        </section>;
+    }
+
     protected renderArea(): React.ReactNode {
         const area = AREAS.find(candidate => candidate.id === this.activeArea) ?? AREAS[0];
         return <section className='renovatio-area-content' aria-labelledby='renovatio-area-heading'>
@@ -1220,12 +1305,7 @@ export class RenovatioShellWidget extends ReactWidget {
             </section>}
             {this.activeArea === 'architecture' && this.renderArchitectureCanvas()}
             {this.activeArea === 'shadow' && this.renderShadowImpact()}
-            {this.activeArea === 'ai' && <section className='renovatio-asset-editor' aria-label='Governed AI suggestions'>
-                <div><span>GOVERNED SUGGESTIONS · {this.aiState.toUpperCase()}</span></div>
-                {this.aiState === 'ready' && <p>{this.ai?.items.map(item => `${item.category} · ${item.source} · ${item.status} · ${(item.confidence * 100).toFixed(0)}%`).join(' | ')}</p>}
-                {this.aiState === 'empty' && <p>No governed suggestions are available for this project.</p>}
-                {this.aiState === 'error' && <p>Suggestion data is unavailable; no recommendation can be applied here.</p>}
-            </section>}
+            {this.activeArea === 'ai' && this.renderGovernedAi()}
             {this.activeArea === 'equivalence' && <section className='renovatio-asset-editor' aria-label='Equivalence evidence'>
                 <div><span>EQUIVALENCE EVIDENCE · {this.equivalenceState.toUpperCase()}</span></div>
                 {this.equivalenceState === 'ready' && <><p>Evidence: {this.equivalence?.evidence.map(item => item.name).join(', ') || 'none'}</p>
@@ -1241,7 +1321,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected render(): React.ReactNode {
         return <main className='renovatio-surface renovatio-shell' aria-labelledby='renovatio-workbench-heading'>
             <header className='renovatio-header renovatio-shell-header'>
-                <span className='renovatio-kicker'>IDE SHELL · ISSUE 181</span>
+                <span className='renovatio-kicker'>IDE SHELL · THEIA WORKBENCH</span>
                 <h1 id='renovatio-workbench-heading'>RENOVATIO / CONTROL DECK</h1>
                 <p>Navigate governed modernization evidence without leaving the Theia workbench.</p>
                 <a className='renovatio-dashboard-link' href={this.dashboardUrl} target='_blank' rel='noreferrer'>Open administrative dashboard</a>

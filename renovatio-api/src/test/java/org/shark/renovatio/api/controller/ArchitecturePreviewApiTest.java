@@ -272,4 +272,24 @@ class ArchitecturePreviewApiTest {
                 .andExpect(jsonPath("$.sourceImpacts[0].domainElementIds[0]").value("preview-model"))
                 .andExpect(jsonPath("$.report.projectId").value(projectId));
     }
+
+    @Test
+    void exposesGovernedAiAgentsWithReproducibleContextAndHumanReviewPolicy() throws Exception {
+        mvc.perform(get("/api/projects/{projectId}/workbench/ai", projectId)
+                        .header("X-Role", "ADMIN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.agents.length()").value(6))
+                .andExpect(jsonPath("$.agents[?(@.id == 'domain-architect')].slashCommands[0]").value("/extract-domain"))
+                .andExpect(jsonPath("$.prompts[?(@.id == 'workbench.review.v1')].version").value("v1"))
+                .andExpect(jsonPath("$.slashCommands[?(@.command == '/analyze-program')].toolCall")
+                        .value("GET /api/projects/{projectId}/workbench/source-explorer"))
+                .andExpect(jsonPath("$.slashCommands[?(@.command == '/extract-domain')].humanConfirmationRequired")
+                        .value(true))
+                .andExpect(jsonPath("$.context.projectId").value(projectId))
+                .andExpect(jsonPath("$.context.canonicalHash").isString())
+                .andExpect(jsonPath("$.context.sources[?(@.scope == 'source')].status").value("ready"))
+                .andExpect(jsonPath("$.toolPolicy.directFileWritesAllowed").value(false))
+                .andExpect(jsonPath("$.toolPolicy.mutationsRequireHumanConfirmation").value(true))
+                .andExpect(jsonPath("$.limits[0]").value("AI suggestions are proposals only; final files are never written directly."));
+    }
 }

@@ -1,0 +1,24 @@
+# Work events
+
+- 2026-09-07T19:09:59.766441Z | work.created | state=drafting actor=project:owner
+- 2026-09-07T19:11:05.773692Z | artifact.added | kind=spec uri=.agora/swarms/036-renovatio-workbench-ai-agents/work/ai-explainable-agents/spec.md actor=project:agent
+- 2026-09-07T19:11:15.515702Z | artifact.added | kind=implementation-plan uri=.agora/swarms/036-renovatio-workbench-ai-agents/work/ai-explainable-agents/implementation-plan.md actor=project:agent
+- 2026-09-07T19:11:15.523834Z | artifact.added | kind=verification uri=.agora/swarms/036-renovatio-workbench-ai-agents/work/ai-explainable-agents/verification.md actor=project:agent
+- 2026-09-07T19:11:15.583618Z | artifact.added | kind=review-report uri=.agora/swarms/036-renovatio-workbench-ai-agents/work/ai-explainable-agents/review-report.md actor=project:agent
+- 2026-09-07T19:11:21.107700Z | artifact.added | kind=implementation uri=.agora/swarms/036-renovatio-workbench-ai-agents/work/ai-explainable-agents/implementation.md actor=project:agent
+- 2026-09-07T19:11:40.180440Z | evidence.added | id=evidence-000001 type=static-check result=success revision=1 actor=project:agent
+- 2026-09-07T19:11:46.000359Z | evidence.added | id=evidence-000002 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T19:11:51.060795Z | evidence.added | id=evidence-000003 type=build result=success revision=1 actor=project:agent
+- 2026-09-07T19:11:56.685441Z | evidence.added | id=evidence-000004 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T19:12:10.079988Z | work.criterion-satisfied | criterion=agent-catalog actor=project:owner
+- 2026-09-07T19:12:17.965559Z | work.criterion-satisfied | criterion=prompt-context actor=project:owner
+- 2026-09-07T19:12:17.990617Z | work.criterion-satisfied | criterion=audit-reproducibility actor=project:owner
+- 2026-09-07T19:12:23.678341Z | work.criterion-satisfied | criterion=slash-tools actor=project:owner
+- 2026-09-07T19:12:32.887869Z | work.criterion-satisfied | criterion=human-review-boundary actor=project:owner
+- 2026-09-07T19:12:38.785847Z | work.criterion-satisfied | criterion=ui-verification actor=project:owner
+- 2026-09-07T19:12:49.595452Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-07T19:12:59.388611Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-07T19:13:11.093133Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-07T19:13:20.891520Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-07T19:13:38.116602Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T19:13:44.674616Z | work.transitioned | from=verifying to=completed actor=project:owner

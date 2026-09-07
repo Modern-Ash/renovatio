@@ -1032,6 +1032,55 @@
     text-align: left;
 }
 
+.renovatio-ai-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+}
+
+.renovatio-ai-grid section {
+    background: var(--renovatio-panel);
+    border: 1px solid var(--renovatio-border);
+    border-radius: 16px;
+    box-shadow: var(--renovatio-shadow);
+    padding: 14px;
+}
+
+.renovatio-ai-grid ol {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-ai-grid li,
+.renovatio-ai-card {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid var(--renovatio-accent-2);
+    display: grid;
+    gap: 5px;
+    padding: 8px;
+}
+
+.renovatio-ai-grid code,
+.renovatio-ai-grid span,
+.renovatio-ai-grid small {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-ai-card div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.renovatio-ai-card button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
 @media (max-width: 1280px) {
     .renovatio-architecture-grid {
         grid-template-columns: minmax(190px, 0.8fr) minmax(300px, 1.2fr);
@@ -1045,7 +1094,8 @@
 
 @media (max-width: 780px) {
     .renovatio-architecture-grid,
-    .renovatio-shadow-grid {
+    .renovatio-shadow-grid,
+    .renovatio-ai-grid {
         grid-template-columns: 1fr;
     }
 
