@@ -8,3 +8,23 @@
 - 2026-09-07T00:14:04.374158Z | tool.prepared | run=tool-20260907t00141788750844z tool=repository operation=publish-branch actor=project:agent
 - 2026-09-07T00:14:04.377734Z | tool.running | run=tool-20260907t00141788750844z actor=project:agent
 - 2026-09-07T00:14:06.731771Z | tool.completed | run=tool-20260907t00141788750844z exit-code=0
+- 2026-09-07T00:15:48.104873Z | tool.prepared | run=tool-20260907t00151788750948z tool=repository operation=commit actor=project:agent
+- 2026-09-07T00:15:48.108870Z | tool.running | run=tool-20260907t00151788750948z actor=project:agent
+- 2026-09-07T00:15:48.143774Z | tool.completed | run=tool-20260907t00151788750948z exit-code=0
+- 2026-09-07T00:15:57.523342Z | tool.prepared | run=tool-20260907t00151788750957z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-07T00:15:57.527535Z | tool.running | run=tool-20260907t00151788750957z actor=project:agent
+- 2026-09-07T00:15:59.605405Z | tool.completed | run=tool-20260907t00151788750957z exit-code=0
+- 2026-09-07T00:28:34.567519Z | work.criterion-satisfied | criterion=fixture-evidence actor=project:owner
+- 2026-09-07T00:28:34.829951Z | work.criterion-satisfied | criterion=classification actor=project:owner
+- 2026-09-07T00:28:35.058572Z | work.criterion-satisfied | criterion=reproducibility actor=project:owner
+- 2026-09-07T00:28:35.287816Z | work.criterion-satisfied | criterion=release-boundary actor=project:owner
+- 2026-09-07T00:29:09.628975Z | artifact.added | kind=spec uri=repo://.agora/swarms/031-equivalence-rework/work/deterministic-equivalence-harness/spec.md actor=project:agent
+- 2026-09-07T00:29:09.882505Z | artifact.added | kind=implementation-plan uri=repo://.agora/swarms/031-equivalence-rework/work/deterministic-equivalence-harness/implementation-plan.md actor=project:agent
+- 2026-09-07T00:29:10.135838Z | artifact.added | kind=verification-report uri=repo://.agora/swarms/031-equivalence-rework/work/deterministic-equivalence-harness/verification-report.md actor=project:agent
+- 2026-09-07T00:29:10.396541Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T00:29:10.638037Z | evidence.added | id=evidence-000001 type=unit-tests result=success revision=2 actor=project:agent
+- 2026-09-07T00:29:10.880544Z | evidence.added | id=evidence-000002 type=golden-master result=success revision=2 actor=project:agent
+- 2026-09-07T00:29:11.116472Z | evidence.added | id=evidence-000003 type=api-smoke result=success revision=2 actor=project:agent
+- 2026-09-07T00:29:11.343821Z | evidence.added | id=evidence-000004 type=workbench-contract result=success revision=2 actor=project:agent
+- 2026-09-07T00:29:11.594930Z | evidence.added | id=evidence-000005 type=sqlite-runtime result=success revision=2 actor=project:agent
+- 2026-09-07T00:29:16.481213Z | work.transitioned | from=verifying to=completed actor=project:owner
