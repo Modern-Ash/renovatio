@@ -4,15 +4,15 @@ tracker: "github"
 project: "Modern-Ash/renovatio"
 external-id: "123"
 title: "[AI modernization] Deterministic COBOL semantic core"
-state: "open"
+state: "closed"
 url: "https://github.com/Modern-Ash/renovatio/issues/123"
-updated-at: "2026-08-30T14:41:21Z"
+updated-at: "2026-08-31T10:25:02Z"
 author-subject: "fabianaguero"
 author-display-name: "FabianAG"
 labels: ["enhancement"]
 milestone: null
-comment-count: 0
-payload-sha256: "981dea6f0ccd24cb464b0a342c533578fb7cf73c8734bfcfb9d324fe824a8f67"
+comment-count: 1
+payload-sha256: "acbc0f7278b88a3fe17fdd770b100959f0f2d93e08271bbc41f36f10c0e2f34e"
 ---
 
 # External issue 123
