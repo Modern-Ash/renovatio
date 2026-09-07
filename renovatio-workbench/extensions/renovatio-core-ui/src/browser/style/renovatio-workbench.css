@@ -775,6 +775,237 @@
     padding-top: 8px;
 }
 
+.renovatio-architecture-canvas {
+    border-top: 2px solid var(--renovatio-hazard);
+    margin-top: 18px;
+    padding-top: 12px;
+}
+
+.renovatio-architecture-toolbar,
+.renovatio-architecture-actions,
+.renovatio-architecture-palette li > button,
+.renovatio-architecture-manifest li,
+.renovatio-architecture-inspector li {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.renovatio-architecture-toolbar strong,
+.renovatio-architecture-canvas small,
+.renovatio-architecture-manifest code,
+.renovatio-architecture-manifest span {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-architecture-canvas button {
+    background: transparent;
+    border: 1px solid rgba(238, 248, 245, 0.28);
+    color: var(--renovatio-ink);
+    cursor: pointer;
+    font: 600 10px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    min-height: 34px;
+    padding: 7px 9px;
+}
+
+.renovatio-architecture-canvas button:hover,
+.renovatio-architecture-canvas button:focus-visible,
+.renovatio-architecture-canvas input:focus-visible,
+.renovatio-architecture-canvas select:focus-visible {
+    border-color: var(--renovatio-accent);
+    outline: 2px solid var(--renovatio-hazard);
+    outline-offset: 2px;
+}
+
+.renovatio-architecture-canvas button.is-primary {
+    background: var(--renovatio-hazard);
+    color: #071012;
+}
+
+.renovatio-architecture-canvas button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.renovatio-architecture-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(210px, 0.8fr) minmax(320px, 1.45fr) minmax(240px, 0.95fr);
+    min-height: 560px;
+}
+
+.renovatio-architecture-palette,
+.renovatio-architecture-stage,
+.renovatio-architecture-inspector {
+    background: rgba(4, 13, 15, 0.72);
+    border: 1px solid rgba(238, 248, 245, 0.18);
+    min-width: 0;
+    padding: 12px;
+}
+
+.renovatio-architecture-palette section,
+.renovatio-architecture-inspector section {
+    border-top: 1px solid rgba(238, 248, 245, 0.14);
+    margin-top: 12px;
+    padding-top: 10px;
+}
+
+.renovatio-architecture-palette h3,
+.renovatio-architecture-stage h3,
+.renovatio-architecture-inspector h3 {
+    font-size: 12px;
+    margin: 5px 0 8px;
+}
+
+.renovatio-segmented {
+    display: grid;
+    gap: 5px;
+}
+
+.renovatio-segmented button[aria-pressed='true'],
+.renovatio-architecture-palette button[aria-current='true'],
+.renovatio-architecture-rail article.is-selected {
+    background: rgba(255, 180, 0, 0.12);
+    border-color: var(--renovatio-hazard);
+}
+
+.renovatio-architecture-palette ul,
+.renovatio-architecture-manifest ol,
+.renovatio-architecture-inspector ul {
+    display: grid;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-architecture-palette li > button {
+    text-align: left;
+    width: 100%;
+}
+
+.renovatio-architecture-palette li > button span,
+.renovatio-architecture-node span {
+    color: var(--renovatio-accent);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+}
+
+.renovatio-architecture-palette label,
+.renovatio-architecture-inspector label {
+    color: var(--renovatio-muted);
+    display: grid;
+    font-size: 11px;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.renovatio-architecture-canvas input,
+.renovatio-architecture-canvas select {
+    background: #071012;
+    border: 1px solid rgba(238, 248, 245, 0.24);
+    border-radius: 0;
+    box-sizing: border-box;
+    color: var(--renovatio-ink);
+    font: 11px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    min-width: 0;
+    padding: 8px;
+    width: 100%;
+}
+
+.renovatio-architecture-rail {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+}
+
+.renovatio-architecture-rail article {
+    border: 1px solid rgba(238, 248, 245, 0.18);
+    display: grid;
+    gap: 7px;
+    min-height: 150px;
+    padding: 10px;
+}
+
+.renovatio-architecture-rail article > button {
+    display: grid;
+    gap: 4px;
+    text-align: left;
+}
+
+.renovatio-architecture-node {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid var(--renovatio-accent);
+    display: grid;
+    gap: 3px;
+    padding: 7px;
+}
+
+.renovatio-architecture-manifest {
+    border-top: 1px solid rgba(238, 248, 245, 0.14);
+    margin-top: 14px;
+    padding-top: 10px;
+}
+
+.renovatio-architecture-manifest li {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid var(--renovatio-hazard);
+    padding: 7px;
+}
+
+.renovatio-architecture-inspector {
+    max-height: 680px;
+    overflow: auto;
+}
+
+.renovatio-architecture-inspector li {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid rgba(238, 248, 245, 0.22);
+    display: grid;
+    padding: 8px;
+}
+
+.renovatio-architecture-inspector li.severity-error {
+    border-left-color: #ff6b5f;
+}
+
+.renovatio-architecture-inspector .renovatio-checkbox {
+    align-items: center;
+    display: flex;
+}
+
+.renovatio-architecture-inspector .renovatio-checkbox input {
+    accent-color: var(--renovatio-hazard);
+    width: auto;
+}
+
+@media (max-width: 1280px) {
+    .renovatio-architecture-grid {
+        grid-template-columns: minmax(190px, 0.8fr) minmax(300px, 1.2fr);
+    }
+
+    .renovatio-architecture-inspector {
+        grid-column: 1 / -1;
+        max-height: none;
+    }
+}
+
+@media (max-width: 780px) {
+    .renovatio-architecture-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .renovatio-architecture-toolbar,
+    .renovatio-architecture-actions,
+    .renovatio-architecture-palette li > button,
+    .renovatio-architecture-manifest li {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
 @media (max-width: 1280px) {
     .renovatio-domain-grid {
         grid-template-columns: minmax(180px, 0.7fr) minmax(300px, 1.3fr);

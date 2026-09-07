@@ -21,12 +21,18 @@ public final class ArchitectureTransformer {
 
     public ArchitectureTransformer() {
         this(new ModuleGroupingResolver(), List.of(new TransactionScriptArchitectureProfile(),
-                new HexagonalArchitectureProfile()), List.of());
+                new HexagonalArchitectureProfile(),
+                new LayeredArchitectureProfile(MigrationProfile.ArchitectureStyle.LAYERED_MVC),
+                new LayeredArchitectureProfile(MigrationProfile.ArchitectureStyle.LAYERED),
+                new LayeredArchitectureProfile(MigrationProfile.ArchitectureStyle.CLEAN)), List.of());
     }
 
     public ArchitectureTransformer(List<ArtifactLayoutPlanner> layoutPlanners) {
         this(new ModuleGroupingResolver(), List.of(new TransactionScriptArchitectureProfile(),
-                new HexagonalArchitectureProfile()), layoutPlanners);
+                new HexagonalArchitectureProfile(),
+                new LayeredArchitectureProfile(MigrationProfile.ArchitectureStyle.LAYERED_MVC),
+                new LayeredArchitectureProfile(MigrationProfile.ArchitectureStyle.LAYERED),
+                new LayeredArchitectureProfile(MigrationProfile.ArchitectureStyle.CLEAN)), layoutPlanners);
     }
 
     public ArchitectureTransformer(ModuleGroupingResolver groupingResolver, List<ArchitectureProfile> profiles) {

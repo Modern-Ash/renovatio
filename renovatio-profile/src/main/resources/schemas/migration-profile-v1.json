@@ -18,7 +18,7 @@
     "architecture": {
       "type": "object", "additionalProperties": false,
       "properties": {
-        "style": { "enum": ["TRANSACTION_SCRIPT", "LAYERED_MVC", "HEXAGONAL"] },
+        "style": { "enum": ["TRANSACTION_SCRIPT", "LAYERED_MVC", "HEXAGONAL", "CLEAN", "LAYERED"] },
         "moduleGrouping": { "enum": ["BY_PROGRAM", "BY_DOMAIN", "SINGLE_MODULE"] }
       }
     },

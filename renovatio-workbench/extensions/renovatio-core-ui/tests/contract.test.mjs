@@ -146,3 +146,28 @@ test('keeps DomainModel work neutral and outside generation or architecture muta
     assert.match(styles, /renovatio-domain-grid/);
     assert.match(styles, /state-conflict/);
 });
+
+test('provides the editable Architecture Canvas with profile history (issue #180)', () => {
+    assert.match(shell, /\/workbench\/architecture\/canvas/);
+    assert.match(shell, /saveArchitectureProfile/);
+    assert.match(shell, /expectedRevision: this\.architecture\.revision/);
+    assert.match(shell, /\/architecture\/canvas\/versions/);
+    assert.match(shell, /\/architecture\/canvas\/compare/);
+    for (const style of ['LAYERED_MVC', 'HEXAGONAL', 'CLEAN', 'LAYERED', 'TRANSACTION_SCRIPT']) {
+        assert.match(shell, new RegExp(style));
+    }
+    for (const state of ['loading', 'ready', 'empty', 'permission-denied', 'conflict', 'error']) {
+        assert.match(shell, new RegExp(`'${state}'`));
+    }
+    assert.match(shell, /aria-label='Architecture Canvas editor'/);
+    assert.match(shell, /aria-label='Artifact and package manifest preview'/);
+    assert.match(shell, /illegal dependencies visible before generate/);
+    assert.match(styles, /renovatio-architecture-grid/);
+    assert.match(styles, /renovatio-segmented/);
+});
+
+test('keeps Architecture Canvas outside DomainModel and generation execution', () => {
+    assert.doesNotMatch(shell, /saveArchitectureProfile[\s\S]{0,1200}domain-model/i);
+    assert.doesNotMatch(shell, /saveArchitectureProfile[\s\S]{0,1200}generate/i);
+    assert.doesNotMatch(shell, /architecture\/canvas[^\n]+method: '(DELETE|PATCH)'/);
+});
