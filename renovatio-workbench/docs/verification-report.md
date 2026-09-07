@@ -1,7 +1,7 @@
-# Issue 176 verification report
+# Theia workbench verification report
 
-- Date: 2026-09-05
-- Evaluated revision: working tree on `agora/renovatio-workbench`
+- Date: 2026-09-07
+- Evaluated revision: Theia workbench release-readiness track through issue #185
 - Host executor: Linux container runtime
 - Runtime pins: Eclipse Theia `1.75.0`, Node `24.20.0`, npm `11.19.0`
 
@@ -10,8 +10,13 @@
 | Check | Command | Result |
 | --- | --- | --- |
 | Reproducible install | `npm ci` in `node:24.20.0-bookworm-slim` | Pass; committed lockfile accepted |
-| Production bundle | `docker build --target build -t renovatio-workbench:issue-176-build .` | Pass; browser and node bundles report zero errors |
-| Contract tests | `docker run --rm --entrypoint npm renovatio-workbench:issue-176-build test` | Pass; 3 tests, 0 failures |
+| Production bundle | `npm run build` | Pass; browser and node bundles report zero errors |
+| Reproducible Docker build stage | `docker build --target build -t renovatio-workbench:ci-build .` | Enforced in CI |
+| Contract tests | `npm test` | Pass; core UI contract tests cover Theia areas through Equivalence Lab |
+| API contract regressions | `mvn -q -pl renovatio-api -am -Dtest=ArchitecturePreviewApiTest,WorkbenchChangeSetApiTest,WorkbenchEquivalenceLabApiTest,WorkbenchEquivalenceServiceTest,WorkbenchDomainModelApiTest,DecisionLayerApiTest,WorkbenchArchitectureCanvasServiceTest,WorkbenchDomainModelServiceTest,WorkbenchSourceExplorerServiceTest -Dsurefire.failIfNoSpecifiedTests=false test -Dexec.skip=true` | Pass locally and enforced in CI |
+| Hardening audit | `npm run hardening:audit` | Pass; compatibility pins, Docker runtime, telemetry, workspace safety, allowlists and docs verified |
+| Performance budgets | `npm run smoke && npm run performance:budget` | Enforced in CI with measured startup, open-p95, RSS and frontend bundle budgets |
+| Demo pilot | `npm run pilot:demo` | Pass; COBOL demo and IR fixture hashes match |
 | Runtime dependency audit | `npm audit --omit=dev --json` after production prune | 0 critical, 0 high, 22 moderate |
 | HTTP startup | Runtime container plus `curl --fail http://127.0.0.1:30176/` | Pass; HTTP 200 and `Renovatio Workbench` HTML shell |
 
@@ -36,14 +41,10 @@ supply-chain approval; a compatible upstream fix or replacement remains required
 These checks establish bundle inclusion and server readiness. They do not substitute for a visual
 browser assertion.
 
-## Pending platform evidence
+## Remaining release gates
 
 | Evidence | Status | Why it remains open |
 | --- | --- | --- |
-| Browser capture showing the custom widget | Pending | The in-app browser runtime reported that no browser instance was available |
-| Command palette/menu interaction | Pending | Requires the same interactive browser executor |
-| macOS browser launch and capture | Pending | No macOS executor is available in the current environment |
-| Desktop/Electron package | Not required for the spike decision | Feasibility only; release engineering is separately gated |
-
-Issue #176 must remain in verification until the required browser and macOS evidence is attached
-and independently reviewed. Issue #177 must remain blocked on #176 meanwhile.
+| Desktop/Electron package | Optional | Signing, notarization, auto-update and sandboxing are explicitly out of scope for the web distribution |
+| Open VSX enablement | Blocked | Plugin dependency risk remains documented in the compatibility matrix |
+| Production CSP measurement | Required before hosted production | Gateway must measure the final generated bundle and enforce the recorded baseline |

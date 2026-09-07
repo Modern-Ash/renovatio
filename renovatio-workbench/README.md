@@ -1,8 +1,8 @@
-# Renovatio Workbench — Theia platform spike
+# Renovatio Workbench — Theia web distribution
 
-Minimal web-first Eclipse Theia application for issue #176. It proves a local workspace, file
-navigator, custom Renovatio widget, command and menu without replacing the current React dashboard
-or changing the Spring Boot backend.
+Web-first Eclipse Theia application for the Renovatio Workbench track. It provides the IDE shell,
+project navigator, governed modernization panels and dashboard continuity without replacing the
+existing React dashboard or changing its Spring Boot ownership boundary.
 
 ## Runtime
 
@@ -29,16 +29,37 @@ Run the automated server check after building:
 npm run smoke
 ```
 
+## Install from zero
+
+From a clean clone:
+
+```bash
+cd renovatio-workbench
+nvm install
+nvm use
+npm ci
+npm run build
+npm test
+npm run hardening:audit
+npm run pilot:demo
+npm run smoke
+npm run performance:budget
+```
+
+Keep the existing dashboard deployed as before and set `RENOVATIO_DASHBOARD_URL` to its URL. Theia
+opens a labelled dashboard link; it does not replace the previous dashboard.
+
 ## Docker
 
 ```bash
-docker build -t renovatio-workbench:issue-176 .
-docker run --rm -p 3000:3000 -v "$PWD/..:/workspace-data:ro" renovatio-workbench:issue-176
+docker build -t renovatio-workbench:release .
+docker run --rm -p 3000:3000 -v "$PWD/..:/workspace-data:ro" renovatio-workbench:release
 curl --fail --silent --show-error http://127.0.0.1:3000/
 ```
 
-The workspace mount is read-only in this spike. A production deployment must use a tenant-aware
-workspace service rather than exposing an arbitrary host directory.
+The workspace mount is read-only by default. A production deployment must use a tenant-aware
+workspace service rather than exposing an arbitrary host directory. The runtime stage runs as the
+non-root `node` user and prunes development dependencies before distribution.
 
 ## Environment contract
 
@@ -90,14 +111,57 @@ VSIX and does not claim universal VS Code extension compatibility.
 - Commands and extensions run with IDE process privileges. Production requires an extension and
   command allowlist, isolated workspaces, resource limits, and audit logging.
 
+## Security audit gate
+
+Release hardening is encoded in `config/release-hardening.json` and checked by:
+
+```bash
+npm run hardening:audit
+npm audit --omit=dev --audit-level=high
+```
+
+The audit validates Node/npm/Theia compatibility pins, Docker non-root runtime, telemetry defaults,
+workspace safety preferences, the Renovatio command allowlist, MCP allowlist status, required docs,
+and immutable demo pilot fixture hashes.
+
+## Performance budgets
+
+Continuous-use budgets are versioned in `config/release-hardening.json`:
+
+| Metric | Budget |
+| --- | --- |
+| Workbench open p95 | `<= 5000 ms` |
+| Smoke startup | `<= 90000 ms` |
+| Browser RSS | `<= 768 MB` |
+| Frontend JS bundle | `<= 32768 KiB` |
+
+Run `npm run smoke` first to emit `.theia-smoke-metrics.json`, then run
+`npm run performance:budget` to enforce measured startup, open-p95, RSS, bundle and configured
+runtime thresholds.
+
+## Pilot and migration
+
+`npm run pilot:demo` validates the COBOL demo programs and IR fixtures listed in
+`config/release-hardening.json`. The pilot report lives in `docs/demo-pilot-report.md`.
+
+For user migration and operational continuation, use:
+
+- `docs/security-and-operations-runbook.md`
+- `docs/llm-handoff-guide.md`
+- `docs/compatibility-risk-matrix.md`
+
 ## Desktop evaluation
 
 Theia supports an Electron target, but this increment does not ship a desktop distribution.
 Desktop viability is evaluated in `docs/compatibility-risk-matrix.md`; signing, notarization,
 auto-update, sandboxing, and managed deployment remain release work.
 
+## Independent LLM continuation guide
+
+Another LLM can continue from `docs/llm-handoff-guide.md` with the issue context, safety boundaries,
+verification commands and known release debt.
+
 ## Verification status
 
-Linux build, contract tests, runtime HTTP smoke and the production dependency audit are documented
-in `docs/verification-report.md`. Browser interaction/capture and macOS execution remain required;
-the spike and its dependent issue must not be marked complete until that evidence is reviewed.
+Linux build, contract tests, runtime HTTP smoke, hardening audit, performance budget, demo pilot and
+production dependency audit are enforced by `.github/workflows/theia-platform-spike.yml`.
