@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class WorkbenchContextService {
-    private static final Set<String> AREAS = Set.of("project", "analysis", "architecture", "ai", "equivalence");
+    private static final Set<String> AREAS = Set.of("project", "analysis", "domain", "architecture", "ai", "equivalence");
     private final ProjectRepository projects;
 
     public WorkbenchContextService(ProjectRepository projects) { this.projects = projects; }

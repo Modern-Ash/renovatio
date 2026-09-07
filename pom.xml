@@ -39,6 +39,7 @@
 
     <modules>
         <module>renovatio-semantic-ir</module>
+        <module>renovatio-domain-model</module>
         <module>renovatio-jcl</module>
         <module>renovatio-shared</module>
         <module>renovatio-architecture</module>
@@ -65,6 +66,11 @@
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-semantic-ir</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-domain-model</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

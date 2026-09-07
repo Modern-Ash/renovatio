@@ -26,13 +26,13 @@ test('provides focus, responsive, and reduced-motion styles', () => {
     assert.match(styles, /prefers-reduced-motion: no-preference/);
 });
 
-test('registers five activity areas with command palette keybindings', () => {
-    for (const area of ['project', 'analysis', 'architecture', 'ai', 'equivalence']) {
+test('registers six activity areas with command palette keybindings', () => {
+    for (const area of ['project', 'analysis', 'domain', 'architecture', 'ai', 'equivalence']) {
         assert.match(contribution, new RegExp(`renovatio\\.shell\\.${area}`));
     }
     assert.match(contribution, /registerKeybindings/);
     assert.match(contribution, /ctrlcmd\+alt\+1/);
-    assert.match(contribution, /ctrlcmd\+alt\+5/);
+    assert.match(contribution, /ctrlcmd\+alt\+6/);
 });
 
 test('provides accessible project navigation over all required asset classes', () => {
@@ -111,4 +111,38 @@ test('exposes a read-only Source Explorer over the governed adapter (issue #178)
     // strictly read-only: never mutates the endpoint
     assert.doesNotMatch(shell, /source-explorer`, \{\s*method/);
     assert.doesNotMatch(shell, /method: '(POST|PUT|DELETE|PATCH)'[^;]*source-explorer/);
+});
+
+test('provides the governed DomainModel editor and immutable version boundary (issue #179)', () => {
+    assert.match(shell, /\/workbench\/domain-model/);
+    assert.match(shell, /method: 'PUT'/);
+    assert.match(shell, /expectedRevision: this\.domain\.revision/);
+    assert.match(shell, /\/domain-model\/versions/);
+    assert.match(shell, /\/domain-model\/compare/);
+    assert.match(shell, /\/domain-model\/suggestions/);
+    for (const state of ['loading', 'ready', 'empty', 'permission-denied', 'conflict', 'error']) {
+        assert.match(shell, new RegExp(`'${state}'`));
+    }
+    assert.match(shell, /aria-label='Business DomainModel editor'/);
+    assert.match(shell, /aria-label='Selected domain element editor'/);
+    assert.match(shell, /aria-label='Domain provenance and history'/);
+    assert.match(shell, /aria-live='polite'/);
+    assert.match(shell, /DOMAIN_KINDS/);
+    assert.match(shell, /CARDINALITIES/);
+    assert.match(shell, /Stable ids and evidence references remain immutable/);
+});
+
+test('links source evidence and symbols in both directions without triggering analysis', () => {
+    assert.match(shell, /navigateToSource\(evidence\.sourceRef\)/);
+    assert.match(shell, /navigateToDomainFromSource\(file, symbol\)/);
+    assert.match(shell, /aria-label='Related DomainModel elements'/);
+    assert.match(shell, /sourceRef\.split\('#'\)/);
+    assert.doesNotMatch(shell, /navigateToDomainFromSource[\s\S]{0,700}loadAnalysis\(/);
+});
+
+test('keeps DomainModel work neutral and outside generation or architecture mutation', () => {
+    assert.doesNotMatch(shell, /domain-model[^\n]+method: '(DELETE|PATCH)'/);
+    assert.doesNotMatch(shell, /saveDomainModel[\s\S]{0,1200}(generate|architecture)/i);
+    assert.match(styles, /renovatio-domain-grid/);
+    assert.match(styles, /state-conflict/);
 });
