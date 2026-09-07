@@ -90,3 +90,25 @@ test('shows read-only inventory and persisted run summaries in Analysis', () => 
     assert.match(shell, /No inventory or persisted runs/);
     assert.doesNotMatch(shell, /method: 'POST'.*workbench\/analysis/);
 });
+
+test('exposes a read-only Source Explorer over the governed adapter (issue #178)', () => {
+    assert.match(shell, /\/workbench\/source-explorer/);
+    assert.match(shell, /sourceExplorerState/);
+    for (const state of ["'loading'", "'ready'", "'empty'", "'permission-denied'", "'error'"]) {
+        assert.match(shell, new RegExp(`sourceExplorerState = ${state}`));
+    }
+    // navigable tree + outline + search + Problems + IR linkage
+    assert.match(shell, /aria-label='Source files'/);
+    assert.match(shell, /aria-label=\{`Outline of \$\{file\.name\}`\}/);
+    assert.match(shell, /aria-label='Search symbols and references'/);
+    assert.match(shell, /aria-label='Problems'/);
+    assert.match(shell, /symbol\.irCoordinate/);
+    assert.match(shell, /aria-current=\{this\.selectedSourceFileId === entry\.id \? 'true' : undefined\}/);
+    // file metadata surfaced
+    assert.match(shell, /entry\.hash/);
+    assert.match(shell, /entry\.encoding/);
+    assert.match(shell, /entry\.analysisStatus/);
+    // strictly read-only: never mutates the endpoint
+    assert.doesNotMatch(shell, /source-explorer`, \{\s*method/);
+    assert.doesNotMatch(shell, /method: '(POST|PUT|DELETE|PATCH)'[^;]*source-explorer/);
+});

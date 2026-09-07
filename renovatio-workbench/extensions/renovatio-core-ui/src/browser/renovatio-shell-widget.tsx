@@ -38,6 +38,11 @@ type WorkbenchAnalysis = { inventory: Record<string, number>; runs: Array<{ runI
 type WorkbenchArchitecture = { modules: unknown[]; components: unknown[]; relations: unknown[]; diagnostics: unknown[]; hasFallback: boolean };
 type WorkbenchAi = { items: Array<{ id: string; category: string; source: string; status: string; confidence: number; evidenceCount: number; llmFailed: boolean }> };
 type WorkbenchEquivalence = { evidence: Array<{ id: string; name: string }>; generatedTargets: Array<{ id: string; name: string }>; verdicts: Array<{ fixtureId: string; classification: string; reason: string; blocksRelease: boolean }> };
+type SourceSymbol = { id: string; kind: string; name: string; line: number; column: number; parentId: string | null; irCoordinate: string };
+type SourceDiagnostic = { severity: string; message: string; line: number };
+type SourceFile = { id: string; name: string; kind: string; path: string; hash: string; encoding: string; analysisStatus: string; symbols: SourceSymbol[]; diagnostics: SourceDiagnostic[] };
+type SourceExplorer = { files: SourceFile[]; datasets: Array<{ id: string; name: string; referencedBy: string[] }> };
+type AreaState = 'idle' | 'loading' | 'ready' | 'empty' | 'permission-denied' | 'error';
 
 const ACTIVE_AREA_KEY = 'renovatio.workbench.active-area';
 const SELECTED_PROJECT_KEY = 'renovatio.workbench.selected-project';
@@ -71,6 +76,10 @@ export class RenovatioShellWidget extends ReactWidget {
     protected aiState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
     protected equivalence?: WorkbenchEquivalence;
     protected equivalenceState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
+    protected sourceExplorer?: SourceExplorer;
+    protected sourceExplorerState: AreaState = 'idle';
+    protected selectedSourceFileId: string | null = null;
+    protected symbolSearch = '';
 
     @postConstruct()
     protected init(): void {
@@ -94,6 +103,7 @@ export class RenovatioShellWidget extends ReactWidget {
         if (area === 'architecture') void this.loadArchitecture();
         if (area === 'ai') void this.loadAi();
         if (area === 'equivalence') void this.loadEquivalence();
+        if (area === 'project') void this.loadSourceExplorer();
         this.update();
     }
 
@@ -109,6 +119,7 @@ export class RenovatioShellWidget extends ReactWidget {
         if (this.activeArea === 'architecture') void this.loadArchitecture();
         if (this.activeArea === 'ai') void this.loadAi();
         if (this.activeArea === 'equivalence') void this.loadEquivalence();
+        void this.loadSourceExplorer();
         this.update();
     }
 
@@ -212,6 +223,46 @@ export class RenovatioShellWidget extends ReactWidget {
         this.update();
     }
 
+    protected async loadSourceExplorer(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject)) {
+            this.sourceExplorerState = this.projects.length ? 'error' : 'idle';
+            this.update();
+            return;
+        }
+        this.sourceExplorerState = 'loading'; this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/source-explorer`);
+            if (response.status === 401 || response.status === 403) { this.sourceExplorerState = 'permission-denied'; this.update(); return; }
+            if (!response.ok) throw new Error(`Source explorer adapter returned ${response.status}`);
+            this.sourceExplorer = await response.json() as SourceExplorer;
+            if (this.sourceExplorer.files.length) {
+                if (!this.sourceExplorer.files.some(file => file.id === this.selectedSourceFileId)) {
+                    this.selectedSourceFileId = this.sourceExplorer.files[0].id;
+                }
+                this.sourceExplorerState = 'ready';
+            } else {
+                this.selectedSourceFileId = null;
+                this.sourceExplorerState = 'empty';
+            }
+        } catch { this.sourceExplorerState = 'error'; }
+        this.update();
+    }
+
+    protected selectSourceFile(id: string): void { this.selectedSourceFileId = id; this.update(); }
+    protected updateSymbolSearch(event: React.ChangeEvent<HTMLInputElement>): void { this.symbolSearch = event.target.value; this.update(); }
+
+    protected get selectedSourceFile(): SourceFile | undefined {
+        return this.sourceExplorer?.files.find(file => file.id === this.selectedSourceFileId);
+    }
+
+    protected symbolMatches(): Array<{ file: SourceFile; symbol: SourceSymbol }> {
+        const term = this.symbolSearch.trim().toLowerCase();
+        if (!term || !this.sourceExplorer) return [];
+        return this.sourceExplorer.files.flatMap(file => file.symbols
+            .filter(symbol => symbol.name.toLowerCase().includes(term) || symbol.kind.toLowerCase().includes(term))
+            .map(symbol => ({ file, symbol })));
+    }
+
     protected async readEnv(name: string): Promise<string | undefined> {
         const variable: EnvVariable | undefined = await this.envVariables.getValue(name);
         return variable?.value?.trim() || undefined;
@@ -273,8 +324,10 @@ export class RenovatioShellWidget extends ReactWidget {
 
     protected selectProject(project: string): void {
         this.selectedProject = project;
+        this.selectedSourceFileId = null;
         this.persistShellState();
         void this.loadAssets().then(() => this.loadContext()).then(() => this.update()).catch(() => { this.shellState = 'error'; this.update(); });
+        void this.loadSourceExplorer();
         this.update();
     }
 
@@ -304,6 +357,58 @@ export class RenovatioShellWidget extends ReactWidget {
         </aside>;
     }
 
+    protected renderSourceExplorer(): React.ReactNode {
+        const file = this.selectedSourceFile;
+        const matches = this.symbolMatches();
+        return <section className='renovatio-source-explorer' aria-label='Source explorer'>
+            <div className='renovatio-panel-heading'>
+                <span className='renovatio-coordinate'>PROJECT.02</span>
+                <h3>Source explorer · {this.sourceExplorerState.toUpperCase()}</h3>
+            </div>
+            {this.sourceExplorerState === 'permission-denied' && <p>Source explorer is not authorized for this role; project navigation remains available.</p>}
+            {this.sourceExplorerState === 'error' && <p>Source explorer data is unavailable; project navigation remains available.</p>}
+            {this.sourceExplorerState === 'empty' && <p>No COBOL, copybook or JCL assets were found in this project workspace.</p>}
+            {this.sourceExplorerState === 'ready' && this.sourceExplorer && <div className='renovatio-source-grid'>
+                <nav aria-label='Source files'>
+                    <ul>{this.sourceExplorer.files.map(entry => <li key={entry.id}>
+                        <button type='button' aria-current={this.selectedSourceFileId === entry.id ? 'true' : undefined}
+                            onClick={() => this.selectSourceFile(entry.id)}>{entry.name}</button>
+                        <span className='renovatio-file-meta'>{entry.kind} · {entry.encoding} · {entry.analysisStatus} · {entry.hash.slice(0, 14)}…</span>
+                    </li>)}</ul>
+                </nav>
+                <div className='renovatio-source-detail'>
+                    <label>Symbol search
+                        <input type='search' value={this.symbolSearch} onChange={event => this.updateSymbolSearch(event)} aria-label='Search symbols and references' />
+                    </label>
+                    {this.symbolSearch.trim()
+                        ? <ol className='renovatio-symbol-results' aria-label='Search results'>
+                            {matches.length
+                                ? matches.map(match => <li key={`${match.file.id}:${match.symbol.id}`}>{match.symbol.kind} · {match.symbol.name} — {match.file.name} {match.symbol.line}:{match.symbol.column}</li>)
+                                : <li>No symbol or reference matches “{this.symbolSearch}”.</li>}
+                        </ol>
+                        : file && <>
+                            <ol className='renovatio-outline' aria-label={`Outline of ${file.name}`}>
+                                {file.symbols.length
+                                    ? file.symbols.map(symbol => <li key={symbol.id} aria-current={undefined}>
+                                        <span className='renovatio-symbol-kind'>{symbol.kind}</span> {symbol.name}
+                                        <span className='renovatio-symbol-pos'>{symbol.line}:{symbol.column}</span>
+                                        <span className='renovatio-symbol-ir'>{symbol.irCoordinate}</span>
+                                    </li>)
+                                    : <li>This file is shown as “{file.analysisStatus}”; no navigable symbols were extracted.</li>}
+                            </ol>
+                            <section className='renovatio-problems' aria-label='Problems'>
+                                <h4>Problems</h4>
+                                {file.diagnostics.length
+                                    ? <ul>{file.diagnostics.map((diagnostic, index) => <li key={index}>{diagnostic.severity.toUpperCase()} · line {diagnostic.line} · {diagnostic.message}</li>)}</ul>
+                                    : <p>No parse diagnostics for {file.name}.</p>}
+                            </section>
+                        </>}
+                    {this.sourceExplorer.datasets.length > 0 && <p className='renovatio-datasets'>Datasets: {this.sourceExplorer.datasets.map(dataset => dataset.name).join(', ')}</p>}
+                </div>
+            </div>}
+        </section>;
+    }
+
     protected renderArea(): React.ReactNode {
         const area = AREAS.find(candidate => candidate.id === this.activeArea) ?? AREAS[0];
         return <section className='renovatio-area-content' aria-labelledby='renovatio-area-heading'>
@@ -324,6 +429,7 @@ export class RenovatioShellWidget extends ReactWidget {
                 <textarea value={this.assetContent} readOnly={!this.selectedAssetWritable} onChange={event => this.updateAssetContent(event)} aria-label={`${this.selectedAsset} content`} spellCheck={false} />
                 <p>{this.selectedAssetWritable ? 'Temporary development mode: writing a generated target is enabled. It is not production authorization.' : 'Legacy source and evidence are read-only.'}</p>
             </section>}
+            {this.activeArea === 'project' && this.renderSourceExplorer()}
             {this.activeArea === 'analysis' && <section className='renovatio-asset-editor' aria-label='Analysis inventory'>
                 <div><span>ANALYSIS ADAPTER · {this.analysisState.toUpperCase()}</span></div>
                 {this.analysisState === 'ready' && <><p>{Object.entries(this.analysis?.inventory ?? {}).map(([category, count]) => `${category}: ${count}`).join(' · ')}</p>
