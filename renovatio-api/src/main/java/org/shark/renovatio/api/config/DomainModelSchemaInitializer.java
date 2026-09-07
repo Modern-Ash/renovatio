@@ -35,5 +35,16 @@ public class DomainModelSchemaInitializer implements ApplicationRunner {
                     decided_at TIMESTAMP NOT NULL
                 )
                 """);
+        jdbc.execute("""
+                CREATE TABLE IF NOT EXISTS project_architecture_profile_versions (
+                    id VARCHAR(512) PRIMARY KEY,
+                    project_id VARCHAR(255) NOT NULL,
+                    revision BIGINT NOT NULL,
+                    canonical_hash VARCHAR(64) NOT NULL,
+                    profile_json TEXT NOT NULL,
+                    saved_at TIMESTAMP NOT NULL,
+                    CONSTRAINT uk_architecture_profile_project_revision UNIQUE (project_id, revision)
+                )
+                """);
     }
 }

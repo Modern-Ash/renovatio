@@ -87,14 +87,17 @@ class ArchitectureTransformerTest {
     }
 
     @Test
-    void rejectsInactiveAndDuplicateProfiles() {
-        var error = assertThrows(ArchitectureTransformer.ArchitectureStyleNotActiveException.class,
-                () -> transformer.transform(request(program(false, false, false),
-                        MigrationProfile.ArchitectureStyle.LAYERED_MVC)));
-        assertEquals("ARCHITECTURE_STYLE_NOT_ACTIVE", error.code());
-        assertEquals(MigrationProfile.ArchitectureStyle.LAYERED_MVC, error.requestedStyle());
-        assertEquals(List.of(MigrationProfile.ArchitectureStyle.HEXAGONAL,
-                MigrationProfile.ArchitectureStyle.TRANSACTION_SCRIPT), error.activeStyles());
+    void supportsLayeredProfilesAndRejectsDuplicateProfiles() {
+        ArchitectureResult layered = transformer.transform(request(program(false, false, false),
+                MigrationProfile.ArchitectureStyle.LAYERED_MVC));
+        assertEquals(MigrationProfile.ArchitectureStyle.LAYERED_MVC,
+                layered.programs().get(0).effectiveStyle());
+        assertTrue(layered.graph().components().stream()
+                .anyMatch(value -> value.name().endsWith("controller")));
+        assertTrue(layered.graph().components().stream()
+                .anyMatch(value -> value.name().endsWith("service")));
+        assertTrue(layered.graph().components().stream()
+                .anyMatch(value -> value.name().endsWith("model")));
         assertThrows(IllegalArgumentException.class, () -> new ArchitectureTransformer(new ModuleGroupingResolver(),
                 List.of(new TransactionScriptArchitectureProfile(), new TransactionScriptArchitectureProfile())));
     }

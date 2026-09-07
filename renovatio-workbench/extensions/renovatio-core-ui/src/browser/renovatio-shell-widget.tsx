@@ -36,7 +36,16 @@ type WorkbenchProject = { id: string; name: string };
 type WorkbenchAsset = { id: string; name: string; category: string; writable: boolean };
 type WorkbenchContext = { activeArea: RenovatioAreaId | null; selectedAssetId: string | null };
 type WorkbenchAnalysis = { inventory: Record<string, number>; runs: Array<{ runId: string; dryRun: boolean; startedAt: string }> };
-type WorkbenchArchitecture = { modules: unknown[]; components: unknown[]; relations: unknown[]; diagnostics: unknown[]; hasFallback: boolean };
+type ArchitectureStyle = 'TRANSACTION_SCRIPT' | 'LAYERED_MVC' | 'HEXAGONAL' | 'CLEAN' | 'LAYERED';
+type ModuleGrouping = 'BY_PROGRAM' | 'BY_DOMAIN' | 'SINGLE_MODULE';
+type ArchitectureRule = { fromLayer: string; toLayer: string; allowed: boolean; reason: string };
+type ArchitectureProfileDraft = { style: ArchitectureStyle; moduleGrouping: ModuleGrouping; framework: string; persistence: string; packageRoots: Record<string, string>; suffixes: Record<string, string>; classNames: Record<string, string>; dependencyRules: ArchitectureRule[] };
+type ArchitectureCanvasNode = { id: string; layer: string; kind: string; label: string; packageName: string; className: string; componentId: string };
+type ArchitectureDiagnostic = { severity: string; code: string; fromLayer: string; toLayer: string; message: string };
+type ArchitectureManifestEntry = { path: string; role: string; layer: string; className: string; packageName: string; componentId: string };
+type ArchitectureVersion = { revision: number; canonicalHash: string; savedAt: string; style: ArchitectureStyle };
+type ArchitectureComparison = { added: DomainChange[]; removed: DomainChange[]; changed: DomainChange[] };
+type WorkbenchArchitecture = { revision: number; canonicalHash: string; savedAt: string | null; profile: ArchitectureProfileDraft; preview: { modules: unknown[]; components: unknown[]; relations: unknown[]; diagnostics: unknown[]; hasFallback: boolean }; canvas: ArchitectureCanvasNode[]; dependencyRules: ArchitectureRule[]; dependencyDiagnostics: ArchitectureDiagnostic[]; manifest: ArchitectureManifestEntry[] };
 type WorkbenchAi = { items: Array<{ id: string; category: string; source: string; status: string; confidence: number; evidenceCount: number; llmFailed: boolean }> };
 type WorkbenchEquivalence = { evidence: Array<{ id: string; name: string }>; generatedTargets: Array<{ id: string; name: string }>; verdicts: Array<{ fixtureId: string; classification: string; reason: string; blocksRelease: boolean }> };
 type SourceSymbol = { id: string; kind: string; name: string; line: number; column: number; parentId: string | null; irCoordinate: string };
@@ -62,6 +71,7 @@ type DomainItemType = 'node' | 'relation' | 'invariant';
 const DOMAIN_KINDS = ['ENTITY', 'VALUE_OBJECT', 'AGGREGATE', 'USE_CASE', 'DOMAIN_SERVICE', 'REPOSITORY', 'EXTERNAL_SYSTEM', 'EVENT', 'BOUNDED_CONTEXT'] as const;
 const RELATION_KINDS = ['CONTAINS', 'USES', 'IMPLEMENTS', 'DEPENDS_ON', 'PUBLISHES', 'SUBSCRIBES_TO', 'ASSOCIATES_WITH', 'MAPS_TO'] as const;
 const CARDINALITIES = ['ONE', 'ZERO_OR_ONE', 'ONE_OR_MORE', 'ZERO_OR_MORE'] as const;
+const MVC_LAYERS = ['controller', 'service', 'model'] as const;
 
 const ACTIVE_AREA_KEY = 'renovatio.workbench.active-area';
 const SELECTED_PROJECT_KEY = 'renovatio.workbench.selected-project';
@@ -90,7 +100,15 @@ export class RenovatioShellWidget extends ReactWidget {
     protected analysis?: WorkbenchAnalysis;
     protected analysisState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
     protected architecture?: WorkbenchArchitecture;
-    protected architectureState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
+    protected architectureDraft?: ArchitectureProfileDraft;
+    protected architectureState: 'idle' | 'loading' | 'ready' | 'empty' | 'permission-denied' | 'saving' | 'conflict' | 'error' = 'idle';
+    protected architectureVersions: ArchitectureVersion[] = [];
+    protected architectureComparison?: ArchitectureComparison;
+    protected architectureDirty = false;
+    protected architectureNotice = '';
+    protected selectedArchitectureLayer = 'controller';
+    protected architectureCompareFrom = 0;
+    protected architectureCompareTo = 0;
     protected ai?: WorkbenchAi;
     protected aiState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
     protected equivalence?: WorkbenchEquivalence;
@@ -222,13 +240,112 @@ export class RenovatioShellWidget extends ReactWidget {
 
     protected async loadArchitecture(): Promise<void> {
         if (!this.projects.some(project => project.id === this.selectedProject)) return;
-        this.architectureState = 'loading'; this.update();
+        this.architectureState = 'loading'; this.architectureNotice = ''; this.update();
         try {
-            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture`);
-            if (!response.ok) throw new Error(`Architecture adapter returned ${response.status}`);
-            this.architecture = await response.json() as WorkbenchArchitecture;
-            this.architectureState = this.architecture.modules.length || this.architecture.components.length ? 'ready' : 'empty';
+            const base = `${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture/canvas`;
+            const [canvasResponse, versionsResponse] = await Promise.all([fetch(base), fetch(`${base}/versions`)]);
+            if ([canvasResponse.status, versionsResponse.status].some(status => status === 401 || status === 403)) {
+                this.architectureState = 'permission-denied'; this.update(); return;
+            }
+            if (!canvasResponse.ok || !versionsResponse.ok) throw new Error('Architecture canvas adapter is unavailable');
+            this.architecture = await canvasResponse.json() as WorkbenchArchitecture;
+            this.architectureVersions = await versionsResponse.json() as ArchitectureVersion[];
+            this.architectureDraft = this.cloneArchitectureProfile(this.architecture.profile);
+            this.architectureState = this.architecture.canvas.length || this.architecture.manifest.length ? 'ready' : 'empty';
+            this.architectureDirty = false;
+            this.selectedArchitectureLayer = this.architectureDraft.dependencyRules[0]?.fromLayer ?? 'controller';
+            this.architectureCompareFrom = this.architectureVersions[this.architectureVersions.length - 1]?.revision ?? 0;
+            this.architectureCompareTo = this.architectureVersions[0]?.revision ?? 0;
         } catch { this.architectureState = 'error'; }
+        this.update();
+    }
+
+    protected cloneArchitectureProfile(profile: ArchitectureProfileDraft): ArchitectureProfileDraft {
+        return JSON.parse(JSON.stringify(profile)) as ArchitectureProfileDraft;
+    }
+
+    protected markArchitectureChanged(profile: ArchitectureProfileDraft): void {
+        this.architectureDraft = profile;
+        this.architectureDirty = true;
+        this.architectureNotice = 'Architecture profile has unsaved changes.';
+        this.update();
+    }
+
+    protected updateArchitectureProfile(patch: Partial<ArchitectureProfileDraft>): void {
+        if (!this.architectureDraft) return;
+        this.markArchitectureChanged({ ...this.architectureDraft, ...patch });
+    }
+
+    protected updateArchitectureMap(section: 'packageRoots' | 'suffixes' | 'classNames', key: string, value: string): void {
+        if (!this.architectureDraft) return;
+        this.markArchitectureChanged({ ...this.architectureDraft, [section]: { ...this.architectureDraft[section], [key]: value } });
+    }
+
+    protected updateArchitectureRule(index: number, patch: Partial<ArchitectureRule>): void {
+        if (!this.architectureDraft) return;
+        this.markArchitectureChanged({ ...this.architectureDraft, dependencyRules: this.architectureDraft.dependencyRules.map((rule, candidate) => candidate === index ? { ...rule, ...patch } : rule) });
+    }
+
+    protected async saveArchitectureProfile(): Promise<void> {
+        if (!this.architecture || !this.architectureDraft || !this.architectureDirty || this.architectureState === 'saving') return;
+        this.architectureState = 'saving';
+        this.architectureNotice = 'Saving architecture profile revision...';
+        this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture/canvas`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ expectedRevision: this.architecture.revision, profile: this.architectureDraft })
+            });
+            if (response.status === 401 || response.status === 403) { this.architectureState = 'permission-denied'; this.architectureNotice = 'You do not have permission to save architecture profiles.'; this.update(); return; }
+            if (response.status === 409) { this.architectureState = 'conflict'; this.architectureNotice = 'A newer architecture profile exists. Reload before applying these changes.'; this.update(); return; }
+            if (!response.ok) {
+                const error = await response.json() as { message?: string; diagnostics?: ArchitectureDiagnostic[] };
+                this.architectureNotice = error.diagnostics?.map(item => item.message).join(' · ') || error.message || 'Architecture profile validation failed.';
+                this.architectureState = 'error'; this.update(); return;
+            }
+            this.architecture = await response.json() as WorkbenchArchitecture;
+            this.architectureDraft = this.cloneArchitectureProfile(this.architecture.profile);
+            this.architectureDirty = false;
+            this.architectureState = this.architecture.canvas.length || this.architecture.manifest.length ? 'ready' : 'empty';
+            this.architectureNotice = `Saved architecture revision ${this.architecture.revision}.`;
+            await this.refreshArchitectureVersions();
+        } catch { this.architectureState = 'error'; this.architectureNotice = 'The architecture profile could not be saved.'; }
+        this.update();
+    }
+
+    protected async refreshArchitectureVersions(): Promise<void> {
+        const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture/canvas/versions`);
+        if (response.ok) this.architectureVersions = await response.json() as ArchitectureVersion[];
+    }
+
+    protected async restoreArchitectureVersion(revision: number): Promise<void> {
+        if (!this.architecture || this.architectureDirty) { this.architectureNotice = 'Save or reload the draft before restoring history.'; this.update(); return; }
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture/canvas/versions/${revision}:restore`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ expectedRevision: this.architecture.revision })
+            });
+            if (response.status === 409) { this.architectureState = 'conflict'; this.architectureNotice = 'A newer profile exists. Reload before restoring.'; this.update(); return; }
+            if (response.status === 401 || response.status === 403) { this.architectureState = 'permission-denied'; this.architectureNotice = 'You do not have permission to restore profiles.'; this.update(); return; }
+            if (!response.ok) throw new Error('Restore failed');
+            this.architecture = await response.json() as WorkbenchArchitecture;
+            this.architectureDraft = this.cloneArchitectureProfile(this.architecture.profile);
+            this.architectureDirty = false;
+            this.architectureState = this.architecture.canvas.length || this.architecture.manifest.length ? 'ready' : 'empty';
+            this.architectureNotice = `Restored architecture revision ${revision} as revision ${this.architecture.revision}.`;
+            await this.refreshArchitectureVersions();
+        } catch { this.architectureState = 'error'; this.architectureNotice = 'The historical architecture profile could not be restored.'; }
+        this.update();
+    }
+
+    protected async compareArchitectureVersions(): Promise<void> {
+        if (!this.architectureCompareFrom || !this.architectureCompareTo) { this.architectureNotice = 'Choose two persisted profile revisions to compare.'; this.update(); return; }
+        try {
+            const base = `${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture/canvas/compare`;
+            const response = await fetch(`${base}?from=${this.architectureCompareFrom}&to=${this.architectureCompareTo}`);
+            if (!response.ok) throw new Error('Comparison failed');
+            this.architectureComparison = await response.json() as ArchitectureComparison;
+            this.architectureNotice = `Compared architecture revisions ${this.architectureCompareFrom} and ${this.architectureCompareTo}.`;
+        } catch { this.architectureState = 'error'; this.architectureNotice = 'The architecture comparison could not be loaded.'; }
         this.update();
     }
 
@@ -658,11 +775,15 @@ export class RenovatioShellWidget extends ReactWidget {
         this.domain = undefined;
         this.domainDraft = undefined;
         this.domainDirty = false;
+        this.architecture = undefined;
+        this.architectureDraft = undefined;
+        this.architectureDirty = false;
         this.selectedDomainId = null;
         this.persistShellState();
         void this.loadAssets().then(() => this.loadContext()).then(() => this.update()).catch(() => { this.shellState = 'error'; this.update(); });
         void this.loadSourceExplorer();
         void this.loadDomainModel();
+        void this.loadArchitecture();
         this.update();
     }
 
@@ -870,6 +991,78 @@ export class RenovatioShellWidget extends ReactWidget {
         </section>;
     }
 
+    protected renderArchitectureCanvas(): React.ReactNode {
+        const profile = this.architectureDraft;
+        const view = this.architecture;
+        const layers = profile ? Array.from(new Set([...Object.keys(profile.packageRoots), ...Object.keys(profile.suffixes),
+            ...profile.dependencyRules.flatMap(rule => [rule.fromLayer, rule.toLayer]), ...MVC_LAYERS])) : MVC_LAYERS;
+        const layerNodes = view?.canvas.filter(node => node.layer === this.selectedArchitectureLayer) ?? [];
+        const rules = profile?.dependencyRules ?? [];
+        return <section className='renovatio-architecture-canvas' aria-label='Architecture Canvas editor' aria-live='polite'>
+            <div className='renovatio-architecture-toolbar'>
+                <div><span className='renovatio-coordinate'>ARCH.CANVAS</span><strong>REV {view?.revision ?? 0} · {view?.canonicalHash?.slice(0, 22) ?? 'sha256:pending'}</strong></div>
+                <div className='renovatio-architecture-actions'>
+                    <button type='button' onClick={() => void this.loadArchitecture()}>Reload</button>
+                    <button type='button' className='is-primary' disabled={!this.architectureDirty || this.architectureState === 'saving'} onClick={() => void this.saveArchitectureProfile()}>Save profile</button>
+                </div>
+            </div>
+            <p className={`renovatio-domain-state state-${this.architectureState}`}>{this.architectureNotice || `Architecture canvas ${this.architectureState}.`}</p>
+            {profile && view && <div className='renovatio-architecture-grid'>
+                <aside className='renovatio-architecture-palette' aria-label='Architecture style and layers'>
+                    <section><h3>Style</h3><div className='renovatio-segmented' role='group' aria-label='Architecture style'>
+                        {(['LAYERED_MVC', 'HEXAGONAL', 'CLEAN', 'LAYERED', 'TRANSACTION_SCRIPT'] as ArchitectureStyle[]).map(style =>
+                            <button type='button' key={style} aria-pressed={profile.style === style} onClick={() => this.updateArchitectureProfile({ style })}>{style.replace('_', ' ')}</button>)}
+                    </div></section>
+                    <section><h3>Target</h3><label>Module grouping<select value={profile.moduleGrouping} onChange={event => this.updateArchitectureProfile({ moduleGrouping: event.target.value as ModuleGrouping })}>
+                        {(['BY_PROGRAM', 'BY_DOMAIN', 'SINGLE_MODULE'] as ModuleGrouping[]).map(value => <option key={value}>{value}</option>)}
+                    </select></label><label>Framework<select value={profile.framework} onChange={event => this.updateArchitectureProfile({ framework: event.target.value })}>
+                        {['SPRING_BOOT', 'NONE'].map(value => <option key={value}>{value}</option>)}
+                    </select></label><label>Persistence<select value={profile.persistence} onChange={event => this.updateArchitectureProfile({ persistence: event.target.value })}>
+                        {['IN_MEMORY', 'JPA', 'SPRING_DATA_JDBC', 'PRISMA'].map(value => <option key={value}>{value}</option>)}
+                    </select></label></section>
+                    <section><h3>Layers <span>{layers.length}</span></h3><ul>
+                        {layers.map(layer => <li key={layer}><button type='button' aria-current={this.selectedArchitectureLayer === layer ? 'true' : undefined} onClick={() => { this.selectedArchitectureLayer = layer; this.update(); }}><span>{layer.toUpperCase()}</span>{profile.packageRoots[layer] ?? profile.packageRoots.base}<small>{layerNodes.length && layer === this.selectedArchitectureLayer ? `${layerNodes.length} nodes` : profile.suffixes[layer] ?? 'no suffix'}</small></button></li>)}
+                    </ul></section>
+                </aside>
+                <section className='renovatio-architecture-stage' aria-label='Editable architecture canvas'>
+                    <div className='renovatio-architecture-rail'>
+                        {layers.map(layer => <article key={layer} className={this.selectedArchitectureLayer === layer ? 'is-selected' : undefined}>
+                            <button type='button' onClick={() => { this.selectedArchitectureLayer = layer; this.update(); }} aria-selected={this.selectedArchitectureLayer === layer}><span>{layer}</span><strong>{profile.suffixes[layer] ?? 'Component'}</strong></button>
+                            {(view.canvas.filter(node => node.layer === layer).slice(0, 5)).map(node => <div key={node.id} className='renovatio-architecture-node'><span>{node.kind}</span>{node.className}<small>{node.packageName}</small></div>)}
+                        </article>)}
+                    </div>
+                    <div className='renovatio-architecture-manifest' aria-label='Artifact and package manifest preview'><h3>Manifest preview</h3>
+                        {view.manifest.length ? <ol>{view.manifest.slice(0, 12).map(entry => <li key={entry.path}><code>{entry.path}</code><span>{entry.role} · {entry.layer}</span></li>)}</ol> : <p>No artifact manifest is available for this profile.</p>}
+                    </div>
+                </section>
+                <aside className='renovatio-architecture-inspector' aria-label='Architecture profile inspector'>
+                    <section><span className='renovatio-coordinate'>NAMING</span><h3>{this.selectedArchitectureLayer}</h3>
+                        <label>Package<input value={profile.packageRoots[this.selectedArchitectureLayer] ?? ''} onChange={event => this.updateArchitectureMap('packageRoots', this.selectedArchitectureLayer, event.target.value)} /></label>
+                        <label>Suffix<input value={profile.suffixes[this.selectedArchitectureLayer] ?? ''} onChange={event => this.updateArchitectureMap('suffixes', this.selectedArchitectureLayer, event.target.value)} /></label>
+                        <label>Class override key<input value={profile.classNames[this.selectedArchitectureLayer] ?? ''} onChange={event => this.updateArchitectureMap('classNames', this.selectedArchitectureLayer, event.target.value)} /></label>
+                    </section>
+                    <section><span className='renovatio-coordinate'>DEPENDENCIES</span><h3>Rules</h3>
+                        <ul>{rules.map((rule, index) => <li key={`${rule.fromLayer}:${rule.toLayer}:${index}`} className={rule.allowed ? 'severity-warning' : 'severity-error'}>
+                            <label>From<input value={rule.fromLayer} onChange={event => this.updateArchitectureRule(index, { fromLayer: event.target.value })} /></label>
+                            <label>To<input value={rule.toLayer} onChange={event => this.updateArchitectureRule(index, { toLayer: event.target.value })} /></label>
+                            <label className='renovatio-checkbox'><input type='checkbox' checked={rule.allowed} onChange={event => this.updateArchitectureRule(index, { allowed: event.target.checked })} />Allowed</label>
+                            <label>Reason<input value={rule.reason} onChange={event => this.updateArchitectureRule(index, { reason: event.target.value })} /></label>
+                        </li>)}</ul>
+                        {view.dependencyDiagnostics.length ? <p className='renovatio-domain-diff'>{view.dependencyDiagnostics.length} illegal dependencies visible before generate.</p> : <p>No illegal dependency diagnostics.</p>}
+                    </section>
+                    <section><span className='renovatio-coordinate'>VERSIONS</span><h3>Profile history</h3>
+                        {this.architectureVersions.length ? <><ul>{this.architectureVersions.map(version => <li key={version.revision}><strong>REV {version.revision}</strong><span>{version.style}</span><small>{version.canonicalHash.slice(0, 22)}</small><button type='button' onClick={() => void this.restoreArchitectureVersion(version.revision)} disabled={version.revision === view.revision}>Restore</button></li>)}</ul>
+                            <div className='renovatio-domain-compare'><label>From<select value={this.architectureCompareFrom} onChange={event => { this.architectureCompareFrom = Number(event.target.value); this.update(); }}>{this.architectureVersions.map(version => <option key={version.revision} value={version.revision}>REV {version.revision}</option>)}</select></label><label>To<select value={this.architectureCompareTo} onChange={event => { this.architectureCompareTo = Number(event.target.value); this.update(); }}>{this.architectureVersions.map(version => <option key={version.revision} value={version.revision}>REV {version.revision}</option>)}</select></label><button type='button' onClick={() => void this.compareArchitectureVersions()}>Compare</button></div>
+                            {this.architectureComparison && <p className='renovatio-domain-diff'>Added {this.architectureComparison.added.length} · Removed {this.architectureComparison.removed.length} · Changed {this.architectureComparison.changed.length}</p>}</> : <p>No persisted architecture revisions yet.</p>}
+                    </section>
+                </aside>
+            </div>}
+            {this.architectureState === 'empty' && <p>No architecture canvas is available for this project.</p>}
+            {this.architectureState === 'permission-denied' && <p>You do not have permission to inspect this architecture profile.</p>}
+            {this.architectureState === 'error' && <p>Architecture canvas is unavailable; project navigation remains available.</p>}
+        </section>;
+    }
+
     protected renderArea(): React.ReactNode {
         const area = AREAS.find(candidate => candidate.id === this.activeArea) ?? AREAS[0];
         return <section className='renovatio-area-content' aria-labelledby='renovatio-area-heading'>
@@ -878,10 +1071,10 @@ export class RenovatioShellWidget extends ReactWidget {
             <p>{area.summary}</p>
             <article className='renovatio-asset-preview' aria-label='Selected shell context'>
                 <span>{this.activeArea === 'project' ? 'SELECTED ASSET' : 'WORKBENCH AREA'}</span>
-                <strong>{this.activeArea === 'project' ? this.selectedAsset : this.activeArea === 'domain' ? `DOMAINMODEL / REV ${this.domain?.revision ?? 0}` : this.activeArea === 'architecture' && this.architectureState === 'ready' ? 'ARCHITECTURE / PREVIEW READY' : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'EQUIVALENCE / INVENTORY READY' : `${area.label.toUpperCase()} / READY FOR ADAPTER`}</strong>
+                <strong>{this.activeArea === 'project' ? this.selectedAsset : this.activeArea === 'domain' ? `DOMAINMODEL / REV ${this.domain?.revision ?? 0}` : this.activeArea === 'architecture' && this.architecture ? `ARCHITECTURE / REV ${this.architecture.revision}` : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'EQUIVALENCE / INVENTORY READY' : `${area.label.toUpperCase()} / READY FOR ADAPTER`}</strong>
                 <p>{this.activeArea === 'project'
                     ? 'Source content remains inside the configured workspace boundary.'
-                    : this.activeArea === 'architecture' && this.architectureState === 'ready' ? 'Read-only target architecture preview is loaded from the governed backend contract.'
+                    : this.activeArea === 'architecture' && this.architecture ? 'Editable target architecture profile, shadow manifest and dependency validation are loaded from the governed backend contract.'
                         : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'Read-only inventory is loaded from the governed backend contract; it does not imply an equivalence verdict.'
                             : 'UI boundary is available; live data remains governed by the existing backend contract.'}</p>
             </article>
@@ -899,12 +1092,7 @@ export class RenovatioShellWidget extends ReactWidget {
                 {this.analysisState === 'empty' && <p>No inventory or persisted runs are available.</p>}
                 {this.analysisState === 'error' && <p>Analysis data is unavailable; project navigation remains available.</p>}
             </section>}
-            {this.activeArea === 'architecture' && <section className='renovatio-asset-editor' aria-label='Architecture preview'>
-                <div><span>ARCHITECTURE PREVIEW · {this.architectureState.toUpperCase()}</span></div>
-                {this.architectureState === 'ready' && <p>Modules: {this.architecture?.modules.length} · Components: {this.architecture?.components.length} · Relations: {this.architecture?.relations.length} · Diagnostics: {this.architecture?.diagnostics.length}</p>}
-                {this.architectureState === 'empty' && <p>No architecture preview is available for this project.</p>}
-                {this.architectureState === 'error' && <p>Architecture preview is unavailable; project navigation remains available.</p>}
-            </section>}
+            {this.activeArea === 'architecture' && this.renderArchitectureCanvas()}
             {this.activeArea === 'ai' && <section className='renovatio-asset-editor' aria-label='Governed AI suggestions'>
                 <div><span>GOVERNED SUGGESTIONS · {this.aiState.toUpperCase()}</span></div>
                 {this.aiState === 'ready' && <p>{this.ai?.items.map(item => `${item.category} · ${item.source} · ${item.status} · ${(item.confidence * 100).toFixed(0)}%`).join(' | ')}</p>}
@@ -926,7 +1114,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected render(): React.ReactNode {
         return <main className='renovatio-surface renovatio-shell' aria-labelledby='renovatio-workbench-heading'>
             <header className='renovatio-header renovatio-shell-header'>
-                <span className='renovatio-kicker'>IDE SHELL · ISSUE 179</span>
+                <span className='renovatio-kicker'>IDE SHELL · ISSUE 180</span>
                 <h1 id='renovatio-workbench-heading'>RENOVATIO / CONTROL DECK</h1>
                 <p>Navigate governed modernization evidence without leaving the Theia workbench.</p>
                 <a className='renovatio-dashboard-link' href={this.dashboardUrl} target='_blank' rel='noreferrer'>Open administrative dashboard</a>
