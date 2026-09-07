@@ -3,7 +3,7 @@ import { EnvVariable, EnvVariablesServer } from '@theia/core/lib/common/env-vari
 import { inject, injectable, postConstruct } from '@theia/core/shared/inversify';
 import React from '@theia/core/shared/react';
 
-export type RenovatioAreaId = 'project' | 'analysis' | 'domain' | 'architecture' | 'shadow' | 'ai' | 'equivalence';
+export type RenovatioAreaId = 'project' | 'analysis' | 'domain' | 'architecture' | 'shadow' | 'ai' | 'changes' | 'equivalence';
 type ShellState = 'loading' | 'ready' | 'empty' | 'permission-denied' | 'error';
 
 interface RenovatioArea {
@@ -20,7 +20,8 @@ const AREAS: readonly RenovatioArea[] = [
     { id: 'architecture', coordinate: 'ACT.04', label: 'Architecture', summary: 'Target architecture views and dependency boundaries.' },
     { id: 'shadow', coordinate: 'ACT.05', label: 'Shadow', summary: 'Pre-generation diff, impact analysis and evidence traceability.' },
     { id: 'ai', coordinate: 'ACT.06', label: 'AI', summary: 'Governed suggestions, provenance and review boundaries.' },
-    { id: 'equivalence', coordinate: 'ACT.07', label: 'Equivalence', summary: 'Evidence, test deltas and acceptance history.' }
+    { id: 'changes', coordinate: 'ACT.07', label: 'Changes', summary: 'Reviewable change sets, approvals, apply and rollback.' },
+    { id: 'equivalence', coordinate: 'ACT.08', label: 'Equivalence', summary: 'Evidence, test deltas and acceptance history.' }
 ];
 
 const PROJECT_ASSETS = [
@@ -56,6 +57,10 @@ type WorkbenchAiPolicy = { directFileWritesAllowed: boolean; mutationsRequireHum
 type WorkbenchAiItem = { id: string; category: string; source: string; status: string; confidence: number; evidenceCount: number; llmFailed: boolean; promptId: string; promptVersion: string; question: string; chosenOption: string; rationale: string; evidence: string[]; reviewActions: string[]; approvalStatus: string };
 type WorkbenchAiAudit = { id: string; suggestionId: string; model: string; promptId: string; promptVersion: string; contextHash: string; responseHash: string; toolCalls: string[]; status: string; approvalRequired: boolean; approvalStatus: string };
 type WorkbenchAi = { agents: WorkbenchAiAgent[]; prompts: WorkbenchAiPrompt[]; slashCommands: WorkbenchAiCommand[]; context: WorkbenchAiContext; toolPolicy: WorkbenchAiPolicy; items: WorkbenchAiItem[]; auditTrail: WorkbenchAiAudit[]; limits: string[] };
+type ChangeSetFile = { path: string; action: string; beforeHash: string; afterHash: string; proposedContent: string };
+type ChangeSetDiff = { summary: string; requiredBeforeApproval: string[]; files: Array<{ path: string; action: string; beforeHash: string; afterHash: string; preview: string }> };
+type ChangeSetAudit = { actor: string; action: string; at: string; reason: string; manifestHash: string };
+type WorkbenchChangeSet = { id: string; projectId: string; title: string; state: string; dangerous: boolean; manifestHash: string; approvedManifestHash: string | null; files: ChangeSetFile[]; decisions: string[]; evidence: string[]; diff: ChangeSetDiff; history: ChangeSetAudit[] };
 type WorkbenchEquivalence = { evidence: Array<{ id: string; name: string }>; generatedTargets: Array<{ id: string; name: string }>; verdicts: Array<{ fixtureId: string; classification: string; reason: string; blocksRelease: boolean }> };
 type ShadowStage = { name: string; revision: number; hash: string; itemCount: number; status: string };
 type ShadowSourceImpact = { sourcePath: string; kind: string; symbolCount: number; domainElementIds: string[]; artifactPaths: string[] };
@@ -126,6 +131,9 @@ export class RenovatioShellWidget extends ReactWidget {
     protected architecturePreviewRequest = 0;
     protected ai?: WorkbenchAi;
     protected aiState: AreaState = 'idle';
+    protected changeSets: WorkbenchChangeSet[] = [];
+    protected changeSetState: AreaState = 'idle';
+    protected changeSetNotice = '';
     protected equivalence?: WorkbenchEquivalence;
     protected equivalenceState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
     protected shadowImpact?: WorkbenchShadowImpact;
@@ -171,6 +179,7 @@ export class RenovatioShellWidget extends ReactWidget {
         if (area === 'architecture') void this.loadArchitecture();
         if (area === 'shadow') void this.loadShadowImpact();
         if (area === 'ai') void this.loadAi();
+        if (area === 'changes') void this.loadChangeSets();
         if (area === 'equivalence') void this.loadEquivalence();
         if (area === 'project') void this.loadSourceExplorer();
         this.update();
@@ -188,6 +197,7 @@ export class RenovatioShellWidget extends ReactWidget {
         if (this.activeArea === 'architecture') void this.loadArchitecture();
         if (this.activeArea === 'shadow') void this.loadShadowImpact();
         if (this.activeArea === 'ai') void this.loadAi();
+        if (this.activeArea === 'changes') void this.loadChangeSets();
         if (this.activeArea === 'equivalence') void this.loadEquivalence();
         void this.loadSourceExplorer();
         void this.loadDomainModel();
@@ -412,6 +422,42 @@ export class RenovatioShellWidget extends ReactWidget {
             this.aiState = this.ai.agents.length || this.ai.items.length ? 'ready' : 'empty';
         } catch { this.aiState = 'error'; }
         this.update();
+    }
+
+    protected async loadChangeSets(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        this.changeSetState = 'loading'; this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/change-sets`);
+            if (response.status === 401 || response.status === 403) { this.changeSetState = 'permission-denied'; this.update(); return; }
+            if (!response.ok) throw new Error(`Change set adapter returned ${response.status}`);
+            this.changeSets = await response.json() as WorkbenchChangeSet[];
+            this.changeSetState = this.changeSets.length ? 'ready' : 'empty';
+            this.changeSetNotice = this.changeSets.length ? 'History is loaded; approving still requires a viewed diff and role authorization.' : 'No change sets have been proposed for this project.';
+        } catch { this.changeSetState = 'error'; this.changeSetNotice = 'Change set history is unavailable.'; }
+        this.update();
+    }
+
+    protected async changeSetAction(changeSet: WorkbenchChangeSet, action: 'submit-review' | 'approve' | 'reject' | 'apply' | 'rollback'): Promise<void> {
+        const body = action === 'approve'
+            ? { diffReviewed: true, confirmationPhrase: changeSet.dangerous ? 'APPROVE DANGEROUS CHANGE SET' : '', reason: 'Reviewed in Theia workbench' }
+            : action === 'apply'
+                ? { confirmationPhrase: 'APPLY APPROVED CHANGE SET', reason: 'Apply approved manifest from Theia workbench' }
+                : action === 'rollback'
+                    ? { confirmationPhrase: 'ROLL BACK APPLIED CHANGE SET', reason: 'Rollback from Theia workbench' }
+                    : { reason: 'Updated from Theia workbench' };
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/change-sets/${encodeURIComponent(changeSet.id)}:${action}`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+            });
+            if (response.status === 401 || response.status === 403) { this.changeSetState = 'permission-denied'; this.update(); return; }
+            if (!response.ok) throw new Error(`Change set action returned ${response.status}`);
+            await this.loadChangeSets();
+        } catch {
+            this.changeSetState = 'error';
+            this.changeSetNotice = 'Change set action was rejected; no unapproved mutation was applied.';
+            this.update();
+        }
     }
 
     protected async loadEquivalence(): Promise<void> {
@@ -1273,6 +1319,59 @@ export class RenovatioShellWidget extends ReactWidget {
         </section>;
     }
 
+    protected renderChangeSets(): React.ReactNode {
+        return <section className='renovatio-change-sets' aria-label='Reviewable change sets approval and rollback'>
+            <div className='renovatio-architecture-toolbar'>
+                <strong>CHANGE SETS · {this.changeSetState.toUpperCase()}</strong>
+                <button type='button' onClick={() => void this.loadChangeSets()} disabled={this.changeSetState === 'loading'}>Refresh</button>
+            </div>
+            <p className='renovatio-domain-diff'>No mutating change can run until its diff has been viewed, the manifest hash is approved, and a user with modify permission confirms the action.</p>
+            {this.changeSetNotice && <p>{this.changeSetNotice}</p>}
+            {this.changeSetState === 'ready' && <div className='renovatio-change-grid'>
+                {this.changeSets.map(changeSet => <article key={changeSet.id} className={`renovatio-change-card state-${changeSet.state}`}>
+                    <header>
+                        <strong>{changeSet.title}</strong>
+                        <span>{changeSet.state}{changeSet.dangerous ? ' · dangerous' : ''}</span>
+                    </header>
+                    <p>Manifest {changeSet.manifestHash}</p>
+                    <p>Approved manifest {changeSet.approvedManifestHash ?? 'not approved'}</p>
+                    <section aria-label={`Diff for ${changeSet.id}`}>
+                        <h3>Mandatory diff</h3>
+                        <p>{changeSet.diff.summary}</p>
+                        <ol>{changeSet.diff.files.map(file => <li key={file.path}>
+                            <strong>{file.action} · {file.path}</strong>
+                            <small>{file.beforeHash.slice(0, 24)}… → {file.afterHash.slice(0, 24)}…</small>
+                            <code>{file.preview}</code>
+                        </li>)}</ol>
+                    </section>
+                    <section aria-label={`Approval requirements for ${changeSet.id}`}>
+                        <h3>Approval requirements</h3>
+                        <p>{changeSet.diff.requiredBeforeApproval.join(' · ')}</p>
+                        <p>Double confirmation phrases: APPROVE DANGEROUS CHANGE SET · APPLY APPROVED CHANGE SET · ROLL BACK APPLIED CHANGE SET</p>
+                    </section>
+                    <section aria-label={`Change set audit for ${changeSet.id}`}>
+                        <h3>History</h3>
+                        <ol>{changeSet.history.map(event => <li key={`${event.action}:${event.at}`}>
+                            <strong>{event.action}</strong>
+                            <span>{event.actor} · {event.at}</span>
+                            <small>{event.reason} · {event.manifestHash.slice(0, 24)}…</small>
+                        </li>)}</ol>
+                    </section>
+                    <div className='renovatio-change-actions'>
+                        <button type='button' onClick={() => void this.changeSetAction(changeSet, 'submit-review')} disabled={changeSet.state !== 'draft'}>Submit review</button>
+                        <button type='button' onClick={() => void this.changeSetAction(changeSet, 'approve')} disabled={changeSet.state !== 'review'}>Approve diff</button>
+                        <button type='button' onClick={() => void this.changeSetAction(changeSet, 'reject')} disabled={!['draft', 'review'].includes(changeSet.state)}>Reject</button>
+                        <button type='button' onClick={() => void this.changeSetAction(changeSet, 'apply')} disabled={changeSet.state !== 'approved'}>Apply approved manifest</button>
+                        <button type='button' onClick={() => void this.changeSetAction(changeSet, 'rollback')} disabled={changeSet.state !== 'applied'}>Rollback</button>
+                    </div>
+                </article>)}
+            </div>}
+            {this.changeSetState === 'empty' && <p>No change sets have been proposed. AI suggestions remain proposal-only until converted into a change set.</p>}
+            {this.changeSetState === 'permission-denied' && <p>You do not have permission to inspect change set history.</p>}
+            {this.changeSetState === 'error' && <p>Change set data is unavailable; no workspace mutation was applied.</p>}
+        </section>;
+    }
+
     protected renderArea(): React.ReactNode {
         const area = AREAS.find(candidate => candidate.id === this.activeArea) ?? AREAS[0];
         return <section className='renovatio-area-content' aria-labelledby='renovatio-area-heading'>
@@ -1306,6 +1405,7 @@ export class RenovatioShellWidget extends ReactWidget {
             {this.activeArea === 'architecture' && this.renderArchitectureCanvas()}
             {this.activeArea === 'shadow' && this.renderShadowImpact()}
             {this.activeArea === 'ai' && this.renderGovernedAi()}
+            {this.activeArea === 'changes' && this.renderChangeSets()}
             {this.activeArea === 'equivalence' && <section className='renovatio-asset-editor' aria-label='Equivalence evidence'>
                 <div><span>EQUIVALENCE EVIDENCE · {this.equivalenceState.toUpperCase()}</span></div>
                 {this.equivalenceState === 'ready' && <><p>Evidence: {this.equivalence?.evidence.map(item => item.name).join(', ') || 'none'}</p>

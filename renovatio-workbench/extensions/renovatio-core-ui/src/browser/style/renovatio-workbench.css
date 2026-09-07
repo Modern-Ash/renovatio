@@ -1081,6 +1081,64 @@
     opacity: 0.65;
 }
 
+.renovatio-change-grid {
+    display: grid;
+    gap: 14px;
+}
+
+.renovatio-change-card {
+    background: var(--renovatio-panel);
+    border: 1px solid var(--renovatio-border);
+    border-left: 3px solid var(--renovatio-accent);
+    border-radius: 16px;
+    box-shadow: var(--renovatio-shadow);
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+}
+
+.renovatio-change-card.state-approved,
+.renovatio-change-card.state-applied {
+    border-left-color: var(--renovatio-success);
+}
+
+.renovatio-change-card.state-rejected,
+.renovatio-change-card.state-rolled-back {
+    border-left-color: var(--renovatio-danger);
+}
+
+.renovatio-change-card header,
+.renovatio-change-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.renovatio-change-card ol {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-change-card li {
+    background: rgba(238, 248, 245, 0.035);
+    display: grid;
+    gap: 5px;
+    padding: 8px;
+}
+
+.renovatio-change-card code,
+.renovatio-change-card span,
+.renovatio-change-card small {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
 @media (max-width: 1280px) {
     .renovatio-architecture-grid {
         grid-template-columns: minmax(190px, 0.8fr) minmax(300px, 1.2fr);
@@ -1095,12 +1153,15 @@
 @media (max-width: 780px) {
     .renovatio-architecture-grid,
     .renovatio-shadow-grid,
-    .renovatio-ai-grid {
+    .renovatio-ai-grid,
+    .renovatio-change-grid {
         grid-template-columns: 1fr;
     }
 
     .renovatio-architecture-toolbar,
     .renovatio-architecture-actions,
+    .renovatio-change-card header,
+    .renovatio-change-actions,
     .renovatio-architecture-palette li > button,
     .renovatio-architecture-manifest li {
         align-items: stretch;
