@@ -3,7 +3,7 @@ schema: "agora/clarifications/v1"
 swarm: "ai-modernization"
 work: "deterministic-semantic-core"
 created-at: "2026-08-30T16:34:58.050146Z"
-last-run-input-sha256: "d0d5722e3c7981f2276ed0a2a933504f01b2cc38271acc9a848513a1e1d0c937"
+last-run-input-sha256: "dd19dfa29b443383d19467712090794e69e9b33b530b597b19dc19b5ea8d5678"
 last-run-question-count: 0
 last-run-unanswered-count: 0
 last-run-by: "project:owner"

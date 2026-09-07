@@ -6,7 +6,7 @@ phase: "re-review"
 result: "success"
 revision: 1
 artifact-references: ["repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md"]
-artifact-content-sha256: {"repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md":"e41c0f2e4ff1c4175d3d4f6f5fcc845d202b28466667535a5a645bd90d488fd6"}
+artifact-content-sha256: {"repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md":"d0475edc67aa571694c96e4ff3b9946ebc62e2f1cb447029d6b68fe66a2a7b86"}
 produced-by: "project:agent"
 timestamp: "2026-09-01T15:18:33.676231Z"
 tested-commit: "484bf70757c8b24ca7a5b2ddf5d2fb9e545a4341"

@@ -6,7 +6,7 @@ phase: null
 result: "success"
 revision: 1
 artifact-references: ["repo://renovatio-workbench/extensions/renovatio-core-ui/src/browser/renovatio-shell-widget.tsx"]
-artifact-content-sha256: {"repo://renovatio-workbench/extensions/renovatio-core-ui/src/browser/renovatio-shell-widget.tsx":"94789cdb837382d23952a04f406fd54f3e76ca484963f97a94335cb4fbaa3d50"}
+artifact-content-sha256: {"repo://renovatio-workbench/extensions/renovatio-core-ui/src/browser/renovatio-shell-widget.tsx":"31334bd4ce9936fadd11bff51b07dccca80a7f75b49526187789cc6e6837b392"}
 produced-by: "project:agent"
 timestamp: "2026-09-06T02:31:03.532121Z"
 tested-commit: null

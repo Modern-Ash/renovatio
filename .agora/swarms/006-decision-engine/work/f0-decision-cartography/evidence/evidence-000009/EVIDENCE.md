@@ -6,7 +6,7 @@ phase: null
 result: "success"
 revision: 2
 artifact-references: ["repo://.agora/swarms/006-decision-engine/work/f0-decision-cartography/consistency/consistency-20260901t10501788270621z.md"]
-artifact-content-sha256: {"repo://.agora/swarms/006-decision-engine/work/f0-decision-cartography/consistency/consistency-20260901t10501788270621z.md":null}
+artifact-content-sha256: {"repo://.agora/swarms/006-decision-engine/work/f0-decision-cartography/consistency/consistency-20260901t10501788270621z.md":"3f7306cd26a8ff8c1462fde2d8755e77bff7116a3fbca8756aefb6979866db97"}
 produced-by: "project:owner"
 timestamp: "2026-09-01T10:50:21.299411Z"
 tested-commit: null

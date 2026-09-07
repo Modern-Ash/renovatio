@@ -6,7 +6,7 @@ phase: "implementation-review-2-remediation"
 result: "success"
 revision: 1
 artifact-references: ["repo://renovatio-cobol-ir/src/main/resources/schema/cobol-annotated-ir.v1.schema.json"]
-artifact-content-sha256: {"repo://renovatio-cobol-ir/src/main/resources/schema/cobol-annotated-ir.v1.schema.json":"693ebc64a6f8f0a220d454f2114063f9ac5a8c66897f3ac84e93d5a1bc12e35c"}
+artifact-content-sha256: {"repo://renovatio-cobol-ir/src/main/resources/schema/cobol-annotated-ir.v1.schema.json":"19724e5ba6808eebe5fed661b7be3bfb821f44d723559d0bd6e1f79a5e5d7bd0"}
 produced-by: "project:agent"
 timestamp: "2026-08-30T18:00:53.645819Z"
 tested-commit: null
