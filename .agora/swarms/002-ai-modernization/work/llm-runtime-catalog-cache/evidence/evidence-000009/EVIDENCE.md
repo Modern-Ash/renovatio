@@ -6,7 +6,7 @@ phase: null
 result: "failure"
 revision: 1
 artifact-references: ["repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t19221788128529z.md"]
-artifact-content-sha256: {"repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t19221788128529z.md":null}
+artifact-content-sha256: {"repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/consistency/consistency-20260830t19221788128529z.md":"61f1eec95a76dfb406f8f215d03e6278469e2780e87ca01648b25e536ccdcdac"}
 produced-by: "project:agent"
 timestamp: "2026-08-30T19:22:09.832912Z"
 tested-commit: null

@@ -5,8 +5,8 @@ type: "review-remediation"
 phase: "re-review"
 result: "success"
 revision: 1
-artifact-references: ["repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md"]
-artifact-content-sha256: {"repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md":"e41c0f2e4ff1c4175d3d4f6f5fcc845d202b28466667535a5a645bd90d488fd6"}
+artifact-references: ["repo://docs/reports/agora-evidence-archive/ba0ac28bc18cc35fecf62ff6ec1093904df70db0/docs/reports/f2-semantic-ir-emitter-spi-verification.md"]
+artifact-content-sha256: {"repo://docs/reports/agora-evidence-archive/ba0ac28bc18cc35fecf62ff6ec1093904df70db0/docs/reports/f2-semantic-ir-emitter-spi-verification.md":"e41c0f2e4ff1c4175d3d4f6f5fcc845d202b28466667535a5a645bd90d488fd6"}
 produced-by: "project:agent"
 timestamp: "2026-09-01T15:18:33.676231Z"
 tested-commit: "484bf70757c8b24ca7a5b2ddf5d2fb9e545a4341"

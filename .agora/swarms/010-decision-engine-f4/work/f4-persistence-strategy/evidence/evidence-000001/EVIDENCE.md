@@ -5,8 +5,8 @@ type: "test-report"
 phase: null
 result: "success"
 revision: 1
-artifact-references: ["text:27 tests pass, 0 failures, 0 errors. Modules: renovatio-persistence (classifier, 3 strategies, registry), renovatio-profile (sourceStrategies extension). Full build clean install success."]
-artifact-content-sha256: {"text:27 tests pass, 0 failures, 0 errors. Modules: renovatio-persistence (classifier, 3 strategies, registry), renovatio-profile (sourceStrategies extension). Full build clean install success.":null}
+artifact-references: ["repo://docs/reports/f4-persistence-strategy-test-report.md"]
+artifact-content-sha256: {"repo://docs/reports/f4-persistence-strategy-test-report.md":"2282475d89b0fd76a24fa7393330ab7eb30d2cf55a49737851d9d88abac076e2"}
 produced-by: "project:agent"
 timestamp: "2026-09-02T00:42:03.443004Z"
 tested-commit: null

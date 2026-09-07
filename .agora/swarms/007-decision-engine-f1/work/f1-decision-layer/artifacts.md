@@ -11,3 +11,4 @@ artifact-kinds: ["spec","implementation-plan","verification-report"]
 | implementation-plan | repo://docs/plans/f1-decision-layer.md | 8e14608e515a6446520c80b28094b61bab52f9ec8564945cbb0b3b7fcb88e4e4 | project:agent | 2026-09-01T11:14:50.836319Z |
 | verification-report | repo://docs/reports/f1-decision-layer-verification.md | 6bf6f1a1e9524676b2202b634ab42b6aae2f36a007e5cee3e0fd22b1429ca0c6 | project:agent | 2026-09-01T11:48:33.586915Z |
 | verification-report | repo://docs/reports/f1-decision-layer-verification.md | c207fdc553328b8bf80f16905ae04c946f1fc5dedb15ad2a9e69547c003f63b3 | project:agent | 2026-09-01T11:51:25.536342Z |
+| historical-verification-report | repo://docs/reports/agora-evidence-archive/6929212d5d04b97a2c16ebddc5b40aef171499b1/docs/reports/f1-decision-layer-verification.md | c207fdc553328b8bf80f16905ae04c946f1fc5dedb15ad2a9e69547c003f63b3 | project:agent | 2026-09-01T12:05:39.302034Z |
