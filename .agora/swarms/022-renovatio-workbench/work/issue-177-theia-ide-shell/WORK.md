@@ -1,0 +1,45 @@
+---
+schema: "agora/work/v1"
+id: "issue-177-theia-ide-shell"
+swarm: "renovatio-workbench"
+title: "Issue #177 \u00b7 Theia 1 \u00b7 Shell IDE y navegaci\u00f3n de proyecto"
+state: "completed"
+revision: 1
+operational-status: "active"
+status-reason: "El usuario levant\u00f3 el Workbench en http://127.0.0.1:3001 y confirm\u00f3 la interacci\u00f3n solicitada: \u00e1reas, explorador, paleta/atajo y persistencia tras recargar. Adjunt\u00f3 captura del shell. La validaci\u00f3n macOS queda expl\u00edcitamente fuera de alcance por decisi\u00f3n del usuario; la accesibilidad se sustenta en navegaci\u00f3n de teclado confirmada y las aserciones ARIA ya registradas."
+status-by: "project:agent"
+status-at: "2026-09-06T11:41:12.017005Z"
+acceptance-criteria: {"project-navigation":"A user can open a project and navigate COBOL sources, copybooks, JCL, models, runs and evidence without leaving Theia.","activity-shell":"The Activity Bar exposes Project, Analysis, Architecture, AI and Equivalence areas with tabs, resizable panels and a bottom panel.","command-access":"Initial commands are available through the command palette, menus and documented keyboard bindings.","dashboard-continuity":"The existing React administrative dashboard remains accessible through an embedded or linked view.","state-persistence":"Layout and the last user/project selection survive reloads with explicit loading, error, permission and selected-project states.","accessibility":"Core navigation is keyboard-operable and exposes appropriate accessible names and ARIA semantics.","wizard-decoupling":"The Theia shell has no direct dependency on internal components of the existing wizard.","verification-evidence":"Extension tests, navigation E2E smoke tests, accessibility checks and command documentation are recorded as successful evidence."}
+satisfied-criteria: ["project-navigation","activity-shell","command-access","dashboard-continuity","state-persistence","accessibility","wizard-decoupling","verification-evidence"]
+criterion-statuses: {"project-navigation":["specified","planned","implemented","verified","accepted"],"activity-shell":["specified","planned","implemented","verified","accepted"],"command-access":["specified","planned","implemented","verified","accepted"],"dashboard-continuity":["specified","planned","implemented","verified","accepted"],"state-persistence":["specified","planned","implemented","verified","accepted"],"accessibility":["specified","planned","implemented","verified","accepted"],"wizard-decoupling":["specified","planned","implemented","verified","accepted"],"verification-evidence":["specified","planned","implemented","verified","accepted"]}
+required-artifacts: ["spec","implementation-plan","extension-package","command-reference","accessibility-report","verification-report","review-report"]
+child-work-refs: []
+budget-limits: null
+---
+
+# Issue #177 · Theia 1 · Shell IDE y navegación de proyecto
+
+## Description
+
+Progressively replace the wizard with a navigable Theia IDE shell without removing the current dashboard. Provide Renovatio activities, project exploration, tabs and panels, command palette, persisted layout and accessible navigation while remaining decoupled from wizard internals.
+
+## Acceptance criteria
+
+- [x] **project-navigation:** A user can open a project and navigate COBOL sources, copybooks, JCL, models, runs and evidence without leaving Theia.; stages: specified, planned, implemented, verified, accepted
+- [x] **activity-shell:** The Activity Bar exposes Project, Analysis, Architecture, AI and Equivalence areas with tabs, resizable panels and a bottom panel.; stages: specified, planned, implemented, verified, accepted
+- [x] **command-access:** Initial commands are available through the command palette, menus and documented keyboard bindings.; stages: specified, planned, implemented, verified, accepted
+- [x] **dashboard-continuity:** The existing React administrative dashboard remains accessible through an embedded or linked view.; stages: specified, planned, implemented, verified, accepted
+- [x] **state-persistence:** Layout and the last user/project selection survive reloads with explicit loading, error, permission and selected-project states.; stages: specified, planned, implemented, verified, accepted
+- [x] **accessibility:** Core navigation is keyboard-operable and exposes appropriate accessible names and ARIA semantics.; stages: specified, planned, implemented, verified, accepted
+- [x] **wizard-decoupling:** The Theia shell has no direct dependency on internal components of the existing wizard.; stages: specified, planned, implemented, verified, accepted
+- [x] **verification-evidence:** Extension tests, navigation E2E smoke tests, accessibility checks and command documentation are recorded as successful evidence.; stages: specified, planned, implemented, verified, accepted
+
+## Required artifacts
+
+- spec
+- implementation-plan
+- extension-package
+- command-reference
+- accessibility-report
+- verification-report
+- review-report

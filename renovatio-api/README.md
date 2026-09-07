@@ -7,7 +7,7 @@ REST API module for Renovatio, providing a web interface for migration managemen
 - **REST Endpoints**: Full CRUD operations for projects, jobs, plans, runs, metrics, and action items
 - **Async Jobs**: Submit migration operations (analyze, plan, apply, diff) asynchronously with progress tracking
 - **SSE Events**: Real-time job progress streaming via Server-Sent Events
-- **Persistence**: H2 embedded database for storing projects, jobs, plans, runs, and action items
+- **Persistence**: SQLite database for storing projects, jobs, plans, runs, and action items
 - **Role-Based Access Control**: X-Role header-based authorization (ADMIN, MANAGER, VIEWER)
 
 ## Endpoints
@@ -42,7 +42,7 @@ java -jar target/renovatio-api.jar
 mvn spring-boot:run -pl renovatio-api
 ```
 
-The API starts on port 8080 by default. H2 console is available at `/h2-console`.
+The API starts on port 8080 by default.
 
 ## Configuration
 
@@ -54,18 +54,42 @@ server:
 
 spring:
   datasource:
-    url: jdbc:h2:file:./data/renovatio-db;AUTO_SERVER=TRUE
+    url: jdbc:sqlite:./data/renovatio.db
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
 
 renovatio:
+  workbench:
+    # Local development only. Both flags must be explicitly true to allow
+    # unauthenticated writes to generated Java/Python/Node targets.
+    dev-no-auth-enabled: false
+    dev-write-enabled: false
+    allowed-origin: http://127.0.0.1:3000
   api:
     async:
       core-pool-size: 4
       max-pool-size: 8
       queue-capacity: 100
 ```
+
+`allowed-origin` is deliberately a single explicit development origin. Configure it to the
+actual Workbench origin (for example `http://127.0.0.1:3001`); do not use a wildcard.
+
+## One-time H2 to SQLite migration
+
+The old `data/renovatio-db.mv.db` is preserved as the source and is never modified. Create the
+SQLite target once, then normalize temporal values before running the API:
+
+```bash
+mvn -pl renovatio-api -Dexec.mainClass=org.shark.renovatio.api.migration.H2ToSqliteMigrator \
+  -Dexec.args='jdbc:h2:file:./data/renovatio-db;AUTO_SERVER=TRUE data/renovatio.db' exec:java
+mvn -pl renovatio-api -Dexec.mainClass=org.shark.renovatio.api.migration.H2ToSqliteMigrator \
+  -Dexec.args='--normalize-sqlite-timestamps data/renovatio.db' exec:java
+```
+
+The migrator refuses to overwrite an existing SQLite target. If a local migration must be repeated,
+first archive or deliberately remove only `data/renovatio.db`; never remove the H2 source file.
 
 ## Testing
 

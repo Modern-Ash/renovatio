@@ -1,0 +1,46 @@
+{
+  "name": "@renovatio/workbench-browser",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "theia": {
+    "frontend": {
+      "config": {
+        "applicationName": "Renovatio Workbench",
+        "preferences": {
+          "files.enableTrash": false,
+          "security.workspace.trust.enabled": true,
+          "telemetry.telemetryLevel": "off"
+        },
+        "reloadOnReconnect": true
+      }
+    },
+    "backend": {
+      "config": {
+        "frontendConnectionTimeout": 5000,
+        "configureProxyFromPreferences": false
+      }
+    }
+  },
+  "dependencies": {
+    "@renovatio/core-ui": "0.1.0",
+    "@theia/core": "1.75.0",
+    "@theia/editor": "1.75.0",
+    "@theia/file-search": "1.75.0",
+    "@theia/filesystem": "1.75.0",
+    "@theia/markers": "1.75.0",
+    "@theia/monaco": "1.75.0",
+    "@theia/navigator": "1.75.0",
+    "@theia/preferences": "1.75.0",
+    "@theia/search-in-workspace": "1.75.0",
+    "@theia/workspace": "1.75.0"
+  },
+  "devDependencies": {
+    "@theia/cli": "1.75.0"
+  },
+  "scripts": {
+    "clean": "theia clean",
+    "build": "theia build --mode production",
+    "start": "theia start --hostname 0.0.0.0 --port 3000"
+  }
+}

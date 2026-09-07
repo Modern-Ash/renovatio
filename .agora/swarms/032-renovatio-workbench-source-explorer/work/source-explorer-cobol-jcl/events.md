@@ -1,0 +1,56 @@
+# Work events
+
+- 2026-09-07T00:31:38.128446Z | work.created | state=drafting actor=project:owner
+- 2026-09-07T00:33:41.402750Z | artifact.added | kind=spec uri=.agora/swarms/032-renovatio-workbench-source-explorer/work/source-explorer-cobol-jcl/spec.md actor=project:owner
+- 2026-09-07T00:33:41.638550Z | artifact.added | kind=source-explorer-contract uri=.agora/swarms/032-renovatio-workbench-source-explorer/work/source-explorer-cobol-jcl/source-explorer-contract.md actor=project:owner
+- 2026-09-07T00:33:41.874734Z | work.criterion-stage-marked | criterion=navigable-tree actor=project:owner stage=specified
+- 2026-09-07T00:33:42.113409Z | work.criterion-stage-marked | criterion=symbol-outline actor=project:owner stage=specified
+- 2026-09-07T00:33:42.344470Z | work.criterion-stage-marked | criterion=search actor=project:owner stage=specified
+- 2026-09-07T00:33:42.580513Z | work.criterion-stage-marked | criterion=file-metadata actor=project:owner stage=specified
+- 2026-09-07T00:33:42.802856Z | work.criterion-stage-marked | criterion=ir-diagnostic-linkage actor=project:owner stage=specified
+- 2026-09-07T00:33:43.019187Z | work.criterion-stage-marked | criterion=resilient-unsupported actor=project:owner stage=specified
+- 2026-09-07T00:33:43.245709Z | work.criterion-stage-marked | criterion=review-boundary actor=project:owner stage=specified
+- 2026-09-07T00:33:43.467047Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=specified
+- 2026-09-07T00:33:53.348762Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-07T00:34:11.983394Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-07T00:34:50.261944Z | artifact.added | kind=implementation-plan uri=repo://.agora/swarms/032-renovatio-workbench-source-explorer/work/source-explorer-cobol-jcl/implementation-plan.md actor=project:agent
+- 2026-09-07T00:34:50.475333Z | work.criterion-stage-marked | criterion=navigable-tree actor=project:owner stage=planned
+- 2026-09-07T00:34:50.687983Z | work.criterion-stage-marked | criterion=symbol-outline actor=project:owner stage=planned
+- 2026-09-07T00:34:50.906915Z | work.criterion-stage-marked | criterion=search actor=project:owner stage=planned
+- 2026-09-07T00:34:51.132538Z | work.criterion-stage-marked | criterion=file-metadata actor=project:owner stage=planned
+- 2026-09-07T00:34:51.360612Z | work.criterion-stage-marked | criterion=ir-diagnostic-linkage actor=project:owner stage=planned
+- 2026-09-07T00:34:51.585559Z | work.criterion-stage-marked | criterion=resilient-unsupported actor=project:owner stage=planned
+- 2026-09-07T00:34:51.805460Z | work.criterion-stage-marked | criterion=review-boundary actor=project:owner stage=planned
+- 2026-09-07T00:34:52.017640Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=planned
+- 2026-09-07T00:34:52.236694Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-07T00:34:52.456914Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-07T00:43:22.308183Z | artifact.added | kind=verification-report uri=repo://.agora/swarms/032-renovatio-workbench-source-explorer/work/source-explorer-cobol-jcl/verification-report.md actor=project:agent
+- 2026-09-07T00:43:22.518417Z | artifact.added | kind=review-report uri=repo://.agora/swarms/032-renovatio-workbench-source-explorer/work/source-explorer-cobol-jcl/review-report.md actor=project:agent
+- 2026-09-07T00:43:22.728321Z | work.criterion-stage-marked | criterion=navigable-tree actor=project:owner stage=implemented
+- 2026-09-07T00:43:22.942329Z | work.criterion-stage-marked | criterion=navigable-tree actor=project:owner stage=verified
+- 2026-09-07T00:43:23.157595Z | work.criterion-stage-marked | criterion=symbol-outline actor=project:owner stage=implemented
+- 2026-09-07T00:43:23.375979Z | work.criterion-stage-marked | criterion=symbol-outline actor=project:owner stage=verified
+- 2026-09-07T00:43:23.590706Z | work.criterion-stage-marked | criterion=search actor=project:owner stage=implemented
+- 2026-09-07T00:43:23.782490Z | work.criterion-stage-marked | criterion=search actor=project:owner stage=verified
+- 2026-09-07T00:43:23.981175Z | work.criterion-stage-marked | criterion=file-metadata actor=project:owner stage=implemented
+- 2026-09-07T00:43:24.174623Z | work.criterion-stage-marked | criterion=file-metadata actor=project:owner stage=verified
+- 2026-09-07T00:43:24.368420Z | work.criterion-stage-marked | criterion=ir-diagnostic-linkage actor=project:owner stage=implemented
+- 2026-09-07T00:43:24.561516Z | work.criterion-stage-marked | criterion=ir-diagnostic-linkage actor=project:owner stage=verified
+- 2026-09-07T00:43:24.755549Z | work.criterion-stage-marked | criterion=resilient-unsupported actor=project:owner stage=implemented
+- 2026-09-07T00:43:24.950367Z | work.criterion-stage-marked | criterion=resilient-unsupported actor=project:owner stage=verified
+- 2026-09-07T00:43:25.145546Z | work.criterion-stage-marked | criterion=review-boundary actor=project:owner stage=implemented
+- 2026-09-07T00:43:25.336984Z | work.criterion-stage-marked | criterion=review-boundary actor=project:owner stage=verified
+- 2026-09-07T00:43:25.530229Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=implemented
+- 2026-09-07T00:43:25.724331Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=verified
+- 2026-09-07T00:43:25.927713Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-07T00:43:36.430951Z | work.criterion-stage-marked | criterion=navigable-tree actor=project:owner stage=accepted
+- 2026-09-07T00:43:36.635228Z | work.criterion-stage-marked | criterion=symbol-outline actor=project:owner stage=accepted
+- 2026-09-07T00:43:36.845893Z | work.criterion-stage-marked | criterion=search actor=project:owner stage=accepted
+- 2026-09-07T00:43:37.052072Z | work.criterion-stage-marked | criterion=file-metadata actor=project:owner stage=accepted
+- 2026-09-07T00:43:37.275926Z | work.criterion-stage-marked | criterion=ir-diagnostic-linkage actor=project:owner stage=accepted
+- 2026-09-07T00:43:37.502166Z | work.criterion-stage-marked | criterion=resilient-unsupported actor=project:owner stage=accepted
+- 2026-09-07T00:43:37.718897Z | work.criterion-stage-marked | criterion=review-boundary actor=project:owner stage=accepted
+- 2026-09-07T00:43:37.941447Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=accepted
+- 2026-09-07T00:43:45.971014Z | evidence.added | id=evidence-000001 type=integration result=success revision=1 actor=project:agent
+- 2026-09-07T00:43:46.167893Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T00:44:12.281776Z | work.transitioned | from=verifying to=completed actor=project:owner

@@ -1,0 +1,67 @@
+# Work events
+
+- 2026-09-06T01:38:12.564711Z | work.created | state=drafting actor=project:owner
+- 2026-09-06T01:38:26.044975Z | work.block | from=active to=blocked actor=project:agent change=change-20260906t013826044863z
+- 2026-09-06T02:24:08.501762Z | work.resume | from=blocked to=active actor=project:agent change=change-20260906t022408501632z
+- 2026-09-06T02:24:34.680280Z | artifact.added | kind=spec uri=repo://.agora/swarms/022-renovatio-workbench/work/issue-177-theia-ide-shell/spec.md actor=project:owner
+- 2026-09-06T02:24:34.977946Z | work.criterion-stage-marked | criterion=project-navigation actor=project:owner stage=specified
+- 2026-09-06T02:24:35.309995Z | work.criterion-stage-marked | criterion=activity-shell actor=project:owner stage=specified
+- 2026-09-06T02:24:35.621371Z | work.criterion-stage-marked | criterion=command-access actor=project:owner stage=specified
+- 2026-09-06T02:24:35.932348Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=specified
+- 2026-09-06T02:24:36.252176Z | work.criterion-stage-marked | criterion=state-persistence actor=project:owner stage=specified
+- 2026-09-06T02:24:36.576672Z | work.criterion-stage-marked | criterion=accessibility actor=project:owner stage=specified
+- 2026-09-06T02:24:36.894223Z | work.criterion-stage-marked | criterion=wizard-decoupling actor=project:owner stage=specified
+- 2026-09-06T02:24:37.208551Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=specified
+- 2026-09-06T02:24:44.347090Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-06T02:25:04.947624Z | artifact.added | kind=implementation-plan uri=repo://.agora/swarms/022-renovatio-workbench/work/issue-177-theia-ide-shell/implementation-plan.md actor=project:agent
+- 2026-09-06T02:25:05.271079Z | work.criterion-stage-marked | criterion=project-navigation actor=project:owner stage=planned
+- 2026-09-06T02:25:05.566384Z | work.criterion-stage-marked | criterion=activity-shell actor=project:owner stage=planned
+- 2026-09-06T02:25:05.857486Z | work.criterion-stage-marked | criterion=command-access actor=project:owner stage=planned
+- 2026-09-06T02:25:06.148728Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=planned
+- 2026-09-06T02:25:06.449384Z | work.criterion-stage-marked | criterion=state-persistence actor=project:owner stage=planned
+- 2026-09-06T02:25:06.747446Z | work.criterion-stage-marked | criterion=accessibility actor=project:owner stage=planned
+- 2026-09-06T02:25:07.033861Z | work.criterion-stage-marked | criterion=wizard-decoupling actor=project:owner stage=planned
+- 2026-09-06T02:25:07.302284Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=planned
+- 2026-09-06T02:25:07.568597Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-06T02:25:10.283560Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-06T02:30:20.969382Z | artifact.added | kind=extension-package uri=repo://renovatio-workbench/extensions/renovatio-core-ui/src/browser/renovatio-shell-widget.tsx actor=project:agent
+- 2026-09-06T02:30:21.366496Z | artifact.added | kind=command-reference uri=repo://renovatio-workbench/docs/command-reference.md actor=project:agent
+- 2026-09-06T02:30:21.638456Z | artifact.added | kind=accessibility-report uri=repo://renovatio-workbench/docs/accessibility-report.md actor=project:agent
+- 2026-09-06T02:30:21.920080Z | artifact.added | kind=verification-report uri=repo://renovatio-workbench/docs/issue-177-verification-report.md actor=project:agent
+- 2026-09-06T02:30:22.191709Z | work.criterion-stage-marked | criterion=project-navigation actor=project:agent stage=implemented
+- 2026-09-06T02:30:22.473333Z | work.criterion-stage-marked | criterion=activity-shell actor=project:agent stage=implemented
+- 2026-09-06T02:30:22.750440Z | work.criterion-stage-marked | criterion=command-access actor=project:agent stage=implemented
+- 2026-09-06T02:30:23.051941Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:agent stage=implemented
+- 2026-09-06T02:30:23.363589Z | work.criterion-stage-marked | criterion=state-persistence actor=project:agent stage=implemented
+- 2026-09-06T02:30:23.659423Z | work.criterion-stage-marked | criterion=accessibility actor=project:agent stage=implemented
+- 2026-09-06T02:30:23.986464Z | work.criterion-stage-marked | criterion=wizard-decoupling actor=project:agent stage=implemented
+- 2026-09-06T02:30:24.346729Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:agent stage=implemented
+- 2026-09-06T02:30:43.437425Z | artifact.added | kind=review-report uri=repo://renovatio-workbench/docs/issue-177-review-report.md actor=project:owner
+- 2026-09-06T02:30:56.906740Z | evidence.added | id=evidence-000001 type=build result=success revision=1 actor=project:agent
+- 2026-09-06T02:30:57.455966Z | evidence.added | id=evidence-000002 type=http-smoke result=success revision=1 actor=project:agent
+- 2026-09-06T02:31:03.532292Z | evidence.added | id=evidence-000003 type=test result=success revision=1 actor=project:agent
+- 2026-09-06T02:31:08.600628Z | work.criterion-stage-marked | criterion=project-navigation actor=project:owner stage=verified
+- 2026-09-06T02:31:08.910948Z | work.criterion-stage-marked | criterion=activity-shell actor=project:owner stage=verified
+- 2026-09-06T02:31:09.201604Z | work.criterion-stage-marked | criterion=command-access actor=project:owner stage=verified
+- 2026-09-06T02:31:09.473223Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=verified
+- 2026-09-06T02:31:09.745192Z | work.criterion-stage-marked | criterion=state-persistence actor=project:owner stage=verified
+- 2026-09-06T02:31:10.019757Z | work.criterion-stage-marked | criterion=accessibility actor=project:owner stage=verified
+- 2026-09-06T02:31:10.291395Z | work.criterion-stage-marked | criterion=wizard-decoupling actor=project:owner stage=verified
+- 2026-09-06T02:31:10.567214Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-06T02:31:35.851534Z | tool.prepared | run=tool-20260906t02311788672695z tool=repository operation=commit actor=project:agent
+- 2026-09-06T02:31:35.854960Z | tool.running | run=tool-20260906t02311788672695z actor=project:agent
+- 2026-09-06T02:31:35.880183Z | tool.completed | run=tool-20260906t02311788672695z exit-code=0
+- 2026-09-06T02:37:40.666262Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-06T02:40:52.373322Z | work.block | from=active to=blocked actor=project:agent change=change-20260906t024052373185z
+- 2026-09-06T11:41:12.017253Z | work.resume | from=blocked to=active actor=project:agent change=change-20260906t114112017114z
+- 2026-09-06T11:41:33.320353Z | evidence.added | id=evidence-000004 type=browser-smoke result=success revision=1 actor=project:owner
+- 2026-09-06T11:41:53.748564Z | work.criterion-stage-marked | criterion=project-navigation actor=project:owner stage=accepted
+- 2026-09-06T11:41:54.048281Z | work.criterion-stage-marked | criterion=activity-shell actor=project:owner stage=accepted
+- 2026-09-06T11:41:54.332199Z | work.criterion-stage-marked | criterion=command-access actor=project:owner stage=accepted
+- 2026-09-06T11:41:54.593873Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=accepted
+- 2026-09-06T11:41:54.875699Z | work.criterion-stage-marked | criterion=state-persistence actor=project:owner stage=accepted
+- 2026-09-06T11:41:55.142152Z | work.criterion-stage-marked | criterion=accessibility actor=project:owner stage=accepted
+- 2026-09-06T11:41:55.409538Z | work.criterion-stage-marked | criterion=wizard-decoupling actor=project:owner stage=accepted
+- 2026-09-06T11:42:01.038978Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=verified
+- 2026-09-06T11:42:01.334264Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=accepted
+- 2026-09-06T11:42:48.198614Z | work.transitioned | from=verifying to=completed actor=project:owner

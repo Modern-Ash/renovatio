@@ -1,0 +1,30 @@
+# Work events
+
+- 2026-09-06T17:47:57.339228Z | work.created | state=drafting actor=project:owner
+- 2026-09-06T18:07:43.515330Z | artifact.added | kind=spec uri=.agora/swarms/026-renovatio-workbench-analysis/work/analysis-workbench-area/spec.md actor=project:owner
+- 2026-09-06T18:07:43.732180Z | artifact.added | kind=analysis-contract uri=.agora/swarms/026-renovatio-workbench-analysis/work/analysis-workbench-area/analysis-contract.md actor=project:agent
+- 2026-09-06T18:07:43.945638Z | artifact.added | kind=implementation-plan uri=.agora/swarms/026-renovatio-workbench-analysis/work/analysis-workbench-area/implementation-plan.md actor=project:agent
+- 2026-09-06T18:07:44.163903Z | work.criterion-stage-marked | criterion=analysis-adapter actor=project:owner stage=specified
+- 2026-09-06T18:07:44.380706Z | work.criterion-stage-marked | criterion=read-only-boundary actor=project:owner stage=specified
+- 2026-09-06T18:07:44.598838Z | work.criterion-stage-marked | criterion=resilient-states actor=project:owner stage=specified
+- 2026-09-06T18:07:44.828579Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=specified
+- 2026-09-06T18:07:45.061884Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=specified
+- 2026-09-06T18:07:45.290556Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-06T18:08:20.589457Z | work.criterion-stage-marked | criterion=analysis-adapter actor=project:owner stage=planned
+- 2026-09-06T18:08:20.810298Z | work.criterion-stage-marked | criterion=read-only-boundary actor=project:owner stage=planned
+- 2026-09-06T18:08:21.048429Z | work.criterion-stage-marked | criterion=resilient-states actor=project:owner stage=planned
+- 2026-09-06T18:08:21.269407Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=planned
+- 2026-09-06T18:08:21.502890Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=planned
+- 2026-09-06T18:08:21.724530Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-06T18:08:21.959005Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-06T18:08:22.192723Z | artifact.added | kind=verification-report uri=.agora/swarms/026-renovatio-workbench-analysis/work/analysis-workbench-area/verification-report.md actor=project:agent
+- 2026-09-06T18:08:22.428556Z | artifact.added | kind=review-report uri=.agora/swarms/026-renovatio-workbench-analysis/work/analysis-workbench-area/review-report.md actor=project:agent
+- 2026-09-06T18:08:22.673335Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-06T18:08:46.986166Z | work.criterion-satisfied | criterion=analysis-adapter actor=project:owner
+- 2026-09-06T18:08:47.216032Z | work.criterion-satisfied | criterion=read-only-boundary actor=project:owner
+- 2026-09-06T18:08:47.454800Z | work.criterion-satisfied | criterion=resilient-states actor=project:owner
+- 2026-09-06T18:08:47.678311Z | work.criterion-satisfied | criterion=dashboard-continuity actor=project:owner
+- 2026-09-06T18:08:47.908319Z | work.criterion-satisfied | criterion=verification-evidence actor=project:owner
+- 2026-09-06T18:08:48.136525Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-06T18:08:54.720332Z | evidence.added | id=evidence-000001 type=integration result=success revision=1 actor=project:agent
+- 2026-09-06T18:08:54.941528Z | work.transitioned | from=verifying to=completed actor=project:owner
