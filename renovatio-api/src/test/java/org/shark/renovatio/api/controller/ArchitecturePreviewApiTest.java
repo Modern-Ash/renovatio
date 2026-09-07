@@ -214,4 +214,57 @@ class ArchitecturePreviewApiTest {
 
         assertThat(workspace.resolve("generated-java-stubs")).doesNotExist();
     }
+
+    @Test
+    void exposesReadOnlyShadowDiffAndImpactReport() throws Exception {
+        Files.createDirectories(workspace.resolve("generated-java-stubs/com/acme/legacy"));
+        Files.writeString(workspace.resolve("generated-java-stubs/com/acme/legacy/OldService.java"),
+                "package com.acme.legacy; class OldService {}");
+        mvc.perform(put("/api/projects/{projectId}/workbench/domain-model", projectId)
+                        .header("X-Role", "MANAGER").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "expectedRevision": 0, "model": {
+                                  "schemaVersion": "1",
+                                  "projectId": "%s",
+                                  "nodes": [
+                                    { "id": "customer-name", "kind": "VALUE_OBJECT", "name": "Customer Name",
+                                      "properties": [],
+                                      "evidence": [{ "sourceRef": "preview.cob#L4", "provenance": "COBOL", "rationale": "field declaration" }],
+                                      "origin": "DETERMINISTIC", "confidence": 1.0 }
+                                  ],
+                                  "relations": [],
+                                  "invariants": []
+                                } }
+                                """.formatted(projectId)))
+                .andExpect(status().isOk());
+        mvc.perform(put("/api/projects/{projectId}/workbench/architecture/canvas", projectId)
+                        .header("X-Role", "MANAGER").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "expectedRevision": 0, "profile": {
+                                  "style": "LAYERED_MVC",
+                                  "moduleGrouping": "BY_PROGRAM",
+                                  "framework": "SPRING_BOOT",
+                                  "persistence": "JPA",
+                                  "packageRoots": { "model": "com.acme.domain", "service": "com.acme.services" },
+                                  "suffixes": {},
+                                  "classNames": {},
+                                  "dependencyRules": []
+                                } }
+                                """))
+                .andExpect(status().isOk());
+
+        mvc.perform(get("/api/projects/{projectId}/workbench/shadow-impact", projectId)
+                        .header("X-Role", "ADMIN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.schemaVersion").value("1"))
+                .andExpect(jsonPath("$.canonicalHash").isString())
+                .andExpect(jsonPath("$.source.itemCount").value(1))
+                .andExpect(jsonPath("$.domain.revision").value(1))
+                .andExpect(jsonPath("$.architecture.revision").value(1))
+                .andExpect(jsonPath("$.diff.added[?(@ == 'com/acme/domain/PreviewModelModel.java')]").isArray())
+                .andExpect(jsonPath("$.diff.removed[?(@ == 'generated-java-stubs/com/acme/legacy/OldService.java')]").isArray())
+                .andExpect(jsonPath("$.artifactImpacts[0].determinism").value("deterministic"))
+                .andExpect(jsonPath("$.sourceImpacts[0].domainElementIds[0]").value("customer-name"))
+                .andExpect(jsonPath("$.report.projectId").value(projectId));
+    }
 }
