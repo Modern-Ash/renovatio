@@ -20,6 +20,7 @@ max-output-bytes: 1048576
 output-bytes: 1048639
 termination-reason: "output-limit"
 context-sha256: null
+portable-context-sha256: "a36f393255a674a9d4db00e0492254ab48db3d9c245ca5f4f5931d35fa0356b7"
 authentication-verified: false
 authentication-fingerprint: null
 authentication-public-key: null
