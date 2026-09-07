@@ -35,3 +35,10 @@
 - 2026-09-07T13:36:26.938297Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-09-07T13:41:07.036985Z | evidence.added | id=evidence-000005 type=test result=success revision=1 actor=project:agent
 - 2026-09-07T13:41:14.566664Z | evidence.added | id=evidence-000006 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T21:40:32.339713Z | work.criterion-satisfied | criterion=domain-model-immutable actor=project:owner
+- 2026-09-07T21:40:32.560733Z | work.criterion-satisfied | criterion=mvc-defaults actor=project:owner
+- 2026-09-07T21:40:32.790028Z | work.criterion-satisfied | criterion=custom-naming-shadow actor=project:owner
+- 2026-09-07T21:40:33.015514Z | work.criterion-satisfied | criterion=illegal-dependencies-visible actor=project:owner
+- 2026-09-07T21:40:33.233219Z | work.criterion-satisfied | criterion=profile-versioned-hash actor=project:owner
+- 2026-09-07T21:40:33.685037Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T21:40:34.152669Z | work.transitioned | from=verifying to=completed actor=project:owner
