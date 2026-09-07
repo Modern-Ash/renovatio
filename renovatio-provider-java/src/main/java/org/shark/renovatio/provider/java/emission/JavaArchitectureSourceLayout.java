@@ -20,7 +20,7 @@ public final class JavaArchitectureSourceLayout {
 
     public static Map<String, String> align(Map<String, String> sourceByPath) {
         Objects.requireNonNull(sourceByPath, "sourceByPath");
-        if (sourceByPath.keySet().stream().noneMatch(path -> path.startsWith("modules/"))) {
+        if (sourceByPath.keySet().stream().noneMatch(path -> path.replace('\\', '/').contains("/"))) {
             return Map.copyOf(sourceByPath);
         }
 
@@ -62,12 +62,17 @@ public final class JavaArchitectureSourceLayout {
 
     private static TypeLocation location(String path) {
         Path normalized = Path.of(Objects.requireNonNull(path, "path")).normalize();
-        if (normalized.getNameCount() < 4 || !"modules".equals(normalized.getName(0).toString())) {
-            throw new IllegalArgumentException("hexagonal Java path must start with modules/<module>: " + path);
-        }
-        String module = javaIdentifier(normalized.getName(1).toString());
         StringBuilder suffix = new StringBuilder();
-        for (int index = 2; index < normalized.getNameCount() - 1; index++) {
+        int packageStart = 0;
+        if ("modules".equals(normalized.getName(0).toString())) {
+            if (normalized.getNameCount() < 4) {
+                throw new IllegalArgumentException("hexagonal Java path must start with modules/<module>: " + path);
+            }
+            suffix.append("org.shark.renovatio.generated.modules.")
+                    .append(javaIdentifier(normalized.getName(1).toString()));
+            packageStart = 2;
+        }
+        for (int index = packageStart; index < normalized.getNameCount() - 1; index++) {
             if (!suffix.isEmpty()) suffix.append('.');
             suffix.append(javaIdentifier(normalized.getName(index).toString()));
         }
@@ -75,8 +80,10 @@ public final class JavaArchitectureSourceLayout {
         if (!fileName.endsWith(".java") || fileName.length() == 5) {
             throw new IllegalArgumentException("architecture artifact is not a Java source: " + path);
         }
-        String packageName = "org.shark.renovatio.generated.modules." + module + "." + suffix;
-        return new TypeLocation(fileName.substring(0, fileName.length() - 5), packageName);
+        if (suffix.isEmpty()) {
+            throw new IllegalArgumentException("architecture Java path has no package directory: " + path);
+        }
+        return new TypeLocation(fileName.substring(0, fileName.length() - 5), suffix.toString());
     }
 
     private static String javaIdentifier(String value) {

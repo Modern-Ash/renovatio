@@ -149,6 +149,8 @@ test('keeps DomainModel work neutral and outside generation or architecture muta
 
 test('provides the editable Architecture Canvas with profile history (issue #180)', () => {
     assert.match(shell, /\/workbench\/architecture\/canvas/);
+    assert.match(shell, /\/workbench\/architecture\/canvas:preview/);
+    assert.match(shell, /previewArchitectureDraft/);
     assert.match(shell, /saveArchitectureProfile/);
     assert.match(shell, /expectedRevision: this\.architecture\.revision/);
     assert.match(shell, /\/architecture\/canvas\/versions/);

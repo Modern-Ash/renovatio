@@ -1,6 +1,7 @@
 package org.shark.renovatio.architecture;
 
 import org.shark.renovatio.profile.MigrationProfile;
+import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.util.List;
@@ -14,13 +15,15 @@ public interface ArtifactLayoutPlanner {
 
     record LayoutContext(String requestHash, String moduleId, String moduleName,
                          SemanticProgram program, MigrationProfile.ArchitectureStyle effectiveStyle,
-                         List<ArchitectureGraph.Component> components) {
+                         List<ArchitectureGraph.Component> components,
+                         MigrationProfiles.EffectiveProfile effectiveProfile) {
         public LayoutContext {
             requestHash = ArchitectureSupport.hash(requestHash, "requestHash");
             moduleId = ArchitectureSupport.hash(moduleId, "moduleId");
             moduleName = ArchitectureSupport.moduleName(moduleName);
             Objects.requireNonNull(program, "program");
             Objects.requireNonNull(effectiveStyle, "effectiveStyle");
+            Objects.requireNonNull(effectiveProfile, "effectiveProfile");
             components = List.copyOf(Objects.requireNonNull(components, "components"));
             for (ArchitectureGraph.Component component : components) {
                 if (!moduleId.equals(component.moduleId())

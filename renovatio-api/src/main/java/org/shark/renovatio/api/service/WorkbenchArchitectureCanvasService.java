@@ -25,6 +25,8 @@ import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.Version;
 import org.shark.renovatio.api.entity.ProjectArchitectureProfileVersionEntity;
 import org.shark.renovatio.api.repository.ProjectArchitectureProfileVersionRepository;
 import org.shark.renovatio.api.repository.ProjectRepository;
+import org.shark.renovatio.architecture.ArchitectureGraph;
+import org.shark.renovatio.architecture.ArchitectureLayoutOverrides;
 import org.shark.renovatio.decisions.ProfileStore;
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.profile.MigrationProfiles;
@@ -34,10 +36,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class WorkbenchArchitectureCanvasService {
-    static final String EXT_PACKAGE_PREFIX = "architecture.package.";
-    static final String EXT_SUFFIX_PREFIX = "architecture.suffix.";
-    static final String EXT_CLASS_PREFIX = "architecture.class.";
-    static final String EXT_RULES = "architecture.dependencyRules";
+    static final String EXT_PACKAGE_PREFIX = ArchitectureLayoutOverrides.EXT_PACKAGE_PREFIX;
+    static final String EXT_SUFFIX_PREFIX = ArchitectureLayoutOverrides.EXT_SUFFIX_PREFIX;
+    static final String EXT_CLASS_PREFIX = ArchitectureLayoutOverrides.EXT_CLASS_PREFIX;
+    static final String EXT_RULES = ArchitectureLayoutOverrides.EXT_RULES;
     private static final List<String> MVC_LAYERS = List.of("controller", "service", "model");
 
     private final ProjectRepository projects;
@@ -87,6 +89,13 @@ public class WorkbenchArchitectureCanvasService {
         } catch (DataIntegrityViolationException error) {
             throw new RevisionConflictException(latest(projectId) == null ? currentRevision : latest(projectId).getRevision());
         }
+    }
+
+    @Transactional(readOnly = true)
+    public WorkbenchArchitectureCanvasDto preview(String projectId, ArchitectureProfileDraft candidate) {
+        requireProject(projectId);
+        ProjectArchitectureProfileVersionEntity current = latest(projectId);
+        return view(projectId, current, normalize(candidate));
     }
 
     @Transactional(readOnly = true)
@@ -143,7 +152,7 @@ public class WorkbenchArchitectureCanvasService {
         return preview.components().stream().map(component -> {
             String layer = layer(component.kind().name(), component.name());
             String className = draft.classNames().getOrDefault(component.name(),
-                    classBase(component.name()) + suffixes.getOrDefault(layer, ""));
+                    draft.classNames().getOrDefault(layer, classBase(component.name()) + suffixes.getOrDefault(layer, "")));
             return new CanvasNode(component.id(), layer, component.kind().name(), component.name(),
                     packages.getOrDefault(layer, packages.get("base")), className, component.id());
         }).sorted(Comparator.comparing(CanvasNode::layer).thenComparing(CanvasNode::label)).toList();
@@ -353,13 +362,19 @@ public class WorkbenchArchitectureCanvasService {
     private String key(String value) { return value.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-"); }
     private String path(String packageName, String className) { return packageName.replace('.', '/') + "/" + className + ".java"; }
     private String layer(String value, String label) {
-        String key = (value + " " + label).toLowerCase(Locale.ROOT);
-        if (key.contains("controller") || key.contains("inbound")) return "controller";
-        if (key.contains("service") || key.contains("use_case") || key.contains("use-case")) return "service";
-        if (key.contains("entity") || key.contains("value") || key.contains("model")) return "model";
-        if (key.contains("repository")) return "repository";
-        if (key.contains("port")) return "port";
-        return key.contains("adapter") || key.contains("outbound") ? "adapter" : "service";
+        try {
+            return ArchitectureLayoutOverrides.from(MigrationProfiles.emptyOverlay())
+                    .layer(ArchitectureGraph.ComponentKind.valueOf(value), label);
+        } catch (IllegalArgumentException ignored) {
+            String key = (value + " " + label).toLowerCase(Locale.ROOT);
+            if (key.contains("port")) return "port";
+            if (key.contains("controller") || key.contains("inbound")) return "controller";
+            if (key.contains("service") || key.contains("use_case") || key.contains("use-case")) return "service";
+            if (key.contains("entity") || key.contains("value") || key.contains("model")
+                    || key.contains("data-transfer-object")) return "model";
+            if (key.contains("repository")) return "repository";
+            return key.contains("adapter") || key.contains("outbound") ? "adapter" : "service";
+        }
     }
     private String classBase(String value) {
         String compact = value.replaceAll("[^A-Za-z0-9]+", " ").trim();
