@@ -10,7 +10,7 @@ mvn -pl renovatio-evals test
 
 Result:
 
-- Tests run: 11
+- Tests run: 13
 - Failures: 0
 - Errors: 0
 - Skipped: 0
@@ -29,5 +29,7 @@ Coverage:
 - Fallback aggregation is derived from `metrics.fallbackRate` in the output contract.
 - Root-level final-code promotion fields are rejected, not only decision-level fields.
 - Metric values must have valid types and ranges before aggregation.
+- Case prompt identity must match suite prompt identity to avoid report misattribution.
+- Rubric scores must be numeric normalized values in the 0–1 range.
 
 Sample deterministic report: `docs/reports/llm-eval-methodology-sample-report.json`.

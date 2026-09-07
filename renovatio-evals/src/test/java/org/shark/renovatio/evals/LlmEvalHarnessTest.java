@@ -157,6 +157,25 @@ class LlmEvalHarnessTest {
     }
 
     @Test
+    void casePromptMustMatchSuitePromptIdentity(@TempDir Path temp) throws Exception {
+        ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
+        output.put("prompt", "alternate-domain-eval@2026-09-07");
+        Path outputPath = writeJson(temp.resolve("output-alternate-prompt.json"), output);
+
+        ObjectNode suite = oneCaseSuiteWithOutput(outputPath);
+        ObjectNode firstCase = (ObjectNode) suite.withArray("cases").get(0);
+        ((ObjectNode) firstCase.path("prompt")).put("id", "alternate-domain-eval");
+        Path suitePath = writeJson(temp.resolve("suite-case-prompt-mismatch.json"), suite);
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertEquals(1, report.path("invalidOutputs").asInt());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("case prompt binding mismatch"));
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("output prompt binding mismatch"));
+    }
+
+    @Test
     void invalidMetricTypesAndRangesFailClosed(@TempDir Path temp) throws Exception {
         ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
         ObjectNode metrics = (ObjectNode) output.path("metrics");
@@ -176,6 +195,21 @@ class LlmEvalHarnessTest {
         assertEquals(0.0, report.path("metrics").path("fallbackRate").asDouble());
         assertEquals(0.0, report.path("metrics").path("totalCostUsd").asDouble());
         assertEquals(0, report.path("metrics").path("averageLatencyMs").asInt());
+    }
+
+    @Test
+    void outOfRangeRubricScoresFailClosed(@TempDir Path temp) throws Exception {
+        ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
+        ((ObjectNode) output.path("rubricScores")).put("entities", 2.0);
+        Path outputPath = writeJson(temp.resolve("output-invalid-rubric.json"), output);
+        Path suitePath = writeJson(temp.resolve("suite-invalid-rubric.json"), oneCaseSuiteWithOutput(outputPath));
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertEquals(1, report.path("invalidOutputs").asInt());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("score entities must be between 0 and 1"));
+        assertTrue(report.path("cases").get(0).path("weightedScore").asDouble() <= 1.0);
     }
 
     private static Path writeJson(Path path, JsonNode json) throws Exception {

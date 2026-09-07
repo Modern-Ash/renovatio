@@ -45,6 +45,7 @@ public final class LlmEvalHarness {
         requirePresentText(suite.path("prompt"), "id", "suite.prompt.id");
         requirePresentText(suite.path("prompt"), "version", "suite.prompt.version");
         requirePresentText(suite, "model", "suite.model");
+        String suitePromptBinding = promptBinding(suite.path("prompt"));
         Map<String, BigDecimal> baselineScores = baselinePath == null ? Map.of() : loadBaselineScores(baselinePath);
         boolean baselineRequired = baselinePath != null;
         ArrayNode caseReports = mapper.createArrayNode();
@@ -59,7 +60,7 @@ public final class LlmEvalHarness {
 
         for (JsonNode evalCase : suite.withArray("cases")) {
             total++;
-            CaseResult result = evaluateCase(suitePath.getParent(), evalCase, baselineScores, baselineRequired);
+            CaseResult result = evaluateCase(suitePath.getParent(), evalCase, suitePromptBinding, baselineScores, baselineRequired);
             caseReports.add(result.report);
             if (result.passed) {
                 passed++;
@@ -109,7 +110,8 @@ public final class LlmEvalHarness {
         mapper.writeValue(reportPath.toFile(), report);
     }
 
-    private CaseResult evaluateCase(Path suiteRoot, JsonNode evalCase, Map<String, BigDecimal> baselineScores, boolean baselineRequired) throws IOException {
+    private CaseResult evaluateCase(Path suiteRoot, JsonNode evalCase, String suitePromptBinding,
+                                    Map<String, BigDecimal> baselineScores, boolean baselineRequired) throws IOException {
         String id = text(evalCase, "id");
         boolean critical = evalCase.path("critical").asBoolean(false);
         Path fixturePath = suiteRoot.resolve(text(evalCase, "fixture")).normalize();
@@ -123,8 +125,9 @@ public final class LlmEvalHarness {
         report.put("task", text(evalCase, "task"));
         report.put("critical", critical);
 
+        validateCasePromptBinding(evalCase, suitePromptBinding, failures);
         validateDeclaredReferences(evalCase, fixtureRefs, failures);
-        validateOutputSchema(evalCase, output, fixtureRefs, failures);
+        validateOutputSchema(suitePromptBinding, output, fixtureRefs, failures);
         BigDecimal weightedScore = scoreRubrics(evalCase, output, failures);
         JsonNode metrics = output.path("metrics");
         BigDecimal baseline = baselineScores.get(id);
@@ -163,12 +166,17 @@ public final class LlmEvalHarness {
         }
     }
 
-    private void validateOutputSchema(JsonNode evalCase, JsonNode output, Set<String> fixtureRefs, ArrayNode failures) {
+    private void validateCasePromptBinding(JsonNode evalCase, String suitePromptBinding, ArrayNode failures) {
+        if (!suitePromptBinding.equals(promptBinding(evalCase.path("prompt")))) {
+            failures.add("schema: case prompt binding mismatch");
+        }
+    }
+
+    private void validateOutputSchema(String suitePromptBinding, JsonNode output, Set<String> fixtureRefs, ArrayNode failures) {
         if (!OUTPUT_SCHEMA.equals(output.path("schemaVersion").asText())) {
             failures.add("schema: unsupported output schemaVersion");
         }
-        String expectedPrompt = evalCase.path("prompt").path("id").asText() + "@" + evalCase.path("prompt").path("version").asText();
-        if (!expectedPrompt.equals(output.path("prompt").asText())) {
+        if (!suitePromptBinding.equals(output.path("prompt").asText())) {
             failures.add("schema: output prompt binding mismatch");
         }
         if (!output.has("decisions") || !output.path("decisions").isArray() || output.path("decisions").isEmpty()) {
@@ -252,10 +260,18 @@ public final class LlmEvalHarness {
             String id = text(rubric, "id");
             BigDecimal weight = decimal(rubric, "weight");
             BigDecimal minimum = decimal(rubric, "minimum");
-            BigDecimal score = scores.has(id) ? scores.get(id).decimalValue() : BigDecimal.valueOf(-1);
-            if (score.signum() < 0) {
+            JsonNode scoreNode = scores.path(id);
+            BigDecimal score = BigDecimal.ZERO;
+            if (scoreNode.isMissingNode()) {
                 failures.add("rubric: missing score " + id);
-                score = BigDecimal.ZERO;
+            } else if (!scoreNode.isNumber()) {
+                failures.add("rubric: score " + id + " must be numeric");
+            } else {
+                score = scoreNode.decimalValue();
+                if (score.compareTo(BigDecimal.ZERO) < 0 || score.compareTo(BigDecimal.ONE) > 0) {
+                    failures.add("rubric: score " + id + " must be between 0 and 1");
+                    score = BigDecimal.ZERO;
+                }
             }
             if (score.compareTo(minimum) < 0) {
                 failures.add("rubric: " + id + " below minimum " + minimum);
@@ -307,7 +323,7 @@ public final class LlmEvalHarness {
         while (iterator.hasNext()) {
             String value = iterator.next().asText();
             if (value.startsWith("schema:") || value.startsWith("hallucination:") || value.startsWith("safety:")
-                    || value.startsWith("metrics:")) {
+                    || value.startsWith("metrics:") || value.startsWith("rubric:")) {
                 return true;
             }
         }
@@ -342,6 +358,10 @@ public final class LlmEvalHarness {
     private static long nonNegativeLongOrZero(JsonNode node, String field) {
         JsonNode value = node.path(field);
         return value.isNumber() && value.asLong(0) >= 0 ? value.asLong(0) : 0L;
+    }
+
+    private static String promptBinding(JsonNode prompt) {
+        return prompt.path("id").asText() + "@" + prompt.path("version").asText();
     }
 
     private static boolean blank(String value) {
