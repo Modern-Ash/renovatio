@@ -12,7 +12,7 @@
   "invalidOutputs": 0,
   "metrics": {
     "acceptanceRate": 1.0,
-    "fallbackRate": 0.0,
+    "fallbackRate": 0.0000,
     "totalCostUsd": 0.021,
     "averageLatencyMs": 790,
     "cacheHitRate": 1.0

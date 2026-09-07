@@ -16,12 +16,20 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class LlmEvalHarness {
     public static final String SUITE_SCHEMA = "renovatio.llm-eval-suite.v1";
     public static final String OUTPUT_SCHEMA = "renovatio.llm-eval-output.v1";
     public static final String REPORT_SCHEMA = "renovatio.llm-eval-report.v1";
     private static final Set<String> REVIEWABLE_STATES = Set.of("PROPOSED", "NEEDS_REVIEW", "REJECTED");
+    private static final Set<String> COBOL_STRUCTURAL_WORDS = Set.of(
+            "IDENTIFICATION", "PROGRAM-ID", "DATA", "WORKING-STORAGE", "PROCEDURE", "DIVISION", "SECTION",
+            "IF", "ELSE", "END-IF", "DISPLAY", "STOP", "RUN");
+    private static final Pattern PROGRAM_ID = Pattern.compile("(?m)^\\s*PROGRAM-ID\\.\\s+([A-Z0-9-]+)\\.");
+    private static final Pattern DATA_NAME = Pattern.compile("(?m)^\\s*(\\d{2})\\s+([A-Z0-9-]+)\\b");
+    private static final Pattern PARAGRAPH = Pattern.compile("(?m)^\\s*([A-Z][A-Z0-9-]*)\\.");
 
     private final ObjectMapper mapper;
 
@@ -32,7 +40,12 @@ public final class LlmEvalHarness {
     public ObjectNode evaluate(Path suitePath, Path baselinePath) throws IOException {
         JsonNode suite = mapper.readTree(suitePath.toFile());
         requireText(suite, "schemaVersion", SUITE_SCHEMA, "suite.schemaVersion");
+        requirePresentText(suite, "id", "suite.id");
+        requirePresentText(suite.path("prompt"), "id", "suite.prompt.id");
+        requirePresentText(suite.path("prompt"), "version", "suite.prompt.version");
+        requirePresentText(suite, "model", "suite.model");
         Map<String, BigDecimal> baselineScores = baselinePath == null ? Map.of() : loadBaselineScores(baselinePath);
+        boolean baselineRequired = baselinePath != null;
         ArrayNode caseReports = mapper.createArrayNode();
         int total = 0;
         int passed = 0;
@@ -41,11 +54,11 @@ public final class LlmEvalHarness {
         BigDecimal totalCost = BigDecimal.ZERO;
         long totalLatency = 0;
         int cacheHits = 0;
-        int fallbacks = 0;
+        BigDecimal fallbackRateTotal = BigDecimal.ZERO;
 
         for (JsonNode evalCase : suite.withArray("cases")) {
             total++;
-            CaseResult result = evaluateCase(suitePath.getParent(), evalCase, baselineScores);
+            CaseResult result = evaluateCase(suitePath.getParent(), evalCase, baselineScores, baselineRequired);
             caseReports.add(result.report);
             if (result.passed) {
                 passed++;
@@ -61,14 +74,12 @@ public final class LlmEvalHarness {
             if (result.cacheHit) {
                 cacheHits++;
             }
-            if (result.fallback) {
-                fallbacks++;
-            }
+            fallbackRateTotal = fallbackRateTotal.add(result.fallbackRate);
         }
 
         ObjectNode metrics = mapper.createObjectNode();
         metrics.put("acceptanceRate", total == 0 ? 0.0 : (double) passed / total);
-        metrics.put("fallbackRate", total == 0 ? 0.0 : (double) fallbacks / total);
+        metrics.put("fallbackRate", total == 0 ? BigDecimal.ZERO : fallbackRateTotal.divide(BigDecimal.valueOf(total), 4, java.math.RoundingMode.HALF_UP));
         metrics.put("totalCostUsd", totalCost);
         metrics.put("averageLatencyMs", total == 0 ? 0 : totalLatency / total);
         metrics.put("cacheHitRate", total == 0 ? 0.0 : (double) cacheHits / total);
@@ -97,13 +108,13 @@ public final class LlmEvalHarness {
         mapper.writeValue(reportPath.toFile(), report);
     }
 
-    private CaseResult evaluateCase(Path suiteRoot, JsonNode evalCase, Map<String, BigDecimal> baselineScores) throws IOException {
+    private CaseResult evaluateCase(Path suiteRoot, JsonNode evalCase, Map<String, BigDecimal> baselineScores, boolean baselineRequired) throws IOException {
         String id = text(evalCase, "id");
         boolean critical = evalCase.path("critical").asBoolean(false);
+        Path fixturePath = suiteRoot.resolve(text(evalCase, "fixture")).normalize();
         Path outputPath = suiteRoot.resolve(text(evalCase, "sampleOutput")).normalize();
         JsonNode output = mapper.readTree(outputPath.toFile());
-        Set<String> allowedRefs = new HashSet<>();
-        evalCase.withArray("irReferences").forEach(ref -> allowedRefs.add(ref.asText()));
+        Set<String> fixtureRefs = extractFixtureReferences(fixturePath);
 
         ObjectNode report = mapper.createObjectNode();
         ArrayNode failures = mapper.createArrayNode();
@@ -111,10 +122,15 @@ public final class LlmEvalHarness {
         report.put("task", text(evalCase, "task"));
         report.put("critical", critical);
 
-        validateOutputSchema(evalCase, output, allowedRefs, failures);
+        validateDeclaredReferences(evalCase, fixtureRefs, failures);
+        validateOutputSchema(evalCase, output, fixtureRefs, failures);
         BigDecimal weightedScore = scoreRubrics(evalCase, output, failures);
         JsonNode metrics = output.path("metrics");
         BigDecimal baseline = baselineScores.get(id);
+        boolean missingCriticalBaseline = baselineRequired && critical && baseline == null;
+        if (missingCriticalBaseline) {
+            failures.add("regression: missing baseline for critical case " + id);
+        }
         boolean regression = baseline != null && weightedScore.compareTo(baseline) < 0;
         if (regression) {
             failures.add("regression: weighted rubric score " + weightedScore + " below baseline " + baseline);
@@ -129,15 +145,24 @@ public final class LlmEvalHarness {
         return new CaseResult(
                 report,
                 failures.isEmpty(),
-                critical && regression,
+                critical && (regression || missingCriticalBaseline),
                 hasInvalidOutputFailure(failures),
                 decimal(metrics, "costUsd"),
                 metrics.path("latencyMs").asLong(0),
                 metrics.path("cacheHit").asBoolean(false),
-                output.path("fallback").asBoolean(false));
+                decimal(metrics, "fallbackRate"));
     }
 
-    private void validateOutputSchema(JsonNode evalCase, JsonNode output, Set<String> allowedRefs, ArrayNode failures) {
+    private void validateDeclaredReferences(JsonNode evalCase, Set<String> fixtureRefs, ArrayNode failures) {
+        for (JsonNode ref : evalCase.withArray("irReferences")) {
+            String value = ref.asText();
+            if (!fixtureRefs.contains(value)) {
+                failures.add("fixture: declared IR reference not found in fixture " + value);
+            }
+        }
+    }
+
+    private void validateOutputSchema(JsonNode evalCase, JsonNode output, Set<String> fixtureRefs, ArrayNode failures) {
         if (!OUTPUT_SCHEMA.equals(output.path("schemaVersion").asText())) {
             failures.add("schema: unsupported output schemaVersion");
         }
@@ -150,7 +175,7 @@ public final class LlmEvalHarness {
         }
         for (JsonNode decision : output.withArray("decisions")) {
             String ref = decision.path("irRef").asText();
-            if (!allowedRefs.contains(ref)) {
+            if (!fixtureRefs.contains(ref)) {
                 failures.add("hallucination: unknown IR reference " + ref);
             }
             if (!REVIEWABLE_STATES.contains(decision.path("reviewState").asText())) {
@@ -202,6 +227,33 @@ public final class LlmEvalHarness {
         return scores;
     }
 
+    private Set<String> extractFixtureReferences(Path fixturePath) throws IOException {
+        String fixture = Files.readString(fixturePath).toUpperCase();
+        Set<String> refs = new HashSet<>();
+        Matcher programMatcher = PROGRAM_ID.matcher(fixture);
+        while (programMatcher.find()) {
+            refs.add("program:" + programMatcher.group(1));
+        }
+        Matcher dataMatcher = DATA_NAME.matcher(fixture);
+        while (dataMatcher.find()) {
+            String level = dataMatcher.group(1);
+            String name = dataMatcher.group(2);
+            if ("88".equals(level)) {
+                refs.add("condition:" + name);
+            } else {
+                refs.add("data:" + name);
+            }
+        }
+        Matcher paragraphMatcher = PARAGRAPH.matcher(fixture);
+        while (paragraphMatcher.find()) {
+            String name = paragraphMatcher.group(1);
+            if (!COBOL_STRUCTURAL_WORDS.contains(name)) {
+                refs.add("paragraph:" + name);
+            }
+        }
+        return refs;
+    }
+
     private static boolean hasInvalidOutputFailure(ArrayNode failures) {
         Iterator<JsonNode> iterator = failures.elements();
         while (iterator.hasNext()) {
@@ -219,6 +271,12 @@ public final class LlmEvalHarness {
         }
     }
 
+    private static void requirePresentText(JsonNode node, String field, String label) {
+        if (blank(node.path(field).asText())) {
+            throw new IllegalArgumentException(label + " is required");
+        }
+    }
+
     private static String text(JsonNode node, String field) {
         return node.path(field).asText();
     }
@@ -232,6 +290,6 @@ public final class LlmEvalHarness {
     }
 
     private record CaseResult(ObjectNode report, boolean passed, boolean criticalRegression, boolean invalidOutput,
-                              BigDecimal costUsd, long latencyMs, boolean cacheHit, boolean fallback) {
+                              BigDecimal costUsd, long latencyMs, boolean cacheHit, BigDecimal fallbackRate) {
     }
 }
