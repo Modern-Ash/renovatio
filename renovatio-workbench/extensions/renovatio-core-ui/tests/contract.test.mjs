@@ -188,3 +188,24 @@ test('provides read-only Shadow diff and impact analysis (issue #181)', () => {
     assert.doesNotMatch(shell, /shadow-impact[^\n]+method: '(POST|PUT|DELETE|PATCH)'/);
     assert.match(styles, /renovatio-shadow-grid/);
 });
+
+test('provides governed AI agents and explainable review boundaries (issue #182)', () => {
+    assert.match(shell, /\/workbench\/ai/);
+    assert.match(shell, /renderGovernedAi/);
+    assert.match(shell, /aria-label='Governed AI agents and explainability'/);
+    assert.match(shell, /agent\.name/);
+    assert.match(shell, /agent\.purpose/);
+    assert.match(shell, /agent\.promptId/);
+    assert.match(shell, /command\.command/);
+    assert.match(shell, /command\.toolCall/);
+    assert.match(shell, /command\.humanConfirmationRequired/);
+    assert.match(shell, /Context snapshot/);
+    assert.match(shell, /Prompt catalog/);
+    assert.match(shell, /Audit trail and tool policy/);
+    assert.match(shell, /AI never writes final files directly/);
+    assert.match(shell, /accept.*edit.*reject/s);
+    assert.match(shell, /responseHash/);
+    assert.match(shell, /permission-denied/);
+    assert.doesNotMatch(shell, /workbench\/ai[^\n]+method: '(POST|PUT|DELETE|PATCH)'/);
+    assert.match(styles, /renovatio-ai-grid/);
+});
