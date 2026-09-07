@@ -39,15 +39,17 @@ public final class LlmEvalHarness {
     }
 
     public ObjectNode evaluate(Path suitePath, Path baselinePath) throws IOException {
-        JsonNode suite = mapper.readTree(suitePath.toFile());
+        Path normalizedSuitePath = suitePath.toAbsolutePath().normalize();
+        JsonNode suite = mapper.readTree(normalizedSuitePath.toFile());
         requireText(suite, "schemaVersion", SUITE_SCHEMA, "suite.schemaVersion");
         requirePresentText(suite, "id", "suite.id");
         requirePresentText(suite.path("prompt"), "id", "suite.prompt.id");
         requirePresentText(suite.path("prompt"), "version", "suite.prompt.version");
         requirePresentText(suite, "model", "suite.model");
         String suitePromptBinding = promptBinding(suite.path("prompt"));
-        Map<String, BigDecimal> baselineScores = baselinePath == null ? Map.of() : loadBaselineScores(baselinePath);
+        Map<String, BigDecimal> baselineScores = baselinePath == null ? Map.of() : loadBaselineScores(baselinePath, suite);
         boolean baselineRequired = baselinePath != null;
+        Path suiteRoot = normalizedSuitePath.getParent() == null ? Path.of(".").toAbsolutePath().normalize() : normalizedSuitePath.getParent();
         ArrayNode caseReports = mapper.createArrayNode();
         int total = 0;
         int passed = 0;
@@ -60,7 +62,7 @@ public final class LlmEvalHarness {
 
         for (JsonNode evalCase : suite.withArray("cases")) {
             total++;
-            CaseResult result = evaluateCase(suitePath.getParent(), evalCase, suitePromptBinding, baselineScores, baselineRequired);
+            CaseResult result = evaluateCase(suiteRoot, evalCase, suitePromptBinding, baselineScores, baselineRequired);
             caseReports.add(result.report);
             if (result.passed) {
                 passed++;
@@ -179,22 +181,25 @@ public final class LlmEvalHarness {
         if (!suitePromptBinding.equals(output.path("prompt").asText())) {
             failures.add("schema: output prompt binding mismatch");
         }
-        if (!output.has("decisions") || !output.path("decisions").isArray() || output.path("decisions").isEmpty()) {
+        JsonNode decisions = output.path("decisions");
+        if (!decisions.isArray() || decisions.isEmpty()) {
             failures.add("schema: decisions must be a non-empty array");
         }
         rejectPromotionFields(output, "output", failures);
-        for (JsonNode decision : output.withArray("decisions")) {
-            String ref = decision.path("irRef").asText();
-            if (!fixtureRefs.contains(ref)) {
-                failures.add("hallucination: unknown IR reference " + ref);
+        if (decisions.isArray()) {
+            for (JsonNode decision : decisions) {
+                String ref = decision.path("irRef").asText();
+                if (!fixtureRefs.contains(ref)) {
+                    failures.add("hallucination: unknown IR reference " + ref);
+                }
+                if (!REVIEWABLE_STATES.contains(decision.path("reviewState").asText())) {
+                    failures.add("review-boundary: decision is not reviewable");
+                }
+                if (blank(decision.path("proposal").asText()) || blank(decision.path("rationale").asText())) {
+                    failures.add("schema: proposal and rationale are required");
+                }
+                rejectPromotionFields(decision, "decision", failures);
             }
-            if (!REVIEWABLE_STATES.contains(decision.path("reviewState").asText())) {
-                failures.add("review-boundary: decision is not reviewable");
-            }
-            if (blank(decision.path("proposal").asText()) || blank(decision.path("rationale").asText())) {
-                failures.add("schema: proposal and rationale are required");
-            }
-            rejectPromotionFields(decision, "decision", failures);
         }
         validateMetrics(output.path("metrics"), failures);
     }
@@ -254,9 +259,14 @@ public final class LlmEvalHarness {
 
     private BigDecimal scoreRubrics(JsonNode evalCase, JsonNode output, ArrayNode failures) {
         JsonNode scores = output.path("rubricScores");
+        JsonNode rubrics = evalCase.path("rubrics");
+        if (!rubrics.isArray() || rubrics.isEmpty()) {
+            failures.add("rubric: definitions must be a non-empty array");
+            return BigDecimal.ZERO;
+        }
         BigDecimal weighted = BigDecimal.ZERO;
         BigDecimal weightTotal = BigDecimal.ZERO;
-        for (JsonNode rubric : evalCase.withArray("rubrics")) {
+        for (JsonNode rubric : rubrics) {
             String id = text(rubric, "id");
             BigDecimal weight = decimal(rubric, "weight");
             BigDecimal minimum = decimal(rubric, "minimum");
@@ -282,8 +292,12 @@ public final class LlmEvalHarness {
         return weightTotal.signum() == 0 ? BigDecimal.ZERO : weighted.divide(weightTotal, 4, java.math.RoundingMode.HALF_UP);
     }
 
-    private Map<String, BigDecimal> loadBaselineScores(Path baselinePath) throws IOException {
+    private Map<String, BigDecimal> loadBaselineScores(Path baselinePath, JsonNode suite) throws IOException {
         JsonNode baseline = mapper.readTree(baselinePath.toFile());
+        requireText(baseline, "suiteId", suite.path("id").asText(), "baseline.suiteId");
+        requireText(baseline, "promptId", suite.path("prompt").path("id").asText(), "baseline.promptId");
+        requireText(baseline, "promptVersion", suite.path("prompt").path("version").asText(), "baseline.promptVersion");
+        requireText(baseline, "model", suite.path("model").asText(), "baseline.model");
         Map<String, BigDecimal> scores = new HashMap<>();
         for (JsonNode evalCase : baseline.withArray("cases")) {
             scores.put(text(evalCase, "id"), decimal(evalCase, "weightedScore"));

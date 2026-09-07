@@ -198,6 +198,20 @@ class LlmEvalHarnessTest {
     }
 
     @Test
+    void nonArrayDecisionsFailClosed(@TempDir Path temp) throws Exception {
+        ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
+        output.set("decisions", OBJECT_MAPPER.createObjectNode().put("irRef", "program:CUSTOMER-BILLING"));
+        Path outputPath = writeJson(temp.resolve("output-non-array-decisions.json"), output);
+        Path suitePath = writeJson(temp.resolve("suite-non-array-decisions.json"), oneCaseSuiteWithOutput(outputPath));
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertEquals(1, report.path("invalidOutputs").asInt());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("decisions must be a non-empty array"));
+    }
+
+    @Test
     void outOfRangeRubricScoresFailClosed(@TempDir Path temp) throws Exception {
         ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
         ((ObjectNode) output.path("rubricScores")).put("entities", 2.0);
@@ -212,8 +226,59 @@ class LlmEvalHarnessTest {
         assertTrue(report.path("cases").get(0).path("weightedScore").asDouble() <= 1.0);
     }
 
+    @Test
+    void casesWithoutRubricDefinitionsFailClosed(@TempDir Path temp) throws Exception {
+        ObjectNode suite = oneCaseSuiteWithOutput(resources.resolve("outputs/customer-billing-valid.json").toAbsolutePath());
+        ObjectNode firstCase = (ObjectNode) suite.withArray("cases").get(0);
+        firstCase.set("rubrics", OBJECT_MAPPER.createArrayNode());
+        Path suitePath = writeJson(temp.resolve("suite-empty-rubrics.json"), suite);
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertEquals(1, report.path("invalidOutputs").asInt());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("definitions must be a non-empty array"));
+    }
+
+    @Test
+    void baselinesMustMatchSuiteIdentity(@TempDir Path temp) throws Exception {
+        ObjectNode baseline = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("baseline-valid.json").toFile());
+        baseline.put("promptVersion", "2026-09-06");
+        Path baselinePath = writeJson(temp.resolve("baseline-wrong-prompt-version.json"), baseline);
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> harness.evaluate(resources.resolve("suite-valid.json"), baselinePath));
+        assertTrue(exception.getMessage().contains("baseline.promptVersion must be 2026-09-07"));
+    }
+
+    @Test
+    void bareRelativeSuitePathsResolveAgainstWorkingDirectory(@TempDir Path temp) throws Exception {
+        Path outputPath = temp.resolve("output-bare-relative.json");
+        Path suitePath = Path.of("suite-bare-relative.json");
+        ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
+        writeJson(outputPath, output);
+
+        ObjectNode suite = oneCaseSuiteWithOutput(outputPath);
+        ObjectNode firstCase = (ObjectNode) suite.withArray("cases").get(0);
+        firstCase.put("fixture", resources.resolve("fixtures/customer-billing.cob").toAbsolutePath().toString());
+        firstCase.put("sampleOutput", outputPath.toString());
+        writeJson(suitePath, suite);
+
+        JsonNode report;
+        try {
+            report = harness.evaluate(suitePath, null);
+        } finally {
+            Files.deleteIfExists(suitePath);
+        }
+
+        assertEquals("PASS", report.path("gate").asText());
+    }
+
     private static Path writeJson(Path path, JsonNode json) throws Exception {
-        Files.createDirectories(path.getParent());
+        if (path.getParent() != null) {
+            Files.createDirectories(path.getParent());
+        }
         OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), json);
         return path;
     }
