@@ -1,6 +1,7 @@
 {
   "schemaVersion": "renovatio.llm-eval-output.v1",
   "prompt": "domain-architecture-eval@2026-09-07",
+  "model": "offline-fixture",
   "fallback": true,
   "decisions": [
     {

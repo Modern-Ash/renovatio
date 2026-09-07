@@ -3,10 +3,11 @@
   "$id": "renovatio.llm-eval-output.v1",
   "title": "Renovatio LLM evaluation output",
   "type": "object",
-  "required": ["schemaVersion", "prompt", "decisions", "rubricScores", "metrics"],
+  "required": ["schemaVersion", "prompt", "model", "decisions", "rubricScores", "metrics"],
   "properties": {
     "schemaVersion": { "const": "renovatio.llm-eval-output.v1" },
     "prompt": { "type": "string" },
+    "model": { "type": "string" },
     "decisions": { "type": "array", "minItems": 1 },
     "rubricScores": { "type": "object" },
     "metrics": { "type": "object" }

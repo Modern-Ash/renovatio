@@ -176,6 +176,20 @@ class LlmEvalHarnessTest {
     }
 
     @Test
+    void outputModelMustMatchSuiteModel(@TempDir Path temp) throws Exception {
+        ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
+        output.put("model", "different-model");
+        Path outputPath = writeJson(temp.resolve("output-wrong-model.json"), output);
+        Path suitePath = writeJson(temp.resolve("suite-wrong-output-model.json"), oneCaseSuiteWithOutput(outputPath));
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertEquals(1, report.path("invalidOutputs").asInt());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("output model binding mismatch"));
+    }
+
+    @Test
     void invalidMetricTypesAndRangesFailClosed(@TempDir Path temp) throws Exception {
         ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
         ObjectNode metrics = (ObjectNode) output.path("metrics");
@@ -212,6 +226,22 @@ class LlmEvalHarnessTest {
     }
 
     @Test
+    void nestedPromotionFieldsFailClosed(@TempDir Path temp) throws Exception {
+        ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
+        ObjectNode metadata = OBJECT_MAPPER.createObjectNode();
+        metadata.put("codePatch", "diff --git a/generated.java b/generated.java");
+        output.set("metadata", metadata);
+        Path outputPath = writeJson(temp.resolve("output-nested-promotion.json"), output);
+        Path suitePath = writeJson(temp.resolve("suite-nested-promotion.json"), oneCaseSuiteWithOutput(outputPath));
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertEquals(1, report.path("invalidOutputs").asInt());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("attempts to promote"));
+    }
+
+    @Test
     void outOfRangeRubricScoresFailClosed(@TempDir Path temp) throws Exception {
         ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
         ((ObjectNode) output.path("rubricScores")).put("entities", 2.0);
@@ -238,6 +268,22 @@ class LlmEvalHarnessTest {
         assertEquals("FAIL", report.path("gate").asText());
         assertEquals(1, report.path("invalidOutputs").asInt());
         assertTrue(report.path("cases").get(0).path("failures").toString().contains("definitions must be a non-empty array"));
+    }
+
+    @Test
+    void invalidRubricConfigurationFailsClosed(@TempDir Path temp) throws Exception {
+        ObjectNode suite = oneCaseSuiteWithOutput(resources.resolve("outputs/customer-billing-valid.json").toAbsolutePath());
+        ObjectNode firstCase = (ObjectNode) suite.withArray("cases").get(0);
+        ((ObjectNode) firstCase.withArray("rubrics").get(0)).put("weight", 0.0);
+        ((ObjectNode) firstCase.withArray("rubrics").get(1)).put("minimum", 1.5);
+        Path suitePath = writeJson(temp.resolve("suite-invalid-rubric-config.json"), suite);
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertEquals(1, report.path("invalidOutputs").asInt());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("weight for entities must be positive"));
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("minimum for use-cases must be between 0 and 1"));
     }
 
     @Test
@@ -273,6 +319,36 @@ class LlmEvalHarnessTest {
         }
 
         assertEquals("PASS", report.path("gate").asText());
+    }
+
+    @Test
+    void statementNamesAreNotParsedAsParagraphReferences(@TempDir Path temp) throws Exception {
+        Path fixturePath = temp.resolve("statement-name.cob");
+        Files.writeString(fixturePath, """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. STATEMENT-NAME.
+                PROCEDURE DIVISION.
+                MAIN.
+                    CONTINUE.
+                    STOP RUN.
+                """);
+        ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
+        ((ObjectNode) output.withArray("decisions").get(0)).put("irRef", "paragraph:CONTINUE");
+        Path outputPath = writeJson(temp.resolve("output-statement-name.json"), output);
+
+        ObjectNode suite = oneCaseSuiteWithOutput(outputPath);
+        ObjectNode firstCase = (ObjectNode) suite.withArray("cases").get(0);
+        firstCase.put("fixture", fixturePath.toString());
+        firstCase.put("sampleOutput", outputPath.toString());
+        firstCase.withArray("irReferences").removeAll();
+        firstCase.withArray("irReferences").add("program:STATEMENT-NAME");
+        firstCase.withArray("irReferences").add("paragraph:MAIN");
+        Path suitePath = writeJson(temp.resolve("suite-statement-name.json"), suite);
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("unknown IR reference paragraph:CONTINUE"));
     }
 
     private static Path writeJson(Path path, JsonNode json) throws Exception {

@@ -10,7 +10,7 @@ mvn -pl renovatio-evals test
 
 Result:
 
-- Tests run: 17
+- Tests run: 21
 - Failures: 0
 - Errors: 0
 - Skipped: 0
@@ -35,5 +35,9 @@ Coverage:
 - Cases without rubric definitions fail closed instead of receiving an implicit zero score.
 - Baseline reports must match the evaluated suite, prompt, and model identity.
 - Bare relative suite paths are normalized before resolving sibling fixtures and outputs.
+- Output model identity must match the evaluated suite model.
+- Promotion fields are rejected recursively, including nested metadata objects.
+- Rubric configuration must provide positive weights and normalized minimum thresholds.
+- COBOL statements such as `CONTINUE.` are not parsed as paragraph declarations.
 
 Sample deterministic report: `docs/reports/llm-eval-methodology-sample-report.json`.
