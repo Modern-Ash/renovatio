@@ -218,6 +218,9 @@ class ArchitecturePreviewApiTest {
     @Test
     void exposesReadOnlyShadowDiffAndImpactReport() throws Exception {
         Files.createDirectories(workspace.resolve("generated-java-stubs/com/acme/legacy"));
+        Files.createDirectories(workspace.resolve("generated-java-stubs/com/acme/domain"));
+        Files.writeString(workspace.resolve("generated-java-stubs/com/acme/domain/PreviewModelModel.java"),
+                "package com.acme.domain; class PreviewModelModel {}");
         Files.writeString(workspace.resolve("generated-java-stubs/com/acme/legacy/OldService.java"),
                 "package com.acme.legacy; class OldService {}");
         mvc.perform(put("/api/projects/{projectId}/workbench/domain-model", projectId)
@@ -227,7 +230,7 @@ class ArchitecturePreviewApiTest {
                                   "schemaVersion": "1",
                                   "projectId": "%s",
                                   "nodes": [
-                                    { "id": "customer-name", "kind": "VALUE_OBJECT", "name": "Customer Name",
+                                    { "id": "preview-model", "kind": "VALUE_OBJECT", "name": "Preview Model",
                                       "properties": [],
                                       "evidence": [{ "sourceRef": "preview.cob#L4", "provenance": "COBOL", "rationale": "field declaration" }],
                                       "origin": "DETERMINISTIC", "confidence": 1.0 }
@@ -261,10 +264,12 @@ class ArchitecturePreviewApiTest {
                 .andExpect(jsonPath("$.source.itemCount").value(1))
                 .andExpect(jsonPath("$.domain.revision").value(1))
                 .andExpect(jsonPath("$.architecture.revision").value(1))
-                .andExpect(jsonPath("$.diff.added[?(@ == 'com/acme/domain/PreviewModelModel.java')]").isArray())
-                .andExpect(jsonPath("$.diff.removed[?(@ == 'generated-java-stubs/com/acme/legacy/OldService.java')]").isArray())
+                .andExpect(jsonPath("$.diff.changed[?(@ == 'com/acme/domain/PreviewModelModel.java')]").isArray())
+                .andExpect(jsonPath("$.diff.removed[?(@ == 'com/acme/legacy/OldService.java')]").isArray())
+                .andExpect(jsonPath("$.diff.added[?(@ == 'com/acme/services/PreviewServiceService.java')]").isArray())
+                .andExpect(jsonPath("$.artifactImpacts[?(@.path == 'com/acme/domain/PreviewModelModel.java')].status").value("present-in-workspace"))
                 .andExpect(jsonPath("$.artifactImpacts[0].determinism").value("deterministic"))
-                .andExpect(jsonPath("$.sourceImpacts[0].domainElementIds[0]").value("customer-name"))
+                .andExpect(jsonPath("$.sourceImpacts[0].domainElementIds[0]").value("preview-model"))
                 .andExpect(jsonPath("$.report.projectId").value(projectId));
     }
 }

@@ -122,6 +122,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected equivalenceState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
     protected shadowImpact?: WorkbenchShadowImpact;
     protected shadowImpactState: AreaState = 'idle';
+    protected shadowImpactRequest = 0;
     protected sourceExplorer?: SourceExplorer;
     protected sourceExplorerState: AreaState = 'idle';
     protected selectedSourceFileId: string | null = null;
@@ -418,14 +419,21 @@ export class RenovatioShellWidget extends ReactWidget {
 
     protected async loadShadowImpact(): Promise<void> {
         if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        const projectId = this.selectedProject;
+        const requestId = ++this.shadowImpactRequest;
         this.shadowImpactState = 'loading'; this.update();
         try {
-            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/shadow-impact`);
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(projectId)}/workbench/shadow-impact`);
+            if (requestId !== this.shadowImpactRequest || projectId !== this.selectedProject) return;
             if (response.status === 401 || response.status === 403) { this.shadowImpactState = 'permission-denied'; this.update(); return; }
             if (!response.ok) throw new Error(`Shadow impact adapter returned ${response.status}`);
             this.shadowImpact = await response.json() as WorkbenchShadowImpact;
+            if (requestId !== this.shadowImpactRequest || projectId !== this.selectedProject) return;
             this.shadowImpactState = this.shadowImpact.artifactImpacts.length || this.shadowImpact.sourceImpacts.length ? 'ready' : 'empty';
-        } catch { this.shadowImpactState = 'error'; }
+        } catch {
+            if (requestId !== this.shadowImpactRequest || projectId !== this.selectedProject) return;
+            this.shadowImpactState = 'error';
+        }
         this.update();
     }
 
@@ -846,6 +854,7 @@ export class RenovatioShellWidget extends ReactWidget {
         this.architectureDraft = undefined;
         this.architectureDirty = false;
         this.shadowImpact = undefined;
+        this.shadowImpactRequest++;
         this.selectedDomainId = null;
         this.persistShellState();
         void this.loadAssets().then(() => this.loadContext()).then(() => this.update()).catch(() => { this.shellState = 'error'; this.update(); });

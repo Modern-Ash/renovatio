@@ -53,7 +53,7 @@ public class WorkbenchShadowImpactService {
 
         List<String> planned = architecture.manifest().stream().map(WorkbenchArchitectureCanvasDto.ManifestEntry::path)
                 .distinct().sorted().toList();
-        List<String> existingTargets = existingTargets(root);
+        List<String> existingTargets = existingTargets(outputRoot(root, project));
         Set<String> plannedSet = new LinkedHashSet<>(planned);
         Set<String> existingSet = new LinkedHashSet<>(existingTargets);
         List<String> added = planned.stream().filter(path -> !existingSet.contains(path)).toList();
@@ -61,9 +61,9 @@ public class WorkbenchShadowImpactService {
         List<String> changed = planned.stream().filter(existingSet::contains).toList();
 
         Map<String, List<String>> domainBySource = domainBySource(domain.model());
-        Map<String, List<String>> evidenceByDomain = evidenceByDomain(domain.model());
-        List<WorkbenchShadowImpactDto.ArtifactImpact> artifacts = artifactImpacts(architecture, domainBySource,
-                evidenceByDomain, existingSet);
+        Map<String, DomainEvidence> evidenceByDomain = evidenceByDomain(domain.model());
+        List<WorkbenchShadowImpactDto.ArtifactImpact> artifacts = artifactImpacts(architecture, evidenceByDomain,
+                existingSet);
         Map<String, List<String>> artifactsBySource = artifactsBySource(artifacts);
         List<WorkbenchShadowImpactDto.SourceImpact> sources = source.files().stream()
                 .map(file -> new WorkbenchShadowImpactDto.SourceImpact(file.path(), file.kind(), file.symbols().size(),
@@ -103,30 +103,28 @@ public class WorkbenchShadowImpactService {
     }
 
     private List<WorkbenchShadowImpactDto.ArtifactImpact> artifactImpacts(WorkbenchArchitectureCanvasDto architecture,
-            Map<String, List<String>> domainBySource, Map<String, List<String>> evidenceByDomain,
-            Set<String> existingTargets) {
-        List<String> allDomainIds = evidenceByDomain.keySet().stream().sorted().toList();
-        List<String> allEvidence = evidenceByDomain.values().stream().flatMap(List::stream).distinct().sorted().toList();
-        List<String> allSources = domainBySource.keySet().stream().sorted().toList();
+            Map<String, DomainEvidence> evidenceByDomain, Set<String> existingTargets) {
+        List<DomainEvidence> candidates = evidenceByDomain.values().stream()
+                .sorted(Comparator.comparing(DomainEvidence::id)).toList();
         return architecture.manifest().stream().map(entry -> {
-            List<String> domainIds = domainIdsFor(entry, allDomainIds);
-            if (domainIds.isEmpty() && !allDomainIds.isEmpty()) domainIds = allDomainIds;
-            List<String> evidence = domainIds.stream().flatMap(id -> evidenceByDomain.getOrDefault(id, List.of()).stream())
+            List<DomainEvidence> matches = domainEvidenceFor(entry, candidates);
+            List<String> domainIds = matches.stream().map(DomainEvidence::id).distinct().sorted().toList();
+            List<String> evidence = matches.stream().flatMap(match -> match.evidenceRefs().stream())
                     .distinct().sorted().toList();
-            if (evidence.isEmpty()) evidence = allEvidence;
             List<String> sourceRefs = evidence.stream().map(WorkbenchShadowImpactService::sourcePath)
                     .filter(value -> !value.isBlank()).distinct().sorted().toList();
-            if (sourceRefs.isEmpty()) sourceRefs = allSources;
             String status = existingTargets.contains(entry.path()) ? "present-in-workspace" : "planned-new";
-            String determinism = evidence.isEmpty() ? "inferred" : "deterministic";
+            String determinism = domainIds.isEmpty() || evidence.isEmpty() ? "inferred" : "deterministic";
             return new WorkbenchShadowImpactDto.ArtifactImpact(entry.path(), entry.role(), entry.layer(),
                     entry.componentId(), status, determinism, sourceRefs, domainIds, evidence);
         }).sorted(Comparator.comparing(WorkbenchShadowImpactDto.ArtifactImpact::path)).toList();
     }
 
-    private static List<String> domainIdsFor(WorkbenchArchitectureCanvasDto.ManifestEntry entry, List<String> candidates) {
+    private static List<DomainEvidence> domainEvidenceFor(WorkbenchArchitectureCanvasDto.ManifestEntry entry,
+                                                          List<DomainEvidence> candidates) {
         String key = normalize(entry.className() + " " + entry.role() + " " + entry.layer());
-        return candidates.stream().filter(id -> key.contains(normalize(id))).toList();
+        return candidates.stream().filter(candidate -> key.contains(normalize(candidate.id()))
+                || key.contains(normalize(candidate.name()))).toList();
     }
 
     private static Map<String, List<String>> artifactsBySource(List<WorkbenchShadowImpactDto.ArtifactImpact> artifacts) {
@@ -146,16 +144,17 @@ public class WorkbenchShadowImpactService {
         return Map.copyOf(result);
     }
 
-    private static Map<String, List<String>> evidenceByDomain(DomainModel model) {
-        Map<String, List<String>> result = new LinkedHashMap<>();
-        model.nodes().forEach(node -> result.computeIfAbsent(node.id(), ignored -> new ArrayList<>())
-                .addAll(node.evidence().stream().map(DomainModel.Evidence::sourceRef).toList()));
-        model.nodes().forEach(node -> node.properties().forEach(property ->
-                result.computeIfAbsent(node.id(), ignored -> new ArrayList<>())
-                        .addAll(property.evidence().stream().map(DomainModel.Evidence::sourceRef).toList())));
-        model.invariants().forEach(invariant -> result.computeIfAbsent(invariant.id(), ignored -> new ArrayList<>())
-                .addAll(invariant.evidence().stream().map(DomainModel.Evidence::sourceRef).toList()));
-        result.replaceAll((key, value) -> value.stream().distinct().sorted().toList());
+    private static Map<String, DomainEvidence> evidenceByDomain(DomainModel model) {
+        Map<String, DomainEvidence> result = new LinkedHashMap<>();
+        model.nodes().forEach(node -> {
+            List<String> evidence = new ArrayList<>(node.evidence().stream().map(DomainModel.Evidence::sourceRef).toList());
+            node.properties().forEach(property ->
+                    evidence.addAll(property.evidence().stream().map(DomainModel.Evidence::sourceRef).toList()));
+            result.put(node.id(), new DomainEvidence(node.id(), node.name(), evidence.stream().distinct().sorted().toList()));
+        });
+        model.invariants().forEach(invariant -> result.put(invariant.id(),
+                new DomainEvidence(invariant.id(), invariant.expression(),
+                        invariant.evidence().stream().map(DomainModel.Evidence::sourceRef).distinct().sorted().toList())));
         return Map.copyOf(result);
     }
 
@@ -172,12 +171,19 @@ public class WorkbenchShadowImpactService {
         return evidenceSources.stream().filter(source -> !known.contains(source)).sorted().toList();
     }
 
-    private static List<String> existingTargets(Path root) throws IOException {
-        if (!Files.exists(root)) return List.of();
-        try (Stream<Path> paths = Files.walk(root, 8)) {
+    private static Path outputRoot(Path workspaceRoot, ProjectEntity project) {
+        String configured = project.getJavaOutputPath();
+        if (configured == null || configured.isBlank()) return workspaceRoot.resolve("generated-java-stubs").normalize();
+        Path path = Path.of(configured.trim());
+        return path.isAbsolute() ? path.normalize() : workspaceRoot.resolve(path).normalize();
+    }
+
+    private static List<String> existingTargets(Path outputRoot) throws IOException {
+        if (!Files.exists(outputRoot)) return List.of();
+        try (Stream<Path> paths = Files.walk(outputRoot, 8)) {
             return paths.filter(Files::isRegularFile)
                     .filter(path -> TARGET_EXTENSIONS.contains(extension(path)))
-                    .map(path -> root.relativize(path).toString().replace(path.getFileSystem().getSeparator(), "/"))
+                    .map(path -> outputRoot.relativize(path).toString().replace(path.getFileSystem().getSeparator(), "/"))
                     .sorted().toList();
         }
     }
@@ -203,4 +209,6 @@ public class WorkbenchShadowImpactService {
     private static String normalize(String value) {
         return value == null ? "" : value.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "");
     }
+
+    private record DomainEvidence(String id, String name, List<String> evidenceRefs) { }
 }
