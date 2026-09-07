@@ -53,3 +53,4 @@
 - 2026-09-07T00:43:37.941447Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=accepted
 - 2026-09-07T00:43:45.971014Z | evidence.added | id=evidence-000001 type=integration result=success revision=1 actor=project:agent
 - 2026-09-07T00:43:46.167893Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T00:44:12.281776Z | work.transitioned | from=verifying to=completed actor=project:owner
