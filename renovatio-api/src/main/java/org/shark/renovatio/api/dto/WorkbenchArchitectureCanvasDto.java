@@ -34,6 +34,7 @@ public record WorkbenchArchitectureCanvasDto(
     public record ManifestEntry(String path, String role, String layer, String className,
                                 String packageName, String componentId) { }
     public record SaveRequest(long expectedRevision, ArchitectureProfileDraft profile) { }
+    public record PreviewRequest(ArchitectureProfileDraft profile) { }
     public record RestoreRequest(long expectedRevision) { }
     public record Version(long revision, String canonicalHash, LocalDateTime savedAt,
                           MigrationProfile.ArchitectureStyle style) { }

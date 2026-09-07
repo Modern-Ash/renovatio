@@ -1,6 +1,7 @@
 package org.shark.renovatio.emitter.node;
 
 import org.shark.renovatio.architecture.ArchitectureGraph;
+import org.shark.renovatio.architecture.ArchitectureLayoutOverrides;
 import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
 import org.shark.renovatio.profile.MigrationProfile;
 
@@ -17,6 +18,7 @@ public final class NodeArchitectureLayoutPlanner implements ArtifactLayoutPlanne
 
     @Override
     public List<PlannedArtifact> plan(LayoutContext context) {
+        ArchitectureLayoutOverrides overrides = ArchitectureLayoutOverrides.from(context.effectiveProfile().profile());
         Map<String, PlannedArtifact> artifacts = new LinkedHashMap<>();
         String moduleDir = moduleDir(context.moduleName());
         String programId = context.program().programId();
@@ -31,6 +33,7 @@ public final class NodeArchitectureLayoutPlanner implements ArtifactLayoutPlanne
                 case OUTBOUND_PORT, ADAPTER -> moduleDir + "/api/" + programId.toLowerCase(Locale.ROOT) + ".controller.ts";
                 default -> moduleDir + "/domain/" + programId.toLowerCase(Locale.ROOT) + "." + role + ".ts";
             };
+            path = overrides.nodePath(path, overrides.layer(component));
             artifacts.putIfAbsent(path, new PlannedArtifact(path, componentId, role));
         }
 

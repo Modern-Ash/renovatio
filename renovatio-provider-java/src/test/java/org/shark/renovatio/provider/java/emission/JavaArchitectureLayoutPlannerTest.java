@@ -2,13 +2,16 @@ package org.shark.renovatio.provider.java.emission;
 
 import org.junit.jupiter.api.Test;
 import org.shark.renovatio.architecture.ArchitectureGraph;
+import org.shark.renovatio.architecture.ArchitectureLayoutOverrides;
 import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
 import org.shark.renovatio.profile.MigrationProfile;
+import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 import org.shark.renovatio.semantic.ir.SourceProvenance;
 import org.shark.renovatio.semantic.ir.SourceSpan;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,9 +71,41 @@ class JavaArchitectureLayoutPlannerTest {
                 "modules/payments/adapter/in/web/PayCicsController.java"));
     }
 
+    @Test
+    void appliesArchitectureCanvasPackageRootsToPlannedPaths() {
+        SemanticProgram program = program("src/PAY-FILE.cob");
+        var service = component("7", ArchitectureGraph.ComponentKind.SERVICE, program);
+        var model = component("8", ArchitectureGraph.ComponentKind.ENTITY, program);
+
+        assertEquals(List.of(
+                        "com/acme/domain/PayDTO.java",
+                        "com/acme/application/PayService.java",
+                        "com/acme/application/PayServiceImpl.java"),
+                paths(planner.plan(context(program, MigrationProfile.ArchitectureStyle.LAYERED_MVC,
+                        List.of(service, model), Map.of(
+                                "architecture.package.model", "com.acme.domain",
+                                "architecture.package.service", "com.acme.application")))));
+    }
+
+    @Test
+    void classifiesOutboundRepositoryLabelsAsPortsBeforeRepositoryNames() {
+        assertEquals("port", ArchitectureLayoutOverrides.from(MigrationProfiles.emptyOverlay())
+                .layer(ArchitectureGraph.ComponentKind.OUTBOUND_PORT, "PAYMENT repository"));
+    }
+
     private static ArtifactLayoutPlanner.LayoutContext context(SemanticProgram program,
             MigrationProfile.ArchitectureStyle style, List<ArchitectureGraph.Component> components) {
-        return new ArtifactLayoutPlanner.LayoutContext(REQUEST, MODULE, "payments", program, style, components);
+        return context(program, style, components, Map.of());
+    }
+
+    private static ArtifactLayoutPlanner.LayoutContext context(SemanticProgram program,
+            MigrationProfile.ArchitectureStyle style, List<ArchitectureGraph.Component> components,
+            Map<String, Object> extensions) {
+        MigrationProfile overlay = new MigrationProfile("1", extensions, null,
+                new MigrationProfile.Architecture(style, MigrationProfile.ModuleGrouping.BY_PROGRAM),
+                null, null, null, null);
+        return new ArtifactLayoutPlanner.LayoutContext(REQUEST, MODULE, "payments", program, style, components,
+                MigrationProfiles.effective(overlay, Map.of(), Map.of(), List.of()));
     }
 
     private static ArchitectureGraph.Component component(String digit, ArchitectureGraph.ComponentKind kind,

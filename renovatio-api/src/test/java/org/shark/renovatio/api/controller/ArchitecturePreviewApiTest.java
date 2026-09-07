@@ -22,6 +22,7 @@ import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -179,6 +180,25 @@ class ArchitecturePreviewApiTest {
                 .andExpect(jsonPath("$.canvas[?(@.layer == 'controller')]").isArray())
                 .andExpect(jsonPath("$.manifest[?(@.path == 'com/acme/services/PreviewServiceUseCase.java')]").isArray())
                 .andExpect(jsonPath("$.dependencyDiagnostics[0].code").value("FORBIDDEN_DEPENDENCY"));
+        mvc.perform(post(path + ":preview", projectId).header("X-Role", "ADMIN").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                { "profile": {
+                                  "style": "TRANSACTION_SCRIPT",
+                                  "moduleGrouping": "BY_PROGRAM",
+                                  "framework": "SPRING_BOOT",
+                                  "persistence": "JPA",
+                                  "packageRoots": {},
+                                  "suffixes": {},
+                                  "classNames": {},
+                                  "dependencyRules": [
+                                    { "fromLayer": "service", "toLayer": "model", "allowed": false, "reason": "force live diagnostic" }
+                                  ]
+                                } }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.revision").value(1))
+                .andExpect(jsonPath("$.dependencyDiagnostics[0].fromLayer").value("service"))
+                .andExpect(jsonPath("$.dependencyDiagnostics[0].toLayer").value("model"));
         mvc.perform(get(path + "/versions", projectId).header("X-Role", "ADMIN"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].revision").value(1))

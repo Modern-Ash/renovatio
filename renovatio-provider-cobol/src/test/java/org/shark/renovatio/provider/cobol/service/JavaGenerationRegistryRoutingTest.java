@@ -158,6 +158,33 @@ class JavaGenerationRegistryRoutingTest {
     }
 
     @Test
+    void architectureCanvasPackageRootsFeedPreviewAndGeneration(@TempDir Path workspacePath) throws Exception {
+        Files.writeString(workspacePath.resolve("routed.cob"), COBOL);
+        var dependencies = dependencies();
+        JavaGenerationService routed = new JavaGenerationService(dependencies.parsing(), dependencies.templates(),
+                dependencies.models(), dependencies.transpiler(), dependencies.mapper(), true,
+                new TargetEmitterRegistry(List.of()), ignored -> customPackageProfile());
+        Workspace workspace = new Workspace("test", workspacePath.toString(), "main");
+
+        var preview = routed.previewArchitecture(new NqlQuery(), workspace);
+        StubResult emitted = routed.generateInterfaceStubs(new NqlQuery(), workspace);
+
+        assertEquals(List.of(
+                "com/acme/domain/RoutedDTO.java",
+                "com/acme/services/RoutedService.java",
+                "com/acme/services/RoutedServiceImpl.java"), preview.manifest().artifacts().stream()
+                .map(artifact -> artifact.path()).toList());
+        assertTrue(emitted.isSuccess(), emitted.getMessage());
+        assertEquals(preview.manifest().artifacts().stream().map(artifact -> artifact.path()).toList(),
+                emitted.getGeneratedCode().keySet().stream().toList());
+        assertTrue(Files.readString(workspacePath.resolve("generated-java-stubs")
+                .resolve("com/acme/services/RoutedService.java")).contains("package com.acme.services;"));
+        assertTrue(Files.readString(workspacePath.resolve("generated-java-stubs")
+                .resolve("com/acme/services/RoutedService.java")).contains("import com.acme.domain.RoutedDTO;"));
+    }
+
+
+    @Test
     void transactionScriptAndHexagonalLayoutsCompile(@TempDir Path root) throws Exception {
         Path transactionWorkspace = Files.createDirectories(root.resolve("transaction"));
         Path hexagonalWorkspace = Files.createDirectories(root.resolve("hexagonal"));
@@ -359,6 +386,15 @@ class JavaGenerationRegistryRoutingTest {
                 "domainCopybooks", Map.of("CUSTOMER-REC", "customers"))), null,
                 new MigrationProfile.Architecture(MigrationProfile.ArchitectureStyle.HEXAGONAL,
                         MigrationProfile.ModuleGrouping.BY_DOMAIN), null, null, null, null);
+        return new DecisionResolver().resolve(overlay, List.of());
+    }
+
+    private static MigrationProfiles.EffectiveProfile customPackageProfile() {
+        MigrationProfile overlay = new MigrationProfile("1", Map.of(
+                "architecture.package.model", "com.acme.domain",
+                "architecture.package.service", "com.acme.services"
+        ), null, new MigrationProfile.Architecture(MigrationProfile.ArchitectureStyle.LAYERED_MVC,
+                MigrationProfile.ModuleGrouping.BY_PROGRAM), null, null, null, null);
         return new DecisionResolver().resolve(overlay, List.of());
     }
 

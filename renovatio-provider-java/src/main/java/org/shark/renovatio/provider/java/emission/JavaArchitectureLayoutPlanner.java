@@ -1,6 +1,7 @@
 package org.shark.renovatio.provider.java.emission;
 
 import org.shark.renovatio.architecture.ArchitectureGraph;
+import org.shark.renovatio.architecture.ArchitectureLayoutOverrides;
 import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
@@ -19,6 +20,7 @@ public final class JavaArchitectureLayoutPlanner implements ArtifactLayoutPlanne
 
     @Override
     public List<PlannedArtifact> plan(LayoutContext context) {
+        ArchitectureLayoutOverrides overrides = ArchitectureLayoutOverrides.from(context.effectiveProfile().profile());
         String classBase = classBase(context.program().sourceProvenance().sourcePath());
         String model = component(context, ArchitectureGraph.ComponentKind.ENTITY,
                 ArchitectureGraph.ComponentKind.VALUE, ArchitectureGraph.ComponentKind.SERVICE,
@@ -30,18 +32,18 @@ public final class JavaArchitectureLayoutPlanner implements ArtifactLayoutPlanne
         String prefix = context.effectiveStyle() == MigrationProfile.ArchitectureStyle.HEXAGONAL
                 ? "modules/" + context.moduleName() + "/" : "";
         List<PlannedArtifact> result = new ArrayList<>();
-        result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "domain/model/")
-                + classBase + "DTO.java", model, "data-transfer-object"));
-        result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "application/port/in/")
-                + classBase + "Service.java", contract, "service-contract"));
-        result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "application/service/")
-                + classBase + "ServiceImpl.java", implementation, "service-implementation"));
+        result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "domain/model/")
+                + classBase + "DTO.java", "model"), model, "data-transfer-object"));
+        result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "application/port/in/")
+                + classBase + "Service.java", "service"), contract, "service-contract"));
+        result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "application/service/")
+                + classBase + "ServiceImpl.java", "service"), implementation, "service-implementation"));
         if (context.program().ioOperations().stream()
                 .anyMatch(operation -> operation.ioKind() == SemanticProgram.IoKind.TRANSACTION)) {
             String adapter = component(context, ArchitectureGraph.ComponentKind.ADAPTER,
                     ArchitectureGraph.ComponentKind.OUTBOUND_PORT, ArchitectureGraph.ComponentKind.SERVICE);
-            result.add(new PlannedArtifact(prefix + (prefix.isEmpty() ? "" : "adapter/in/web/")
-                    + classBase + "CicsController.java", adapter, "cics-controller"));
+            result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "adapter/in/web/")
+                    + classBase + "CicsController.java", "controller"), adapter, "cics-controller"));
         }
         return List.copyOf(result);
     }

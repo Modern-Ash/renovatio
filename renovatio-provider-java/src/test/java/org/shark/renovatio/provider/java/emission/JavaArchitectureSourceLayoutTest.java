@@ -42,6 +42,21 @@ class JavaArchitectureSourceLayoutTest {
     }
 
     @Test
+    void alignsArchitectureCanvasPackageRootsAndImports() {
+        Map<String, String> sources = new LinkedHashMap<>();
+        sources.put("com/acme/domain/PayDTO.java", "package legacy;\npublic class PayDTO {}\n");
+        sources.put("com/acme/application/PayService.java",
+                "package legacy;\npublic interface PayService { PayDTO process(PayDTO input); }\n");
+
+        Map<String, String> aligned = JavaArchitectureSourceLayout.align(sources);
+
+        assertTrue(aligned.get("com/acme/domain/PayDTO.java").startsWith("package com.acme.domain;"));
+        assertTrue(aligned.get("com/acme/application/PayService.java")
+                .contains("import com.acme.domain.PayDTO;"));
+    }
+
+
+    @Test
     void rejectsSourcesThatCannotBeAligned() {
         assertThrows(IllegalArgumentException.class, () -> JavaArchitectureSourceLayout.align(Map.of(
                 "modules/payments/domain/model/PayDTO.java", "public class PayDTO {}")));

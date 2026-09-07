@@ -109,6 +109,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected selectedArchitectureLayer = 'controller';
     protected architectureCompareFrom = 0;
     protected architectureCompareTo = 0;
+    protected architecturePreviewRequest = 0;
     protected ai?: WorkbenchAi;
     protected aiState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
     protected equivalence?: WorkbenchEquivalence;
@@ -240,6 +241,7 @@ export class RenovatioShellWidget extends ReactWidget {
 
     protected async loadArchitecture(): Promise<void> {
         if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        this.architecturePreviewRequest++;
         this.architectureState = 'loading'; this.architectureNotice = ''; this.update();
         try {
             const base = `${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture/canvas`;
@@ -269,6 +271,36 @@ export class RenovatioShellWidget extends ReactWidget {
         this.architectureDirty = true;
         this.architectureNotice = 'Architecture profile has unsaved changes.';
         this.update();
+        void this.previewArchitectureDraft(profile);
+    }
+
+    protected async previewArchitectureDraft(profile: ArchitectureProfileDraft): Promise<void> {
+        const requestId = ++this.architecturePreviewRequest;
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture/canvas:preview`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ profile })
+            });
+            if (requestId !== this.architecturePreviewRequest) return;
+            if (response.status === 401 || response.status === 403) {
+                this.architectureState = 'permission-denied';
+                this.architectureNotice = 'You do not have permission to preview architecture profiles.';
+                this.update();
+                return;
+            }
+            if (!response.ok) return;
+            this.architecture = await response.json() as WorkbenchArchitecture;
+            this.architectureDraft = this.cloneArchitectureProfile(this.architecture.profile);
+            this.architectureDirty = true;
+            this.architectureState = this.architecture.canvas.length || this.architecture.manifest.length ? 'ready' : 'empty';
+            this.architectureNotice = 'Architecture profile has unsaved changes; shadow preview is up to date.';
+            this.update();
+        } catch {
+            if (requestId === this.architecturePreviewRequest) {
+                this.architectureNotice = 'Architecture draft changed, but live preview could not refresh.';
+                this.update();
+            }
+        }
     }
 
     protected updateArchitectureProfile(patch: Partial<ArchitectureProfileDraft>): void {
@@ -288,6 +320,7 @@ export class RenovatioShellWidget extends ReactWidget {
 
     protected async saveArchitectureProfile(): Promise<void> {
         if (!this.architecture || !this.architectureDraft || !this.architectureDirty || this.architectureState === 'saving') return;
+        this.architecturePreviewRequest++;
         this.architectureState = 'saving';
         this.architectureNotice = 'Saving architecture profile revision...';
         this.update();

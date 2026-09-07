@@ -72,6 +72,10 @@ public class WorkbenchProjectController {
         if (!canModify(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(architectureCanvas.save(projectId, body.expectedRevision(), body.profile()));
     }
+    @PostMapping("/architecture/canvas:preview") public ResponseEntity<WorkbenchArchitectureCanvasDto> previewArchitectureCanvas(@PathVariable String projectId, @RequestBody WorkbenchArchitectureCanvasDto.PreviewRequest body, @RequestHeader(value = "X-Role", required = false) String role) {
+        if (!canView(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.ok(architectureCanvas.preview(projectId, body.profile()));
+    }
     @GetMapping("/architecture/canvas/versions") public ResponseEntity<List<WorkbenchArchitectureCanvasDto.Version>> architectureVersions(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role) {
         if (!canView(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(architectureCanvas.versions(projectId));
