@@ -227,3 +227,23 @@ test('provides governed change sets with approval and rollback boundaries (issue
     assert.match(styles, /renovatio-change-grid/);
     assert.match(styles, /state-rolled-back/);
 });
+
+test('provides integrated Equivalence Lab execution and promotion gates (issue #184)', () => {
+    assert.match(shell, /\/workbench\/equivalence\/runs/);
+    assert.match(shell, /renderEquivalenceLab/);
+    assert.match(shell, /aria-label='Integrated Equivalence Lab'/);
+    assert.match(shell, /Equivalence fixture selector/);
+    assert.match(shell, /Input editor for sequential files and DB2 responses/);
+    assert.match(shell, /Async runs, progress, logs and cancellation/);
+    assert.match(shell, /State output file SQL comparison and divergences/);
+    assert.match(shell, /Promotion gate/);
+    assert.match(shell, /Repeat exactly/);
+    assert.match(shell, /Cancel run/);
+    assert.match(shell, /Export audited report/);
+    assert.match(shell, /Accept difference/);
+    assert.match(shell, /Mark defect/);
+    assert.match(shell, /Ask AI analysis/);
+    assert.match(shell, /Gate blocks promotion/);
+    assert.match(styles, /renovatio-equivalence-grid/);
+    assert.match(styles, /state-cancelled/);
+});

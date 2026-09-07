@@ -31,6 +31,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/projects/{projectId}/workbench")
@@ -136,6 +137,26 @@ public class WorkbenchProjectController {
         if (!canView(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(equivalence.summary(projectId));
     }
+    @PostMapping("/equivalence/runs") public ResponseEntity<WorkbenchEquivalenceDto.Run> runEquivalence(@PathVariable String projectId, @RequestBody WorkbenchEquivalenceDto.RunRequest body, @RequestHeader(value = "X-Role", required = false) String role) throws Exception {
+        if (!canModify(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.accepted().body(equivalence.run(projectId, body, actor(role)));
+    }
+    @PostMapping("/equivalence/runs/{runId}:repeat") public ResponseEntity<WorkbenchEquivalenceDto.Run> repeatEquivalence(@PathVariable String projectId, @PathVariable String runId, @RequestHeader(value = "X-Role", required = false) String role) {
+        if (!canModify(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.accepted().body(equivalence.repeat(projectId, runId, actor(role)));
+    }
+    @PostMapping("/equivalence/runs/{runId}:cancel") public ResponseEntity<WorkbenchEquivalenceDto.Run> cancelEquivalence(@PathVariable String projectId, @PathVariable String runId, @RequestHeader(value = "X-Role", required = false) String role) {
+        if (!canModify(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.ok(equivalence.cancel(projectId, runId, actor(role)));
+    }
+    @PostMapping("/equivalence/runs/{runId}/divergences/{divergenceId}:triage") public ResponseEntity<WorkbenchEquivalenceDto.Run> triageEquivalence(@PathVariable String projectId, @PathVariable String runId, @PathVariable String divergenceId, @RequestBody WorkbenchEquivalenceDto.TriageRequest body, @RequestHeader(value = "X-Role", required = false) String role) {
+        if (!canModify(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.ok(equivalence.triage(projectId, runId, divergenceId, body, actor(role)));
+    }
+    @GetMapping("/equivalence/runs/{runId}/report") public ResponseEntity<Map<String, Object>> equivalenceReport(@PathVariable String projectId, @PathVariable String runId, @RequestHeader(value = "X-Role", required = false) String role) {
+        if (!canView(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        return ResponseEntity.ok(equivalence.report(projectId, runId));
+    }
     @GetMapping("/shadow-impact") public ResponseEntity<WorkbenchShadowImpactDto> shadowImpact(@PathVariable String projectId, @RequestHeader(value = "X-Role", required = false) String role) throws Exception {
         if (!canView(role)) return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         return ResponseEntity.ok(shadowImpact.summary(projectId));
@@ -176,6 +197,10 @@ public class WorkbenchProjectController {
     @ExceptionHandler(WorkbenchChangeSetService.ChangeSetException.class)
     public ResponseEntity<ErrorResponse> changeSetError(WorkbenchChangeSetService.ChangeSetException exception) {
         return ResponseEntity.badRequest().body(new ErrorResponse("CHANGE_SET_REJECTED", exception.getMessage()));
+    }
+    @ExceptionHandler(WorkbenchEquivalenceService.EquivalenceException.class)
+    public ResponseEntity<ErrorResponse> equivalenceError(WorkbenchEquivalenceService.EquivalenceException exception) {
+        return ResponseEntity.badRequest().body(new ErrorResponse("EQUIVALENCE_REJECTED", exception.getMessage()));
     }
 
     public record ErrorResponse(String code, String message) { }
