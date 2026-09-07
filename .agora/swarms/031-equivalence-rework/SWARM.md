@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "equivalence-rework"
 method: "spec-driven"
-status: "completed"
+status: "running"
 branch: "agora/renovatio-workbench"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

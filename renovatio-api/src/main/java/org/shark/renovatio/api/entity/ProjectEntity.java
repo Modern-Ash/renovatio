@@ -37,6 +37,9 @@ public class ProjectEntity {
     private String policyCatalogName;
     private String policyCatalogVersion;
 
+    private String workbenchActiveArea;
+    private String workbenchSelectedAssetId;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
