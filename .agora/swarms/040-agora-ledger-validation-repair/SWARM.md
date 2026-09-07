@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "agora-ledger-validation-repair"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/restore-ledger-validation"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

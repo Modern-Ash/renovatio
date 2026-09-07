@@ -33,3 +33,11 @@
 - 2026-09-07T21:54:29.233665Z | work.criterion-stage-marked | criterion=terminal-work-preserved actor=project:agent stage=verified
 - 2026-09-07T21:54:29.460152Z | work.criterion-stage-marked | criterion=governance-only actor=project:agent stage=verified
 - 2026-09-07T21:54:29.697242Z | work.criterion-stage-marked | criterion=final-report actor=project:agent stage=verified
+- 2026-09-07T22:28:34.193500Z | work.criterion-satisfied | criterion=validate-clean actor=project:owner
+- 2026-09-07T22:28:34.415530Z | work.criterion-satisfied | criterion=stale-disposition actor=project:owner
+- 2026-09-07T22:28:34.646006Z | work.criterion-satisfied | criterion=history-preserved actor=project:owner
+- 2026-09-07T22:28:34.868170Z | work.criterion-satisfied | criterion=terminal-work-preserved actor=project:owner
+- 2026-09-07T22:28:35.102049Z | work.criterion-satisfied | criterion=governance-only actor=project:owner
+- 2026-09-07T22:28:35.320553Z | work.criterion-satisfied | criterion=final-report actor=project:owner
+- 2026-09-07T22:28:35.540957Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T22:28:35.757904Z | work.transitioned | from=verifying to=completed actor=project:owner
