@@ -26,13 +26,13 @@ test('provides focus, responsive, and reduced-motion styles', () => {
     assert.match(styles, /prefers-reduced-motion: no-preference/);
 });
 
-test('registers six activity areas with command palette keybindings', () => {
-    for (const area of ['project', 'analysis', 'domain', 'architecture', 'ai', 'equivalence']) {
+test('registers seven activity areas with command palette keybindings', () => {
+    for (const area of ['project', 'analysis', 'domain', 'architecture', 'shadow', 'ai', 'equivalence']) {
         assert.match(contribution, new RegExp(`renovatio\\.shell\\.${area}`));
     }
     assert.match(contribution, /registerKeybindings/);
     assert.match(contribution, /ctrlcmd\+alt\+1/);
-    assert.match(contribution, /ctrlcmd\+alt\+6/);
+    assert.match(contribution, /ctrlcmd\+alt\+7/);
 });
 
 test('provides accessible project navigation over all required asset classes', () => {
@@ -172,4 +172,19 @@ test('keeps Architecture Canvas outside DomainModel and generation execution', (
     assert.doesNotMatch(shell, /saveArchitectureProfile[\s\S]{0,1200}domain-model/i);
     assert.doesNotMatch(shell, /saveArchitectureProfile[\s\S]{0,1200}generate/i);
     assert.doesNotMatch(shell, /architecture\/canvas[^\n]+method: '(DELETE|PATCH)'/);
+});
+
+test('provides read-only Shadow diff and impact analysis (issue #181)', () => {
+    assert.match(shell, /\/workbench\/shadow-impact/);
+    assert.match(shell, /shadowImpactState/);
+    assert.match(shell, /renderShadowImpact/);
+    assert.match(shell, /aria-label='Shadow diff and impact analysis'/);
+    assert.match(shell, /COBOL → IR → DomainModel → Architecture → Java/);
+    assert.match(shell, /Manifest diff before generate/);
+    assert.match(shell, /Artifact impact links/);
+    assert.match(shell, /Source impact links/);
+    assert.match(shell, /Export impact report/);
+    assert.match(shell, /JSON\.stringify\(this\.shadowImpact\.report/);
+    assert.doesNotMatch(shell, /shadow-impact[^\n]+method: '(POST|PUT|DELETE|PATCH)'/);
+    assert.match(styles, /renovatio-shadow-grid/);
 });

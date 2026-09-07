@@ -3,7 +3,7 @@ import { EnvVariable, EnvVariablesServer } from '@theia/core/lib/common/env-vari
 import { inject, injectable, postConstruct } from '@theia/core/shared/inversify';
 import React from '@theia/core/shared/react';
 
-export type RenovatioAreaId = 'project' | 'analysis' | 'domain' | 'architecture' | 'ai' | 'equivalence';
+export type RenovatioAreaId = 'project' | 'analysis' | 'domain' | 'architecture' | 'shadow' | 'ai' | 'equivalence';
 type ShellState = 'loading' | 'ready' | 'empty' | 'permission-denied' | 'error';
 
 interface RenovatioArea {
@@ -18,8 +18,9 @@ const AREAS: readonly RenovatioArea[] = [
     { id: 'analysis', coordinate: 'ACT.02', label: 'Analysis', summary: 'Readiness signals, inventory and execution runs.' },
     { id: 'domain', coordinate: 'ACT.03', label: 'Domain', summary: 'Neutral business model, provenance and versioned corrections.' },
     { id: 'architecture', coordinate: 'ACT.04', label: 'Architecture', summary: 'Target architecture views and dependency boundaries.' },
-    { id: 'ai', coordinate: 'ACT.05', label: 'AI', summary: 'Governed suggestions, provenance and review boundaries.' },
-    { id: 'equivalence', coordinate: 'ACT.06', label: 'Equivalence', summary: 'Evidence, test deltas and acceptance history.' }
+    { id: 'shadow', coordinate: 'ACT.05', label: 'Shadow', summary: 'Pre-generation diff, impact analysis and evidence traceability.' },
+    { id: 'ai', coordinate: 'ACT.06', label: 'AI', summary: 'Governed suggestions, provenance and review boundaries.' },
+    { id: 'equivalence', coordinate: 'ACT.07', label: 'Equivalence', summary: 'Evidence, test deltas and acceptance history.' }
 ];
 
 const PROJECT_ASSETS = [
@@ -48,6 +49,11 @@ type ArchitectureComparison = { added: DomainChange[]; removed: DomainChange[]; 
 type WorkbenchArchitecture = { revision: number; canonicalHash: string; savedAt: string | null; profile: ArchitectureProfileDraft; preview: { modules: unknown[]; components: unknown[]; relations: unknown[]; diagnostics: unknown[]; hasFallback: boolean }; canvas: ArchitectureCanvasNode[]; dependencyRules: ArchitectureRule[]; dependencyDiagnostics: ArchitectureDiagnostic[]; manifest: ArchitectureManifestEntry[] };
 type WorkbenchAi = { items: Array<{ id: string; category: string; source: string; status: string; confidence: number; evidenceCount: number; llmFailed: boolean }> };
 type WorkbenchEquivalence = { evidence: Array<{ id: string; name: string }>; generatedTargets: Array<{ id: string; name: string }>; verdicts: Array<{ fixtureId: string; classification: string; reason: string; blocksRelease: boolean }> };
+type ShadowStage = { name: string; revision: number; hash: string; itemCount: number; status: string };
+type ShadowSourceImpact = { sourcePath: string; kind: string; symbolCount: number; domainElementIds: string[]; artifactPaths: string[] };
+type ShadowArtifactImpact = { path: string; role: string; layer: string; componentId: string; status: string; determinism: string; sourceRefs: string[]; domainElementIds: string[]; evidenceRefs: string[] };
+type ShadowDiff = { plannedArtifacts: string[]; existingTargets: string[]; added: string[]; removed: string[]; changed: string[]; unresolvedEvidence: string[] };
+type WorkbenchShadowImpact = { schemaVersion: string; canonicalHash: string; source: ShadowStage; domain: ShadowStage; architecture: ShadowStage; sourceImpacts: ShadowSourceImpact[]; artifactImpacts: ShadowArtifactImpact[]; diff: ShadowDiff; report: Record<string, unknown> };
 type SourceSymbol = { id: string; kind: string; name: string; line: number; column: number; parentId: string | null; irCoordinate: string };
 type SourceDiagnostic = { severity: string; message: string; line: number };
 type SourceFile = { id: string; name: string; kind: string; path: string; hash: string; encoding: string; analysisStatus: string; symbols: SourceSymbol[]; diagnostics: SourceDiagnostic[] };
@@ -114,6 +120,9 @@ export class RenovatioShellWidget extends ReactWidget {
     protected aiState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
     protected equivalence?: WorkbenchEquivalence;
     protected equivalenceState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
+    protected shadowImpact?: WorkbenchShadowImpact;
+    protected shadowImpactState: AreaState = 'idle';
+    protected shadowImpactRequest = 0;
     protected sourceExplorer?: SourceExplorer;
     protected sourceExplorerState: AreaState = 'idle';
     protected selectedSourceFileId: string | null = null;
@@ -152,6 +161,7 @@ export class RenovatioShellWidget extends ReactWidget {
         if (area === 'analysis') void this.loadAnalysis();
         if (area === 'domain') void this.loadDomainModel();
         if (area === 'architecture') void this.loadArchitecture();
+        if (area === 'shadow') void this.loadShadowImpact();
         if (area === 'ai') void this.loadAi();
         if (area === 'equivalence') void this.loadEquivalence();
         if (area === 'project') void this.loadSourceExplorer();
@@ -168,6 +178,7 @@ export class RenovatioShellWidget extends ReactWidget {
         if (this.shellState === 'loading') this.shellState = 'ready';
         if (this.activeArea === 'analysis') void this.loadAnalysis();
         if (this.activeArea === 'architecture') void this.loadArchitecture();
+        if (this.activeArea === 'shadow') void this.loadShadowImpact();
         if (this.activeArea === 'ai') void this.loadAi();
         if (this.activeArea === 'equivalence') void this.loadEquivalence();
         void this.loadSourceExplorer();
@@ -404,6 +415,37 @@ export class RenovatioShellWidget extends ReactWidget {
             this.equivalenceState = this.equivalence.evidence.length || this.equivalence.generatedTargets.length || this.equivalence.verdicts.length ? 'ready' : 'empty';
         } catch { this.equivalenceState = 'error'; }
         this.update();
+    }
+
+    protected async loadShadowImpact(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        const projectId = this.selectedProject;
+        const requestId = ++this.shadowImpactRequest;
+        this.shadowImpactState = 'loading'; this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(projectId)}/workbench/shadow-impact`);
+            if (requestId !== this.shadowImpactRequest || projectId !== this.selectedProject) return;
+            if (response.status === 401 || response.status === 403) { this.shadowImpactState = 'permission-denied'; this.update(); return; }
+            if (!response.ok) throw new Error(`Shadow impact adapter returned ${response.status}`);
+            this.shadowImpact = await response.json() as WorkbenchShadowImpact;
+            if (requestId !== this.shadowImpactRequest || projectId !== this.selectedProject) return;
+            this.shadowImpactState = this.shadowImpact.artifactImpacts.length || this.shadowImpact.sourceImpacts.length ? 'ready' : 'empty';
+        } catch {
+            if (requestId !== this.shadowImpactRequest || projectId !== this.selectedProject) return;
+            this.shadowImpactState = 'error';
+        }
+        this.update();
+    }
+
+    protected exportShadowImpact(): void {
+        if (!this.shadowImpact) return;
+        const blob = new Blob([JSON.stringify(this.shadowImpact.report, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `renovatio-shadow-impact-${this.selectedProject}-${this.shadowImpact.canonicalHash.slice(7, 19)}.json`;
+        anchor.click();
+        URL.revokeObjectURL(url);
     }
 
     protected async loadSourceExplorer(): Promise<void> {
@@ -811,12 +853,15 @@ export class RenovatioShellWidget extends ReactWidget {
         this.architecture = undefined;
         this.architectureDraft = undefined;
         this.architectureDirty = false;
+        this.shadowImpact = undefined;
+        this.shadowImpactRequest++;
         this.selectedDomainId = null;
         this.persistShellState();
         void this.loadAssets().then(() => this.loadContext()).then(() => this.update()).catch(() => { this.shellState = 'error'; this.update(); });
         void this.loadSourceExplorer();
         void this.loadDomainModel();
         void this.loadArchitecture();
+        void this.loadShadowImpact();
         this.update();
     }
 
@@ -1096,6 +1141,53 @@ export class RenovatioShellWidget extends ReactWidget {
         </section>;
     }
 
+    protected renderShadowImpact(): React.ReactNode {
+        const view = this.shadowImpact;
+        const stages = view ? [view.source, view.domain, view.architecture] : [];
+        return <section className='renovatio-shadow-impact' aria-label='Shadow diff and impact analysis'>
+            <div className='renovatio-architecture-toolbar'>
+                <strong>SHADOW IMPACT · {this.shadowImpactState.toUpperCase()}</strong>
+                <button type='button' onClick={() => void this.loadShadowImpact()} disabled={this.shadowImpactState === 'loading'}>Refresh</button>
+                <button type='button' onClick={() => this.exportShadowImpact()} disabled={!view}>Export impact report</button>
+            </div>
+            {view && <div className='renovatio-shadow-grid'>
+                <section aria-label='Pipeline stages'>
+                    <h3>COBOL → IR → DomainModel → Architecture → Java</h3>
+                    <ol>{stages.map(stage => <li key={stage.name}>
+                        <strong>{stage.name}</strong>
+                        <span>REV {stage.revision} · {stage.itemCount} items · {stage.status}</span>
+                        <code>{stage.hash.slice(0, 24)}…</code>
+                    </li>)}</ol>
+                    <p className='renovatio-domain-diff'>Report hash {view.canonicalHash}. Same sources, DomainModel and profile produce the same report.</p>
+                </section>
+                <section aria-label='Manifest diff before generation'>
+                    <h3>Manifest diff before generate</h3>
+                    <p>Added {view.diff.added.length} · Present {view.diff.changed.length} · Existing outside plan {view.diff.removed.length}</p>
+                    <ol>{view.diff.added.slice(0, 8).map(path => <li key={path}><code>{path}</code><span>planned artifact</span></li>)}</ol>
+                    {view.diff.unresolvedEvidence.length ? <p className='renovatio-domain-diff'>Unresolved evidence: {view.diff.unresolvedEvidence.join(', ')}</p> : <p className='renovatio-domain-diff'>All DomainModel evidence resolves to known source paths.</p>}
+                </section>
+                <section aria-label='Artifact impact links'>
+                    <h3>Artifact impact links</h3>
+                    <ol>{view.artifactImpacts.slice(0, 12).map(artifact => <li key={artifact.path}>
+                        <code>{artifact.path}</code>
+                        <span>{artifact.role} · {artifact.layer} · {artifact.status} · {artifact.determinism}</span>
+                        <small>source {artifact.sourceRefs.join(', ') || 'none'} · domain {artifact.domainElementIds.join(', ') || 'none'}</small>
+                    </li>)}</ol>
+                </section>
+                <section aria-label='Source impact links'>
+                    <h3>Source impact</h3>
+                    <ol>{view.sourceImpacts.slice(0, 12).map(source => <li key={source.sourcePath}>
+                        <button type='button' onClick={() => this.navigateToSource(source.sourcePath)}>{source.sourcePath}</button>
+                        <span>{source.kind} · {source.symbolCount} symbols · {source.artifactPaths.length} artifacts</span>
+                    </li>)}</ol>
+                </section>
+            </div>}
+            {this.shadowImpactState === 'empty' && <p>No shadow impact can be built until source or manifest data exists.</p>}
+            {this.shadowImpactState === 'permission-denied' && <p>You do not have permission to inspect shadow impact reports.</p>}
+            {this.shadowImpactState === 'error' && <p>Shadow impact analysis is unavailable; no files were generated.</p>}
+        </section>;
+    }
+
     protected renderArea(): React.ReactNode {
         const area = AREAS.find(candidate => candidate.id === this.activeArea) ?? AREAS[0];
         return <section className='renovatio-area-content' aria-labelledby='renovatio-area-heading'>
@@ -1104,10 +1196,11 @@ export class RenovatioShellWidget extends ReactWidget {
             <p>{area.summary}</p>
             <article className='renovatio-asset-preview' aria-label='Selected shell context'>
                 <span>{this.activeArea === 'project' ? 'SELECTED ASSET' : 'WORKBENCH AREA'}</span>
-                <strong>{this.activeArea === 'project' ? this.selectedAsset : this.activeArea === 'domain' ? `DOMAINMODEL / REV ${this.domain?.revision ?? 0}` : this.activeArea === 'architecture' && this.architecture ? `ARCHITECTURE / REV ${this.architecture.revision}` : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'EQUIVALENCE / INVENTORY READY' : `${area.label.toUpperCase()} / READY FOR ADAPTER`}</strong>
+                <strong>{this.activeArea === 'project' ? this.selectedAsset : this.activeArea === 'domain' ? `DOMAINMODEL / REV ${this.domain?.revision ?? 0}` : this.activeArea === 'architecture' && this.architecture ? `ARCHITECTURE / REV ${this.architecture.revision}` : this.activeArea === 'shadow' && this.shadowImpact ? `SHADOW / ${this.shadowImpact.canonicalHash.slice(0, 22)}` : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'EQUIVALENCE / INVENTORY READY' : `${area.label.toUpperCase()} / READY FOR ADAPTER`}</strong>
                 <p>{this.activeArea === 'project'
                     ? 'Source content remains inside the configured workspace boundary.'
                     : this.activeArea === 'architecture' && this.architecture ? 'Editable target architecture profile, shadow manifest and dependency validation are loaded from the governed backend contract.'
+                        : this.activeArea === 'shadow' && this.shadowImpact ? 'Read-only impact report links planned artifacts back to source evidence before generation.'
                         : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'Read-only inventory is loaded from the governed backend contract; it does not imply an equivalence verdict.'
                             : 'UI boundary is available; live data remains governed by the existing backend contract.'}</p>
             </article>
@@ -1126,6 +1219,7 @@ export class RenovatioShellWidget extends ReactWidget {
                 {this.analysisState === 'error' && <p>Analysis data is unavailable; project navigation remains available.</p>}
             </section>}
             {this.activeArea === 'architecture' && this.renderArchitectureCanvas()}
+            {this.activeArea === 'shadow' && this.renderShadowImpact()}
             {this.activeArea === 'ai' && <section className='renovatio-asset-editor' aria-label='Governed AI suggestions'>
                 <div><span>GOVERNED SUGGESTIONS · {this.aiState.toUpperCase()}</span></div>
                 {this.aiState === 'ready' && <p>{this.ai?.items.map(item => `${item.category} · ${item.source} · ${item.status} · ${(item.confidence * 100).toFixed(0)}%`).join(' | ')}</p>}
@@ -1147,7 +1241,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected render(): React.ReactNode {
         return <main className='renovatio-surface renovatio-shell' aria-labelledby='renovatio-workbench-heading'>
             <header className='renovatio-header renovatio-shell-header'>
-                <span className='renovatio-kicker'>IDE SHELL · ISSUE 180</span>
+                <span className='renovatio-kicker'>IDE SHELL · ISSUE 181</span>
                 <h1 id='renovatio-workbench-heading'>RENOVATIO / CONTROL DECK</h1>
                 <p>Navigate governed modernization evidence without leaving the Theia workbench.</p>
                 <a className='renovatio-dashboard-link' href={this.dashboardUrl} target='_blank' rel='noreferrer'>Open administrative dashboard</a>

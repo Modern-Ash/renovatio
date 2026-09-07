@@ -981,6 +981,57 @@
     width: auto;
 }
 
+.renovatio-shadow-impact {
+    border-top: 2px solid var(--renovatio-accent);
+    margin-top: 18px;
+    padding-top: 12px;
+}
+
+.renovatio-shadow-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+}
+
+.renovatio-shadow-grid section {
+    background: rgba(4, 13, 15, 0.72);
+    border: 1px solid rgba(238, 248, 245, 0.18);
+    min-width: 0;
+    padding: 12px;
+}
+
+.renovatio-shadow-grid ol {
+    display: grid;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-shadow-grid li {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid var(--renovatio-accent);
+    display: grid;
+    gap: 3px;
+    padding: 8px;
+}
+
+.renovatio-shadow-grid code,
+.renovatio-shadow-grid span,
+.renovatio-shadow-grid small {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-shadow-grid button {
+    background: transparent;
+    border: 0;
+    color: var(--renovatio-accent);
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+}
+
 @media (max-width: 1280px) {
     .renovatio-architecture-grid {
         grid-template-columns: minmax(190px, 0.8fr) minmax(300px, 1.2fr);
@@ -993,7 +1044,8 @@
 }
 
 @media (max-width: 780px) {
-    .renovatio-architecture-grid {
+    .renovatio-architecture-grid,
+    .renovatio-shadow-grid {
         grid-template-columns: 1fr;
     }
 
