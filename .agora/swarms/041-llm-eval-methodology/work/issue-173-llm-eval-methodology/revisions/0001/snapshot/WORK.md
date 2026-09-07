@@ -4,7 +4,7 @@ id: "issue-173-llm-eval-methodology"
 swarm: "llm-eval-methodology"
 title: "LLM evaluation methodology for domain and architecture modeling"
 state: "completed"
-revision: 2
+revision: 1
 operational-status: "active"
 status-reason: null
 status-by: null

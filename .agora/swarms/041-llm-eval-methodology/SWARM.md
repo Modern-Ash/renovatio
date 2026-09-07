@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "llm-eval-methodology"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/issue-173-llm-eval-methodology"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

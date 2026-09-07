@@ -34,3 +34,25 @@
 - 2026-09-07T22:58:47.638383Z | work.transitioned | from=clarified to=planned actor=project:agent
 - 2026-09-07T22:58:47.881561Z | work.transitioned | from=planned to=implementing actor=project:agent
 - 2026-09-07T22:58:48.116582Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-07T23:53:23.328667Z | work.criterion-satisfied | criterion=schema-validity actor=project:owner
+- 2026-09-07T23:53:28.848647Z | work.criterion-satisfied | criterion=critical-regressions actor=project:owner
+- 2026-09-07T23:53:33.601313Z | work.criterion-satisfied | criterion=comparable-reports actor=project:owner
+- 2026-09-07T23:53:38.148917Z | work.criterion-satisfied | criterion=human-review-boundary actor=project:owner
+- 2026-09-07T23:53:43.643506Z | work.criterion-satisfied | criterion=metrics actor=project:owner
+- 2026-09-07T23:53:47.461516Z | work.criterion-satisfied | criterion=agora-evidence actor=project:owner
+- 2026-09-07T23:53:52.915317Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T23:53:57.511358Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-09-07T23:54:46.918231Z | work.reopened | revision=2 source=chat actor=project:owner change=change-20260907t235446918145z
+- 2026-09-07T23:55:00.219408Z | artifact.added | kind=spec uri=repo://docs/specs/llm-eval-methodology.md actor=project:owner
+- 2026-09-07T23:55:05.911536Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/llm-eval-methodology.md actor=project:owner
+- 2026-09-07T23:55:11.118235Z | artifact.added | kind=verification-report uri=repo://docs/reports/llm-eval-methodology-verification.md actor=project:owner
+- 2026-09-07T23:55:16.378155Z | artifact.added | kind=eval-report uri=repo://docs/reports/llm-eval-methodology-sample-report.json actor=project:owner
+- 2026-09-07T23:55:22.711150Z | evidence.added | id=evidence-000002 type=tests result=success revision=2 actor=project:owner
+- 2026-09-07T23:55:28.784126Z | work.criterion-satisfied | criterion=schema-validity actor=project:owner
+- 2026-09-07T23:55:28.983465Z | work.criterion-satisfied | criterion=critical-regressions actor=project:owner
+- 2026-09-07T23:55:29.175019Z | work.criterion-satisfied | criterion=comparable-reports actor=project:owner
+- 2026-09-07T23:55:29.367200Z | work.criterion-satisfied | criterion=human-review-boundary actor=project:owner
+- 2026-09-07T23:55:29.558211Z | work.criterion-satisfied | criterion=metrics actor=project:owner
+- 2026-09-07T23:55:29.750134Z | work.criterion-satisfied | criterion=agora-evidence actor=project:owner
+- 2026-09-07T23:55:34.758386Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T23:55:39.688351Z | work.transitioned | from=verifying to=completed actor=project:owner
