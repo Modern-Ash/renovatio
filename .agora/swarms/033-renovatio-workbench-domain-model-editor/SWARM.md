@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "renovatio-workbench-domain-model-editor"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/renovatio-workbench"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

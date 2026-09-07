@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "renovatio-workbench-architecture-canvas"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/issue-180-architecture-canvas"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
