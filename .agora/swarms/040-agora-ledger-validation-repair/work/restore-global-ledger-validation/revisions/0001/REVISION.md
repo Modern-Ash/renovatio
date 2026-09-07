@@ -12,7 +12,7 @@ closed-by: "project:owner"
 closed-at: "2026-09-07T22:28:35.760807Z"
 source: "work.create"
 source-id: null
-snapshot-sha256: "a8d0929f379a3ebb59eea96d0cde7404d66aaa9d1abd27f883c9902560677d94"
+snapshot-sha256: "543f0fd60c59b61b053c12058db306e0c7b234933da161975eb29179500ffbe8"
 ---
 
 # Work revision 1

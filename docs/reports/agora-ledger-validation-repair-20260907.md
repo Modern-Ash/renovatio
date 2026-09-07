@@ -8,12 +8,12 @@ This repair is limited to governance records and evidence metadata. No runtime i
 
 ## Repairs
 
-- Reconciled stale structured evidence digests for repository artifacts whose current content no longer matched the recorded SHA-256.
-- Refreshed stale clarification provenance hashes to the current Agora input digest for their work records.
-- Refreshed stale consistency-report provenance hashes to the current Agora input digest for their work records.
+- Preserved immutable evidence provenance by restoring historical artifact digests where available and adding a versioned archive copy for the F1 report bound to its `tested-commit`.
+- Archived stale completed-work clarification advisory files under `docs/reports/agora-advisory-archive/` instead of rebinding their `last-run-input-sha256` values to current inputs.
+- Restored stale completed-work consistency reports to their historical bytes and reclassified them as `historical-consistency-report` artifacts, so they remain traceable without being presented as current advisory output.
 - Migrated seven historical session context paths from a machine-local absolute checkout path to repo-relative `CONTEXT.md` paths, with legacy `context-sha256` values cleared so validation no longer depends on a single workstation path.
 - Repaired the F4 persistence evidence register by replacing a comma-bearing free-form `text:` artifact reference with a repository artifact, `docs/reports/f4-persistence-strategy-test-report.md`.
-- Repointed historical `java-21-migration` project activity entries to the existing activity ledger source instead of a missing swarm events file.
+- Repointed historical `java-21-migration` project activity entries to `docs/reports/java-21-migration-events-archive.md`, an explicit archive of the recovered ledger entries for the missing swarm event files.
 
 ## Verification
 
@@ -32,4 +32,4 @@ Result:
 }
 ```
 
-The passing validation inspected 222 Agora documents, 36 swarms, 45 work records, 52 work revisions, 199 evidence entries, 12 clarification registers, 82 event files, and the project activity ledger.
+The passing validation inspected 222 Agora documents, 36 swarms, 45 work records, 52 work revisions, 199 evidence entries, 0 canonical clarification registers, 82 event files, and the project activity ledger.
