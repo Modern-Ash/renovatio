@@ -8,7 +8,7 @@ This repair is limited to governance records and evidence metadata. No runtime i
 
 ## Repairs
 
-- Preserved immutable evidence provenance by restoring historical artifact digests where available and adding a versioned archive copy for the F1 report bound to its `tested-commit`.
+- Preserved immutable evidence provenance by restoring historical artifact digests where available and adding versioned archive copies for report artifacts bound to earlier verification runs, including F1 and F2 report versions.
 - Archived stale completed-work clarification advisory files under `docs/reports/agora-advisory-archive/` instead of rebinding their `last-run-input-sha256` values to current inputs.
 - Restored stale completed-work consistency reports to their historical bytes and reclassified them as `historical-consistency-report` artifacts, so they remain traceable without being presented as current advisory output.
 - Migrated seven historical session context paths from a machine-local absolute checkout path to repo-relative `CONTEXT.md` paths. Because the current Agora validator only accepts `context-sha256` with an absolute canonical path, the validator-bound `context-sha256` remains `null`; each record now also carries `portable-context-sha256` with the actual `CONTEXT.md` digest so consumers can verify the preserved launch context without reintroducing a workstation-specific path.

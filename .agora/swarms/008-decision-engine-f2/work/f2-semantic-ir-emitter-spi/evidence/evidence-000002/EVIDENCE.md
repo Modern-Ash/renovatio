@@ -5,8 +5,8 @@ type: "verification-report"
 phase: null
 result: "success"
 revision: 1
-artifact-references: ["repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md"]
-artifact-content-sha256: {"repo://docs/reports/f2-semantic-ir-emitter-spi-verification.md":"d0475edc67aa571694c96e4ff3b9946ebc62e2f1cb447029d6b68fe66a2a7b86"}
+artifact-references: ["repo://docs/reports/agora-evidence-archive/6b4abc77427f061a6c0c4eaf4b29d222fb2394a3/docs/reports/f2-semantic-ir-emitter-spi-verification.md"]
+artifact-content-sha256: {"repo://docs/reports/agora-evidence-archive/6b4abc77427f061a6c0c4eaf4b29d222fb2394a3/docs/reports/f2-semantic-ir-emitter-spi-verification.md":"a925711b56ca66a24f48283267b4e0aa1809d1d0def5ff8552ed0f6acd6af224"}
 produced-by: "project:agent"
 timestamp: "2026-09-01T13:17:55.845543Z"
 tested-commit: "7e47d6c9b117827f68384ebf20f1499cf03f60c4"
