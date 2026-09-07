@@ -26,9 +26,10 @@ export const OPEN_RENOVATIO_WORKBENCH: Command = {
 const AREA_COMMANDS: ReadonlyArray<{ area: RenovatioAreaId; command: Command; keybinding: string }> = [
     { area: 'project', command: { id: 'renovatio.shell.project', label: 'Open Project Area', category: RENOVATIO_CATEGORY }, keybinding: 'ctrlcmd+alt+1' },
     { area: 'analysis', command: { id: 'renovatio.shell.analysis', label: 'Open Analysis Area', category: RENOVATIO_CATEGORY }, keybinding: 'ctrlcmd+alt+2' },
-    { area: 'architecture', command: { id: 'renovatio.shell.architecture', label: 'Open Architecture Area', category: RENOVATIO_CATEGORY }, keybinding: 'ctrlcmd+alt+3' },
-    { area: 'ai', command: { id: 'renovatio.shell.ai', label: 'Open AI Area', category: RENOVATIO_CATEGORY }, keybinding: 'ctrlcmd+alt+4' },
-    { area: 'equivalence', command: { id: 'renovatio.shell.equivalence', label: 'Open Equivalence Area', category: RENOVATIO_CATEGORY }, keybinding: 'ctrlcmd+alt+5' }
+    { area: 'domain', command: { id: 'renovatio.shell.domain', label: 'Open Domain Area', category: RENOVATIO_CATEGORY }, keybinding: 'ctrlcmd+alt+3' },
+    { area: 'architecture', command: { id: 'renovatio.shell.architecture', label: 'Open Architecture Area', category: RENOVATIO_CATEGORY }, keybinding: 'ctrlcmd+alt+4' },
+    { area: 'ai', command: { id: 'renovatio.shell.ai', label: 'Open AI Area', category: RENOVATIO_CATEGORY }, keybinding: 'ctrlcmd+alt+5' },
+    { area: 'equivalence', command: { id: 'renovatio.shell.equivalence', label: 'Open Equivalence Area', category: RENOVATIO_CATEGORY }, keybinding: 'ctrlcmd+alt+6' }
 ];
 
 @injectable()
