@@ -26,13 +26,13 @@ test('provides focus, responsive, and reduced-motion styles', () => {
     assert.match(styles, /prefers-reduced-motion: no-preference/);
 });
 
-test('registers seven activity areas with command palette keybindings', () => {
-    for (const area of ['project', 'analysis', 'domain', 'architecture', 'shadow', 'ai', 'equivalence']) {
+test('registers eight activity areas with command palette keybindings', () => {
+    for (const area of ['project', 'analysis', 'domain', 'architecture', 'shadow', 'ai', 'changes', 'equivalence']) {
         assert.match(contribution, new RegExp(`renovatio\\.shell\\.${area}`));
     }
     assert.match(contribution, /registerKeybindings/);
     assert.match(contribution, /ctrlcmd\+alt\+1/);
-    assert.match(contribution, /ctrlcmd\+alt\+7/);
+    assert.match(contribution, /ctrlcmd\+alt\+8/);
 });
 
 test('provides accessible project navigation over all required asset classes', () => {
@@ -208,4 +208,22 @@ test('provides governed AI agents and explainable review boundaries (issue #182)
     assert.match(shell, /permission-denied/);
     assert.doesNotMatch(shell, /workbench\/ai[^\n]+method: '(POST|PUT|DELETE|PATCH)'/);
     assert.match(styles, /renovatio-ai-grid/);
+});
+
+test('provides governed change sets with approval and rollback boundaries (issue #183)', () => {
+    assert.match(shell, /\/workbench\/change-sets/);
+    assert.match(shell, /renderChangeSets/);
+    assert.match(shell, /aria-label='Reviewable change sets approval and rollback'/);
+    assert.match(shell, /Mandatory diff/);
+    assert.match(shell, /manifest hash is approved/);
+    assert.match(shell, /APPROVE DANGEROUS CHANGE SET/);
+    assert.match(shell, /APPLY APPROVED CHANGE SET/);
+    assert.match(shell, /ROLL BACK APPLIED CHANGE SET/);
+    assert.match(shell, /Submit review/);
+    assert.match(shell, /Approve diff/);
+    assert.match(shell, /Apply approved manifest/);
+    assert.match(shell, /Rollback/);
+    assert.match(shell, /changeSetAction/);
+    assert.match(styles, /renovatio-change-grid/);
+    assert.match(styles, /state-rolled-back/);
 });

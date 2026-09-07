@@ -1,0 +1,26 @@
+# Work events
+
+- 2026-09-07T20:21:23.698492Z | work.created | state=drafting actor=project:owner
+- 2026-09-07T20:21:55.064707Z | artifact.added | kind=spec uri=.agora/swarms/037-renovatio-workbench-change-sets/work/change-sets-approval-rollback/spec.md actor=project:agent
+- 2026-09-07T20:21:55.281844Z | artifact.added | kind=implementation-plan uri=.agora/swarms/037-renovatio-workbench-change-sets/work/change-sets-approval-rollback/implementation-plan.md actor=project:agent
+- 2026-09-07T20:21:55.513729Z | artifact.added | kind=implementation uri=.agora/swarms/037-renovatio-workbench-change-sets/work/change-sets-approval-rollback/implementation.md actor=project:agent
+- 2026-09-07T20:21:55.723364Z | artifact.added | kind=verification uri=.agora/swarms/037-renovatio-workbench-change-sets/work/change-sets-approval-rollback/verification.md actor=project:agent
+- 2026-09-07T20:21:55.937269Z | artifact.added | kind=review-report uri=.agora/swarms/037-renovatio-workbench-change-sets/work/change-sets-approval-rollback/review-report.md actor=project:agent
+- 2026-09-07T20:22:06.737697Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T20:22:06.956395Z | evidence.added | id=evidence-000002 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T20:22:07.169312Z | evidence.added | id=evidence-000003 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T20:22:07.384789Z | evidence.added | id=evidence-000004 type=build result=success revision=1 actor=project:agent
+- 2026-09-07T20:22:07.598262Z | evidence.added | id=evidence-000005 type=static-check result=success revision=1 actor=project:agent
+- 2026-09-07T20:22:15.957925Z | work.criterion-satisfied | criterion=state-machine actor=project:owner
+- 2026-09-07T20:22:16.183131Z | work.criterion-satisfied | criterion=mandatory-diff actor=project:owner
+- 2026-09-07T20:22:16.391937Z | work.criterion-satisfied | criterion=permissions actor=project:owner
+- 2026-09-07T20:22:16.614169Z | work.criterion-satisfied | criterion=double-confirmation actor=project:owner
+- 2026-09-07T20:22:16.831201Z | work.criterion-satisfied | criterion=deterministic-apply actor=project:owner
+- 2026-09-07T20:22:17.048559Z | work.criterion-satisfied | criterion=rollback-audit actor=project:owner
+- 2026-09-07T20:22:17.268610Z | work.criterion-satisfied | criterion=ui-contract actor=project:owner
+- 2026-09-07T20:22:17.487246Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-07T20:22:17.705700Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-07T20:22:17.927083Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-07T20:22:18.139421Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-07T20:22:18.354275Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T20:22:18.575807Z | work.transitioned | from=verifying to=completed actor=project:owner
