@@ -4,15 +4,15 @@ tracker: "github"
 project: "Modern-Ash/renovatio"
 external-id: "178"
 title: "Theia 2 \u00b7 Source Explorer COBOL/JCL/Copybooks"
-state: "open"
+state: "closed"
 url: "https://github.com/Modern-Ash/renovatio/issues/178"
-updated-at: "2026-09-06T01:30:35Z"
+updated-at: "2026-09-07T10:24:43Z"
 author-subject: "fabianaguero"
 author-display-name: "FabianAG"
 labels: ["enhancement"]
 milestone: null
-comment-count: 0
-payload-sha256: "39d9064ca8d86cc8018aec65cf4c21aa30df6ee8d65835392f0464ac67a9e447"
+comment-count: 2
+payload-sha256: "6eda9e9eb98220e94112b917869af593bb58450a0ea5fb97b50d0edb08a67baf"
 ---
 
 # External issue 178
