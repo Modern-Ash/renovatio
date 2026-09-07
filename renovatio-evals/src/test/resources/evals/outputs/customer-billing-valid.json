@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "renovatio.llm-eval-output.v1",
+  "prompt": "domain-architecture-eval@2026-09-07",
+  "fallback": false,
+  "decisions": [
+    {
+      "id": "decision-customer-aggregate",
+      "type": "entity",
+      "irRef": "program:CUSTOMER-BILLING",
+      "proposal": "CustomerAccount",
+      "rationale": "The program centers on customer identity, account status, balance, and credit-limit checks.",
+      "reviewState": "PROPOSED"
+    },
+    {
+      "id": "decision-credit-limit-use-case",
+      "type": "use-case",
+      "irRef": "paragraph:MAIN",
+      "proposal": "EvaluateCreditLimit",
+      "rationale": "The observable behavior displays an over-limit notice when an active account balance exceeds its limit.",
+      "reviewState": "NEEDS_REVIEW"
+    }
+  ],
+  "rubricScores": {
+    "entities": 0.95,
+    "use-cases": 0.92,
+    "relationships": 0.9,
+    "naming": 0.91,
+    "architecture": 0.88,
+    "rationale": 0.94,
+    "safety": 1.0
+  },
+  "metrics": {
+    "acceptanceRate": 0.8,
+    "fallbackRate": 0.0,
+    "costUsd": 0.012,
+    "latencyMs": 820,
+    "cacheHit": true
+  }
+}

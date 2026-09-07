@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "renovatio.llm-eval-report.v1",
+  "suiteId": "domain-architecture-critical",
+  "promptId": "domain-architecture-eval",
+  "promptVersion": "2026-09-07",
+  "model": "offline-fixture",
+  "cases": [
+    { "id": "customer-billing", "weightedScore": 0.92 },
+    { "id": "order-routing", "weightedScore": 0.9 }
+  ]
+}

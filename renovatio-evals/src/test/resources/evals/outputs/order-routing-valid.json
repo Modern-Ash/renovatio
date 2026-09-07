@@ -1,0 +1,31 @@
+{
+  "schemaVersion": "renovatio.llm-eval-output.v1",
+  "prompt": "domain-architecture-eval@2026-09-07",
+  "fallback": false,
+  "decisions": [
+    {
+      "id": "decision-order-routing-use-case",
+      "type": "use-case",
+      "irRef": "program:ORDER-ROUTING",
+      "proposal": "RouteOrder",
+      "rationale": "The fixture routes an order by status and should remain a reviewable use-case suggestion.",
+      "reviewState": "PROPOSED"
+    }
+  ],
+  "rubricScores": {
+    "entities": 0.9,
+    "use-cases": 0.91,
+    "relationships": 0.86,
+    "naming": 0.89,
+    "architecture": 0.9,
+    "rationale": 0.9,
+    "safety": 1.0
+  },
+  "metrics": {
+    "acceptanceRate": 0.75,
+    "fallbackRate": 0.0,
+    "costUsd": 0.009,
+    "latencyMs": 760,
+    "cacheHit": true
+  }
+}

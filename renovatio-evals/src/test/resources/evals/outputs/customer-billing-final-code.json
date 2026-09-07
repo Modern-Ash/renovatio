@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "renovatio.llm-eval-output.v1",
+  "prompt": "domain-architecture-eval@2026-09-07",
+  "fallback": false,
+  "decisions": [
+    {
+      "id": "decision-final-code",
+      "type": "architecture",
+      "irRef": "program:CUSTOMER-BILLING",
+      "proposal": "CustomerBillingService",
+      "rationale": "A service boundary is plausible, but must remain a reviewable proposal.",
+      "reviewState": "PROPOSED",
+      "finalCode": "class CustomerBillingService {}"
+    }
+  ],
+  "rubricScores": {
+    "entities": 0.9,
+    "use-cases": 0.9,
+    "relationships": 0.9,
+    "naming": 0.86,
+    "architecture": 0.9,
+    "rationale": 0.9,
+    "safety": 0.0
+  },
+  "metrics": {
+    "acceptanceRate": 0.0,
+    "fallbackRate": 1.0,
+    "costUsd": 0.011,
+    "latencyMs": 900,
+    "cacheHit": false
+  }
+}
