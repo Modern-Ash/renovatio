@@ -48,3 +48,20 @@
 - 2026-09-06T02:31:10.019757Z | work.criterion-stage-marked | criterion=accessibility actor=project:owner stage=verified
 - 2026-09-06T02:31:10.291395Z | work.criterion-stage-marked | criterion=wizard-decoupling actor=project:owner stage=verified
 - 2026-09-06T02:31:10.567214Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-06T02:31:35.851534Z | tool.prepared | run=tool-20260906t02311788672695z tool=repository operation=commit actor=project:agent
+- 2026-09-06T02:31:35.854960Z | tool.running | run=tool-20260906t02311788672695z actor=project:agent
+- 2026-09-06T02:31:35.880183Z | tool.completed | run=tool-20260906t02311788672695z exit-code=0
+- 2026-09-06T02:37:40.666262Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-06T02:40:52.373322Z | work.block | from=active to=blocked actor=project:agent change=change-20260906t024052373185z
+- 2026-09-06T11:41:12.017253Z | work.resume | from=blocked to=active actor=project:agent change=change-20260906t114112017114z
+- 2026-09-06T11:41:33.320353Z | evidence.added | id=evidence-000004 type=browser-smoke result=success revision=1 actor=project:owner
+- 2026-09-06T11:41:53.748564Z | work.criterion-stage-marked | criterion=project-navigation actor=project:owner stage=accepted
+- 2026-09-06T11:41:54.048281Z | work.criterion-stage-marked | criterion=activity-shell actor=project:owner stage=accepted
+- 2026-09-06T11:41:54.332199Z | work.criterion-stage-marked | criterion=command-access actor=project:owner stage=accepted
+- 2026-09-06T11:41:54.593873Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=accepted
+- 2026-09-06T11:41:54.875699Z | work.criterion-stage-marked | criterion=state-persistence actor=project:owner stage=accepted
+- 2026-09-06T11:41:55.142152Z | work.criterion-stage-marked | criterion=accessibility actor=project:owner stage=accepted
+- 2026-09-06T11:41:55.409538Z | work.criterion-stage-marked | criterion=wizard-decoupling actor=project:owner stage=accepted
+- 2026-09-06T11:42:01.038978Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=verified
+- 2026-09-06T11:42:01.334264Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=accepted
+- 2026-09-06T11:42:48.198614Z | work.transitioned | from=verifying to=completed actor=project:owner

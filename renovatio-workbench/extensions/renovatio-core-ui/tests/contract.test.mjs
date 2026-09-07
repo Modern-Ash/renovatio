@@ -58,3 +58,35 @@ test('keeps dashboard continuity at a configuration boundary', () => {
     assert.doesNotMatch(shell, /renovatio-ui\/src/);
     assert.doesNotMatch(shell, /Wizard/);
 });
+
+test('loads live projects through the Spring Boot adapter with explicit failure states', () => {
+    assert.match(shell, /\/api\/workbench\/projects/);
+    assert.match(shell, /\/workbench\/assets/);
+    assert.match(shell, /encodeURIComponent\(this\.selectedProject\)/);
+    assert.match(shell, /response\.status === 401 \|\| response\.status === 403/);
+    assert.match(shell, /this\.shellState = 'empty'/);
+});
+
+test('reads assets and limits saves to development-approved generated targets', () => {
+    assert.match(shell, /assetContentState/);
+    assert.match(shell, /method: 'PUT'/);
+    assert.match(shell, /selectedAssetWritable/);
+    assert.match(shell, /Legacy source and evidence are read-only/);
+    assert.match(shell, /Temporary development mode/);
+});
+
+test('restores only project-scoped non-sensitive context through the adapter', () => {
+    assert.match(shell, /\/workbench\/context/);
+    assert.match(shell, /activeArea: this\.activeArea/);
+    assert.match(shell, /selectedAssetId: this\.selectedAssetId/);
+    assert.match(shell, /loadContext\(\)/);
+    assert.match(shell, /persistContext\(\)/);
+});
+
+test('shows read-only inventory and persisted run summaries in Analysis', () => {
+    assert.match(shell, /\/workbench\/analysis/);
+    assert.match(shell, /analysisState/);
+    assert.match(shell, /Analysis data is unavailable/);
+    assert.match(shell, /No inventory or persisted runs/);
+    assert.doesNotMatch(shell, /method: 'POST'.*workbench\/analysis/);
+});

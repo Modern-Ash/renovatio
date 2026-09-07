@@ -29,6 +29,15 @@ const PROJECT_ASSETS = [
     { group: 'Runs', items: ['analysis-2026-09-05'] },
     { group: 'Evidence', items: ['equivalence-ledger.md'] }
 ] as const;
+type ProjectAssetItem = { id: string; name: string; writable: boolean };
+type ProjectAssetGroup = { group: string; items: ProjectAssetItem[] };
+type WorkbenchProject = { id: string; name: string };
+type WorkbenchAsset = { id: string; name: string; category: string; writable: boolean };
+type WorkbenchContext = { activeArea: RenovatioAreaId | null; selectedAssetId: string | null };
+type WorkbenchAnalysis = { inventory: Record<string, number>; runs: Array<{ runId: string; dryRun: boolean; startedAt: string }> };
+type WorkbenchArchitecture = { modules: unknown[]; components: unknown[]; relations: unknown[]; diagnostics: unknown[]; hasFallback: boolean };
+type WorkbenchAi = { items: Array<{ id: string; category: string; source: string; status: string; confidence: number; evidenceCount: number; llmFailed: boolean }> };
+type WorkbenchEquivalence = { evidence: Array<{ id: string; name: string }>; generatedTargets: Array<{ id: string; name: string }>; verdicts: Array<{ fixtureId: string; classification: string; reason: string; blocksRelease: boolean }> };
 
 const ACTIVE_AREA_KEY = 'renovatio.workbench.active-area';
 const SELECTED_PROJECT_KEY = 'renovatio.workbench.selected-project';
@@ -43,10 +52,25 @@ export class RenovatioShellWidget extends ReactWidget {
 
     protected activeArea: RenovatioAreaId = 'project';
     protected dashboardUrl = 'http://127.0.0.1:5173/';
+    protected backendUrl = 'http://127.0.0.1:8080';
+    protected projects: WorkbenchProject[] = [];
+    protected projectAssets: ProjectAssetGroup[] = PROJECT_ASSETS.map(group => ({ group: group.group, items: group.items.map(name => ({ id: name, name, writable: false })) }));
     protected loading = true;
     protected selectedAsset = 'PAYROLL.CBL';
+    protected selectedAssetId = 'PAYROLL.CBL';
+    protected selectedAssetWritable = false;
+    protected assetContent = '';
+    protected assetContentState: 'idle' | 'loading' | 'ready' | 'saving' | 'error' = 'idle';
     protected selectedProject = 'payroll-modernization';
     protected shellState: ShellState = 'loading';
+    protected analysis?: WorkbenchAnalysis;
+    protected analysisState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
+    protected architecture?: WorkbenchArchitecture;
+    protected architectureState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
+    protected ai?: WorkbenchAi;
+    protected aiState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
+    protected equivalence?: WorkbenchEquivalence;
+    protected equivalenceState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
 
     @postConstruct()
     protected init(): void {
@@ -65,14 +89,126 @@ export class RenovatioShellWidget extends ReactWidget {
     activateArea(area: RenovatioAreaId): void {
         this.activeArea = area;
         this.persistShellState();
+        void this.persistContext();
+        if (area === 'analysis') void this.loadAnalysis();
+        if (area === 'architecture') void this.loadArchitecture();
+        if (area === 'ai') void this.loadAi();
+        if (area === 'equivalence') void this.loadEquivalence();
         this.update();
     }
 
     protected async loadRuntimeConfig(): Promise<void> {
         const dashboard = await this.readEnv('RENOVATIO_DASHBOARD_URL');
+        const backend = await this.readEnv('RENOVATIO_BACKEND_URL');
         this.dashboardUrl = dashboard ?? this.dashboardUrl;
+        this.backendUrl = (backend ?? this.backendUrl).replace(/\/$/, '');
+        await this.loadProjects();
         this.loading = false;
-        this.shellState = 'ready';
+        if (this.shellState === 'loading') this.shellState = 'ready';
+        if (this.activeArea === 'analysis') void this.loadAnalysis();
+        if (this.activeArea === 'architecture') void this.loadArchitecture();
+        if (this.activeArea === 'ai') void this.loadAi();
+        if (this.activeArea === 'equivalence') void this.loadEquivalence();
+        this.update();
+    }
+
+    protected async loadProjects(): Promise<void> {
+        try {
+            const response = await fetch(`${this.backendUrl}/api/workbench/projects`);
+            if (response.status === 401 || response.status === 403) { this.shellState = 'permission-denied'; return; }
+            if (!response.ok) throw new Error(`Project adapter returned ${response.status}`);
+            this.projects = await response.json() as WorkbenchProject[];
+            if (!this.projects.length) { this.shellState = 'empty'; return; }
+            if (!this.projects.some(project => project.id === this.selectedProject)) this.selectedProject = this.projects[0].id;
+            await this.loadAssets();
+            await this.loadContext();
+        } catch {
+            this.shellState = 'error';
+        }
+    }
+
+    protected async loadAssets(): Promise<void> {
+        const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/assets`);
+        if (!response.ok) throw new Error(`Asset adapter returned ${response.status}`);
+        const assets = await response.json() as WorkbenchAsset[];
+        this.projectAssets = assets.reduce<ProjectAssetGroup[]>((groups, asset) => {
+            const group = groups.find(candidate => candidate.group === asset.category);
+            const item = { id: asset.id, name: asset.name, writable: asset.writable };
+            if (group) group.items.push(item); else groups.push({ group: asset.category, items: [item] });
+            return groups;
+        }, []);
+        const first = assets[0];
+        if (first) { this.selectedAsset = first.name; this.selectedAssetId = first.id; this.selectedAssetWritable = first.writable; }
+    }
+
+    protected async loadContext(): Promise<void> {
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/context`);
+            if (response.status === 401 || response.status === 403) { this.shellState = 'permission-denied'; return; }
+            if (!response.ok) throw new Error(`Context adapter returned ${response.status}`);
+            const context = await response.json() as WorkbenchContext;
+            if (context.activeArea && AREAS.some(area => area.id === context.activeArea)) this.activeArea = context.activeArea;
+            const asset = this.projectAssets.flatMap(group => group.items).find(item => item.id === context.selectedAssetId)
+                ?? this.projectAssets.flatMap(group => group.items)[0];
+            if (asset) await this.selectAsset(asset, false);
+        } catch { this.persistShellState(); }
+    }
+
+    protected async persistContext(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject) || !this.selectedAssetId) return;
+        try {
+            await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/context`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ activeArea: this.activeArea, selectedAssetId: this.selectedAssetId })
+            });
+        } catch { this.persistShellState(); }
+    }
+
+    protected async loadAnalysis(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        this.analysisState = 'loading'; this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/analysis`);
+            if (!response.ok) throw new Error(`Analysis adapter returned ${response.status}`);
+            this.analysis = await response.json() as WorkbenchAnalysis;
+            this.analysisState = Object.keys(this.analysis.inventory).length || this.analysis.runs.length ? 'ready' : 'empty';
+        } catch { this.analysisState = 'error'; }
+        this.update();
+    }
+
+    protected async loadArchitecture(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        this.architectureState = 'loading'; this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture`);
+            if (!response.ok) throw new Error(`Architecture adapter returned ${response.status}`);
+            this.architecture = await response.json() as WorkbenchArchitecture;
+            this.architectureState = this.architecture.modules.length || this.architecture.components.length ? 'ready' : 'empty';
+        } catch { this.architectureState = 'error'; }
+        this.update();
+    }
+
+    protected async loadAi(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        this.aiState = 'loading'; this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/ai`);
+            if (!response.ok) throw new Error(`AI adapter returned ${response.status}`);
+            this.ai = await response.json() as WorkbenchAi;
+            this.aiState = this.ai.items.length ? 'ready' : 'empty';
+        } catch { this.aiState = 'error'; }
+        this.update();
+    }
+
+    protected async loadEquivalence(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        this.equivalenceState = 'loading'; this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/equivalence`);
+            if (!response.ok) throw new Error(`Equivalence adapter returned ${response.status}`);
+            this.equivalence = await response.json() as WorkbenchEquivalence;
+            this.equivalenceState = this.equivalence.evidence.length || this.equivalence.generatedTargets.length || this.equivalence.verdicts.length ? 'ready' : 'empty';
+        } catch { this.equivalenceState = 'error'; }
         this.update();
     }
 
@@ -105,14 +241,40 @@ export class RenovatioShellWidget extends ReactWidget {
         }
     }
 
-    protected selectAsset(asset: string): void {
-        this.selectedAsset = asset;
+    protected async selectAsset(asset: ProjectAssetItem, persist = true): Promise<void> {
+        this.selectedAsset = asset.name;
+        this.selectedAssetId = asset.id;
+        this.selectedAssetWritable = asset.writable;
+        this.assetContentState = 'loading';
+        if (persist) void this.persistContext();
+        this.update();
+        if (!this.projects.length) { this.assetContent = 'Live project adapter is unavailable; this fixture is read-only.'; this.assetContentState = 'ready'; this.update(); return; }
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/assets/${this.selectedAssetId.split('/').map(encodeURIComponent).join('/')}`);
+            if (!response.ok) throw new Error(`Asset adapter returned ${response.status}`);
+            this.assetContent = await response.text();
+            this.assetContentState = 'ready';
+        } catch { this.assetContentState = 'error'; }
+        this.update();
+    }
+
+    protected updateAssetContent(event: React.ChangeEvent<HTMLTextAreaElement>): void { this.assetContent = event.target.value; this.update(); }
+
+    protected async saveAsset(): Promise<void> {
+        if (!this.selectedAssetWritable || this.assetContentState === 'saving') return;
+        this.assetContentState = 'saving'; this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/assets/${this.selectedAssetId.split('/').map(encodeURIComponent).join('/')}`, { method: 'PUT', headers: { 'Content-Type': 'text/plain' }, body: this.assetContent });
+            if (!response.ok) throw new Error(`Asset adapter returned ${response.status}`);
+            this.assetContentState = 'ready';
+        } catch { this.assetContentState = 'error'; }
         this.update();
     }
 
     protected selectProject(project: string): void {
         this.selectedProject = project;
         this.persistShellState();
+        void this.loadAssets().then(() => this.loadContext()).then(() => this.update()).catch(() => { this.shellState = 'error'; this.update(); });
         this.update();
     }
 
@@ -128,16 +290,15 @@ export class RenovatioShellWidget extends ReactWidget {
                 <h2 id='renovatio-project-heading'>Project explorer</h2>
             </div>
             <div className='renovatio-project-switcher' role='group' aria-label='Selected project'>
-                <button type='button' aria-pressed={this.selectedProject === 'payroll-modernization'} onClick={() => this.selectProject('payroll-modernization')}>PAYROLL</button>
-                <button type='button' aria-pressed={this.selectedProject === 'ledger-modernization'} onClick={() => this.selectProject('ledger-modernization')}>LEDGER</button>
+                {(this.projects.length ? this.projects : [{ id: 'payroll-modernization', name: 'PAYROLL' }, { id: 'ledger-modernization', name: 'LEDGER' }]).map(project => <button type='button' key={project.id} aria-pressed={this.selectedProject === project.id} onClick={() => this.selectProject(project.id)}>{project.name}</button>)}
             </div>
             <p className='renovatio-selection'>ACTIVE / {this.selectedProject}</p>
             <nav aria-label='Project assets'>
-                {PROJECT_ASSETS.map(assetGroup => <section className='renovatio-asset-group' key={assetGroup.group} aria-label={assetGroup.group}>
+                {this.projectAssets.map(assetGroup => <section className='renovatio-asset-group' key={assetGroup.group} aria-label={assetGroup.group}>
                     <h3>{assetGroup.group}</h3>
-                    <ul>{assetGroup.items.map(asset => <li key={asset}><button type='button'
-                        aria-current={this.selectedAsset === asset ? 'page' : undefined}
-                        onClick={() => this.selectAsset(asset)}>{asset}</button></li>)}</ul>
+                    <ul>{assetGroup.items.map(asset => <li key={asset.id}><button type='button'
+                        aria-current={this.selectedAssetId === asset.id ? 'page' : undefined}
+                        onClick={() => void this.selectAsset(asset)}>{asset.name}</button></li>)}</ul>
                 </section>)}
             </nav>
         </aside>;
@@ -151,11 +312,46 @@ export class RenovatioShellWidget extends ReactWidget {
             <p>{area.summary}</p>
             <article className='renovatio-asset-preview' aria-label='Selected shell context'>
                 <span>{this.activeArea === 'project' ? 'SELECTED ASSET' : 'WORKBENCH AREA'}</span>
-                <strong>{this.activeArea === 'project' ? this.selectedAsset : `${area.label.toUpperCase()} / READY FOR ADAPTER`}</strong>
+                <strong>{this.activeArea === 'project' ? this.selectedAsset : this.activeArea === 'architecture' && this.architectureState === 'ready' ? 'ARCHITECTURE / PREVIEW READY' : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'EQUIVALENCE / INVENTORY READY' : `${area.label.toUpperCase()} / READY FOR ADAPTER`}</strong>
                 <p>{this.activeArea === 'project'
-                    ? 'Open in the Theia editor area; source content remains inside the configured workspace boundary.'
-                    : 'UI boundary is available; live data remains governed by the existing backend contract.'}</p>
+                    ? 'Source content remains inside the configured workspace boundary.'
+                    : this.activeArea === 'architecture' && this.architectureState === 'ready' ? 'Read-only target architecture preview is loaded from the governed backend contract.'
+                        : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'Read-only inventory is loaded from the governed backend contract; it does not imply an equivalence verdict.'
+                            : 'UI boundary is available; live data remains governed by the existing backend contract.'}</p>
             </article>
+            {this.activeArea === 'project' && <section className='renovatio-asset-editor' aria-label='Selected asset content'>
+                <div><span>ADAPTER CONTENT · {this.assetContentState.toUpperCase()}</span>{this.selectedAssetWritable && <button type='button' onClick={() => void this.saveAsset()} disabled={this.assetContentState === 'saving'}>Save development target</button>}</div>
+                <textarea value={this.assetContent} readOnly={!this.selectedAssetWritable} onChange={event => this.updateAssetContent(event)} aria-label={`${this.selectedAsset} content`} spellCheck={false} />
+                <p>{this.selectedAssetWritable ? 'Temporary development mode: writing a generated target is enabled. It is not production authorization.' : 'Legacy source and evidence are read-only.'}</p>
+            </section>}
+            {this.activeArea === 'analysis' && <section className='renovatio-asset-editor' aria-label='Analysis inventory'>
+                <div><span>ANALYSIS ADAPTER · {this.analysisState.toUpperCase()}</span></div>
+                {this.analysisState === 'ready' && <><p>{Object.entries(this.analysis?.inventory ?? {}).map(([category, count]) => `${category}: ${count}`).join(' · ')}</p>
+                    <p>{this.analysis?.runs.length ? `Runs: ${this.analysis.runs.map(run => run.runId).join(', ')}` : 'No persisted runs for this project.'}</p></>}
+                {this.analysisState === 'empty' && <p>No inventory or persisted runs are available.</p>}
+                {this.analysisState === 'error' && <p>Analysis data is unavailable; project navigation remains available.</p>}
+            </section>}
+            {this.activeArea === 'architecture' && <section className='renovatio-asset-editor' aria-label='Architecture preview'>
+                <div><span>ARCHITECTURE PREVIEW · {this.architectureState.toUpperCase()}</span></div>
+                {this.architectureState === 'ready' && <p>Modules: {this.architecture?.modules.length} · Components: {this.architecture?.components.length} · Relations: {this.architecture?.relations.length} · Diagnostics: {this.architecture?.diagnostics.length}</p>}
+                {this.architectureState === 'empty' && <p>No architecture preview is available for this project.</p>}
+                {this.architectureState === 'error' && <p>Architecture preview is unavailable; project navigation remains available.</p>}
+            </section>}
+            {this.activeArea === 'ai' && <section className='renovatio-asset-editor' aria-label='Governed AI suggestions'>
+                <div><span>GOVERNED SUGGESTIONS · {this.aiState.toUpperCase()}</span></div>
+                {this.aiState === 'ready' && <p>{this.ai?.items.map(item => `${item.category} · ${item.source} · ${item.status} · ${(item.confidence * 100).toFixed(0)}%`).join(' | ')}</p>}
+                {this.aiState === 'empty' && <p>No governed suggestions are available for this project.</p>}
+                {this.aiState === 'error' && <p>Suggestion data is unavailable; no recommendation can be applied here.</p>}
+            </section>}
+            {this.activeArea === 'equivalence' && <section className='renovatio-asset-editor' aria-label='Equivalence evidence'>
+                <div><span>EQUIVALENCE EVIDENCE · {this.equivalenceState.toUpperCase()}</span></div>
+                {this.equivalenceState === 'ready' && <><p>Evidence: {this.equivalence?.evidence.map(item => item.name).join(', ') || 'none'}</p>
+                    <p>Generated targets: {this.equivalence?.generatedTargets.map(item => item.name).join(', ') || 'none'}</p>
+                    <p>Verdicts: {this.equivalence?.verdicts.map(verdict => `${verdict.fixtureId} · ${verdict.classification} · ${verdict.reason}${verdict.blocksRelease ? ' · RELEASE BLOCKED' : ''}`).join(' | ') || 'none'}</p>
+                    <p>Only persisted reports are shown; an inventory alone implies no equivalence verdict.</p></>}
+                {this.equivalenceState === 'empty' && <p>No persisted evidence or generated targets are available. This is not an equivalence verdict.</p>}
+                {this.equivalenceState === 'error' && <p>Equivalence evidence is unavailable; no comparison or acceptance can occur here.</p>}
+            </section>}
         </section>;
     }
 

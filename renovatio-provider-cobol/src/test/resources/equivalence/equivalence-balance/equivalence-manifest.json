@@ -1,0 +1,11 @@
+{
+  "fixtureId": "equivalence-balance",
+  "source": "input.cob",
+  "target": "generated/EquivalenceBalance.java",
+  "expectedOutput": "expected-output.txt",
+  "contract": {
+    "kind": "stdout",
+    "normalization": "exact",
+    "intentionalChange": false
+  }
+}

@@ -50,6 +50,19 @@ workspace service rather than exposing an arbitrary host directory.
 | `RENOVATIO_TELEMETRY_ENABLED` | `false` | Explicit opt-in signal; Theia telemetry preference is also off. |
 | `RENOVATIO_WORKSPACE_ROOT` | `/workspace` | Displayed workspace policy/root. |
 
+For the temporary unauthenticated development adapter, configure the Spring Boot process — not
+the browser bundle — with all of the following explicit settings:
+
+```bash
+RENOVATIO_WORKBENCH_DEV_NO_AUTH_ENABLED=true \
+RENOVATIO_WORKBENCH_DEV_WRITE_ENABLED=true \
+RENOVATIO_WORKBENCH_ALLOWED_ORIGIN=http://127.0.0.1:3000 \
+mvn -pl renovatio-api spring-boot:run
+```
+
+The `allowed-origin` value must exactly match the browser port. This mode is for a local,
+configured workspace only; it must remain disabled for release and production environments.
+
 Do not place tokens, passwords, or private keys in these values or in frontend bundles. Browser
 deployments should terminate authentication and TLS at the approved gateway and forward the
 existing Renovatio identity/session contract.

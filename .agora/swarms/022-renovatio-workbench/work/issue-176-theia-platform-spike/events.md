@@ -58,3 +58,18 @@
 - 2026-09-06T02:16:36.069745Z | tool.running | run=tool-20260906t02161788671796z actor=project:agent
 - 2026-09-06T02:16:36.094429Z | tool.completed | run=tool-20260906t02161788671796z exit-code=0
 - 2026-09-06T02:16:39.312188Z | work.block | from=active to=blocked actor=project:agent change=change-20260906t021639311997z
+- 2026-09-06T12:09:22.806788Z | work.resume | from=blocked to=active actor=project:agent change=change-20260906t120922806637z
+- 2026-09-06T12:09:32.762123Z | evidence.added | id=evidence-000006 type=browser-smoke result=success revision=1 actor=project:owner
+- 2026-09-06T12:09:40.105089Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-06T12:09:47.026939Z | work.criterion-stage-marked | criterion=prototype-build actor=project:owner stage=accepted
+- 2026-09-06T12:09:47.314956Z | work.criterion-stage-marked | criterion=renovatio-widget actor=project:owner stage=verified
+- 2026-09-06T12:09:47.607334Z | work.criterion-stage-marked | criterion=renovatio-widget actor=project:owner stage=accepted
+- 2026-09-06T12:09:47.908369Z | work.criterion-stage-marked | criterion=platform-distribution actor=project:owner stage=verified
+- 2026-09-06T12:09:48.206862Z | work.criterion-stage-marked | criterion=platform-distribution actor=project:owner stage=accepted
+- 2026-09-06T12:09:48.506048Z | work.criterion-stage-marked | criterion=extension-compatibility actor=project:owner stage=accepted
+- 2026-09-06T12:09:48.766572Z | work.criterion-stage-marked | criterion=environment-security actor=project:owner stage=accepted
+- 2026-09-06T12:09:49.043882Z | work.criterion-stage-marked | criterion=adr-decision actor=project:owner stage=accepted
+- 2026-09-06T12:09:49.309740Z | work.criterion-stage-marked | criterion=non-production-impact actor=project:owner stage=accepted
+- 2026-09-06T12:09:49.577066Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=verified
+- 2026-09-06T12:09:49.837999Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=accepted
+- 2026-09-06T12:09:54.963536Z | work.transitioned | from=verifying to=completed actor=project:owner

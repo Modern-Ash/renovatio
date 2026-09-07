@@ -8,3 +8,8 @@
 - 2026-09-06T02:16:28.974959Z | swarm.status-changed | from=blocked to=running
 - 2026-09-06T02:16:39.314340Z | swarm.status-changed | from=running to=blocked
 - 2026-09-06T02:24:08.503959Z | swarm.status-changed | from=blocked to=running
+- 2026-09-06T02:40:52.375558Z | swarm.status-changed | from=running to=blocked
+- 2026-09-06T11:41:12.019380Z | swarm.status-changed | from=blocked to=running
+- 2026-09-06T11:42:48.201479Z | swarm.status-changed | from=running to=blocked
+- 2026-09-06T12:09:22.809039Z | swarm.status-changed | from=blocked to=running
+- 2026-09-06T12:09:54.966497Z | swarm.status-changed | from=running to=completed

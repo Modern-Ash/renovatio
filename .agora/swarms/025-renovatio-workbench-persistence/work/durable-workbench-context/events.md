@@ -1,0 +1,31 @@
+# Work events
+
+- 2026-09-06T16:00:05.717016Z | work.created | state=drafting actor=project:owner
+- 2026-09-06T16:00:31.096939Z | artifact.added | kind=spec uri=.agora/swarms/025-renovatio-workbench-persistence/work/durable-workbench-context/spec.md actor=project:owner
+- 2026-09-06T16:00:31.343577Z | work.criterion-stage-marked | criterion=persistent-context actor=project:owner stage=specified
+- 2026-09-06T16:00:31.563292Z | work.criterion-stage-marked | criterion=scoped-storage actor=project:owner stage=specified
+- 2026-09-06T16:00:31.795758Z | work.criterion-stage-marked | criterion=recovery-states actor=project:owner stage=specified
+- 2026-09-06T16:00:32.014437Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=specified
+- 2026-09-06T16:00:32.235173Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=specified
+- 2026-09-06T16:00:32.459558Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-06T16:09:20.018886Z | artifact.added | kind=persistence-contract uri=.agora/swarms/025-renovatio-workbench-persistence/work/durable-workbench-context/persistence-contract.md actor=project:agent
+- 2026-09-06T16:09:20.240983Z | artifact.added | kind=implementation-plan uri=.agora/swarms/025-renovatio-workbench-persistence/work/durable-workbench-context/implementation-plan.md actor=project:agent
+- 2026-09-06T16:09:20.458715Z | work.criterion-stage-marked | criterion=persistent-context actor=project:owner stage=planned
+- 2026-09-06T16:09:20.673523Z | work.criterion-stage-marked | criterion=scoped-storage actor=project:owner stage=planned
+- 2026-09-06T16:09:20.885109Z | work.criterion-stage-marked | criterion=recovery-states actor=project:owner stage=planned
+- 2026-09-06T16:09:21.096329Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=planned
+- 2026-09-06T16:09:21.318804Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=planned
+- 2026-09-06T16:09:21.545191Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-06T16:09:39.247609Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-06T17:45:39.684773Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-06T17:45:55.661123Z | artifact.added | kind=verification-report uri=.agora/swarms/025-renovatio-workbench-persistence/work/durable-workbench-context/verification-report.md actor=project:agent
+- 2026-09-06T17:45:55.900237Z | evidence.added | id=evidence-000001 type=integration result=success revision=1 actor=project:agent
+- 2026-09-06T17:45:56.144317Z | evidence.added | id=evidence-000002 type=manual-browser result=success revision=1 actor=project:agent
+- 2026-09-06T17:46:16.381057Z | artifact.added | kind=review-report uri=.agora/swarms/025-renovatio-workbench-persistence/work/durable-workbench-context/review-report.md actor=project:agent
+- 2026-09-06T17:46:49.547309Z | work.criterion-satisfied | criterion=persistent-context actor=project:owner
+- 2026-09-06T17:46:49.771981Z | work.criterion-satisfied | criterion=scoped-storage actor=project:owner
+- 2026-09-06T17:46:49.988545Z | work.criterion-satisfied | criterion=recovery-states actor=project:owner
+- 2026-09-06T17:46:50.212544Z | work.criterion-satisfied | criterion=dashboard-continuity actor=project:owner
+- 2026-09-06T17:46:50.430490Z | work.criterion-satisfied | criterion=verification-evidence actor=project:owner
+- 2026-09-06T17:46:50.656949Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-06T17:46:50.881014Z | work.transitioned | from=verifying to=completed actor=project:owner
