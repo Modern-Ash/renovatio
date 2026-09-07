@@ -53,6 +53,20 @@ class LlmEvalHarnessTest {
     }
 
     @Test
+    void rootFinalCodePromotionViolatesHumanReviewBoundary(@TempDir Path temp) throws Exception {
+        ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
+        output.put("finalCode", "class CustomerBillingService {}");
+        Path outputPath = writeJson(temp.resolve("output-root-final-code.json"), output);
+        Path suitePath = writeJson(temp.resolve("suite-root-final-code.json"), oneCaseSuiteWithOutput(outputPath));
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertEquals(1, report.path("invalidOutputs").asInt());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("output attempts to promote"));
+    }
+
+    @Test
     void criticalRegressionFailsPromptComparisonGate() throws Exception {
         JsonNode report = harness.evaluate(resources.resolve("suite-regression.json"), resources.resolve("baseline-valid.json"));
 
@@ -142,9 +156,42 @@ class LlmEvalHarnessTest {
         assertEquals(1.0, report.path("metrics").path("fallbackRate").asDouble());
     }
 
+    @Test
+    void invalidMetricTypesAndRangesFailClosed(@TempDir Path temp) throws Exception {
+        ObjectNode output = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("outputs/customer-billing-valid.json").toFile());
+        ObjectNode metrics = (ObjectNode) output.path("metrics");
+        metrics.put("acceptanceRate", 2.0);
+        metrics.put("fallbackRate", -2.0);
+        metrics.put("costUsd", -10.0);
+        metrics.put("latencyMs", -1);
+        metrics.put("cacheHit", "yes");
+        Path outputPath = writeJson(temp.resolve("output-invalid-metrics.json"), output);
+        Path suitePath = writeJson(temp.resolve("suite-invalid-metrics.json"), oneCaseSuiteWithOutput(outputPath));
+
+        JsonNode report = harness.evaluate(suitePath, null);
+
+        assertEquals("FAIL", report.path("gate").asText());
+        assertEquals(1, report.path("invalidOutputs").asInt());
+        assertTrue(report.path("cases").get(0).path("failures").toString().contains("metrics:"));
+        assertEquals(0.0, report.path("metrics").path("fallbackRate").asDouble());
+        assertEquals(0.0, report.path("metrics").path("totalCostUsd").asDouble());
+        assertEquals(0, report.path("metrics").path("averageLatencyMs").asInt());
+    }
+
     private static Path writeJson(Path path, JsonNode json) throws Exception {
         Files.createDirectories(path.getParent());
         OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), json);
         return path;
+    }
+
+    private ObjectNode oneCaseSuiteWithOutput(Path outputPath) throws Exception {
+        ObjectNode suite = (ObjectNode) OBJECT_MAPPER.readTree(resources.resolve("suite-valid.json").toFile());
+        ObjectNode firstCase = (ObjectNode) suite.withArray("cases").get(0);
+        firstCase.put("fixture", resources.resolve("fixtures/customer-billing.cob").toAbsolutePath().toString());
+        firstCase.put("sampleOutput", outputPath.toString());
+        ArrayNode cases = OBJECT_MAPPER.createArrayNode();
+        cases.add(firstCase);
+        suite.set("cases", cases);
+        return suite;
     }
 }

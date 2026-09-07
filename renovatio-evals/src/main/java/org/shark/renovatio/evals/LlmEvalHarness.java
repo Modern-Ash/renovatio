@@ -24,6 +24,7 @@ public final class LlmEvalHarness {
     public static final String OUTPUT_SCHEMA = "renovatio.llm-eval-output.v1";
     public static final String REPORT_SCHEMA = "renovatio.llm-eval-report.v1";
     private static final Set<String> REVIEWABLE_STATES = Set.of("PROPOSED", "NEEDS_REVIEW", "REJECTED");
+    private static final Set<String> PROMOTION_FIELDS = Set.of("finalCode", "codePatch", "applied");
     private static final Set<String> COBOL_STRUCTURAL_WORDS = Set.of(
             "IDENTIFICATION", "PROGRAM-ID", "DATA", "WORKING-STORAGE", "PROCEDURE", "DIVISION", "SECTION",
             "IF", "ELSE", "END-IF", "DISPLAY", "STOP", "RUN");
@@ -147,10 +148,10 @@ public final class LlmEvalHarness {
                 failures.isEmpty(),
                 critical && (regression || missingCriticalBaseline),
                 hasInvalidOutputFailure(failures),
-                decimal(metrics, "costUsd"),
-                metrics.path("latencyMs").asLong(0),
-                metrics.path("cacheHit").asBoolean(false),
-                decimal(metrics, "fallbackRate"));
+                decimalOrZero(metrics, "costUsd"),
+                nonNegativeLongOrZero(metrics, "latencyMs"),
+                metrics.path("cacheHit").isBoolean() && metrics.path("cacheHit").asBoolean(false),
+                decimalOrZero(metrics, "fallbackRate"));
     }
 
     private void validateDeclaredReferences(JsonNode evalCase, Set<String> fixtureRefs, ArrayNode failures) {
@@ -173,6 +174,7 @@ public final class LlmEvalHarness {
         if (!output.has("decisions") || !output.path("decisions").isArray() || output.path("decisions").isEmpty()) {
             failures.add("schema: decisions must be a non-empty array");
         }
+        rejectPromotionFields(output, "output", failures);
         for (JsonNode decision : output.withArray("decisions")) {
             String ref = decision.path("irRef").asText();
             if (!fixtureRefs.contains(ref)) {
@@ -184,15 +186,61 @@ public final class LlmEvalHarness {
             if (blank(decision.path("proposal").asText()) || blank(decision.path("rationale").asText())) {
                 failures.add("schema: proposal and rationale are required");
             }
-            if (decision.has("finalCode") || decision.has("codePatch") || decision.has("applied")) {
-                failures.add("safety: output attempts to promote a suggestion as code");
+            rejectPromotionFields(decision, "decision", failures);
+        }
+        validateMetrics(output.path("metrics"), failures);
+    }
+
+    private void rejectPromotionFields(JsonNode node, String scope, ArrayNode failures) {
+        for (String field : PROMOTION_FIELDS) {
+            if (node.has(field)) {
+                failures.add("safety: " + scope + " attempts to promote a suggestion as code via " + field);
             }
         }
-        JsonNode metrics = output.path("metrics");
-        for (String field : Set.of("acceptanceRate", "fallbackRate", "costUsd", "latencyMs", "cacheHit")) {
-            if (!metrics.has(field)) {
-                failures.add("metrics: missing " + field);
-            }
+    }
+
+    private void validateMetrics(JsonNode metrics, ArrayNode failures) {
+        if (!metrics.isObject()) {
+            failures.add("metrics: object is required");
+            return;
+        }
+        requireRateMetric(metrics, "acceptanceRate", failures);
+        requireRateMetric(metrics, "fallbackRate", failures);
+        requireNonNegativeNumberMetric(metrics, "costUsd", failures);
+        requireNonNegativeNumberMetric(metrics, "latencyMs", failures);
+        if (!metrics.has("cacheHit")) {
+            failures.add("metrics: missing cacheHit");
+        } else if (!metrics.path("cacheHit").isBoolean()) {
+            failures.add("metrics: cacheHit must be boolean");
+        }
+    }
+
+    private void requireRateMetric(JsonNode metrics, String field, ArrayNode failures) {
+        if (!metrics.has(field)) {
+            failures.add("metrics: missing " + field);
+            return;
+        }
+        if (!metrics.path(field).isNumber()) {
+            failures.add("metrics: " + field + " must be numeric");
+            return;
+        }
+        BigDecimal value = metrics.path(field).decimalValue();
+        if (value.compareTo(BigDecimal.ZERO) < 0 || value.compareTo(BigDecimal.ONE) > 0) {
+            failures.add("metrics: " + field + " must be between 0 and 1");
+        }
+    }
+
+    private void requireNonNegativeNumberMetric(JsonNode metrics, String field, ArrayNode failures) {
+        if (!metrics.has(field)) {
+            failures.add("metrics: missing " + field);
+            return;
+        }
+        if (!metrics.path(field).isNumber()) {
+            failures.add("metrics: " + field + " must be numeric");
+            return;
+        }
+        if (metrics.path(field).decimalValue().compareTo(BigDecimal.ZERO) < 0) {
+            failures.add("metrics: " + field + " must be nonnegative");
         }
     }
 
@@ -258,7 +306,8 @@ public final class LlmEvalHarness {
         Iterator<JsonNode> iterator = failures.elements();
         while (iterator.hasNext()) {
             String value = iterator.next().asText();
-            if (value.startsWith("schema:") || value.startsWith("hallucination:") || value.startsWith("safety:")) {
+            if (value.startsWith("schema:") || value.startsWith("hallucination:") || value.startsWith("safety:")
+                    || value.startsWith("metrics:")) {
                 return true;
             }
         }
@@ -283,6 +332,16 @@ public final class LlmEvalHarness {
 
     private static BigDecimal decimal(JsonNode node, String field) {
         return node.path(field).decimalValue();
+    }
+
+    private static BigDecimal decimalOrZero(JsonNode node, String field) {
+        JsonNode value = node.path(field);
+        return value.isNumber() && value.decimalValue().compareTo(BigDecimal.ZERO) >= 0 ? value.decimalValue() : BigDecimal.ZERO;
+    }
+
+    private static long nonNegativeLongOrZero(JsonNode node, String field) {
+        JsonNode value = node.path(field);
+        return value.isNumber() && value.asLong(0) >= 0 ? value.asLong(0) : 0L;
     }
 
     private static boolean blank(String value) {

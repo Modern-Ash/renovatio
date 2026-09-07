@@ -10,7 +10,7 @@ mvn -pl renovatio-evals test
 
 Result:
 
-- Tests run: 9
+- Tests run: 11
 - Failures: 0
 - Errors: 0
 - Skipped: 0
@@ -27,5 +27,7 @@ Coverage:
 - Declared IR references must resolve against the COBOL fixture, not only against a manual allowlist.
 - Critical fixtures require baseline coverage whenever a baseline comparison is requested.
 - Fallback aggregation is derived from `metrics.fallbackRate` in the output contract.
+- Root-level final-code promotion fields are rejected, not only decision-level fields.
+- Metric values must have valid types and ranges before aggregation.
 
 Sample deterministic report: `docs/reports/llm-eval-methodology-sample-report.json`.
