@@ -9,3 +9,5 @@
 - 2026-09-08T23:38:04.948016Z | swarm.status-changed | from=running to=completed
 - 2026-09-08T23:47:14.767323Z | swarm.status-changed | from=completed to=running
 - 2026-09-08T23:49:28.054286Z | swarm.status-changed | from=running to=completed
+- 2026-09-08T23:56:01.048973Z | swarm.status-changed | from=completed to=running
+- 2026-09-08T23:57:15.132871Z | swarm.status-changed | from=running to=completed
