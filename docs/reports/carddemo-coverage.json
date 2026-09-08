@@ -4,8 +4,8 @@
   "totals" : {
     "programs" : 44,
     "parsed" : 44,
-    "emitted" : 32,
-    "compiled" : 11,
+    "emitted" : 44,
+    "compiled" : 9,
     "cobolFiles" : 44,
     "copybooks" : 62
   },
@@ -14,12 +14,12 @@
       "programs" : 14,
       "parsed" : 14,
       "emitted" : 14,
-      "compiled" : 10
+      "compiled" : 8
     },
     "cics-online" : {
       "programs" : 19,
       "parsed" : 19,
-      "emitted" : 11,
+      "emitted" : 19,
       "compiled" : 0
     },
     "db2" : {
@@ -31,22 +31,34 @@
     "ims-mq" : {
       "programs" : 8,
       "parsed" : 8,
-      "emitted" : 4,
+      "emitted" : 8,
       "compiled" : 0
     }
   },
   "unsupportedConstructs" : [ {
-    "construct" : "READ",
-    "programs" : 2,
-    "occurrences" : 2
+    "construct" : "CALL",
+    "programs" : 9,
+    "occurrences" : 19
   }, {
-    "construct" : "WRITE",
-    "programs" : 2,
-    "occurrences" : 18
+    "construct" : "READ",
+    "programs" : 6,
+    "occurrences" : 13
   }, {
     "construct" : "CLOSE",
+    "programs" : 5,
+    "occurrences" : 23
+  }, {
+    "construct" : "OPEN",
+    "programs" : 5,
+    "occurrences" : 23
+  }, {
+    "construct" : "WRITE",
+    "programs" : 4,
+    "occurrences" : 52
+  }, {
+    "construct" : "REWRITE",
     "programs" : 1,
-    "occurrences" : 7
+    "occurrences" : 2
   } ],
   "e2eCandidates" : [ "COBSWAIT", "CSUTLDTC", "CBACT02C" ],
   "programs" : [ {
@@ -56,14 +68,24 @@
     "subsystem" : "batch",
     "parse" : true,
     "emit" : true,
-    "compile" : true,
+    "compile" : false,
     "javaFiles" : 3,
-    "manualActionItems" : 47,
+    "manualActionItems" : 28,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
-    "notTranslated" : [ ],
-    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "WRITE" ]
+    "notTranslatedMarkers" : 45,
+    "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 1
+    }, {
+      "construct" : "READ",
+      "evidence" : 1
+    }, {
+      "construct" : "WRITE",
+      "evidence" : 4
+    } ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "WRITE" ],
+    "compileError" : "Cbact01cServiceImpl.java:102: error: cannot find symbol         out.setArrAcctCurrCycDebit(100500);            ^   symbol:   method setArrAcctCurrCycDebit(int)   location: variable out of type Cbact01…"
   }, {
     "programId" : "CBACT02C",
     "file" : "app/cbl/CBACT02C.cbl",
@@ -116,14 +138,21 @@
     "subsystem" : "batch",
     "parse" : true,
     "emit" : true,
-    "compile" : true,
+    "compile" : false,
     "javaFiles" : 3,
-    "manualActionItems" : 13,
+    "manualActionItems" : 7,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
-    "notTranslated" : [ ],
-    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
+    "notTranslatedMarkers" : 8,
+    "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 1
+    }, {
+      "construct" : "READ",
+      "evidence" : 1
+    } ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ],
+    "compileError" : "Cbcus01cServiceImpl.java:45: error: cannot find symbol         out.setTiming(0);            ^   symbol:   method setTiming(int)   location: variable out of type Cbcus01cDTO Cbcus01cServiceImpl.java:46…"
   }, {
     "programId" : "CBEXPORT",
     "file" : "app/cbl/CBEXPORT.cbl",
@@ -133,16 +162,28 @@
     "emit" : true,
     "compile" : false,
     "javaFiles" : 3,
-    "manualActionItems" : 80,
+    "manualActionItems" : 95,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 18,
+    "notTranslatedMarkers" : 161,
     "notTranslated" : [ {
-      "construct" : "READ",
+      "construct" : "CALL",
       "evidence" : 1
+    }, {
+      "construct" : "CLOSE",
+      "evidence" : 6
+    }, {
+      "construct" : "OPEN",
+      "evidence" : 6
+    }, {
+      "construct" : "READ",
+      "evidence" : 5
+    }, {
+      "construct" : "WRITE",
+      "evidence" : 5
     } ],
     "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "WRITE" ],
-    "compileError" : "CbexportServiceImpl.java:41: error: ';' expected           output.setExpCustAddrLine(1)(input.getCustAddrLine1());                                       ^ CbexportServiceImpl.java:41: error: ';' expec…"
+    "compileError" : "CbexportServiceImpl.java:129: error: cannot find symbol         System.out.println(\"CBEXPORT: XRefs Exported: \" + out.getWsXrefRecordsExported());                                                      …"
   }, {
     "programId" : "CBIMPORT",
     "file" : "app/cbl/CBIMPORT.cbl",
@@ -152,12 +193,18 @@
     "emit" : true,
     "compile" : false,
     "javaFiles" : 3,
-    "manualActionItems" : 60,
+    "manualActionItems" : 62,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 54,
+    "notTranslatedMarkers" : 130,
     "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 1
+    }, {
       "construct" : "CLOSE",
+      "evidence" : 7
+    }, {
+      "construct" : "OPEN",
       "evidence" : 7
     }, {
       "construct" : "READ",
@@ -167,7 +214,7 @@
       "evidence" : 6
     } ],
     "present" : [ "ADD", "CALL", "CLOSE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "WRITE" ],
-    "compileError" : "CbimportServiceImpl.java:57: error: ')' or ',' expected           output.setCustAddrLine1(input.getExpCustAddrLine(1)());                                                              ^ CbimportService…"
+    "compileError" : "CbimportServiceImpl.java:95: error: cannot find symbol         System.out.println(\"CBIMPORT: XRefs Imported: \" + out.getWsXrefRecordsImported());                                                       …"
   }, {
     "programId" : "CBPAUP0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/CBPAUP0C.cbl",
@@ -177,10 +224,10 @@
     "emit" : true,
     "compile" : false,
     "javaFiles" : 3,
-    "manualActionItems" : 80,
+    "manualActionItems" : 64,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 2,
+    "notTranslatedMarkers" : 73,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "ADD", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC DLI", "GOBACK", "IF", "MOVE", "PERFORM", "READ", "SET", "SUBTRACT" ],
     "compileError" : "Cbpaup0cDTO.java:29: error: variable filler is already defined in class Cbpaup0cDTO   private String filler;                  ^ Cbpaup0cDTO.java:33: error: variable filler is already defined in class …"
@@ -193,13 +240,16 @@
     "emit" : true,
     "compile" : false,
     "javaFiles" : 3,
-    "manualActionItems" : 40,
+    "manualActionItems" : 54,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 11,
+    "notTranslatedMarkers" : 57,
     "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 8
+    }, {
       "construct" : "WRITE",
-      "evidence" : 12
+      "evidence" : 37
     } ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "GO TO", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING", "WRITE" ],
     "compileError" : "Cbstm03aDTO.java:64: error: variable filler is already defined in class Cbstm03aDTO   private String filler;                  ^ Cbstm03aDTO.java:74: error: variable filler is already defined in class …"
@@ -212,10 +262,10 @@
     "emit" : true,
     "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 0,
+    "manualActionItems" : 13,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 17,
     "notTranslated" : [ ],
     "present" : [ "CLOSE", "EVALUATE", "GO TO", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ]
   }, {
@@ -227,13 +277,25 @@
     "emit" : true,
     "compile" : false,
     "javaFiles" : 3,
-    "manualActionItems" : 40,
+    "manualActionItems" : 27,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 2,
-    "notTranslated" : [ ],
+    "notTranslatedMarkers" : 67,
+    "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 1
+    }, {
+      "construct" : "CLOSE",
+      "evidence" : 6
+    }, {
+      "construct" : "OPEN",
+      "evidence" : 6
+    }, {
+      "construct" : "READ",
+      "evidence" : 3
+    } ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ],
-    "compileError" : "Cbtrn01cServiceImpl.java:24: error: cannot find symbol           if (input.getEndOfDailyTransFile() == \"N\") {                    ^   symbol:   method getEndOfDailyTransFile()   location: variable inpu…"
+    "compileError" : "Cbtrn01cServiceImpl.java:23: error: cannot find symbol           while (!(input.getEndOfDailyTransFile() == \"Y\")) {                         ^   symbol:   method getEndOfDailyTransFile()   location: va…"
   }, {
     "programId" : "CBTRN02C",
     "file" : "app/cbl/CBTRN02C.cbl",
@@ -279,23 +341,26 @@
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC CICS", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING" ],
-    "compileError" : "Coacct01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Coacct01CicsControl…"
+    "compileError" : "Coacct01CicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Coacct01CicsController.java:11: e…"
   }, {
     "programId" : "COACTUPC",
     "file" : "app/cbl/COACTUPC.cbl",
     "loc" : 4236,
     "subsystem" : "cics-online",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 1459,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
-    "notTranslated" : [ ],
+    "notTranslatedMarkers" : 1032,
+    "notTranslated" : [ {
+      "construct" : "REWRITE",
+      "evidence" : 2
+    } ],
     "present" : [ "ACCEPT", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [CoactupcCicsController.java, CoactupcDTO.java, CoactupcService.java, CoactupcServiceImpl.java]"
+    "compileError" : "CoactupcCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ CoactupcCicsController.java:11: e…"
   }, {
     "programId" : "COACTVWC",
     "file" : "app/cbl/COACTVWC.cbl",
@@ -311,7 +376,7 @@
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "STRING" ],
-    "compileError" : "CoactvwcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CoactvwcCicsControl…"
+    "compileError" : "CoactvwcCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ CoactvwcCicsController.java:11: e…"
   }, {
     "programId" : "COADM01C",
     "file" : "app/cbl/COADM01C.cbl",
@@ -324,26 +389,26 @@
     "manualActionItems" : 11,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 11,
+    "notTranslatedMarkers" : 13,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING" ],
-    "compileError" : "Coadm01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Coadm01cCicsControl…"
+    "compileError" : "Coadm01cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Coadm01cCicsController.java:11: e…"
   }, {
     "programId" : "COBIL00C",
     "file" : "app/cbl/COBIL00C.cbl",
     "loc" : 572,
     "subsystem" : "cics-online",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 153,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 151,
     "notTranslated" : [ ],
     "present" : [ "ADD", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING", "WRITE" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [Cobil00cCicsController.java, Cobil00cDTO.java, Cobil00cService.java, Cobil00cServiceImpl.java]"
+    "compileError" : "Cobil00cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Cobil00cCicsController.java:11: e…"
   }, {
     "programId" : "COBSWAIT",
     "file" : "app/cbl/COBSWAIT.cbl",
@@ -389,7 +454,7 @@
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "SUBTRACT" ],
-    "compileError" : "CocrdlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CocrdlicCicsControl…"
+    "compileError" : "CocrdlicCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ CocrdlicCicsController.java:11: e…"
   }, {
     "programId" : "COCRDSLC",
     "file" : "app/cbl/COCRDSLC.cbl",
@@ -405,7 +470,7 @@
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET" ],
-    "compileError" : "CocrdslcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CocrdslcCicsControl…"
+    "compileError" : "CocrdslcCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ CocrdslcCicsController.java:11: e…"
   }, {
     "programId" : "COCRDUPC",
     "file" : "app/cbl/COCRDUPC.cbl",
@@ -421,7 +486,7 @@
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING" ],
-    "compileError" : "CocrdupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CocrdupcCicsControl…"
+    "compileError" : "CocrdupcCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ CocrdupcCicsController.java:11: e…"
   }, {
     "programId" : "CODATE01",
     "file" : "app/app-vsam-mq/cbl/CODATE01.cbl",
@@ -437,23 +502,23 @@
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC CICS", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING" ],
-    "compileError" : "Codate01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Codate01CicsControl…"
+    "compileError" : "Codate01CicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Codate01CicsController.java:11: e…"
   }, {
     "programId" : "COMEN01C",
     "file" : "app/cbl/COMEN01C.cbl",
     "loc" : 308,
     "subsystem" : "cics-online",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 68,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 81,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [Comen01cCicsController.java, Comen01cDTO.java, Comen01cService.java, Comen01cServiceImpl.java]"
+    "compileError" : "Comen01cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Comen01cCicsController.java:11: e…"
   }, {
     "programId" : "COPAUA0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUA0C.cbl",
@@ -463,45 +528,48 @@
     "emit" : true,
     "compile" : false,
     "javaFiles" : 4,
-    "manualActionItems" : 0,
+    "manualActionItems" : 285,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
-    "notTranslated" : [ ],
+    "notTranslatedMarkers" : 303,
+    "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 2
+    } ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "UNSTRING" ],
-    "compileError" : "Copaua0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Copaua0cCicsControl…"
+    "compileError" : "Copaua0cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Copaua0cCicsController.java:11: e…"
   }, {
     "programId" : "COPAUS0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS0C.cbl",
     "loc" : 1032,
     "subsystem" : "ims-mq",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 223,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 241,
     "notTranslated" : [ ],
     "present" : [ "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [Copaus0cCicsController.java, Copaus0cDTO.java, Copaus0cService.java, Copaus0cServiceImpl.java]"
+    "compileError" : "Copaus0cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Copaus0cCicsController.java:11: e…"
   }, {
     "programId" : "COPAUS1C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS1C.cbl",
     "loc" : 604,
     "subsystem" : "ims-mq",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 96,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 101,
     "notTranslated" : [ ],
     "present" : [ "DISPLAY", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "SEARCH", "SET", "STRING" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [Copaus1cCicsController.java, Copaus1cDTO.java, Copaus1cService.java, Copaus1cServiceImpl.java]"
+    "compileError" : "Copaus1cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Copaus1cCicsController.java:11: e…"
   }, {
     "programId" : "COPAUS2C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS2C.cbl",
@@ -517,23 +585,23 @@
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ADD", "COMPUTE", "EXEC CICS", "EXEC SQL", "IF", "MOVE", "PERFORM", "SET", "STRING" ],
-    "compileError" : "Copaus2cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Copaus2cCicsControl…"
+    "compileError" : "Copaus2cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Copaus2cCicsController.java:11: e…"
   }, {
     "programId" : "CORPT00C",
     "file" : "app/cbl/CORPT00C.cbl",
     "loc" : 649,
     "subsystem" : "cics-online",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 139,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 74,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "SET", "STRING", "WRITE" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [Corpt00cCicsController.java, Corpt00cDTO.java, Corpt00cService.java, Corpt00cServiceImpl.java]"
+    "compileError" : "Corpt00cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Corpt00cCicsController.java:11: e…"
   }, {
     "programId" : "COSGN00C",
     "file" : "app/cbl/COSGN00C.cbl",
@@ -546,10 +614,10 @@
     "manualActionItems" : 62,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 266,
+    "notTranslatedMarkers" : 79,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ],
-    "compileError" : "Cosgn00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cosgn00cCicsControl…"
+    "compileError" : "Cosgn00cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Cosgn00cCicsController.java:11: e…"
   }, {
     "programId" : "COTRN00C",
     "file" : "app/cbl/COTRN00C.cbl",
@@ -562,42 +630,42 @@
     "manualActionItems" : 122,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 3374,
+    "notTranslatedMarkers" : 197,
     "notTranslated" : [ ],
     "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT" ],
-    "compileError" : "Cotrn00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cotrn00cCicsControl…"
+    "compileError" : "Cotrn00cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Cotrn00cCicsController.java:11: e…"
   }, {
     "programId" : "COTRN01C",
     "file" : "app/cbl/COTRN01C.cbl",
     "loc" : 330,
     "subsystem" : "cics-online",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 87,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 87,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [Cotrn01cCicsController.java, Cotrn01cDTO.java, Cotrn01cService.java, Cotrn01cServiceImpl.java]"
+    "compileError" : "Cotrn01cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Cotrn01cCicsController.java:11: e…"
   }, {
     "programId" : "COTRN02C",
     "file" : "app/cbl/COTRN02C.cbl",
     "loc" : 783,
     "subsystem" : "cics-online",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 194,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 169,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "WRITE" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [Cotrn02cCicsController.java, Cotrn02cDTO.java, Cotrn02cService.java, Cotrn02cServiceImpl.java]"
+    "compileError" : "Cotrn02cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Cotrn02cCicsController.java:11: e…"
   }, {
     "programId" : "COTRTLIC",
     "file" : "app/app-transaction-type-db2/cbl/COTRTLIC.cbl",
@@ -613,7 +681,7 @@
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "EXEC SQL", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "SEARCH", "SET", "STRING", "SUBTRACT" ],
-    "compileError" : "CotrtlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CotrtlicCicsControl…"
+    "compileError" : "CotrtlicCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ CotrtlicCicsController.java:11: e…"
   }, {
     "programId" : "COTRTUPC",
     "file" : "app/app-transaction-type-db2/cbl/COTRTUPC.cbl",
@@ -629,7 +697,7 @@
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "ADD", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC SQL", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "STRING", "WRITE" ],
-    "compileError" : "CotrtupcCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> 04530000(@RequestBody Map<String, Object> payload) {                                  ^ CotrtupcCicsContr…"
+    "compileError" : "CotrtupcCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ CotrtupcCicsController.java:11: e…"
   }, {
     "programId" : "COUSR00C",
     "file" : "app/cbl/COUSR00C.cbl",
@@ -642,10 +710,10 @@
     "manualActionItems" : 121,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 3286,
+    "notTranslatedMarkers" : 211,
     "notTranslated" : [ ],
     "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT" ],
-    "compileError" : "Cousr00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cousr00cCicsControl…"
+    "compileError" : "Cousr00cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Cousr00cCicsController.java:11: e…"
   }, {
     "programId" : "COUSR01C",
     "file" : "app/cbl/COUSR01C.cbl",
@@ -658,42 +726,42 @@
     "manualActionItems" : 73,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 409,
+    "notTranslatedMarkers" : 77,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "STRING", "WRITE" ],
-    "compileError" : "Cousr01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cousr01cCicsControl…"
+    "compileError" : "Cousr01cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Cousr01cCicsController.java:11: e…"
   }, {
     "programId" : "COUSR02C",
     "file" : "app/cbl/COUSR02C.cbl",
     "loc" : 414,
     "subsystem" : "cics-online",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 94,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 97,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [Cousr02cCicsController.java, Cousr02cDTO.java, Cousr02cService.java, Cousr02cServiceImpl.java]"
+    "compileError" : "Cousr02cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Cousr02cCicsController.java:11: e…"
   }, {
     "programId" : "COUSR03C",
     "file" : "app/cbl/COUSR03C.cbl",
     "loc" : 359,
     "subsystem" : "cics-online",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 4,
+    "manualActionItems" : 85,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
+    "notTranslatedMarkers" : 90,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET", "STRING" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [Cousr03cCicsController.java, Cousr03cDTO.java, Cousr03cService.java, Cousr03cServiceImpl.java]"
+    "compileError" : "Cousr03cCicsController.java:4: error: package org.springframework.http does not exist import org.springframework.http.ResponseEntity;                                ^ Cousr03cCicsController.java:11: e…"
   }, {
     "programId" : "CSUTLDTC",
     "file" : "app/cbl/CSUTLDTC.cbl",
@@ -731,32 +799,53 @@
     "loc" : 369,
     "subsystem" : "ims-mq",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 3,
+    "manualActionItems" : 113,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
-    "notTranslated" : [ ],
+    "notTranslatedMarkers" : 112,
+    "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 3
+    }, {
+      "construct" : "CLOSE",
+      "evidence" : 2
+    }, {
+      "construct" : "OPEN",
+      "evidence" : 2
+    }, {
+      "construct" : "READ",
+      "evidence" : 2
+    } ],
     "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [PaudblodDTO.java, PaudblodService.java, PaudblodServiceImpl.java]"
+    "compileError" : "PaudblodServiceImpl.java:46: error: ')' or ',' expected           System.out.println(\"TODAYS DATE            :\" + input.getCurrentDate() + 01790043);                                                   …"
   }, {
     "programId" : "PAUDBUNL",
     "file" : "app/app-authorization-ims-db2-mq/cbl/PAUDBUNL.CBL",
     "loc" : 317,
     "subsystem" : "ims-mq",
     "parse" : true,
-    "emit" : false,
+    "emit" : true,
     "compile" : false,
-    "javaFiles" : 0,
-    "manualActionItems" : 0,
+    "javaFiles" : 3,
+    "manualActionItems" : 98,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 0,
-    "notTranslated" : [ ],
+    "notTranslatedMarkers" : 71,
+    "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 1
+    }, {
+      "construct" : "CLOSE",
+      "evidence" : 2
+    }, {
+      "construct" : "OPEN",
+      "evidence" : 2
+    } ],
     "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ],
-    "emitError" : "Stub generation failed: TARGET_MANIFEST_MISMATCH: missing emitted paths [PaudbunlDTO.java, PaudbunlService.java, PaudbunlServiceImpl.java]"
+    "compileError" : "PaudbunlServiceImpl.java:43: error: ')' or ',' expected           System.out.println(\"TODAYS DATE            :\" + input.getCurrentDate() + 01790043);                                                   …"
   } ],
   "inventory" : {
     "cobolFiles" : 44,

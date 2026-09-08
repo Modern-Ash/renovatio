@@ -95,7 +95,7 @@ class PopulateCobolProcessRecipeTest {
     }
 
     @Test
-    void shouldInlinePerformParagraphs() {
+    void shouldExtractPerformParagraphsIntoMethods() {
         String cobol = """
                 IDENTIFICATION DIVISION.
                 PROGRAM-ID. SAMPLE2.
@@ -140,9 +140,153 @@ class PopulateCobolProcessRecipeTest {
 
         assertThat(results).hasSize(1);
         String updated = results.get(0).getAfter().printAll();
-        assertThat(updated).contains("output.setCustomerName(\"INIT\");");
+        assertThat(updated).contains("performPrepPara(input, output);");
+        assertThat(updated).contains("out.setCustomerName(\"INIT\");");
         assertThat(updated).contains("output.setCustomerName(\"READY\");");
-        assertThat(updated).doesNotContain("PERFORM");
+        assertThat(updated).contains("private void performPrepPara(SampleDto input, SampleDto out) {");
+        assertThat(updated).contains("@GeneratedFrom(paragraph = \"PREP-PARA\", lines = \"");
+        assertThat(updated).contains("@interface GeneratedFrom {");
+        assertThat(updated).doesNotContain("// PERFORM");
+        assertThat(updated).doesNotContain("TODO");
+    }
+
+    @Test
+    void shouldExtractPerformThruRangeAsOrderedCalls() {
+        String cobol = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAMPLE4.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 CUSTOMER-NAME PIC X(30).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    PERFORM FIRST-PARA THRU THIRD-PARA.
+                    MOVE 'READY' TO CUSTOMER-NAME.
+                    GOBACK.
+                FIRST-PARA.
+                    MOVE '1' TO CUSTOMER-NAME.
+                SECOND-PARA.
+                    MOVE '2' TO CUSTOMER-NAME.
+                THIRD-PARA.
+                    MOVE '3' TO CUSTOMER-NAME.
+                """;
+
+        String updated = applyRecipe(cobol);
+
+        assertThat(updated).contains("performFirstPara(input, output);");
+        assertThat(updated).contains("performSecondPara(input, output);");
+        assertThat(updated).contains("performThirdPara(input, output);");
+        assertThat(updated.indexOf("performFirstPara(input, output);"))
+                .isLessThan(updated.indexOf("performSecondPara(input, output);"));
+        assertThat(updated.indexOf("performSecondPara(input, output);"))
+                .isLessThan(updated.indexOf("performThirdPara(input, output);"));
+        assertThat(updated).contains("private void performFirstPara(SampleDto input, SampleDto out) {");
+        assertThat(updated).contains("private void performSecondPara(SampleDto input, SampleDto out) {");
+        assertThat(updated).contains("private void performThirdPara(SampleDto input, SampleDto out) {");
+        assertThat(updated).contains("out.setCustomerName(\"1\");");
+        assertThat(updated).contains("out.setCustomerName(\"2\");");
+        assertThat(updated).contains("out.setCustomerName(\"3\");");
+    }
+
+    @Test
+    void shouldWrapPerformTimesInLoop() {
+        String cobol = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAMPLE5.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 CUSTOMER-NAME PIC X(30).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    PERFORM COUNT-PARA 3 TIMES.
+                    STOP RUN.
+                COUNT-PARA.
+                    MOVE 'X' TO CUSTOMER-NAME.
+                """;
+
+        String updated = applyRecipe(cobol);
+
+        assertThat(updated).contains("for (int i = 0; i < 3; i++) {");
+        assertThat(updated).contains("performCountPara(input, output);");
+        assertThat(updated).contains("private void performCountPara(SampleDto input, SampleDto out) {");
+        assertThat(updated).contains("out.setCustomerName(\"X\");");
+    }
+
+    @Test
+    void shouldWrapPerformUntilInWhileLoop() {
+        String cobol = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAMPLE6.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 CUSTOMER-NAME PIC X(30).
+                01 CUSTOMER-RATING PIC 9(2).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    PERFORM COUNT-PARA UNTIL CUSTOMER-RATING > 80.
+                    STOP RUN.
+                COUNT-PARA.
+                    MOVE 'X' TO CUSTOMER-NAME.
+                """;
+
+        String updated = applyRecipe(cobol);
+
+        assertThat(updated).contains("while (!(input.getCustomerRating() > 80)) {");
+        assertThat(updated).contains("performCountPara(input, output);");
+        assertThat(updated).contains("private void performCountPara(SampleDto input, SampleDto out) {");
+        assertThat(updated).contains("out.setCustomerName(\"X\");");
+    }
+
+    @Test
+    void shouldWrapInlinePerformVaryingInLoop() {
+        String cobol = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAMPLE7.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-IDX PIC 9(2).
+                01 CUSTOMER-RATING PIC 9(2).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    PERFORM VARYING WS-IDX FROM 1 BY 1 UNTIL WS-IDX > 3
+                        MOVE WS-IDX TO CUSTOMER-RATING
+                    END-PERFORM.
+                    STOP RUN.
+                """;
+
+        String updated = applyRecipe(cobol);
+
+        assertThat(updated).contains("for (int wsIdx = 1; !(wsIdx > 3); wsIdx += 1) {");
+        assertThat(updated).contains("output.setCustomerRating(wsIdx);");
+        assertThat(updated).contains("return output;");
+        assertThat(updated).doesNotContain("input.getWsIdx()");
+    }
+
+    @Test
+    void shouldGuardRecursivePerformCycles() {
+        String cobol = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAMPLE8.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 CUSTOMER-NAME PIC X(30).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    PERFORM A-PARA.
+                    STOP RUN.
+                A-PARA.
+                    PERFORM B-PARA.
+                B-PARA.
+                    PERFORM A-PARA.
+                """;
+
+        String updated = applyRecipe(cobol);
+
+        assertThat(updated).contains("performAPara(input, output);");
+        assertThat(updated).contains("private void performAPara(SampleDto input, SampleDto out) {");
+        assertThat(updated).contains("private void performBPara(SampleDto input, SampleDto out) {");
+        assertThat(updated).contains("// COBOL not translated: PERFORM cycle (B-PARA -> A-PARA)");
+        assertThat(updated).contains("// COBOL not translated: PERFORM cycle (A-PARA -> B-PARA)");
     }
 
     @Test

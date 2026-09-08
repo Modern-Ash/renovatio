@@ -15,6 +15,7 @@ import org.shark.renovatio.cobol.ir.model.EvaluateStatement;
 import org.shark.renovatio.cobol.ir.model.IfStatement;
 import org.shark.renovatio.cobol.ir.model.InitializeStatement;
 import org.shark.renovatio.cobol.ir.model.Level88Condition;
+import org.shark.renovatio.cobol.ir.model.PerformStatement;
 import org.shark.renovatio.cobol.ir.model.SetConditionStatement;
 import org.shark.renovatio.cobol.ir.model.SimpleStatement;
 import org.shark.renovatio.cobol.recipes.CobolDataVerbValueResolver;
@@ -47,7 +48,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,6 +59,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.concurrent.atomic.AtomicReference;
@@ -490,7 +494,14 @@ public class JavaGenerationService {
                     if (cics != null && !cics.isEmpty()) {
                         Map<String, Object> tmplData = new HashMap<>();
                         tmplData.put("className", classBase + "CicsController");
-                        tmplData.put("transactions", cics);
+                        List<Map<String, String>> transactions = new ArrayList<>();
+                        for (String command : cics) {
+                            Map<String, String> tx = new HashMap<>();
+                            tx.put("name", command);
+                            tx.put("method", javaMethodName(command));
+                            transactions.add(tx);
+                        }
+                        tmplData.put("transactions", transactions);
                         String controller = templateService.generateCicsController(tmplData);
                         putArtifact(generatedFiles, classBase + "CicsController.java", controller);
                     }
@@ -573,6 +584,139 @@ public class JavaGenerationService {
             collectUntranslatedStatements(entry.getValue().statements(), model, sourceFile,
                     model.getProgramId(), entry.getKey(), statementIndex, actionItems);
         });
+        collectPerformCycles(model, sourceFile, actionItems);
+    }
+
+    /**
+     * Detects recursive PERFORM cycles over the paragraph call graph (including THRU ranges) and
+     * emits a stable error action item per cyclic strongly-connected component, so generation never
+     * recurses infinitely over recursive PERFORM calls.
+     */
+    private void collectPerformCycles(CobolIntermediateModel model, String sourceFile,
+                                      Map<String, ManualActionItem> actionItems) {
+        Map<String, List<String>> graph = new LinkedHashMap<>();
+        for (String paragraph : model.getParagraphs().keySet()) {
+            List<String> targets = new ArrayList<>();
+            for (CobolStatement statement : model.getParagraphs().get(paragraph).statements()) {
+                collectPerformTargets(statement, model, targets);
+            }
+            if (!targets.isEmpty()) {
+                graph.put(paragraph, List.copyOf(targets));
+            }
+        }
+        for (List<String> component : tarjanCyclicComponents(graph)) {
+            ManualActionItem item = annotationActionItemFactory.toPerformCycle(
+                    sourceFile, model.getProgramId(), component.get(0), component);
+            actionItems.putIfAbsent(item.id(), item);
+        }
+    }
+
+    private void collectPerformTargets(CobolStatement statement, CobolIntermediateModel model,
+                                       List<String> out) {
+        if (statement instanceof PerformStatement perform) {
+            if (!perform.isInline() && perform.paragraph() != null && !perform.paragraph().isBlank()) {
+                String start = perform.paragraph();
+                if (!out.contains(start)) {
+                    out.add(start);
+                }
+                if (perform.throughParagraph() != null && !perform.throughParagraph().equals(start)) {
+                    for (String name : performRangeNames(start, perform.throughParagraph(), model)) {
+                        if (!out.contains(name)) {
+                            out.add(name);
+                        }
+                    }
+                }
+            }
+            for (CobolStatement nested : perform.inlineBody()) {
+                collectPerformTargets(nested, model, out);
+            }
+        } else if (statement instanceof IfStatement ifStatement) {
+            for (CobolStatement nested : ifStatement.thenStatements()) {
+                collectPerformTargets(nested, model, out);
+            }
+            for (CobolStatement nested : ifStatement.elseStatements()) {
+                collectPerformTargets(nested, model, out);
+            }
+        } else if (statement instanceof EvaluateStatement evaluation) {
+            for (EvaluateStatement.EvaluateWhenBranch branch : evaluation.branches()) {
+                for (CobolStatement nested : branch.statements()) {
+                    collectPerformTargets(nested, model, out);
+                }
+            }
+        }
+    }
+
+    private static List<String> performRangeNames(String start, String through, CobolIntermediateModel model) {
+        List<String> names = new ArrayList<>();
+        boolean capture = false;
+        for (String name : model.getParagraphs().keySet()) {
+            if (name.equals(start)) {
+                capture = true;
+            }
+            if (capture) {
+                names.add(name);
+            }
+            if (capture && name.equals(through)) {
+                break;
+            }
+        }
+        if (!names.contains(through)) {
+            names = new ArrayList<>();
+            names.add(start);
+            if (through != null && !names.contains(through)) {
+                names.add(through);
+            }
+        }
+        return names;
+    }
+
+    private static List<List<String>> tarjanCyclicComponents(Map<String, List<String>> graph) {
+        List<List<String>> cyclic = new ArrayList<>();
+        Map<String, Integer> index = new HashMap<>();
+        Map<String, Integer> lowlink = new HashMap<>();
+        Map<String, Boolean> onStack = new HashMap<>();
+        Deque<String> stack = new ArrayDeque<>();
+        int[] nextIndex = {0};
+        for (String vertex : new TreeSet<>(graph.keySet())) {
+            if (!index.containsKey(vertex)) {
+                strongConnect(vertex, graph, index, lowlink, onStack, stack, nextIndex, cyclic);
+            }
+        }
+        return cyclic;
+    }
+
+    private static void strongConnect(String vertex, Map<String, List<String>> graph,
+                                      Map<String, Integer> index, Map<String, Integer> lowlink,
+                                      Map<String, Boolean> onStack, Deque<String> stack,
+                                      int[] nextIndex, List<List<String>> cyclic) {
+        index.put(vertex, nextIndex[0]);
+        lowlink.put(vertex, nextIndex[0]);
+        nextIndex[0]++;
+        stack.push(vertex);
+        onStack.put(vertex, Boolean.TRUE);
+        for (String next : graph.getOrDefault(vertex, List.of())) {
+            if (!index.containsKey(next)) {
+                strongConnect(next, graph, index, lowlink, onStack, stack, nextIndex, cyclic);
+                lowlink.put(vertex, Math.min(lowlink.get(vertex), lowlink.get(next)));
+            } else if (Boolean.TRUE.equals(onStack.get(next))) {
+                lowlink.put(vertex, Math.min(lowlink.get(vertex), index.get(next)));
+            }
+        }
+        if (lowlink.get(vertex).equals(index.get(vertex))) {
+            List<String> component = new ArrayList<>();
+            String current;
+            do {
+                current = stack.pop();
+                onStack.put(current, Boolean.FALSE);
+                component.add(current);
+            } while (!current.equals(vertex));
+            boolean isCycle = component.size() > 1
+                    || graph.getOrDefault(vertex, List.of()).contains(vertex);
+            if (isCycle) {
+                component.sort(String::compareTo);
+                cyclic.add(component);
+            }
+        }
     }
 
     private void collectUntranslatedStatements(List<CobolStatement> statements, CobolIntermediateModel model,
@@ -1354,6 +1498,29 @@ public class JavaGenerationService {
 
         System.out.println("DEBUG: sanitizeClassName output: '" + finalResult + "'");
         return finalResult;
+    }
+
+    private static final Set<String> JAVA_KEYWORDS = Set.of(
+            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class",
+            "const", "continue", "default", "do", "double", "else", "enum", "extends", "final",
+            "finally", "float", "for", "goto", "if", "implements", "import", "instanceof", "int",
+            "interface", "long", "native", "new", "package", "private", "protected", "public",
+            "return", "short", "static", "strictfp", "super", "switch", "synchronized", "this",
+            "throw", "throws", "transient", "try", "void", "volatile", "while", "true", "false",
+            "null", "var", "yield", "record", "sealed", "permits");
+
+    /**
+     * Lower-cases a CICS command into a valid Java method name, escaping reserved words.
+     */
+    private String javaMethodName(String command) {
+        String name = command.toLowerCase(Locale.ROOT);
+        if (name.isEmpty() || !Character.isJavaIdentifierStart(name.charAt(0))) {
+            name = "tx" + name;
+        }
+        if (JAVA_KEYWORDS.contains(name)) {
+            return name + "_";
+        }
+        return name;
     }
 
     /**

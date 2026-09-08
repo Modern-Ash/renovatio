@@ -1,0 +1,40 @@
+# Work events
+
+- 2026-09-08T16:26:57.843866Z | work.created | state=drafting actor=project:owner
+- 2026-09-08T16:28:01.277302Z | work.criterion-stage-marked | criterion=ir-representation actor=project:owner stage=specified
+- 2026-09-08T16:28:01.517369Z | work.criterion-stage-marked | criterion=method-extraction actor=project:owner stage=specified
+- 2026-09-08T16:28:01.759944Z | work.criterion-stage-marked | criterion=perform-thru actor=project:owner stage=specified
+- 2026-09-08T16:28:02.005412Z | work.criterion-stage-marked | criterion=looping-variants actor=project:owner stage=specified
+- 2026-09-08T16:28:02.247996Z | work.criterion-stage-marked | criterion=recursion-guard actor=project:owner stage=specified
+- 2026-09-08T16:28:02.481971Z | work.criterion-stage-marked | criterion=traceability actor=project:owner stage=specified
+- 2026-09-08T16:28:02.727044Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=specified
+- 2026-09-08T16:28:02.983316Z | work.criterion-stage-marked | criterion=nested-green actor=project:owner stage=specified
+- 2026-09-08T16:28:03.223045Z | work.criterion-stage-marked | criterion=carddemo-compiles actor=project:owner stage=specified
+- 2026-09-08T16:28:03.464771Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=specified
+- 2026-09-08T16:28:03.709586Z | artifact.added | kind=spec uri=docs/specs/issue-207-perform-thru-varying-times.md actor=project:owner
+- 2026-09-08T16:28:16.801724Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-08T16:36:21.892911Z | work.criterion-stage-marked | criterion=ir-representation actor=project:owner stage=planned
+- 2026-09-08T16:36:22.143599Z | work.criterion-stage-marked | criterion=method-extraction actor=project:owner stage=planned
+- 2026-09-08T16:36:22.390535Z | work.criterion-stage-marked | criterion=perform-thru actor=project:owner stage=planned
+- 2026-09-08T16:36:22.634194Z | work.criterion-stage-marked | criterion=looping-variants actor=project:owner stage=planned
+- 2026-09-08T16:36:22.886372Z | work.criterion-stage-marked | criterion=recursion-guard actor=project:owner stage=planned
+- 2026-09-08T16:36:23.135854Z | work.criterion-stage-marked | criterion=traceability actor=project:owner stage=planned
+- 2026-09-08T16:36:23.378127Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=planned
+- 2026-09-08T16:36:23.621271Z | work.criterion-stage-marked | criterion=nested-green actor=project:owner stage=planned
+- 2026-09-08T16:36:23.863599Z | work.criterion-stage-marked | criterion=carddemo-compiles actor=project:owner stage=planned
+- 2026-09-08T16:36:24.111731Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=planned
+- 2026-09-08T16:36:24.352238Z | artifact.added | kind=implementation-plan uri=docs/plans/issue-207-perform-thru-varying-times.md actor=project:owner
+- 2026-09-08T16:36:49.756274Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-08T16:36:52.700990Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-08T19:09:29.578824Z | artifact.added | kind=coverage-report uri=docs/reports/carddemo-coverage.md actor=project:agent
+- 2026-09-08T19:09:29.825624Z | artifact.added | kind=verification-report uri=docs/reports/issue-207-perform-thru-varying-times-verification.md actor=project:agent
+- 2026-09-08T19:11:34.633354Z | work.criterion-stage-marked | criterion=ir-representation actor=project:agent stage=implemented
+- 2026-09-08T19:11:34.876575Z | work.criterion-stage-marked | criterion=method-extraction actor=project:agent stage=implemented
+- 2026-09-08T19:11:35.122453Z | work.criterion-stage-marked | criterion=perform-thru actor=project:agent stage=implemented
+- 2026-09-08T19:11:35.361081Z | work.criterion-stage-marked | criterion=recursion-guard actor=project:agent stage=implemented
+- 2026-09-08T19:11:35.598713Z | work.criterion-stage-marked | criterion=traceability actor=project:agent stage=implemented
+- 2026-09-08T19:11:35.833263Z | work.criterion-stage-marked | criterion=nested-green actor=project:agent stage=implemented
+- 2026-09-08T19:11:36.078929Z | work.criterion-stage-marked | criterion=regression-green actor=project:agent stage=implemented
+- 2026-09-08T19:11:38.891876Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-08T19:11:50.422951Z | evidence.added | id=evidence-000001 type=verification-report result=success revision=1 actor=project:agent
+- 2026-09-08T19:11:53.238998Z | evidence.added | id=evidence-000002 type=coverage-report result=success revision=1 actor=project:agent

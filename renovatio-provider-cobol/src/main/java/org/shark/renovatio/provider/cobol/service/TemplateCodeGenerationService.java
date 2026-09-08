@@ -248,9 +248,9 @@ public class TemplateCodeGenerationService {
                     }
                 
                     <#list transactions as tx>
-                    @PostMapping("/${tx?lower_case}")
-                    public ResponseEntity<String> ${tx?lower_case}(@RequestBody Map<String, Object> payload) {
-                        String result = cicsService.invokeTransaction("${tx}", payload);
+                    @PostMapping("/${tx.name?lower_case}")
+                    public ResponseEntity<String> ${tx.method}(@RequestBody Map<String, Object> payload) {
+                        String result = cicsService.invokeTransaction("${tx.name}", payload);
                         return ResponseEntity.ok(result);
                     }
                     </#list>
