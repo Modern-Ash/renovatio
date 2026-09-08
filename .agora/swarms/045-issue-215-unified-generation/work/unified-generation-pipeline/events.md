@@ -25,3 +25,28 @@
 - 2026-09-08T14:20:01.139003Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=implemented
 - 2026-09-08T14:20:01.482965Z | work.criterion-stage-marked | criterion=architecture-record actor=project:agent stage=implemented
 - 2026-09-08T14:20:01.811776Z | work.criterion-stage-marked | criterion=regression-green actor=project:agent stage=implemented
+- 2026-09-08T14:20:32.517064Z | tool.prepared | run=tool-20260908t14201788888032z tool=repository operation=commit actor=project:agent
+- 2026-09-08T14:20:32.523542Z | tool.running | run=tool-20260908t14201788888032z actor=project:agent
+- 2026-09-08T14:20:32.541217Z | tool.failed | run=tool-20260908t14201788888032z exit-code=128
+- 2026-09-08T14:21:05.953594Z | tool.prepared | run=tool-20260908t14211788888065z tool=repository operation=commit actor=project:agent
+- 2026-09-08T14:21:05.959163Z | tool.running | run=tool-20260908t14211788888065z actor=project:agent
+- 2026-09-08T14:21:05.996375Z | tool.completed | run=tool-20260908t14211788888065z exit-code=0
+- 2026-09-08T14:21:17.457004Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-08T14:23:44.819257Z | artifact.added | kind=verification-report uri=docs/reports/issue-215-unified-generation-verification.md actor=project:agent
+- 2026-09-08T14:23:45.123630Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-08T14:23:45.432209Z | evidence.added | id=evidence-000002 type=test result=success revision=1 actor=project:agent
+- 2026-09-08T14:23:45.749473Z | evidence.added | id=evidence-000003 type=test result=success revision=1 actor=project:agent
+- 2026-09-08T14:23:46.055823Z | evidence.added | id=evidence-000004 type=test result=success revision=1 actor=project:agent
+- 2026-09-08T14:24:17.629734Z | work.criterion-stage-marked | criterion=canonical-body-path actor=project:owner stage=verified
+- 2026-09-08T14:24:17.923249Z | work.criterion-stage-marked | criterion=cli-plan-apply actor=project:owner stage=verified
+- 2026-09-08T14:24:18.237713Z | work.criterion-stage-marked | criterion=api-lifecycle actor=project:owner stage=verified
+- 2026-09-08T14:24:18.540093Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=verified
+- 2026-09-08T14:24:18.848570Z | work.criterion-stage-marked | criterion=architecture-record actor=project:owner stage=verified
+- 2026-09-08T14:24:19.154970Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=verified
+- 2026-09-08T14:24:19.470317Z | work.criterion-stage-marked | criterion=canonical-body-path actor=project:owner stage=accepted
+- 2026-09-08T14:24:19.802659Z | work.criterion-stage-marked | criterion=cli-plan-apply actor=project:owner stage=accepted
+- 2026-09-08T14:24:20.144994Z | work.criterion-stage-marked | criterion=api-lifecycle actor=project:owner stage=accepted
+- 2026-09-08T14:24:20.502836Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=accepted
+- 2026-09-08T14:24:20.855182Z | work.criterion-stage-marked | criterion=architecture-record actor=project:owner stage=accepted
+- 2026-09-08T14:24:21.204182Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=accepted
+- 2026-09-08T14:24:21.518073Z | approval.added | role=spec-owner actor=project:owner delegation=none
