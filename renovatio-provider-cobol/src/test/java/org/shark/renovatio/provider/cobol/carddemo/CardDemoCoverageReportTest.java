@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -82,6 +83,7 @@ class CardDemoCoverageReportTest {
      * unidentifiable.
      */
     private static final String UNHANDLED = "// Unhandled COBOL statement";
+    private static final String NOT_TRANSLATED = "// COBOL not translated:";
 
     /**
      * Procedural verbs / constructs we scan for in the COBOL source. These only feed the
@@ -118,6 +120,8 @@ class CardDemoCoverageReportTest {
 
         List<Row> rows = new ArrayList<>(byProgramId.values());
         ObjectNode json = buildJson(rows, duplicateProgramIds, programs.size(), copybooks.size());
+        assertFalse(mapper.writeValueAsString(json).contains(tempDir.toString()),
+                "coverage report must not contain run-specific temporary paths");
 
         Files.createDirectories(REPORT_DIR);
         Files.writeString(REPORT_DIR.resolve("carddemo-coverage.json"),
@@ -176,6 +180,7 @@ class CardDemoCoverageReportTest {
                         for (String content : code.values()) {
                             row.todoCount += countOccurrences(content, TODO);
                             row.unhandledCount += countOccurrences(content, UNHANDLED);
+                            row.notTranslatedCount += countOccurrences(content, NOT_TRANSLATED);
                             collectPipelineEvidence(content, row.unsupportedEvidenced);
                         }
                         row.manualActionItems = readActionItemCount(workspace);
@@ -301,7 +306,8 @@ class CardDemoCoverageReportTest {
                 if (success) {
                     return true;
                 }
-                row.compileError = shortMessage(new String(sink.toByteArray(), StandardCharsets.UTF_8));
+                row.compileError = shortMessage(stableCompilerOutput(
+                        new String(sink.toByteArray(), StandardCharsets.UTF_8), dir));
                 return false;
             } finally {
                 deleteRecursively(dir);
@@ -372,6 +378,7 @@ class CardDemoCoverageReportTest {
             node.put("manualActionItems", row.manualActionItems);
             node.put("todoBodies", row.todoCount);
             node.put("unhandledStatements", row.unhandledCount);
+            node.put("notTranslatedMarkers", row.notTranslatedCount);
             ArrayNode unsup = node.putArray("notTranslated");
             row.unsupportedEvidenced.forEach((construct, count) -> {
                 ObjectNode entry = unsup.addObject();
@@ -403,7 +410,7 @@ class CardDemoCoverageReportTest {
                 .filter(r -> r.subsystem.equals("batch") && r.parse && r.emit)
                 .sorted(Comparator
                         .comparing((Row r) -> r.compile ? 0 : 1)
-                        .thenComparing(r -> r.todoCount + r.unhandledCount)
+                        .thenComparing(r -> r.todoCount + r.unhandledCount + r.notTranslatedCount)
                         .thenComparing(r -> r.manualActionItems)
                         .thenComparing(r -> r.loc)
                         .thenComparing(r -> r.programId))
@@ -478,8 +485,8 @@ class CardDemoCoverageReportTest {
         md.append("\n");
 
         md.append("## Per program\n\n");
-        md.append("| Program | Subsystem | LOC | Parse | Emit | Compile | Java files | Action items | TODO | Unhandled | Present (lexical) |\n");
-        md.append("| --- | --- | --: | :-: | :-: | :-: | --: | --: | --: | --: | --- |\n");
+        md.append("| Program | Subsystem | LOC | Parse | Emit | Compile | Java files | Action items | TODO | Unhandled | Not translated | Present (lexical) |\n");
+        md.append("| --- | --- | --: | :-: | :-: | :-: | --: | --: | --: | --: | --: | --- |\n");
         for (JsonNode node : json.get("programs")) {
             List<String> present = new ArrayList<>();
             node.get("present").forEach(p -> present.add(p.asText()));
@@ -493,6 +500,7 @@ class CardDemoCoverageReportTest {
                     .append(node.get("manualActionItems").asInt()).append(" | ")
                     .append(node.get("todoBodies").asInt()).append(" | ")
                     .append(node.get("unhandledStatements").asInt()).append(" | ")
+                    .append(node.get("notTranslatedMarkers").asInt()).append(" | ")
                     .append(String.join(", ", present)).append(" |\n");
         }
         return md.toString();
@@ -518,6 +526,12 @@ class CardDemoCoverageReportTest {
                 : String.valueOf(value);
         text = text == null ? "" : text.replace('\n', ' ').trim();
         return text.length() > 200 ? text.substring(0, 200) + "…" : text;
+    }
+
+    private static String stableCompilerOutput(String output, Path compilationDirectory) {
+        String prefix = compilationDirectory.toAbsolutePath().normalize()
+                + java.io.File.separator;
+        return output.replace(prefix, "");
     }
 
     private static void deleteRecursively(Path path) {
@@ -551,6 +565,7 @@ class CardDemoCoverageReportTest {
         int manualActionItems;
         int todoCount;
         int unhandledCount;
+        int notTranslatedCount;
         String parseError;
         String emitError;
         String compileError;

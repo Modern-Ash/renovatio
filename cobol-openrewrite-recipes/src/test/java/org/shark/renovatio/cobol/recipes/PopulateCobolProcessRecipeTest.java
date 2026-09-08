@@ -109,7 +109,7 @@ class PopulateCobolProcessRecipeTest {
                     GOBACK.
                 PREP-PARA.
                     MOVE 'INIT' TO CUSTOMER-NAME.
-                    GOBACK.
+                    EXIT.
                 """;
 
         SimpleCobolIrParser parser = new SimpleCobolIrParser();
@@ -152,6 +152,49 @@ class PopulateCobolProcessRecipeTest {
 
         assertThat(second).isEqualTo(first);
         assertThat(sha256(second)).isEqualTo(sha256(first));
+    }
+
+    @Test
+    void shouldRenderDisplayContinueGobackAndSurfaceUntranslatedStatements() {
+        String cobol = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAMPLE3.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 CUSTOMER-NAME PIC X(30).
+                01 CUSTOMER-RATING PIC 9(2).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY 'RATING ' CUSTOMER-RATING.
+                    INITIALIZE CUSTOMER-NAME.
+                    IF CUSTOMER-RATING > 80
+                        GOBACK
+                    ELSE
+                        CONTINUE
+                    END-IF.
+                    MOVE 'DONE' TO CUSTOMER-NAME.
+                    STOP RUN.
+                """;
+
+        String updated = applyRecipe(cobol);
+
+        assertThat(updated).contains("System.out.println(\"RATING \" + input.getCustomerRating());");
+        assertThat(updated).contains("// COBOL not translated: INITIALIZE CUSTOMER-NAME");
+        assertThat(updated).contains("; // CONTINUE");
+        assertThat(updated).contains("return output;");
+        assertThat(updated).doesNotContain("// Unhandled COBOL statement");
+        // GOBACK in the then-branch must not leave a statement after the return in that branch,
+        // and buildBody must not append a second return after STOP RUN.
+        assertThat(countOccurrences(updated, "return output;")).isEqualTo(2);
+        assertThat(updated).contains("output.setCustomerName(\"DONE\");");
+    }
+
+    private static int countOccurrences(String haystack, String needle) {
+        int count = 0;
+        for (int i = haystack.indexOf(needle); i >= 0; i = haystack.indexOf(needle, i + needle.length())) {
+            count++;
+        }
+        return count;
     }
 
     @Test

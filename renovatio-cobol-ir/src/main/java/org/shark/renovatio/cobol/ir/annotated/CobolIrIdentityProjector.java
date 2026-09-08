@@ -82,6 +82,11 @@ public final class CobolIrIdentityProjector {
     private void addStatements(List<ProjectedNode> nodes, String parent, List<CobolStatement> statements) {
         for (int i = 0; i < statements.size(); i++) {
             CobolStatement statement = statements.get(i);
+            if (statement instanceof SimpleStatement) {
+                // DISPLAY / CONTINUE / GOBACK / untranslated lines carry no annotations; they are
+                // rendered but excluded from the identity projection.
+                continue;
+            }
             String path = parent + "/" + i;
             AnnotatedNodeKind kind = statementKind(statement);
             add(nodes, kind, path, statement(statement));
@@ -104,7 +109,7 @@ public final class CobolIrIdentityProjector {
     }
 
     private Map<String, Object> paragraph(CobolParagraph value) {
-        return map("name", value.name(), "statements", value.statements().stream().map(this::statement).toList());
+        return map("name", value.name(), "statements", identityBearing(value.statements()).map(this::statement).toList());
     }
 
     private Map<String, Object> dataItem(CobolDataItem value) {
@@ -237,12 +242,16 @@ public final class CobolIrIdentityProjector {
         throw new IllegalArgumentException("unsupported base IR JSON value: " + value.getClass().getName());
     }
 
+    private static java.util.stream.Stream<CobolStatement> identityBearing(List<CobolStatement> statements) {
+        return statements.stream().filter(statement -> !(statement instanceof SimpleStatement));
+    }
+
     private Map<String, Object> statement(CobolStatement value) {
         if (value instanceof MoveStatement v) return map("source", v.source(), "target", v.target());
         if (value instanceof ComputeStatement v) return map("target", v.target(), "expression", v.expression());
         if (value instanceof IfStatement v) return map("condition", v.condition(),
-                "thenStatements", v.thenStatements().stream().map(this::statement).toList(),
-                "elseStatements", v.elseStatements().stream().map(this::statement).toList());
+                "thenStatements", identityBearing(v.thenStatements()).map(this::statement).toList(),
+                "elseStatements", identityBearing(v.elseStatements()).map(this::statement).toList());
         if (value instanceof EvaluateStatement v) return map("expression", v.expression(),
                 "branches", v.branches().stream().map(this::evaluateBranch).toList());
         if (value instanceof PerformStatement v) return map("paragraph", v.paragraph(), "throughParagraph", v.throughParagraph());
@@ -253,7 +262,7 @@ public final class CobolIrIdentityProjector {
     }
 
     private Map<String, Object> evaluateBranch(EvaluateStatement.EvaluateWhenBranch value) {
-        return map("condition", value.condition(), "statements", value.statements().stream().map(this::statement).toList());
+        return map("condition", value.condition(), "statements", identityBearing(value.statements()).map(this::statement).toList());
     }
 
     private AnnotatedNodeKind statementKind(CobolStatement value) {
