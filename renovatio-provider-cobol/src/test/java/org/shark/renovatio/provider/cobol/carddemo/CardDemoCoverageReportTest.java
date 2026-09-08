@@ -92,7 +92,7 @@ class CardDemoCoverageReportTest {
      * (see {@link #collectPipelineEvidence}).
      */
     private static final List<String> SCANNED_VERBS = List.of(
-            "MOVE", "COMPUTE", "IF", "PERFORM", "EVALUATE", "CALL", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE",
+            "MOVE", "COMPUTE", "IF", "PERFORM", "VARYING", "EVALUATE", "CALL", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE",
             "READ", "WRITE", "REWRITE", "OPEN", "CLOSE",
             "DISPLAY", "ACCEPT", "STRING", "UNSTRING", "INSPECT", "INITIALIZE", "SET", "SEARCH", "GO TO",
             "GOBACK", "CONTINUE", "STOP RUN", "EXEC CICS", "EXEC SQL", "EXEC DLI");
@@ -131,6 +131,8 @@ class CardDemoCoverageReportTest {
 
         assertTrue(rows.size() >= 40, "expected >= 40 CardDemo programs, got " + rows.size());
         assertTrue(Files.size(REPORT_DIR.resolve("carddemo-coverage.md")) > 0);
+        assertTrue(rows.stream().anyMatch(row -> row.compile && row.verbsPresent.containsKey("VARYING")),
+                "expected at least one CardDemo program with PERFORM VARYING to compile");
     }
 
     private Row analyze(Path program, List<Path> copybooks, Path workspace) throws Exception {

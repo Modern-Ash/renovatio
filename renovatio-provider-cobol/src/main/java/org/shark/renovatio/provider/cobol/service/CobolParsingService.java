@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -422,7 +423,10 @@ public class CobolParsingService {
 
     private Set<String> extractCicsCommands(String source) {
         Set<String> cmds = new HashSet<>();
-        Matcher m = CICS_COMMAND_PATTERN.matcher(source);
+        String normalized = source.lines()
+                .map(line -> line.replaceFirst("^\\s{0,6}\\d{6}", "").replaceFirst("\\s+\\d{6,8}\\s*$", ""))
+                .collect(Collectors.joining("\n"));
+        Matcher m = CICS_COMMAND_PATTERN.matcher(normalized);
         while (m.find()) {
             cmds.add(m.group(1).toUpperCase(Locale.ROOT));
         }

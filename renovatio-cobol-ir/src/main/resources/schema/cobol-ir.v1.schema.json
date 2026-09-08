@@ -132,10 +132,30 @@
       }
     },
     "performStatement": {
-      "type": "object", "additionalProperties": false, "required": ["paragraph", "throughParagraph"],
+      "type": "object", "additionalProperties": false, "required": ["paragraph", "throughParagraph", "testAfter"],
       "properties": {
-        "paragraph": { "$ref": "#/$defs/name" },
-        "throughParagraph": { "$ref": "#/$defs/nullableName" }
+        "paragraph": { "$ref": "#/$defs/nullableName" },
+        "throughParagraph": { "$ref": "#/$defs/nullableName" },
+        "varyingVariable": { "$ref": "#/$defs/nullableName" },
+        "varyingFrom": { "type": ["string", "null"] },
+        "varyingBy": { "type": ["string", "null"] },
+        "untilCondition": { "type": ["string", "null"] },
+        "timesCount": { "type": ["integer", "null"] },
+        "testAfter": { "type": "boolean" },
+        "inlineBody": { "type": "array", "items": { "$ref": "#/$defs/statement" } },
+        "varyingAfter": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["variable", "from"],
+            "properties": {
+              "variable": { "$ref": "#/$defs/name" },
+              "from": { "type": "string" },
+              "by": { "type": ["string", "null"] },
+              "until": { "type": ["string", "null"] }
+            }
+          }
+        }
       }
     },
     "callStatement": {

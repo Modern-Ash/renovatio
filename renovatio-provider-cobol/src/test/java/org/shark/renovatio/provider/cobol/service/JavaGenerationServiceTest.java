@@ -163,6 +163,40 @@ class JavaGenerationServiceTest {
     }
 
     @Test
+    void recursivePerformCyclesProduceStableErrorActionItem() throws Exception {
+        Files.writeString(tempDir.resolve("recursive-perform.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. RECURSIVE-PERFORM.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-COUNTER PIC 9(3).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    PERFORM A-PARA.
+                    GOBACK.
+                A-PARA.
+                    PERFORM B-PARA.
+                B-PARA.
+                    PERFORM A-PARA.
+                """);
+
+        StubResult first = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(first.isSuccess(), first.getMessage());
+        Path report = tempDir.resolve(ManualActionItemWriter.DEFAULT_REPORT);
+        String firstReport = Files.readString(report);
+
+        StubResult second = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(second.isSuccess(), second.getMessage());
+        assertEquals(firstReport, Files.readString(report));
+        assertTrue(firstReport.contains("COBOL-PERFORM-CYCLE"));
+        assertTrue(firstReport.contains("Recursive PERFORM cycle detected: A-PARA -> B-PARA"), firstReport);
+        assertTrue(firstReport.contains("\"severity\" : \"error\""), firstReport);
+        assertEquals(1, firstReport.split("\"constructionFamily\" : \"COBOL-PERFORM-CYCLE\"", -1).length - 1);
+        assertEquals(firstReport.split("COBOL-PERFORM-CYCLE", -1).length - 2,
+                firstReport.split("\"diagnosticReference\" : \"COBOL-PERFORM-CYCLE\"", -1).length - 1);
+    }
+
+    @Test
     void testGenerateInterfaceStubsUsesCustomOutputDir() throws IOException {
         Path outputDir = tempDir.resolve("custom-stubs");
         workspace.setMetadata(Map.of("outputDir", outputDir.toString()));

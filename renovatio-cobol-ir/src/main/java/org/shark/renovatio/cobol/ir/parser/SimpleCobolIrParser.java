@@ -51,7 +51,7 @@ public class SimpleCobolIrParser {
         );
     }
 
-    private static final Pattern PARAGRAPH_HEADER_LINE = Pattern.compile("^([A-Z][A-Z0-9-]*)\\.$");
+    private static final Pattern PARAGRAPH_HEADER_LINE = Pattern.compile("^([A-Z0-9][A-Z0-9-]*)\\.$");
 
     private static final Set<String> RESERVED_PARAGRAPH_TOKENS = Set.of(
             Keywords.IF, Keywords.ELSE, Keywords.MOVE, Keywords.COMPUTE, Keywords.EVALUATE, Keywords.PERFORM,
@@ -59,7 +59,7 @@ public class SimpleCobolIrParser {
             Keywords.WRITE, Keywords.ADD, Keywords.SUBTRACT, Keywords.MULTIPLY, Keywords.DIVIDE, Keywords.ENTRY,
             Keywords.INITIALIZE, Keywords.SET, "DISPLAY", "CONTINUE"
     );
-    private static final Set<String> EXCLUDED_END_HEADERS = Set.of("END-IF", "END-EVALUATE", "END-EXEC");
+    private static final Set<String> EXCLUDED_END_HEADERS = Set.of("END-IF", "END-EVALUATE", "END-EXEC", "END-PERFORM");
 
     /** Lines that are structural markers rather than statements (checked upper-case, period stripped). */
     private static final Set<String> STATEMENT_NOISE = Set.of(
@@ -103,7 +103,18 @@ public class SimpleCobolIrParser {
         static final String END_EVALUATE = "END-EVALUATE";
 
         static final String PERFORM = "PERFORM";
+        static final String PERFORM_PREFIX = PERFORM + " ";
+        static final String END_PERFORM = "END-PERFORM";
         static final String THRU = "THRU";
+        static final String VARYING = "VARYING";
+        static final String FROM = "FROM";
+        static final String BY = "BY";
+        static final String UNTIL = "UNTIL";
+        static final String TIMES = "TIMES";
+        static final String WITH = "WITH";
+        static final String TEST = "TEST";
+        static final String BEFORE = "BEFORE";
+        static final String AFTER = "AFTER";
 
         static final String CALL = "CALL";
 
@@ -181,6 +192,7 @@ public class SimpleCobolIrParser {
         List<CobolDataItem> dataItems = extractDataItems(source, diagnostics);
         log.debug(Messages.MODEL_DATA_ITEMS, dataItems.size());
         Map<String, CobolParagraph> paragraphs = extractParagraphs(source);
+        Map<String, ParagraphLineRange> paragraphLineRanges = extractParagraphLineRanges(source);
         ControlFlowGraph flowGraph = buildControlFlowGraph(paragraphs);
 
         CobolExecutionContext.Builder contextBuilder = CobolExecutionContext.builder();
@@ -196,7 +208,8 @@ public class SimpleCobolIrParser {
                 .dataItems(dataItems)
                 .controlFlowGraph(flowGraph)
                 .executionContext(contextBuilder.build())
-                .diagnostics(diagnostics);
+                .diagnostics(diagnostics)
+                .paragraphLineRanges(paragraphLineRanges);
         paragraphs.values().forEach(builder::addParagraph);
         return builder.build();
     }
@@ -358,11 +371,96 @@ public class SimpleCobolIrParser {
         return paragraphs;
     }
 
+    /**
+     * Lexical scan over the original PROCEDURE DIVISION text to recover the
+     * absolute, one-based source line range of every paragraph, independently of
+     * the substring surgery applied by {@link #extractParagraphs(String)}.
+     */
+    private Map<String, ParagraphLineRange> extractParagraphLineRanges(String source) {
+        int procIdx = StringUtils.indexOfIgnoreCase(source, Sections.PROCEDURE_DIVISION);
+        String procedureDiv = procIdx < 0 ? source : source.substring(procIdx);
+        int baseLine = 1 + countLineFeeds(source, procIdx < 0 ? 0 : procIdx);
+
+        List<int[]> entryBlockLines = entryBlockLineRanges(procedureDiv, baseLine);
+        List<String> lines = List.of(procedureDiv.split(Symbols.NEWLINE, -1));
+        List<ParagraphHeaderAtLine> headers = new ArrayList<>();
+        String previousNonBlank = null;
+        for (int i = 0; i < lines.size(); i++) {
+            if (withinEntryBlock(baseLine + i, entryBlockLines)) {
+                continue;
+            }
+            String trimmed = lines.get(i).stripLeading();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            String detected = detectParagraphHeader(trimmed, previousNonBlank);
+            previousNonBlank = trimmed;
+            if (detected != null) {
+                headers.add(new ParagraphHeaderAtLine(detected, baseLine + i));
+            }
+        }
+        int lastContentLine = lastNonBlankLine(lines, baseLine);
+        Map<String, ParagraphLineRange> ranges = new LinkedHashMap<>();
+        for (int k = 0; k < headers.size(); k++) {
+            ParagraphHeaderAtLine header = headers.get(k);
+            int nextHeaderMinusOne = k + 1 < headers.size() ? headers.get(k + 1).line - 1 : lastContentLine;
+            int endLine = Math.max(header.line, Math.min(nextHeaderMinusOne, lastContentLine));
+            ranges.putIfAbsent(header.name, new ParagraphLineRange(header.line, endLine));
+        }
+        return ranges;
+    }
+
+    private List<int[]> entryBlockLineRanges(String procedureDiv, int baseLine) {
+        List<int[]> ranges = new ArrayList<>();
+        Matcher matcher = ENTRY_BLOCK_PATTERN.matcher(procedureDiv);
+        while (matcher.find()) {
+            int start = baseLine + countLineFeeds(procedureDiv, matcher.start());
+            int end = baseLine + countLineFeeds(procedureDiv, matcher.end());
+            ranges.add(new int[] {start, Math.max(start, end)});
+        }
+        return ranges;
+    }
+
+    private boolean withinEntryBlock(int absoluteLine, List<int[]> entryBlockLines) {
+        for (int[] block : entryBlockLines) {
+            if (absoluteLine >= block[0] && absoluteLine <= block[1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int lastNonBlankLine(List<String> lines, int baseLine) {
+        for (int i = lines.size() - 1; i >= 0; i--) {
+            if (!lines.get(i).stripLeading().isEmpty()) {
+                return baseLine + i;
+            }
+        }
+        return baseLine;
+    }
+
+    private static int countLineFeeds(String text, int endExclusive) {
+        int count = 0;
+        for (int i = 0; i < endExclusive; i++) {
+            if (text.charAt(i) == Symbols.NEWLINE_CHAR) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    /**
+     * A paragraph header name paired with its absolute 1-based source line.
+     */
+    private record ParagraphHeaderAtLine(String name, int line) {
+    }
+
     private Map<String, CobolParagraph> parseNonEntryParagraphs(String procedureSource) {
         Map<String, CobolParagraph> result = new LinkedHashMap<>();
         List<String> lines = List.of(procedureSource.split(Symbols.NEWLINE, -1));
         String currentHeader = null;
         StringBuilder currentBody = new StringBuilder();
+        String previousNonBlank = null;
 
         for (String rawLine : lines) {
             String line = rawLine.stripLeading();
@@ -370,7 +468,8 @@ public class SimpleCobolIrParser {
                 if (currentHeader != null) currentBody.append(rawLine).append(Symbols.NEWLINE_CHAR);
                 continue;
             }
-            String detected = detectParagraphHeader(line);
+            String detected = detectParagraphHeader(line, previousNonBlank);
+            previousNonBlank = line;
             if (detected != null) {
                 // flush previous
                 flushCurrentParagraph(result, currentHeader, currentBody);
@@ -385,12 +484,25 @@ public class SimpleCobolIrParser {
     }
 
     private String detectParagraphHeader(String trimmedLine) {
+        return detectParagraphHeader(trimmedLine, null);
+    }
+
+    private String detectParagraphHeader(String trimmedLine, String previousNonBlankTrimmedLine) {
+        // A bare-THRU ending leaves a PERFORM range open; the next line is its
+        // continuation token, not a new paragraph (mirrors parsePerform's join).
+        if (endsWithThru(previousNonBlankTrimmedLine)) {
+            return null;
+        }
         Matcher headerMatcher = PARAGRAPH_HEADER_LINE.matcher(trimmedLine);
         if (!headerMatcher.find()) {
             return null;
         }
         String candidate = headerMatcher.group(1).toUpperCase(Locale.ROOT);
         return isReservedParagraphHeader(candidate) ? null : candidate;
+    }
+
+    private static boolean endsWithThru(String trimmedLine) {
+        return trimmedLine != null && trimmedLine.toUpperCase(Locale.ROOT).endsWith(Keywords.THRU);
     }
 
     private boolean isReservedParagraphHeader(String candidate) {
@@ -458,8 +570,7 @@ public class SimpleCobolIrParser {
                 continue;
             }
             if (upperLine.startsWith(Keywords.PERFORM)) {
-                PerformStatement ps = parsePerform(line);
-                statements.add(ps);
+                i = parsePerform(lines, i, statements);
                 continue;
             }
             if (upperLine.startsWith(Keywords.CALL)) {
@@ -659,13 +770,182 @@ public class SimpleCobolIrParser {
         return raw.replaceAll(Regexes.EXEC_SQL, Symbols.EMPTY).replace(Keywords.END_EXEC, Symbols.EMPTY).trim();
     }
 
-    private PerformStatement parsePerform(String line) {
-        String withoutPerform = line.substring(Keywords.PERFORM.length()).trim();
-        String[] parts = withoutPerform.split("\\s+" + Keywords.THRU + "\\s+", 2);
-        String first = parts[0].replace(Symbols.DOT, Symbols.EMPTY).trim();
-        String thru = parts.length > 1 ? parts[1].replace(Symbols.DOT, Symbols.EMPTY).trim() : null;
-        return new PerformStatement(first, thru);
+    private static final java.util.regex.Pattern PERFORM_VARYING = java.util.regex.Pattern.compile(
+            "\\s+VARYING\\s+(\\S+)\\s+FROM\\s+(\\S+)(?:\\s+BY\\s+(\\S+))?(?:\\s+UNTIL\\s+(.+))?$",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
+    private static final java.util.regex.Pattern PERFORM_AFTER = java.util.regex.Pattern.compile(
+            "\\s+AFTER\\s+(\\S+)\\s+FROM\\s+(\\S+)(?:\\s+BY\\s+(\\S+))?(?:\\s+UNTIL\\s+(.+?))?"
+                    + "(?=\\s+AFTER\\s+|$)",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
+    private static final java.util.regex.Pattern PERFORM_TIMES = java.util.regex.Pattern.compile(
+            "(\\d+)\\s+TIMES\\s*$", java.util.regex.Pattern.CASE_INSENSITIVE);
+    private static final java.util.regex.Pattern PERFORM_UNTIL = java.util.regex.Pattern.compile(
+            "\\s+UNTIL\\s+(.+)$", java.util.regex.Pattern.CASE_INSENSITIVE);
+    private static final java.util.regex.Pattern PERFORM_TEST = java.util.regex.Pattern.compile(
+            "\\s+WITH\\s+TEST\\s+(BEFORE|AFTER)", java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Parses a {@code PERFORM} starting at {@code index}, which may span several physical lines:
+     * <ul>
+     *   <li>a {@code THRU} range continued on the next line
+     *       ({@code PERFORM 3000-SEND-MAP THRU} / {@code 3000-SEND-MAP-EXIT});</li>
+     *   <li>an inline {@code PERFORM ... END-PERFORM} block, which consumes its body and any
+     *       balanced nested inline performs.</li>
+     * </ul>
+     * Returns the index of the last consumed physical line.
+     */
+    private int parsePerform(List<String> lines, int index, List<CobolStatement> statements) {
+        String joined = lines.get(index).trim();
+        int lastIndex = index;
+        while (joined.toUpperCase(Locale.ROOT).endsWith(Keywords.THRU) && lastIndex + 1 < lines.size()) {
+            String nextRaw = lines.get(lastIndex + 1).trim();
+            String nextUpper = stripTrailingPeriod(nextRaw.toUpperCase(Locale.ROOT));
+            if (!nextUpper.matches("[A-Z0-9][A-Z0-9-]*")) {
+                break;
+            }
+            joined = joined + Symbols.SPACE + nextRaw;
+            lastIndex++;
+        }
+        return finishParsePerform(joined, lines, lastIndex, statements);
     }
+
+    private int finishParsePerform(String joined, List<String> lines, int lastIndex, List<CobolStatement> statements) {
+        // The PERFORM keyword is always a prefix; anything after it is either the paragraph
+        // range, trailing modifiers, or (for inline blocks) a modifier-only head.
+        String withoutPerform = stripTrailingPeriod(joined.substring(Keywords.PERFORM.length()).trim());
+        String raw = withoutPerform.replaceAll("\\s+" + Keywords.THRU + "\\s+", "~").trim();
+
+        // Modifier clauses always trail the paragraph range. Split at the first modifier keyword
+        // (or at the THRU marker when no modifier follows).
+        int split = modifierStart(raw);
+        String modifiers = split >= 0 ? raw.substring(Math.max(split, raw.indexOf('~') + 1)) : "";
+        String range = split >= 0 ? raw.substring(0, Math.max(split, raw.indexOf('~') + 1)) : raw;
+
+        // An inline PERFORM head starts with the modifier clause at position 0 (no leading
+        // separator), which the clause regexes expect as whitespace -- normalise it.
+        if (!modifiers.isEmpty() && !Character.isWhitespace(modifiers.charAt(0))) {
+            modifiers = Symbols.SPACE + modifiers;
+        }
+
+        boolean testAfter = false;
+        java.util.regex.Matcher test = PERFORM_TEST.matcher(modifiers);
+        if (test.find()) {
+            testAfter = Keywords.AFTER.equalsIgnoreCase(test.group(1));
+            modifiers = modifiers.substring(0, test.start()) + modifiers.substring(test.end());
+        }
+
+        String varyingVariable = null;
+        String varyingFrom = null;
+        String varyingBy = null;
+        String untilCondition = null;
+        Integer timesCount = null;
+
+        List<PerformStatement.VaryingAxis> varyingAfter = new ArrayList<>();
+        // Peel off any AFTER axes before parsing the primary VARYING clause, otherwise the
+        // primary UNTIL regex greedily swallows the AFTER text.
+        java.util.regex.Matcher afterMatcher = PERFORM_AFTER.matcher(modifiers);
+        int firstAfter = -1;
+        while (afterMatcher.find()) {
+            if (firstAfter < 0) {
+                firstAfter = afterMatcher.start();
+            }
+            varyingAfter.add(new PerformStatement.VaryingAxis(afterMatcher.group(1),
+                    afterMatcher.group(2), afterMatcher.group(3), afterMatcher.group(4)));
+        }
+        String primaryModifiers = firstAfter >= 0 ? modifiers.substring(0, firstAfter) : modifiers;
+
+        java.util.regex.Matcher varying = PERFORM_VARYING.matcher(primaryModifiers);
+        if (varying.find()) {
+            varyingVariable = varying.group(1);
+            varyingFrom = varying.group(2);
+            varyingBy = varying.group(3);
+            untilCondition = varying.group(4);
+        } else {
+            varyingAfter.clear();
+            java.util.regex.Matcher times = PERFORM_TIMES.matcher(modifiers);
+            if (times.find()) {
+                timesCount = Integer.parseInt(times.group(1));
+            }
+            java.util.regex.Matcher until = PERFORM_UNTIL.matcher(modifiers);
+            if (until.find()) {
+                untilCondition = until.group(1).trim();
+            }
+        }
+
+        String[] rangeParts = range.split("~", 2);
+        String first = rangeParts[0].replace(Symbols.DOT, Symbols.EMPTY).trim();
+        String thru = rangeParts.length > 1 ? rangeParts[1].replace(Symbols.DOT, Symbols.EMPTY).trim() : null;
+
+        if (first.isEmpty()) {
+            // Inline PERFORM ... END-PERFORM block: body starts on the next line.
+            PerformStatement head = new PerformStatement(null, thru, varyingVariable, varyingFrom,
+                    varyingBy, untilCondition, timesCount, testAfter, List.of(), varyingAfter);
+            return parseInlinePerform(lines, lastIndex + 1, statements, head);
+        }
+        statements.add(new PerformStatement(first, thru, varyingVariable, varyingFrom,
+                varyingBy, untilCondition, timesCount, testAfter, List.of(), varyingAfter));
+        return lastIndex;
+    }
+
+    /**
+     * Collects the lines of an inline {@code PERFORM ... END-PERFORM} block (tracking balanced
+     * nesting of nested inline performs), parses the body recursively, and adds the statement.
+     */
+    private int parseInlinePerform(List<String> lines, int bodyStart, List<CobolStatement> statements,
+                                   PerformStatement head) {
+        List<String> bodyLines = new ArrayList<>();
+        int depth = 1;
+        int j = bodyStart;
+        for (; j < lines.size(); j++) {
+            String current = lines.get(j).trim();
+            if (current.isEmpty()) {
+                continue;
+            }
+            String up = current.toUpperCase(Locale.ROOT);
+            if (up.startsWith(Keywords.PERFORM_PREFIX) && startsInlinePerform(current)) {
+                depth++;
+            } else if (up.startsWith(Keywords.END_PERFORM)) {
+                depth--;
+                if (depth == 0) {
+                    break;
+                }
+            }
+            bodyLines.add(current);
+        }
+        boolean closed = j < lines.size();
+        List<CobolStatement> body = parseStatements(String.join(Symbols.NEWLINE, bodyLines));
+        statements.add(new PerformStatement(null, head.throughParagraph(), head.varyingVariable(),
+                head.varyingFrom(), head.varyingBy(), head.untilCondition(), head.timesCount(),
+                head.testAfter(), body, head.varyingAfter()));
+        return closed ? j : lines.size();
+    }
+
+    /**
+     * True when {@code line} opens an inline {@code PERFORM} block (no trailing paragraph name),
+     * i.e. the modifiers / {@code WITH TEST} clause or nothing at all follows the keyword.
+     */
+    private static boolean startsInlinePerform(String line) {
+        String up = line.toUpperCase(Locale.ROOT);
+        if (!up.startsWith(Keywords.PERFORM_PREFIX)) {
+            return false;
+        }
+        String head = stripTrailingPeriod(line.substring(Keywords.PERFORM.length()).trim());
+        String raw = head.replaceAll("\\s+" + Keywords.THRU + "\\s+", "~").trim();
+        if (raw.isEmpty()) {
+            return true; // bare "PERFORM" opens an inline block
+        }
+        return modifierStart(raw) == 0;
+    }
+
+    /** Index of the first trailing modifier clause ({@code VARYING}/{@code UNTIL}/{@code n TIMES}/{@code WITH TEST}) or {@code -1}. */
+    private static int modifierStart(String raw) {
+        java.util.regex.Matcher m = PERFORM_MODIFIER.matcher(raw);
+        return m.find() ? m.start() : -1;
+    }
+
+    private static final java.util.regex.Pattern PERFORM_MODIFIER = java.util.regex.Pattern.compile(
+            "(?:\\s+|^)(WITH\\s+TEST\\s+(?:BEFORE|AFTER)\\b|VARYING\\b|UNTIL\\b|\\d+\\s+TIMES\\b)",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
 
     private CobolStatement parseCall(String line) {
         String remainder = line.substring(Keywords.CALL.length()).trim();
@@ -851,9 +1131,11 @@ public class SimpleCobolIrParser {
             previous = paragraph.name();
             for (CobolStatement statement : paragraph.statements()) {
                 if (statement instanceof PerformStatement perform) {
-                    builder.addEdge(paragraph.name(), perform.paragraph());
-                    if (perform.throughParagraph() != null) {
-                        builder.addEdge(perform.paragraph(), perform.throughParagraph());
+                    if (perform.paragraph() != null) {
+                        builder.addEdge(paragraph.name(), perform.paragraph());
+                        if (perform.throughParagraph() != null) {
+                            builder.addEdge(perform.paragraph(), perform.throughParagraph());
+                        }
                     }
                 }
             }

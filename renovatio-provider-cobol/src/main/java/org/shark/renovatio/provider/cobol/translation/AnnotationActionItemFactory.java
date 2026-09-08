@@ -8,6 +8,8 @@ import org.shark.renovatio.provider.cobol.guardrail.ManualActionItemIds;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionReviewStatus;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionSeverity;
 
+import java.util.List;
+
 /** Maps recipe-neutral annotation outcomes onto the versioned manual-action-item contract. */
 public final class AnnotationActionItemFactory {
 
@@ -81,6 +83,23 @@ public final class AnnotationActionItemFactory {
                 "Human review of annotation " + dropped.annotationId(),
                 "Annotation is accepted, matches current IR, and applies without collision",
                 mapping.severity(), ManualActionReviewStatus.PENDING,
+                null, null, null, null, null, null);
+    }
+
+    public ManualActionItem toPerformCycle(String sourceFile, String programId,
+                                            String paragraph, List<String> cycle) {
+        String cyclePath = String.join(" -> ", cycle);
+        String reason = "Recursive PERFORM cycle detected: " + cyclePath;
+        String sourceSpan = paragraph + "#perform-cycle";
+        String family = "COBOL-PERFORM-CYCLE";
+        String id = ManualActionItemIds.from(sourceFile, programId, sourceSpan, family, reason);
+        return new ManualActionItem(id, sourceFile, programId, "PROCEDURE", null, paragraph, sourceSpan,
+                sourceSpan, null, family, reason, GuardrailGate.CHARACTERIZATION,
+                "COBOL-PERFORM-CYCLE",
+                "Recursive PERFORM calls are not expanded to avoid infinite generation",
+                "Refactor the COBOL paragraphs to remove the recursive PERFORM cycle: " + cyclePath,
+                "The paragraph call graph is acyclic and every PERFORM resolves deterministically",
+                ManualActionSeverity.ERROR, ManualActionReviewStatus.PENDING,
                 null, null, null, null, null, null);
     }
 

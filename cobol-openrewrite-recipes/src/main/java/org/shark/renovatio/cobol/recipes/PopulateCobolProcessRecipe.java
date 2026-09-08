@@ -7,7 +7,9 @@ import org.openrewrite.TreeVisitor;
 import org.openrewrite.internal.lang.NonNull;
 import org.openrewrite.internal.lang.Nullable;
 import org.openrewrite.java.JavaIsoVisitor;
+import org.openrewrite.java.JavaParser;
 import org.openrewrite.java.tree.J;
+import org.openrewrite.java.tree.Statement;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.shark.renovatio.cobol.ir.model.*;
 import org.shark.renovatio.cobol.recipes.annotate.AnnotationApplicationOutcome;
@@ -66,27 +68,73 @@ public class PopulateCobolProcessRecipe extends Recipe {
     }
 
     private class PopulateVisitor extends JavaIsoVisitor<ExecutionContext> {
+
+        /**
+         * COBOL paragraphs already rendered into stub methods. They are excluded from
+         * PERFORM method extraction because they already exist as callable methods.
+         */
+        private final Set<String> renderedParagraphs = new LinkedHashSet<>();
+
+        /** DTO type used by the first rendered service method (signature of extracted perform methods). */
+        private String serviceDtoType;
+
+        /** True while rendering extracted perform methods, where GOBACK/STOP RUN become {@code return;}. */
+        private boolean voidMethodMode;
+
+        /** Paragraph currently being rendered, used to detect PERFORM cycles within an SCC. */
+        private String currentParagraphName;
+
+        private PerformAnalysis performAnalysis;
+
+        /** COBOL identifier -> Java expression aliases scoped to the current inline PERFORM body. */
+        private Map<String, String> variableAliases = Map.of();
+
+        /** COBOL data items written by any generated statement; reads of these go to the output DTO. */
+        private Set<String> assignedVariables = Set.of();
+
+        /** Output DTO variable name in scope for the paragraph being rendered (out inside perform methods). */
+        private String currentOutputVar = "out";
+
+        /** Pascal-cased names of COBOL data items present in the model; the DTO exposes getters for these. */
+        private Set<String> knownDataNames = Set.of();
+
+        private static final String UNRESOLVED_MARKER = "\u00A7RENO_UNRESOLVED\u00A7";
+
+        private static final java.util.regex.Pattern UNRESOLVED_PATTERN =
+                java.util.regex.Pattern.compile(java.util.regex.Pattern.quote(UNRESOLVED_MARKER) + "([A-Za-z0-9-]+)");
+
         @Override
         public @NonNull J.CompilationUnit visitCompilationUnit(@NonNull J.CompilationUnit compilationUnit,
                                                               @NonNull ExecutionContext ctx) {
-            J.CompilationUnit populated = super.visitCompilationUnit(compilationUnit, ctx);
-            AnnotatedCobolContext annotated = ctx.getMessage(ANNOTATED_CONTEXT_KEY);
             CobolIntermediateModel model = resolveModel(ctx);
-            if (annotated == null || model == null || annotated.baseModel() != model) {
+            if (model != null) {
+                // Compute before super descends into method declarations so rendering sees the set.
+                assignedVariables = computeAssignedVariables(model);
+            }
+            J.CompilationUnit populated = super.visitCompilationUnit(compilationUnit, ctx);
+            if (model == null) {
+                return populated;
+            }
+            AnnotatedCobolContext annotated = ctx.getMessage(ANNOTATED_CONTEXT_KEY);
+            if (annotated != null && annotated.baseModel() != model) {
                 return populated;
             }
 
-            List<SemanticProgram.DataIntent> neutralDataIntents = ctx.getMessage(SEMANTIC_DATA_INTENTS_KEY);
-            AnnotationApplicationOutcome outcome = new AnnotationApplicator(model, annotated.sidecar(),
-                    neutralDataIntents)
-                    .apply(populated, ctx);
-            List<DroppedAnnotation> accumulated = ctx.getMessage(AnnotationOutcomeKey.ANNOTATION_OUTCOMES_KEY);
-            if (accumulated == null) {
-                accumulated = new ArrayList<>();
-                ctx.putMessage(AnnotationOutcomeKey.ANNOTATION_OUTCOMES_KEY, accumulated);
+            J.CompilationUnit tree = populated;
+            if (annotated != null) {
+                List<SemanticProgram.DataIntent> neutralDataIntents = ctx.getMessage(SEMANTIC_DATA_INTENTS_KEY);
+                AnnotationApplicationOutcome outcome = new AnnotationApplicator(model, annotated.sidecar(),
+                        neutralDataIntents)
+                        .apply(populated, ctx);
+                List<DroppedAnnotation> accumulated = ctx.getMessage(AnnotationOutcomeKey.ANNOTATION_OUTCOMES_KEY);
+                if (accumulated == null) {
+                    accumulated = new ArrayList<>();
+                    ctx.putMessage(AnnotationOutcomeKey.ANNOTATION_OUTCOMES_KEY, accumulated);
+                }
+                accumulated.addAll(outcome.dropped());
+                tree = outcome.tree();
             }
-            accumulated.addAll(outcome.dropped());
-            return outcome.tree();
+            return extractPerformMethods(tree, model);
         }
 
         @Override
@@ -138,7 +186,12 @@ public class PopulateCobolProcessRecipe extends Recipe {
             rendered = renderParagraph(paragraph, model, new LinkedHashSet<>(), dtoVarName);
 
             String bodyTemplate = buildBody(rendered, dtoType, dtoVarName);
-            return JavaTemplateSupport.replaceMethodBody(getCursor(), method, bodyTemplate);
+            J.MethodDeclaration updated = JavaTemplateSupport.replaceMethodBody(getCursor(), method, bodyTemplate);
+            renderedParagraphs.add(paragraph.name().toUpperCase(Locale.ROOT));
+            if (serviceDtoType == null) {
+                serviceDtoType = dtoType;
+            }
+            return updated;
         }
 
         private CobolIntermediateModel resolveModel(ExecutionContext ctx) {
@@ -244,6 +297,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
                         "// Recursive PERFORM of paragraph %s detected, skipping expansion", upperName));
             }
 
+            String previousParagraph = currentParagraphName;
+            String previousOutputVar = currentOutputVar;
+            currentParagraphName = upperName;
+            currentOutputVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            knownDataNames = knownDataNamesOf(model);
             try {
                 List<String> lines = new ArrayList<>();
                 for (CobolStatement statement : paragraph.statements()) {
@@ -257,6 +315,8 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 }
                 return lines;
             } finally {
+                currentParagraphName = previousParagraph;
+                currentOutputVar = previousOutputVar;
                 visitedParagraphs.remove(upperName);
             }
         }
@@ -276,6 +336,25 @@ public class PopulateCobolProcessRecipe extends Recipe {
                                              CobolIntermediateModel model,
                                              Set<String> visitedParagraphs,
                                              @Nullable String varName) {
+            List<String> lines = renderStatementLines(statement, model, visitedParagraphs, varName);
+            if (lines.stream().anyMatch(line -> line.contains(UNRESOLVED_MARKER))) {
+                Set<String> names = new LinkedHashSet<>();
+                for (String line : lines) {
+                    java.util.regex.Matcher matcher = UNRESOLVED_PATTERN.matcher(line);
+                    while (matcher.find()) {
+                        names.add(matcher.group(1));
+                    }
+                }
+                String label = names.isEmpty() ? "unknown data item" : String.join(", ", names);
+                return List.of("// COBOL not translated: " + truncate(label) + " (data item not modeled)");
+            }
+            return lines;
+        }
+
+        private List<String> renderStatementLines(CobolStatement statement,
+                                                  CobolIntermediateModel model,
+                                                  Set<String> visitedParagraphs,
+                                                  @Nullable String varName) {
             if (statement instanceof MoveStatement move) {
                 return List.of(renderMove(move, varName));
             }
@@ -319,6 +398,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     return List.of("; // CONTINUE");
                 case GOBACK:
                 case STOP_RUN:
+                    if (voidMethodMode) {
+                        return List.of("return;");
+                    }
                     return List.of(String.format(Locale.ROOT, "return %s;", targetVar));
                 case DISPLAY:
                     return List.of(String.format(Locale.ROOT, "System.out.println(%s);",
@@ -445,6 +527,77 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     .findFirst();
         }
 
+        private Set<String> knownDataNamesOf(CobolIntermediateModel model) {
+            Set<String> names = new LinkedHashSet<>();
+            for (CobolDataItem item : model.getDataItems()) {
+                names.add(toPascal(item.name()));
+            }
+            return names;
+        }
+
+        private Set<String> computeAssignedVariables(CobolIntermediateModel model) {
+            Set<String> assigned = new LinkedHashSet<>();
+            for (CobolParagraph paragraph : model.getParagraphs().values()) {
+                collectAssignedStatements(paragraph.statements(), assigned, model);
+            }
+            return assigned;
+        }
+
+        private void collectAssignedStatements(List<CobolStatement> statements,
+                                               Set<String> assigned,
+                                               CobolIntermediateModel model) {
+            for (CobolStatement statement : statements) {
+                if (statement instanceof MoveStatement move) {
+                    addAssigned(assigned, move.target());
+                } else if (statement instanceof ComputeStatement compute) {
+                    addAssigned(assigned, compute.target());
+                } else if (statement instanceof InitializeStatement initialize) {
+                    for (String target : initialize.targets()) {
+                        addAssigned(assigned, target);
+                    }
+                } else if (statement instanceof SetConditionStatement setCondition) {
+                    for (String conditionName : setCondition.conditionNames()) {
+                        findCondition(model, conditionName)
+                                .ifPresent(condition -> addAssigned(assigned, condition.parent().name()));
+                    }
+                } else if (statement instanceof PerformStatement perform) {
+                    addAssigned(assigned, perform.varyingVariable());
+                    for (PerformStatement.VaryingAxis axis : perform.varyingAfter()) {
+                        addAssigned(assigned, axis.variable());
+                    }
+                    if (perform.isInline()) {
+                        collectAssignedStatements(perform.inlineBody(), assigned, model);
+                    }
+                }
+            }
+        }
+
+        private static void addAssigned(Set<String> assigned, String name) {
+            if (name != null && !name.isBlank()) {
+                assigned.add(stripSubscripts(name).trim().toUpperCase(Locale.ROOT));
+            }
+        }
+
+        /** Removes trailing COBOL subscripts (e.g. {@code (1)}, {@code (1:2)}) from a data reference. */
+        private static String stripSubscripts(String cobolRef) {
+            if (cobolRef == null) {
+                return null;
+            }
+            String s = cobolRef.trim();
+            while (s.length() > 2 && s.endsWith(")") && s.indexOf('(') >= 0) {
+                int open = s.lastIndexOf('(');
+                if (open <= 0) {
+                    break;
+                }
+                String inner = s.substring(open + 1, s.length() - 1);
+                if (inner.indexOf('(') >= 0 || inner.indexOf(')') >= 0) {
+                    break;
+                }
+                s = s.substring(0, open).trim();
+            }
+            return s;
+        }
+
         private Optional<ResolvedCondition> findCondition(CobolIntermediateModel model, String name) {
             for (CobolDataItem item : model.getDataItems()) {
                 for (Level88Condition condition : item.level88Conditions()) {
@@ -460,28 +613,541 @@ public class PopulateCobolProcessRecipe extends Recipe {
                                            CobolIntermediateModel model,
                                            Set<String> visitedParagraphs,
                                            @Nullable String varName) {
-            List<String> lines = new ArrayList<>();
-            if (perform.paragraph() == null || perform.paragraph().isBlank()) {
-                lines.add("// PERFORM with unnamed paragraph");
-                return lines;
-            }
-
-            model.findParagraph(perform.paragraph()).ifPresentOrElse(target -> {
-                List<String> nested = renderParagraph(target, model, new LinkedHashSet<>(visitedParagraphs), varName);
-                if (nested.isEmpty()) {
-                    lines.add(String.format(Locale.ROOT,
-                            "// PERFORM %s (paragraph is empty)", perform.paragraph()));
-                } else {
-                    lines.addAll(nested);
+            String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            List<String> inner = new ArrayList<>();
+            if (perform.isInline()) {
+                Map<String, String> savedAliases = variableAliases;
+                Map<String, String> loopAliases = new java.util.HashMap<>();
+                if (perform.varyingVariable() != null && !perform.varyingVariable().isBlank()) {
+                    loopAliases.put(perform.varyingVariable().toUpperCase(Locale.ROOT),
+                            lowerCamel(perform.varyingVariable()));
                 }
-            }, () -> lines.add(String.format(Locale.ROOT,
-                    "// PERFORM %s (paragraph not found)", perform.paragraph())));
-
-            if (perform.throughParagraph() != null) {
-                lines.add(String.format(Locale.ROOT,
-                        "// PERFORM THRU %s not yet expanded", perform.throughParagraph()));
+                for (PerformStatement.VaryingAxis axis : perform.varyingAfter()) {
+                    if (axis.variable() != null && !axis.variable().isBlank()) {
+                        loopAliases.put(axis.variable().toUpperCase(Locale.ROOT), lowerCamel(axis.variable()));
+                    }
+                }
+                if (!loopAliases.isEmpty()) {
+                    variableAliases = loopAliases;
+                }
+                try {
+                    for (CobolStatement stmt : perform.inlineBody()) {
+                        inner.addAll(renderStatement(stmt, model, visitedParagraphs, targetVar));
+                        if (terminatesFlow(stmt)) {
+                            break;
+                        }
+                    }
+                } finally {
+                    variableAliases = savedAliases;
+                }
+            } else if (perform.paragraph() != null && !perform.paragraph().isBlank()) {
+                if (perform.throughParagraph() == null) {
+                    inner.add(performCallLine(perform.paragraph(), targetVar, model));
+                } else {
+                    for (String name : performRangeNames(perform.paragraph(), perform.throughParagraph(), model)) {
+                        inner.add(performCallLine(name, targetVar, model));
+                    }
+                    if (inner.isEmpty()) {
+                        inner.add("// PERFORM THRU between " + perform.paragraph()
+                                + " and " + perform.throughParagraph() + " (range not found)");
+                    }
+                }
+            } else {
+                inner.add("// PERFORM with unnamed paragraph");
             }
-            return lines;
+            return wrapPerform(perform, inner);
+        }
+
+        /** Structure of the perform call graph used to detect recursive PERFORM cycles. */
+        private record PerformAnalysis(Map<String, List<String>> graph,
+                                       Map<String, Integer> paragraphScc,
+                                       Set<Integer> cyclicSccIds,
+                                       Map<String, String> nextEdge) {
+
+            boolean isCyclicCall(String caller, String target) {
+                if (caller == null || target == null) {
+                    return false;
+                }
+                Integer callerScc = paragraphScc.get(caller);
+                Integer targetScc = paragraphScc.get(target);
+                return callerScc != null && callerScc.equals(targetScc) && cyclicSccIds.contains(callerScc);
+            }
+
+            static PerformAnalysis of(CobolIntermediateModel model) {
+                Map<String, List<String>> graph = new LinkedHashMap<>();
+                for (CobolParagraph paragraph : model.getParagraphs().values()) {
+                    List<String> targets = new ArrayList<>();
+                    for (CobolStatement statement : paragraph.statements()) {
+                        collectPerformTargetsInto(statement, model, targets);
+                    }
+                    List<String> edges = targets.stream()
+                            .filter(name -> model.findParagraph(name).isPresent())
+                            .sorted()
+                            .collect(java.util.stream.Collectors.toList());
+                    graph.put(paragraph.name().toUpperCase(Locale.ROOT), edges);
+                }
+
+                Map<String, Integer> scc = new LinkedHashMap<>();
+                Set<Integer> cyclicIds = new LinkedHashSet<>();
+                computeScc(graph, scc, cyclicIds);
+
+                Map<String, String> nextEdge = new LinkedHashMap<>();
+                List<String> cyclicNodes = scc.keySet().stream()
+                        .filter(node -> cyclicIds.contains(scc.get(node)))
+                        .sorted()
+                        .collect(java.util.stream.Collectors.toList());
+                for (String node : cyclicNodes) {
+                    Integer nodeScc = scc.get(node);
+                    String next = graph.getOrDefault(node, List.of()).stream()
+                            .filter(neighbor -> nodeScc.equals(scc.get(neighbor)))
+                            .sorted()
+                            .findFirst()
+                            .orElse(node);
+                    nextEdge.put(node, next);
+                }
+                return new PerformAnalysis(graph, scc, cyclicIds, nextEdge);
+            }
+
+            private static void computeScc(Map<String, List<String>> graph,
+                                           Map<String, Integer> scc,
+                                           Set<Integer> cyclicIds) {
+                Map<String, Integer> indexes = new HashMap<>();
+                Map<String, Integer> lowLinks = new HashMap<>();
+                ArrayDeque<String> stack = new ArrayDeque<>();
+                Set<String> onStack = new HashSet<>();
+                int[] indexCounter = {0};
+                List<List<String>> components = new ArrayList<>();
+
+                for (String node : graph.keySet()) {
+                    if (!indexes.containsKey(node)) {
+                        strongConnect(node, graph, indexes, lowLinks, stack, onStack,
+                                indexCounter, components);
+                    }
+                }
+                for (List<String> component : components) {
+                    boolean cyclic = component.size() > 1
+                            || graph.getOrDefault(component.get(0), List.of()).contains(component.get(0));
+                    int id = -components.indexOf(component) - 1;
+                    if (cyclic) {
+                        cyclicIds.add(id);
+                    }
+                    for (String node : component) {
+                        scc.put(node, id);
+                    }
+                }
+            }
+
+            private static void strongConnect(String vertex,
+                                              Map<String, List<String>> graph,
+                                              Map<String, Integer> indexes,
+                                              Map<String, Integer> lowLinks,
+                                              ArrayDeque<String> stack,
+                                              Set<String> onStack,
+                                              int[] indexCounter,
+                                              List<List<String>> components) {
+                indexes.put(vertex, indexCounter[0]);
+                lowLinks.put(vertex, indexCounter[0]);
+                indexCounter[0]++;
+                stack.push(vertex);
+                onStack.add(vertex);
+                for (String neighbor : graph.getOrDefault(vertex, List.of())) {
+                    if (!indexes.containsKey(neighbor)) {
+                        strongConnect(neighbor, graph, indexes, lowLinks, stack, onStack,
+                                indexCounter, components);
+                        lowLinks.put(vertex, Math.min(lowLinks.get(vertex), lowLinks.get(neighbor)));
+                    } else if (onStack.contains(neighbor)) {
+                        lowLinks.put(vertex, Math.min(lowLinks.get(vertex), indexes.get(neighbor)));
+                    }
+                }
+                if (Objects.equals(lowLinks.get(vertex), indexes.get(vertex))) {
+                    List<String> component = new ArrayList<>();
+                    String member;
+                    do {
+                        member = stack.pop();
+                        onStack.remove(member);
+                        component.add(member);
+                    } while (!component.contains(vertex));
+                    components.add(component);
+                }
+            }
+        }
+
+        private PerformAnalysis performAnalysis(CobolIntermediateModel model) {
+            if (performAnalysis == null) {
+                performAnalysis = PerformAnalysis.of(model);
+            }
+            return performAnalysis;
+        }
+
+        private String performCallLine(String target, String targetVar, CobolIntermediateModel model) {
+            if (model.findParagraph(target).isEmpty()) {
+                return "// PERFORM " + target + " (paragraph not found)";
+            }
+            if (renderedParagraphs.contains(target)) {
+                return "// PERFORM " + target + " (rendered as service method)";
+            }
+            PerformAnalysis analysis = performAnalysis(model);
+            if (analysis.isCyclicCall(currentParagraphName, target)) {
+                String next = analysis.nextEdge().getOrDefault(target, target);
+                return "// COBOL not translated: PERFORM cycle (" + target + " -> " + next + ")";
+            }
+            return "perform" + toPascal(target) + "(input, " + targetVar + ");";
+        }
+
+        /** Wraps the inner statements in the loop mandated by the PERFORM modifiers. */
+        private List<String> wrapPerform(PerformStatement perform, List<String> inner) {
+            Integer times = perform.timesCount();
+            String until = perform.untilCondition();
+            String varying = perform.varyingVariable();
+            if (times != null) {
+                List<String> wrapped = new ArrayList<>();
+                wrapped.add("for (int i = 0; i < " + toJavaExpression(String.valueOf(times)) + "; i++) {");
+                for (String line : inner) {
+                    wrapped.add(indent(line));
+                }
+                wrapped.add("}");
+                return wrapped;
+            }
+            if (until != null && !until.isBlank() && varying == null) {
+                String cond = translateCondition(until);
+                List<String> wrapped = new ArrayList<>();
+                if (perform.testAfter()) {
+                    wrapped.add("do {");
+                    for (String line : inner) {
+                        wrapped.add(indent(line));
+                    }
+                    wrapped.add("} while (!(" + cond + "));");
+                } else {
+                    wrapped.add("while (!(" + cond + ")) {");
+                    for (String line : inner) {
+                        wrapped.add(indent(line));
+                    }
+                    wrapped.add("}");
+                }
+                return wrapped;
+            }
+            if (varying != null && !varying.isBlank()) {
+                // AFTER axes render as loops nested inside the primary axis, innermost last.
+                List<String> body = inner;
+                List<PerformStatement.VaryingAxis> after = perform.varyingAfter();
+                for (int k = after.size() - 1; k >= 0; k--) {
+                    PerformStatement.VaryingAxis axis = after.get(k);
+                    body = varyingLoop(axis.variable(), axis.from(), axis.by(), axis.until(),
+                            perform.testAfter(), body);
+                }
+                return varyingLoop(varying, perform.varyingFrom(), perform.varyingBy(), until,
+                        perform.testAfter(), body);
+            }
+            return inner;
+        }
+
+        /** Renders a single {@code PERFORM VARYING} axis as a Java {@code for} loop. */
+        private List<String> varyingLoop(String cobolVar, String fromClause, String byClause,
+                                         String untilClause, boolean testAfter, List<String> inner) {
+            String loopVar = lowerCamel(cobolVar);
+            String start = toJavaExpression(fromClause);
+            String step = toJavaExpression(byClause);
+            String cond = untilClause != null && !untilClause.isBlank()
+                    ? translateCondition(untilClause, java.util.Map.of(cobolVar.toUpperCase(Locale.ROOT), loopVar))
+                    : null;
+            List<String> wrapped = new ArrayList<>();
+            if (testAfter) {
+                wrapped.add("for (int " + loopVar + " = " + start + "; ; " + loopVar + " += " + step + ") {");
+                for (String line : inner) {
+                    wrapped.add(indent(line));
+                }
+                if (cond != null) {
+                    wrapped.add(indent("if (" + cond + ") break;"));
+                }
+                wrapped.add("}");
+            } else {
+                String loopCond = cond != null ? "!(" + cond + ")" : "true";
+                wrapped.add("for (int " + loopVar + " = " + start + "; " + loopCond + "; "
+                        + loopVar + " += " + step + ") {");
+                for (String line : inner) {
+                    wrapped.add(indent(line));
+                }
+                wrapped.add("}");
+            }
+            return wrapped;
+        }
+
+        private String lowerCamel(String cobolName) {
+            String normalized = cobolName.replace(".", "").replace("-", " ").trim().toLowerCase(Locale.ROOT);
+            String[] parts = normalized.split("\\s+");
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < parts.length; i++) {
+                String part = parts[i];
+                if (part.isBlank()) {
+                    continue;
+                }
+                if (i == 0) {
+                    sb.append(part);
+                } else {
+                    sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+                }
+            }
+            return sb.toString();
+        }
+
+        private static void collectPerformTargetsInto(CobolStatement statement, CobolIntermediateModel model,
+                                               List<String> out) {
+            if (statement instanceof PerformStatement perform) {
+                if (!perform.isInline() && perform.paragraph() != null && !perform.paragraph().isBlank()) {
+                    String start = perform.paragraph();
+                    if (!out.contains(start)) {
+                        out.add(start);
+                    }
+                    if (perform.throughParagraph() != null && !perform.throughParagraph().equals(start)) {
+                        for (String name : performRangeNames(start, perform.throughParagraph(), model)) {
+                            if (!out.contains(name)) {
+                                out.add(name);
+                            }
+                        }
+                    }
+                }
+                for (CobolStatement nested : perform.inlineBody()) {
+                    collectPerformTargetsInto(nested, model, out);
+                }
+            } else if (statement instanceof IfStatement ifStatement) {
+                for (CobolStatement nested : ifStatement.thenStatements()) {
+                    collectPerformTargetsInto(nested, model, out);
+                }
+                for (CobolStatement nested : ifStatement.elseStatements()) {
+                    collectPerformTargetsInto(nested, model, out);
+                }
+            } else if (statement instanceof EvaluateStatement evaluate) {
+                for (EvaluateStatement.EvaluateWhenBranch branch : evaluate.branches()) {
+                    for (CobolStatement nested : branch.statements()) {
+                        collectPerformTargetsInto(nested, model, out);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Returns the COBOL paragraph names spanned by {@code PERFORM start THRU through}, in model
+         * insertion order (which respects source order). Falls back to the explicit pair when the
+         * range cannot be resolved, so a non-existent END marker still yields a deterministic call.
+         */
+        private static List<String> performRangeNames(String start, String through, CobolIntermediateModel model) {
+            List<String> names = new ArrayList<>();
+            boolean capture = false;
+            for (String name : model.getParagraphs().keySet()) {
+                if (name.equals(start)) {
+                    capture = true;
+                }
+                if (capture) {
+                    names.add(name);
+                }
+                if (capture && name.equals(through)) {
+                    break;
+                }
+            }
+            if (!names.contains(through)) {
+                names = new ArrayList<>();
+                names.add(start);
+                if (through != null && !names.contains(through)) {
+                    names.add(through);
+                }
+            }
+            return names;
+        }
+
+        /**
+         * Appends one extracted method per PERFORM-referenced paragraph (excluding paragraphs already
+         * rendered into stub methods) and guarantees a {@code GeneratedFrom} annotation type exists
+         * so the produced Java compiles standalone.
+         */
+        private J.CompilationUnit extractPerformMethods(J.CompilationUnit cu, CobolIntermediateModel model) {
+            if (serviceDtoType == null) {
+                return cu;
+            }
+            List<String> referenced = referencedPerformParagraphs(model);
+            List<String> toExtract = new ArrayList<>();
+            for (String name : referenced) {
+                if (renderedParagraphs.contains(name) || model.findParagraph(name).isEmpty()) {
+                    continue;
+                }
+                toExtract.add(name);
+            }
+            if (toExtract.isEmpty()) {
+                return cu;
+            }
+
+            List<String> templates = new ArrayList<>();
+            for (String name : toExtract) {
+                templates.add(extractedMethodTemplate(name, model));
+            }
+
+            J.ClassDeclaration serviceClass = findServiceClass(cu);
+            if (serviceClass == null) {
+                return cu;
+            }
+            J.ClassDeclaration withMethods = addExtractedMethods(serviceClass, templates, toExtract, model);
+            cu = replaceClass(cu, withMethods);
+            return ensureGeneratedFromAnnotationType(cu);
+        }
+
+        private List<String> referencedPerformParagraphs(CobolIntermediateModel model) {
+            List<String> order = new ArrayList<>();
+            ArrayDeque<String> queue = new ArrayDeque<>();
+            Set<String> seen = new HashSet<>();
+            for (CobolParagraph paragraph : model.getParagraphs().values()) {
+                List<String> targets = new ArrayList<>();
+                for (CobolStatement statement : paragraph.statements()) {
+                    collectPerformTargetsInto(statement, model, targets);
+                }
+                for (String target : targets) {
+                    if (seen.add(target)) {
+                        queue.add(target);
+                    }
+                }
+            }
+            while (!queue.isEmpty()) {
+                String current = queue.poll();
+                order.add(current);
+                CobolParagraph paragraph = model.findParagraph(current).orElse(null);
+                if (paragraph == null) {
+                    continue;
+                }
+                List<String> targets = new ArrayList<>();
+                for (CobolStatement statement : paragraph.statements()) {
+                    collectPerformTargetsInto(statement, model, targets);
+                }
+                for (String target : targets) {
+                    if (seen.add(target)) {
+                        queue.add(target);
+                    }
+                }
+            }
+            return order;
+        }
+
+        private String extractedMethodTemplate(String name, CobolIntermediateModel model) {
+            CobolParagraph paragraph = model.findParagraph(name).orElseThrow();
+            String lines = paragraphLines(name, model);
+            voidMethodMode = true;
+            List<String> rendered = renderParagraph(paragraph, model, new LinkedHashSet<>(), "out");
+            voidMethodMode = false;
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("    @GeneratedFrom(paragraph = \"").append(name)
+                    .append("\", lines = \"").append(lines).append("\")\n");
+            sb.append("    private void perform").append(toPascal(name)).append("(")
+                    .append(serviceDtoType).append(" input, ").append(serviceDtoType).append(" out) {\n");
+            for (String line : rendered) {
+                sb.append("        ").append(line).append('\n');
+            }
+            sb.append("    }");
+            return sb.toString();
+        }
+
+        private J.ClassDeclaration findServiceClass(J.CompilationUnit cu) {
+            for (J type : cu.getClasses()) {
+                if (!(type instanceof J.ClassDeclaration clazz)) {
+                    continue;
+                }
+                boolean hasTargetMethod = clazz.getBody().getStatements().stream()
+                        .filter(statement -> statement instanceof J.MethodDeclaration)
+                        .map(statement -> (J.MethodDeclaration) statement)
+                        .anyMatch(declaration -> declaration.getSimpleName().equals(methodName));
+                if (hasTargetMethod) {
+                    return clazz;
+                }
+            }
+            return null;
+        }
+
+        private J.ClassDeclaration addExtractedMethods(J.ClassDeclaration clazz, List<String> templates,
+                                                       List<String> names, CobolIntermediateModel model) {
+            String fileName = clazz.getSimpleName();
+            J.CompilationUnit parsed = parseMethodSource(fileName, templates, names, model);
+            J.ClassDeclaration parsedClass = parsed.getClasses().get(0);
+            List<Statement> existing = new ArrayList<>(clazz.getBody().getStatements());
+            existing.addAll(parsedClass.getBody().getStatements());
+            return clazz.withBody(clazz.getBody().withStatements(existing));
+        }
+
+        private J.CompilationUnit parseMethodSource(String fileName, List<String> templates,
+                                                    List<String> names, CobolIntermediateModel model) {
+            List<String> finalTemplates = new ArrayList<>();
+            List<String> stubbed = new ArrayList<>();
+            for (int i = 0; i < templates.size(); i++) {
+                if (safeParse("class X {\n" + templates.get(i) + "\n}\n") instanceof J.CompilationUnit) {
+                    finalTemplates.add(templates.get(i));
+                } else {
+                    finalTemplates.add(stubExtractedMethodTemplate(names.get(i), model));
+                    stubbed.add(names.get(i));
+                }
+            }
+            String fakeSource = "class " + fileName + " {\n" + String.join("\n", finalTemplates) + "\n}\n";
+            Object parsed = safeParse(fakeSource);
+            if (parsed instanceof J.CompilationUnit cu) {
+                if (!stubbed.isEmpty()) {
+                    System.err.println("WARN(PopulateCobolProcessRecipe): paragraph bodies not representable as "
+                            + "Java; emitting comment-stub methods for " + stubbed);
+                }
+                return cu;
+            }
+            System.err.println("WARN(PopulateCobolProcessRecipe): extracted methods join failed for "
+                    + fileName + "; emitting comment-stub methods for " + names);
+            StringBuilder stubs = new StringBuilder();
+            for (String name : names) {
+                stubs.append(stubExtractedMethodTemplate(name, model));
+            }
+            J.CompilationUnit allStubs = (J.CompilationUnit) safeParse(
+                    "class " + fileName + " {\n" + stubs + "\n}\n");
+            return allStubs;
+        }
+
+        private Object safeParse(String source) {
+            // ReloadableJava21Parser is not reusable: reusing an instance across sequential
+            // parse() calls throws "endPosTable already set" from javac, so build a fresh parser
+            // for every snippet.
+            return JavaParser.fromJavaVersion().build().parse(source).findFirst().orElseThrow();
+        }
+
+        private String stubExtractedMethodTemplate(String name, CobolIntermediateModel model) {
+            String lines = paragraphLines(name, model);
+            return "    @GeneratedFrom(paragraph = \"" + name + "\", lines = \"" + lines + "\")\n"
+                    + "    private void perform" + toPascal(name) + "("
+                    + serviceDtoType + " input, " + serviceDtoType + " out) {\n"
+                    + "        // COBOL not translated: " + name + " (paragraph body not representable)\n"
+                    + "    }\n";
+        }
+
+        private String paragraphLines(String name, CobolIntermediateModel model) {
+            ParagraphLineRange span = model.findParagraphLineRange(name).orElse(null);
+            return span != null ? span.startLine() + "-" + span.endLine() : "0-0";
+        }
+
+        private J.CompilationUnit replaceClass(J.CompilationUnit cu, J.ClassDeclaration replacement) {
+            List<J.ClassDeclaration> classes = new ArrayList<>();
+            for (J.ClassDeclaration type : cu.getClasses()) {
+                if (type.getSimpleName().equals(replacement.getSimpleName())) {
+                    classes.add(replacement);
+                } else {
+                    classes.add(type);
+                }
+            }
+            return cu.withClasses(classes);
+        }
+
+        private J.CompilationUnit ensureGeneratedFromAnnotationType(J.CompilationUnit cu) {
+            boolean declared = cu.getClasses().stream()
+                    .anyMatch(clazz -> clazz.getSimpleName().equals("GeneratedFrom"));
+            if (declared) {
+                return cu;
+            }
+            String source = "@interface GeneratedFrom {\n"
+                    + "    String paragraph();\n"
+                    + "    String lines();\n"
+                    + "}\n";
+            J.CompilationUnit parsed = (J.CompilationUnit) safeParse(source);
+            List<J.ClassDeclaration> classes = new ArrayList<>(cu.getClasses());
+            classes.add(parsed.getClasses().get(0));
+            return cu.withClasses(classes);
         }
 
         private List<String> renderEvaluate(EvaluateStatement evaluate,
@@ -529,6 +1195,10 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         private String translateCondition(String condition) {
+            return translateCondition(condition, Map.of());
+        }
+
+        private String translateCondition(String condition, Map<String, String> aliases) {
             if (condition == null) return "false";
             String raw = condition.replace("THEN", "").trim();
             // Normalize common COBOL operators
@@ -545,7 +1215,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     case "<>" -> "!=";
                     default -> op;
                 };
-                String leftExpr = toJavaIdentifierRef(left);
+                String leftExpr = toJavaIdentifierRef(left, aliases);
                 String rightExpr = toJavaExpression(right);
                 return leftExpr + " " + javaOp + " " + rightExpr;
             }
@@ -557,14 +1227,34 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         private String toJavaIdentifierRef(String ident) {
+            return toJavaIdentifierRef(ident, Map.of());
+        }
+
+        private String toJavaIdentifierRef(String ident, Map<String, String> aliases) {
             if (ident == null || ident.isBlank()) return ident;
             // If it's a pure number or quoted string, delegate to toJavaExpression
             String t = ident.trim();
             if (t.matches("[0-9]+") || t.startsWith("\"") || t.startsWith("'")) {
                 return toJavaExpression(t);
             }
+            String alias = aliases.get(t.toUpperCase(Locale.ROOT));
+            if (alias != null) {
+                return alias;
+            }
+            String scopedAlias = variableAliases.get(t.toUpperCase(Locale.ROOT));
+            if (scopedAlias != null) {
+                return scopedAlias;
+            }
+            String upper = stripSubscripts(t).toUpperCase(Locale.ROOT);
+            String pascal = toPascal(stripSubscripts(t));
+            if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)) {
+                return UNRESOLVED_MARKER + t;
+            }
+            if (assignedVariables.contains(upper)) {
+                return currentOutputVar + ".get" + pascal + "()";
+            }
             // Map COBOL variable name to getter on input
-            return String.format(java.util.Locale.ROOT, "input.get%s()", toPascal(t));
+            return String.format(java.util.Locale.ROOT, "input.get%s()", pascal);
         }
 
         private String translateExpression(String expression) {
@@ -613,7 +1303,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         private String toSetter(String cobolName) {
-            return "set" + toPascal(cobolName);
+            return "set" + toPascal(stripSubscripts(cobolName));
         }
 
         private String toJavaExpression(String value) {
@@ -635,7 +1325,19 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (trimmed.equalsIgnoreCase("TRUE") || trimmed.equalsIgnoreCase("FALSE")) {
                 return trimmed.toLowerCase(Locale.ROOT);
             }
-            return String.format(Locale.ROOT, "input.get%s()", toPascal(trimmed));
+            String alias = variableAliases.get(trimmed.toUpperCase(Locale.ROOT));
+            if (alias != null) {
+                return alias;
+            }
+            String upper = stripSubscripts(trimmed).toUpperCase(Locale.ROOT);
+            String pascal = toPascal(stripSubscripts(trimmed));
+            if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)) {
+                return UNRESOLVED_MARKER + trimmed;
+            }
+            if (assignedVariables.contains(upper)) {
+                return currentOutputVar + ".get" + pascal + "()";
+            }
+            return String.format(Locale.ROOT, "input.get%s()", pascal);
         }
 
         private String toPascal(String cobolName) {

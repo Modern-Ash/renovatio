@@ -254,7 +254,33 @@ public final class CobolIrIdentityProjector {
                 "elseStatements", identityBearing(v.elseStatements()).map(this::statement).toList());
         if (value instanceof EvaluateStatement v) return map("expression", v.expression(),
                 "branches", v.branches().stream().map(this::evaluateBranch).toList());
-        if (value instanceof PerformStatement v) return map("paragraph", v.paragraph(), "throughParagraph", v.throughParagraph());
+        if (value instanceof PerformStatement v) {
+            Map<String, Object> fields = new LinkedHashMap<>();
+            fields.put("paragraph", v.paragraph());
+            fields.put("throughParagraph", v.throughParagraph());
+            if (v.varyingVariable() != null) fields.put("varyingVariable", v.varyingVariable());
+            if (v.varyingFrom() != null) fields.put("varyingFrom", v.varyingFrom());
+            if (v.varyingBy() != null) fields.put("varyingBy", v.varyingBy());
+            if (v.untilCondition() != null) fields.put("untilCondition", v.untilCondition());
+            if (v.timesCount() != null) fields.put("timesCount", v.timesCount());
+            fields.put("testAfter", v.testAfter());
+            if (!v.varyingAfter().isEmpty()) {
+                List<Map<String, Object>> axes = new ArrayList<>();
+                for (PerformStatement.VaryingAxis axis : v.varyingAfter()) {
+                    Map<String, Object> axisFields = new LinkedHashMap<>();
+                    axisFields.put("variable", axis.variable());
+                    axisFields.put("from", axis.from());
+                    if (axis.by() != null) axisFields.put("by", axis.by());
+                    if (axis.until() != null) axisFields.put("until", axis.until());
+                    axes.add(axisFields);
+                }
+                fields.put("varyingAfter", axes);
+            }
+            if (v.isInline()) {
+                fields.put("inlineBody", identityBearing(v.inlineBody()).map(this::statement).toList());
+            }
+            return fields;
+        }
         if (value instanceof CallStatement v) return map("target", v.target(), "arguments", v.arguments());
         if (value instanceof Db2Statement v) return map("sql", v.sql());
         if (value instanceof FileOperationStatement v) return map("operationType", v.operationType().name(), "fileName", v.fileName());

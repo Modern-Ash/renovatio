@@ -10,26 +10,29 @@ Run: `mvn -pl renovatio-provider-cobol test -Dgroups=coverage -Drenovatio.surefi
 | --- | --- |
 | COBOL programs | 44 |
 | Parse OK | 44 |
-| Emit Java OK | 32 |
-| Generated Java compiles | 11 |
+| Emit Java OK | 44 |
+| Generated Java compiles | 17 |
 | Copybooks | 62 |
 
 ## By subsystem
 
 | Subsystem | Programs | Parse | Emit | Compile |
 | --- | --: | --: | --: | --: |
-| batch | 14 | 14 | 14 | 10 |
-| cics-online | 19 | 19 | 11 | 0 |
-| db2 | 3 | 3 | 3 | 1 |
-| ims-mq | 8 | 8 | 4 | 0 |
+| batch | 14 | 14 | 14 | 8 |
+| cics-online | 19 | 19 | 19 | 5 |
+| db2 | 3 | 3 | 3 | 3 |
+| ims-mq | 8 | 8 | 8 | 1 |
 
 ## Constructs not translated today (pipeline evidence from emitted Java, D3)
 
 | Construct | Programs | Evidence |
 | --- | --: | --: |
-| `READ` | 2 | 2 |
-| `WRITE` | 2 | 18 |
-| `CLOSE` | 1 | 7 |
+| `CALL` | 9 | 19 |
+| `READ` | 6 | 13 |
+| `CLOSE` | 5 | 23 |
+| `OPEN` | 5 | 23 |
+| `WRITE` | 4 | 52 |
+| `REWRITE` | 1 | 2 |
 
 ## E2E candidates for issue #216 (simplest batch programs)
 
@@ -41,73 +44,79 @@ Run: `mvn -pl renovatio-provider-cobol test -Dgroups=coverage -Drenovatio.surefi
 
 | Program | Error |
 | --- | --- |
-| `CBEXPORT` | `CbexportServiceImpl.java:41: error: ';' expected           output.setExpCustAddrLine(1)(input.getCustAddrLine1());                                       ^ CbexportServiceImpl.java:41: error: ';' expec…` |
-| `CBIMPORT` | `CbimportServiceImpl.java:57: error: ')' or ',' expected           output.setCustAddrLine1(input.getExpCustAddrLine(1)());                                                              ^ CbimportService…` |
+| `CBACT01C` | `Cbact01cServiceImpl.java:102: error: cannot find symbol         out.setArrAcctCurrCycDebit(100500);            ^   symbol:   method setArrAcctCurrCycDebit(int)   location: variable out of type Cbact01…` |
+| `CBCUS01C` | `Cbcus01cServiceImpl.java:45: error: cannot find symbol         out.setTiming(0);            ^   symbol:   method setTiming(int)   location: variable out of type Cbcus01cDTO Cbcus01cServiceImpl.java:46…` |
+| `CBEXPORT` | `CbexportServiceImpl.java:129: error: cannot find symbol         System.out.println("CBEXPORT: XRefs Exported: " + out.getWsXrefRecordsExported());                                                      …` |
+| `CBIMPORT` | `CbimportServiceImpl.java:95: error: cannot find symbol         System.out.println("CBIMPORT: XRefs Imported: " + out.getWsXrefRecordsImported());                                                       …` |
 | `CBPAUP0C` | `Cbpaup0cDTO.java:29: error: variable filler is already defined in class Cbpaup0cDTO   private String filler;                  ^ Cbpaup0cDTO.java:33: error: variable filler is already defined in class …` |
 | `CBSTM03A` | `Cbstm03aDTO.java:64: error: variable filler is already defined in class Cbstm03aDTO   private String filler;                  ^ Cbstm03aDTO.java:74: error: variable filler is already defined in class …` |
-| `CBTRN01C` | `Cbtrn01cServiceImpl.java:24: error: cannot find symbol           if (input.getEndOfDailyTransFile() == "N") {                    ^   symbol:   method getEndOfDailyTransFile()   location: variable inpu…` |
-| `COACCT01` | `Coacct01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Coacct01CicsControl…` |
-| `COACTVWC` | `CoactvwcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CoactvwcCicsControl…` |
-| `COADM01C` | `Coadm01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Coadm01cCicsControl…` |
-| `COCRDLIC` | `CocrdlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CocrdlicCicsControl…` |
-| `COCRDSLC` | `CocrdslcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CocrdslcCicsControl…` |
-| `COCRDUPC` | `CocrdupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CocrdupcCicsControl…` |
-| `CODATE01` | `Codate01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Codate01CicsControl…` |
-| `COPAUA0C` | `Copaua0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Copaua0cCicsControl…` |
-| `COPAUS2C` | `Copaus2cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Copaus2cCicsControl…` |
-| `COSGN00C` | `Cosgn00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cosgn00cCicsControl…` |
-| `COTRN00C` | `Cotrn00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cotrn00cCicsControl…` |
-| `COTRTLIC` | `CotrtlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CotrtlicCicsControl…` |
-| `COTRTUPC` | `CotrtupcCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> 04530000(@RequestBody Map<String, Object> payload) {                                  ^ CotrtupcCicsContr…` |
-| `COUSR00C` | `Cousr00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cousr00cCicsControl…` |
-| `COUSR01C` | `Cousr01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cousr01cCicsControl…` |
+| `CBTRN01C` | `Cbtrn01cServiceImpl.java:23: error: cannot find symbol           while (!(input.getEndOfDailyTransFile() == "Y")) {                         ^   symbol:   method getEndOfDailyTransFile()   location: va…` |
+| `COACTUPC` | `CoactupcDTO.java:34: error: variable filler is already defined in class CoactupcDTO   private String filler;                  ^ CoactupcDTO.java:38: error: variable filler is already defined in class …` |
+| `COBIL00C` | `Cobil00cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cobil00cDTO Cobil…` |
+| `COCRDSLC` | `CocrdslcDTO.java:38: error: variable filler is already defined in class CocrdslcDTO   private String filler;                  ^ CocrdslcDTO.java:173: error: method getFiller() is already defined in cl…` |
+| `COCRDUPC` | `CocrdupcDTO.java:51: error: variable filler is already defined in class CocrdupcDTO   private String filler;                  ^ CocrdupcDTO.java:109: error: variable filler is already defined in class…` |
+| `COMEN01C` | `Comen01cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Comen01cDTO Comen…` |
+| `COPAUA0C` | `Copaua0cServiceImpl.java:48: error: cannot find symbol           output.setPaRqTransactionAmt(null);                 ^   symbol:   method setPaRqTransactionAmt(<null>)   location: variable output of t…` |
+| `COPAUS0C` | `Copaus0cServiceImpl.java:17: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Copaus0cDTO Copau…` |
+| `COPAUS1C` | `Copaus1cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Copaus1cDTO Copau…` |
+| `CORPT00C` | `Corpt00cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Corpt00cDTO Corpt…` |
+| `COSGN00C` | `Cosgn00cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cosgn00cDTO Cosgn…` |
+| `COTRN00C` | `Cotrn00cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cotrn00cDTO Cotrn…` |
+| `COTRN01C` | `Cotrn01cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cotrn01cDTO Cotrn…` |
+| `COTRN02C` | `Cotrn02cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cotrn02cDTO Cotrn…` |
+| `COUSR00C` | `Cousr00cDTO.java:16: error: variable filler is already defined in class Cousr00cDTO   private String filler;                  ^ Cousr00cDTO.java:20: error: variable filler is already defined in class …` |
+| `COUSR01C` | `Cousr01cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cousr01cDTO Cousr…` |
+| `COUSR02C` | `Cousr02cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cousr02cDTO Cousr…` |
+| `COUSR03C` | `Cousr03cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg("N");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cousr03cDTO Cousr…` |
 | `DBUNLDGS` | `DbunldgsDTO.java:36: error: variable filler is already defined in class DbunldgsDTO   private String filler;                  ^ DbunldgsDTO.java:40: error: variable filler is already defined in class …` |
+| `PAUDBLOD` | `PaudblodServiceImpl.java:46: error: ')' or ',' expected           System.out.println("TODAYS DATE            :" + input.getCurrentDate() + 01790043);                                                   …` |
+| `PAUDBUNL` | `PaudbunlServiceImpl.java:43: error: ')' or ',' expected           System.out.println("TODAYS DATE            :" + input.getCurrentDate() + 01790043);                                                   …` |
 
 ## Per program
 
 | Program | Subsystem | LOC | Parse | Emit | Compile | Java files | Action items | TODO | Unhandled | Not translated | Present (lexical) |
 | --- | --- | --: | :-: | :-: | :-: | --: | --: | --: | --: | --: | --- |
-| `CBACT01C` | batch | 430 | yes | yes | yes | 3 | 47 | 0 | 0 | 0 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT, WRITE |
+| `CBACT01C` | batch | 430 | yes | yes | no | 3 | 28 | 0 | 0 | 45 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT, VARYING, WRITE |
 | `CBACT02C` | batch | 178 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT |
 | `CBACT03C` | batch | 178 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT |
 | `CBACT04C` | batch | 652 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ, REWRITE, STRING, WRITE |
-| `CBCUS01C` | batch | 178 | yes | yes | yes | 3 | 13 | 0 | 0 | 0 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT |
-| `CBEXPORT` | batch | 582 | yes | yes | no | 3 | 80 | 0 | 0 | 18 | ACCEPT, ADD, CALL, CLOSE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, STRING, WRITE |
-| `CBIMPORT` | batch | 487 | yes | yes | no | 3 | 60 | 0 | 0 | 54 | ADD, CALL, CLOSE, DISPLAY, EVALUATE, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, WRITE |
-| `CBPAUP0C` | ims-mq | 386 | yes | yes | no | 3 | 80 | 0 | 0 | 2 | ACCEPT, ADD, COMPUTE, DISPLAY, EVALUATE, EXEC DLI, GOBACK, IF, MOVE, PERFORM, READ, SET, SUBTRACT |
-| `CBSTM03A` | batch | 924 | yes | yes | no | 3 | 40 | 0 | 0 | 11 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, DISPLAY, EVALUATE, GO TO, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, SET, STRING, WRITE |
-| `CBSTM03B` | batch | 230 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 | CLOSE, EVALUATE, GO TO, GOBACK, IF, MOVE, OPEN, PERFORM, READ |
-| `CBTRN01C` | batch | 494 | yes | yes | no | 3 | 40 | 0 | 0 | 2 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ |
+| `CBCUS01C` | batch | 178 | yes | yes | no | 3 | 7 | 0 | 0 | 8 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT |
+| `CBEXPORT` | batch | 582 | yes | yes | no | 3 | 95 | 0 | 0 | 161 | ACCEPT, ADD, CALL, CLOSE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, STRING, WRITE |
+| `CBIMPORT` | batch | 487 | yes | yes | no | 3 | 62 | 0 | 0 | 130 | ADD, CALL, CLOSE, DISPLAY, EVALUATE, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, WRITE |
+| `CBPAUP0C` | ims-mq | 386 | yes | yes | no | 3 | 64 | 0 | 0 | 73 | ACCEPT, ADD, COMPUTE, DISPLAY, EVALUATE, EXEC DLI, GOBACK, IF, MOVE, PERFORM, READ, SET, SUBTRACT |
+| `CBSTM03A` | batch | 924 | yes | yes | no | 3 | 54 | 0 | 0 | 57 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, DISPLAY, EVALUATE, GO TO, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, SET, STRING, VARYING, WRITE |
+| `CBSTM03B` | batch | 230 | yes | yes | yes | 3 | 13 | 0 | 0 | 17 | CLOSE, EVALUATE, GO TO, GOBACK, IF, MOVE, OPEN, PERFORM, READ |
+| `CBTRN01C` | batch | 494 | yes | yes | no | 3 | 27 | 0 | 0 | 67 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ |
 | `CBTRN02C` | batch | 731 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, REWRITE, WRITE |
 | `CBTRN03C` | batch | 649 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, EVALUATE, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT, WRITE |
-| `COACCT01` | cics-online | 620 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ADD, CALL, COMPUTE, DISPLAY, EVALUATE, EXEC CICS, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, STRING |
-| `COACTUPC` | cics-online | 4236 | yes | no | no | 0 | 0 | 0 | 0 | 0 | ACCEPT, COMPUTE, CONTINUE, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, INSPECT, MOVE, OPEN, PERFORM, READ, REWRITE, SEARCH, SET, STRING, WRITE |
-| `COACTVWC` | cics-online | 941 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ACCEPT, DISPLAY, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, MOVE, PERFORM, READ, SEARCH, SET, STRING |
-| `COADM01C` | cics-online | 288 | yes | yes | no | 4 | 11 | 0 | 0 | 11 | CONTINUE, EVALUATE, EXEC CICS, IF, INSPECT, MOVE, PERFORM, SET, STRING |
-| `COBIL00C` | cics-online | 572 | yes | no | no | 0 | 0 | 0 | 0 | 0 | ADD, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, INITIALIZE, MOVE, PERFORM, READ, REWRITE, SET, STRING, WRITE |
+| `COACCT01` | cics-online | 620 | yes | yes | yes | 4 | 0 | 0 | 0 | 0 | ADD, CALL, COMPUTE, DISPLAY, EVALUATE, EXEC CICS, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, STRING |
+| `COACTUPC` | cics-online | 4236 | yes | yes | no | 4 | 1459 | 0 | 0 | 1032 | ACCEPT, COMPUTE, CONTINUE, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, INSPECT, MOVE, OPEN, PERFORM, READ, REWRITE, SEARCH, SET, STRING, WRITE |
+| `COACTVWC` | cics-online | 941 | yes | yes | yes | 4 | 0 | 0 | 0 | 0 | ACCEPT, DISPLAY, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, MOVE, PERFORM, READ, SEARCH, SET, STRING |
+| `COADM01C` | cics-online | 288 | yes | yes | yes | 4 | 11 | 0 | 0 | 13 | CONTINUE, EVALUATE, EXEC CICS, IF, INSPECT, MOVE, PERFORM, SET, STRING, VARYING |
+| `COBIL00C` | cics-online | 572 | yes | yes | no | 4 | 153 | 0 | 0 | 151 | ADD, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, INITIALIZE, MOVE, PERFORM, READ, REWRITE, SET, STRING, WRITE |
 | `COBSWAIT` | batch | 41 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 | ACCEPT, CALL, MOVE, STOP RUN |
 | `COBTUPDT` | db2 | 237 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 | CLOSE, DISPLAY, EVALUATE, EXEC SQL, IF, MOVE, OPEN, PERFORM, READ, SET, STOP RUN, STRING |
-| `COCRDLIC` | cics-online | 1459 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ADD, CALL, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, INSPECT, MOVE, PERFORM, READ, SEARCH, SET, SUBTRACT |
+| `COCRDLIC` | cics-online | 1459 | yes | yes | yes | 4 | 0 | 0 | 0 | 0 | ADD, CALL, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, INSPECT, MOVE, PERFORM, READ, SEARCH, SET, SUBTRACT, VARYING |
 | `COCRDSLC` | cics-online | 887 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ACCEPT, DISPLAY, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, MOVE, PERFORM, READ, SEARCH, SET |
 | `COCRDUPC` | cics-online | 1560 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ACCEPT, CONTINUE, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, INSPECT, MOVE, PERFORM, READ, REWRITE, SEARCH, SET, STRING |
-| `CODATE01` | cics-online | 524 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ADD, CALL, COMPUTE, DISPLAY, EVALUATE, EXEC CICS, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, SET, STRING |
-| `COMEN01C` | cics-online | 308 | yes | no | no | 0 | 0 | 0 | 0 | 0 | CONTINUE, EVALUATE, EXEC CICS, IF, INSPECT, MOVE, PERFORM, SET, STRING |
-| `COPAUA0C` | ims-mq | 1026 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, STRING, UNSTRING |
-| `COPAUS0C` | ims-mq | 1032 | yes | no | no | 0 | 0 | 0 | 0 | 0 | COMPUTE, CONTINUE, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, PERFORM, READ, SET, STRING |
-| `COPAUS1C` | ims-mq | 604 | yes | no | no | 0 | 0 | 0 | 0 | 0 | DISPLAY, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, PERFORM, SEARCH, SET, STRING |
-| `COPAUS2C` | ims-mq | 244 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ADD, COMPUTE, EXEC CICS, EXEC SQL, IF, MOVE, PERFORM, SET, STRING |
-| `CORPT00C` | cics-online | 649 | yes | no | no | 0 | 0 | 0 | 0 | 0 | ADD, CALL, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, MOVE, PERFORM, SET, STRING, WRITE |
-| `COSGN00C` | cics-online | 260 | yes | yes | no | 4 | 62 | 0 | 0 | 266 | CONTINUE, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, READ, SET |
-| `COTRN00C` | cics-online | 699 | yes | yes | no | 4 | 122 | 0 | 0 | 3374 | COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, SET, SUBTRACT |
-| `COTRN01C` | cics-online | 330 | yes | no | no | 0 | 0 | 0 | 0 | 0 | CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, READ, SET |
-| `COTRN02C` | cics-online | 783 | yes | no | no | 0 | 0 | 0 | 0 | 0 | ADD, CALL, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, INITIALIZE, MOVE, PERFORM, READ, SET, STRING, WRITE |
-| `COTRTLIC` | db2 | 2098 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, EXEC SQL, GO TO, IF, INITIALIZE, INSPECT, MOVE, OPEN, PERFORM, READ, SEARCH, SET, STRING, SUBTRACT |
-| `COTRTUPC` | db2 | 1702 | yes | yes | no | 4 | 0 | 0 | 0 | 0 | ACCEPT, ADD, COMPUTE, CONTINUE, EVALUATE, EXEC CICS, EXEC SQL, GO TO, IF, INITIALIZE, INSPECT, MOVE, PERFORM, READ, SEARCH, SET, STRING, WRITE |
-| `COUSR00C` | cics-online | 695 | yes | yes | no | 4 | 121 | 0 | 0 | 3286 | COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, SET, SUBTRACT |
-| `COUSR01C` | cics-online | 299 | yes | yes | no | 4 | 73 | 0 | 0 | 409 | ADD, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, SET, STRING, WRITE |
-| `COUSR02C` | cics-online | 414 | yes | no | no | 0 | 0 | 0 | 0 | 0 | CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, READ, REWRITE, SET, STRING |
-| `COUSR03C` | cics-online | 359 | yes | no | no | 0 | 0 | 0 | 0 | 0 | CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, READ, SET, STRING |
+| `CODATE01` | cics-online | 524 | yes | yes | yes | 4 | 0 | 0 | 0 | 0 | ADD, CALL, COMPUTE, DISPLAY, EVALUATE, EXEC CICS, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, SET, STRING |
+| `COMEN01C` | cics-online | 308 | yes | yes | no | 4 | 68 | 0 | 0 | 81 | CONTINUE, EVALUATE, EXEC CICS, IF, INSPECT, MOVE, PERFORM, SET, STRING, VARYING |
+| `COPAUA0C` | ims-mq | 1026 | yes | yes | no | 4 | 285 | 0 | 0 | 303 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, STRING, UNSTRING |
+| `COPAUS0C` | ims-mq | 1032 | yes | yes | no | 4 | 223 | 0 | 0 | 241 | COMPUTE, CONTINUE, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, PERFORM, READ, SET, STRING, VARYING |
+| `COPAUS1C` | ims-mq | 604 | yes | yes | no | 4 | 96 | 0 | 0 | 101 | DISPLAY, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, PERFORM, SEARCH, SET, STRING |
+| `COPAUS2C` | ims-mq | 244 | yes | yes | yes | 4 | 0 | 0 | 0 | 0 | ADD, COMPUTE, EXEC CICS, EXEC SQL, IF, MOVE, PERFORM, SET, STRING |
+| `CORPT00C` | cics-online | 649 | yes | yes | no | 4 | 139 | 0 | 0 | 74 | ADD, CALL, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, MOVE, PERFORM, SET, STRING, VARYING, WRITE |
+| `COSGN00C` | cics-online | 260 | yes | yes | no | 4 | 62 | 0 | 0 | 79 | CONTINUE, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, READ, SET |
+| `COTRN00C` | cics-online | 699 | yes | yes | no | 4 | 122 | 0 | 0 | 197 | COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, SET, SUBTRACT, VARYING |
+| `COTRN01C` | cics-online | 330 | yes | yes | no | 4 | 87 | 0 | 0 | 87 | CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, READ, SET |
+| `COTRN02C` | cics-online | 783 | yes | yes | no | 4 | 194 | 0 | 0 | 169 | ADD, CALL, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, INITIALIZE, MOVE, PERFORM, READ, SET, STRING, WRITE |
+| `COTRTLIC` | db2 | 2098 | yes | yes | yes | 4 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, EXEC SQL, GO TO, IF, INITIALIZE, INSPECT, MOVE, OPEN, PERFORM, READ, SEARCH, SET, STRING, SUBTRACT, VARYING |
+| `COTRTUPC` | db2 | 1702 | yes | yes | yes | 4 | 0 | 0 | 0 | 0 | ACCEPT, ADD, COMPUTE, CONTINUE, EVALUATE, EXEC CICS, EXEC SQL, GO TO, IF, INITIALIZE, INSPECT, MOVE, PERFORM, READ, SEARCH, SET, STRING, WRITE |
+| `COUSR00C` | cics-online | 695 | yes | yes | no | 4 | 121 | 0 | 0 | 211 | COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, SET, SUBTRACT, VARYING |
+| `COUSR01C` | cics-online | 299 | yes | yes | no | 4 | 73 | 0 | 0 | 77 | ADD, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, SET, STRING, WRITE |
+| `COUSR02C` | cics-online | 414 | yes | yes | no | 4 | 94 | 0 | 0 | 97 | CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, READ, REWRITE, SET, STRING |
+| `COUSR03C` | cics-online | 359 | yes | yes | no | 4 | 85 | 0 | 0 | 90 | CONTINUE, DISPLAY, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, READ, SET, STRING |
 | `CSUTLDTC` | batch | 157 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 | CALL, DISPLAY, EVALUATE, GOBACK, INITIALIZE, MOVE, PERFORM, STRING |
 | `DBUNLDGS` | ims-mq | 366 | yes | yes | no | 3 | 0 | 0 | 0 | 0 | ACCEPT, ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, WRITE |
-| `PAUDBLOD` | ims-mq | 369 | yes | no | no | 0 | 0 | 0 | 0 | 0 | ACCEPT, ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ |
-| `PAUDBUNL` | ims-mq | 317 | yes | no | no | 0 | 0 | 0 | 0 | 0 | ACCEPT, ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, WRITE |
+| `PAUDBLOD` | ims-mq | 369 | yes | yes | no | 3 | 113 | 0 | 0 | 112 | ACCEPT, ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ |
+| `PAUDBUNL` | ims-mq | 317 | yes | yes | no | 3 | 98 | 0 | 0 | 71 | ACCEPT, ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, WRITE |

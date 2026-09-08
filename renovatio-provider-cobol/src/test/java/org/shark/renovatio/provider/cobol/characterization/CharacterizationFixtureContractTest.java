@@ -39,12 +39,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CharacterizationFixtureContractTest {
     private static final List<String> FIXTURES = List.of(
             "move-numeric", "move-alphanumeric-boundaries", "compute-decimal-sign", "if-nested",
-            "evaluate-level-88", "perform-simple-nested", "goto-reducible", "goto-irreducible",
+            "evaluate-level-88", "perform-simple-nested", "perform-thru", "perform-times",
+            "perform-until", "perform-until-after", "perform-varying", "perform-varying-after",
+            "perform-inline",
+            "goto-reducible", "goto-irreducible",
             "redefines-overlap", "odo-valid-boundary", "odo-invalid-count", "unsupported-construct",
             "data-intent-redefines", "initialize-set-level88");
     /* Only fixtures exercised end-to-end by today's production translator may be admitted here. */
     private static final Set<String> SUPPORTED =
-            Set.of("move-numeric", "data-intent-redefines", "initialize-set-level88");
+            Set.of("move-numeric", "data-intent-redefines", "initialize-set-level88",
+                    "perform-simple-nested", "perform-thru", "perform-times",
+                    "perform-until", "perform-until-after", "perform-varying", "perform-varying-after",
+                    "perform-inline");
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final CobolIntermediateModelService modelService = new CobolIntermediateModelService();
@@ -109,7 +115,7 @@ class CharacterizationFixtureContractTest {
     }
 
     @Test
-    void defaultF1EnvelopeIsByteCompatibleAcrossAllThirteenFixtures() throws Exception {
+    void defaultF1EnvelopeIsByteCompatibleAcrossAllFixtures() throws Exception {
         var effective = new DecisionResolver().resolve(MigrationProfiles.emptyOverlay(), List.of());
         assertThat(effective.profile()).isEqualTo(MigrationProfiles.defaults());
         assertThat(effective.resolvedDecisions()).hasSize(7);
