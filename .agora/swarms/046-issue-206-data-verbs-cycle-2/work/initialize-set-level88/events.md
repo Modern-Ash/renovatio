@@ -51,3 +51,4 @@
 - 2026-09-08T15:01:38.738739Z | work.criterion-stage-marked | criterion=coverage-delta actor=project:owner stage=accepted
 - 2026-09-08T15:01:39.063096Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=accepted
 - 2026-09-08T15:01:43.238964Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-08T15:02:06.303416Z | work.transitioned | from=verifying to=completed actor=project:owner

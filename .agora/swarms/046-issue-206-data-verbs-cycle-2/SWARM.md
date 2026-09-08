@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "issue-206-data-verbs-cycle-2"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/issue-206-cycle2"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
