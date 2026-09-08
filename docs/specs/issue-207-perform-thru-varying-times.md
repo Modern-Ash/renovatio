@@ -4,9 +4,8 @@
 - **Work item:** `perform-thru-varying-times`
 - **Issue:** https://github.com/Modern-Ash/renovatio/issues/207
 - **Método:** spec-driven
-- **Estado:** `verifying` — 9/10 criterios satisfechos; 1 gap conocido diferido a #216 (ver
-  «Estado y gaps conocidos»)
-- **Revisión:** 0002
+- **Estado:** `verifying` — 10/10 criterios satisfechos
+- **Revisión:** 0003
 - **Artefactos que se mantienen en sync:** este documento,
   `docs/plans/issue-207-perform-thru-varying-times.md`,
   `.../work/perform-thru-varying-times/WORK.md` (criterios/estados),
@@ -62,8 +61,8 @@ orden `MAIN → OUTER-PARA → INNER-PARA`, lo cual sólo es demostrable con lla
   y `VARYING` con `AFTER`, con Java esperado y comportamiento.
 - El Java generado tiene un método por párrafo referenciado, sin duplicación de cuerpo.
 - `perform-simple-nested` (fixture existente) queda verde observando `MAIN → OUTER-PARA → INNER-PARA`.
-- Un programa del corpus CardDemo con `PERFORM VARYING` produce Java que compila; el pase de
-  golden-master se valida en #216, último del lote.
+- Al menos un programa del corpus CardDemo con `PERFORM VARYING` produce Java que compila; el
+  reporte de cobertura hace fallar el test si este contrato deja de cumplirse.
 - Recursión detectada → `ManualActionItem`, sin bucle infinito en generación.
 - Permanecen verdes `renovatio-cobol-ir`, `cobol-openrewrite-recipes` y `renovatio-provider-cobol`.
 
@@ -76,37 +75,22 @@ orden `MAIN → OUTER-PARA → INNER-PARA`, lo cual sólo es demostrable con lla
 - Robustez de la extracción léxica de WORKING-STORAGE para el DTO (`WS_FIELD_PATTERN`:
   `USAGE IS COMP-3.` en línea siguiente, cláusula `BINARY`, literales decimales) — follow-up
   preexistente, ajeno a PERFORM.
-- Dependencia `spring-web` en el harness de compilación (necesaria para los programas CICS que
-  importan `org.springframework.http.ResponseEntity`) — follow-up de infraestructura.
 
-## Estado y gaps conocidos
+## Estado del cierre
 
-Al cierre de la revisión 0002 la rama satisface **9/10** criterios. El único pendiente
-(`carddemo-compiles`) depende de dos follow-ups preexistentes ajenos a `PERFORM` y su pase
-E2E está formalmente asignado a #216.
+Al cierre de la revisión 0003 la rama satisface **10/10** criterios. El harness de compilación
+incluye `spring-web` con scope de test para compilar los controladores CICS generados y
+`CardDemoCoverageReportTest` exige explícitamente que al menos un programa del corpus que contenga
+`VARYING` compile.
 
-### Cerrado en la revisión 0002
+### Resultado CardDemo
 
-- `looping-variants` — `PERFORM VARYING ... AFTER` (ejes secundarios) se representa en el IR
-  (`PerformStatement.varyingAfter`, `List<VaryingAxis>`) con su entrada en
-  `cobol-ir.v1.schema.json`, se parsea en `SimpleCobolIrParser` (patrón `PERFORM_AFTER`,
-  peel-off antes del `UNTIL` primario) y se renderiza como bucles `for` anidados
-  (`PopulateCobolProcessRecipe.varyingLoop`, innermost = último `AFTER`).
-- `characterization` — nuevos fixtures `perform-until-after` (`do { } while`) y
-  `perform-varying-after` (bucles anidados), con `expected.java` que compila y
-  `expected-behavior.json`; ambos admitidos como `SUPPORTED` en
-  `CharacterizationFixtureContractTest`.
-
-### Gap pendiente
-
-| Gap | Criterio | Causa | Cierre |
-|-----|----------|-------|--------|
-| Ningún programa CardDemo con `VARYING` compila | `carddemo-compiles` | Causas **preexistentes ajenas a PERFORM**: (a) CICS bloqueado por falta de `spring-web`; (b) CBACT01C a 4 errores de extracción de DTO (`COMP-3` en línea siguiente, `BINARY`, literal entero vs `BigDecimal`); (c) CBSTM03A con `filler` duplicados. | Follow-ups: generalizar `WS_FIELD_PATTERN`; añadir `spring-web` al harness. Pase E2E → #216. |
-
-Cobertura actual (evidencia): **44/44 parse · 44/44 emit · 9/44 compila** (baseline del lote:
-32 emit / 11 compila; el pico de regresión intermedio 44/21/8 quedó resuelto por el guardrail).
-El añadido de `AFTER` no cambia la cobertura CardDemo (ningún programa del corpus con `VARYING`
-compila todavía por las causas de arriba).
+- Cobertura: **44/44 parse · 44/44 emit · 17/44 compila**.
+- Compilan tres programas que contienen `PERFORM VARYING`: `COADM01C`, `COCRDLIC` y `COTRTLIC`.
+- La lista `present` del reporte incluye ahora el token `VARYING`, de modo que el criterio se
+  deriva del corpus analizado y no de una lista manual de programas.
+- Los gaps de extracción DTO que aún afectan otros programas permanecen fuera del alcance de
+  este issue y ya no bloquean su criterio de aceptación.
 
 ## Mapeo criterio → evidencia
 
@@ -122,7 +106,7 @@ Los 10 criterios formales viven en `WORK.md`. Estado y evidencia:
 | `traceability` | ✅ satisfecho | `@GeneratedFrom` en métodos `performX`; `PopulateCobolProcessRecipeTest` |
 | `characterization` | ✅ satisfecho | 7 fixtures: `perform-simple-nested`, `-thru`, `-times`, `-until`, `-until-after`, `-varying`, `-varying-after` (todos `SUPPORTED`, con `expected.java` que compila y comportamiento verificado) |
 | `nested-green` | ✅ satisfecho | `CharacterizationFixtureContractTest` (`perform-simple-nested` verde) |
-| `carddemo-compiles` | ❌ pendiente (→ #216) | `docs/reports/carddemo-coverage.md` 44/44/9; ver «Estado y gaps conocidos» |
+| `carddemo-compiles` | ✅ satisfecho | `CardDemoCoverageReportTest` exige ≥1 programa con `VARYING` compilable; reporte 44/44/17 con `COADM01C`, `COCRDLIC` y `COTRTLIC` verdes |
 | `regression-green` | ✅ satisfecho | IR 84 · recipes 34 · provider-cobol verdes; `git diff --check` limpio |
 
 Evidencia registrada en el work item:
@@ -139,3 +123,6 @@ informe `docs/reports/issue-207-perform-thru-varying-times-verification.md`.
   ... AFTER` en IR + schema + parser + render como bucles anidados; fixtures `perform-until-after`
   y `perform-varying-after`. 9/10 criterios; sólo `carddemo-compiles` queda pendiente, diferido
   formalmente a #216.
+- **0003** (2026-09-08) — Cierre de `carddemo-compiles`: `spring-web` disponible en el harness,
+  detección explícita de `VARYING` en el reporte y aserción de aceptación. Cobertura 44/44/17;
+  `COADM01C`, `COCRDLIC` y `COTRTLIC` compilan. 10/10 criterios satisfechos.

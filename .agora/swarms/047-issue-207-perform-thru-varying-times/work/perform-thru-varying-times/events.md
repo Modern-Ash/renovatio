@@ -38,3 +38,5 @@
 - 2026-09-08T19:11:38.891876Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-09-08T19:11:50.422951Z | evidence.added | id=evidence-000001 type=verification-report result=success revision=1 actor=project:agent
 - 2026-09-08T19:11:53.238998Z | evidence.added | id=evidence-000002 type=coverage-report result=success revision=1 actor=project:agent
+- 2026-09-08T22:00:37.060447Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-08T22:05:06.540319Z | work.criterion-stage-marked | criterion=carddemo-compiles actor=project:agent stage=implemented

@@ -48,3 +48,12 @@
   `for` por eje; los `AFTER` se anidan de dentro hacia fuera (último `AFTER` = bucle interno).
 - Fixtures nuevos: `perform-until-after` (`do { } while`), `perform-varying-after` (anidado),
   ambos `SUPPORTED` en `CharacterizationFixtureContractTest`.
+
+## Addendum — revisión 0003 (`carddemo-compiles`)
+
+- Añadir `spring-web` con scope `test` al harness del provider para que `javac` pueda resolver
+  `ResponseEntity` en los controladores CICS generados.
+- Incluir `VARYING` en el inventario léxico de `CardDemoCoverageReportTest`.
+- Convertir el criterio en un gate ejecutable: el test falla si no existe al menos un programa
+  CardDemo con `VARYING` cuyo Java generado compile.
+- Regenerar los reportes de cobertura y registrar evidencia contra el commit implementado.
