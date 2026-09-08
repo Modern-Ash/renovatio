@@ -19,8 +19,6 @@ import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
 
 import javax.tools.ToolProvider;
-import java.io.StringWriter;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,8 +47,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Tag("coverage")
 class CardDemoCoverageReportTest {
 
-    private static final Path CORPUS = Path.of("src/test/resources/corpus/carddemo");
     private static final Path REPORT_DIR = Path.of("..", "docs", "reports");
+
+    /** Resolve the CardDemo corpus regardless of the Maven working directory (module root or repo root). */
+    private static final Path CORPUS = resolveCorpus(Path.of("src/test/resources/corpus/carddemo"));
+
+    private static Path resolveCorpus(Path local) {
+        if (Files.isDirectory(local)) {
+            return local;
+        }
+        Path fromRoot = Path.of("renovatio-provider-cobol", "src", "test", "resources", "corpus", "carddemo");
+        return Files.isDirectory(fromRoot) ? fromRoot : local;
+    }
     private static final String TODO = "// TODO: Implement COBOL business logic";
     private static final String UNHANDLED = "// Unhandled COBOL statement";
 
@@ -74,7 +82,7 @@ class CardDemoCoverageReportTest {
     private final ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
     @Test
-    void writeCardDemoCoverageReport() throws Exception {
+    void writeCardDemoCoverageReport(@TempDir Path tempDir) throws Exception {
         assertTrue(Files.isDirectory(CORPUS), "CardDemo corpus not found at " + CORPUS.toAbsolutePath());
 
         List<Path> copybooks = walk(CORPUS, name -> name.endsWith(".cpy") || name.endsWith(".CPY"));
@@ -86,7 +94,7 @@ class CardDemoCoverageReportTest {
         List<String> duplicateProgramIds = new ArrayList<>();
 
         for (Path program : programs) {
-            Row row = analyze(program, copybooks);
+            Row row = analyze(program, copybooks, tempDir.resolve("run-" + byProgramId.size()));
             if (byProgramId.putIfAbsent(row.programId, row) != null) {
                 duplicateProgramIds.add(row.programId + " (" + row.file + ")");
             }
@@ -105,7 +113,7 @@ class CardDemoCoverageReportTest {
         assertTrue(Files.size(REPORT_DIR.resolve("carddemo-coverage.md")) > 0);
     }
 
-    private Row analyze(Path program, List<Path> copybooks) throws Exception {
+    private Row analyze(Path program, List<Path> copybooks, Path workspace) throws Exception {
         String source = Files.readString(program, StandardCharsets.UTF_8);
         Row row = new Row();
         row.file = CORPUS.relativize(program).toString().replace('\\', '/');
@@ -113,14 +121,14 @@ class CardDemoCoverageReportTest {
         row.loc = (int) source.lines().count();
         row.subsystem = classify(row.file, source);
         for (String verb : SCANNED_VERBS) {
-            int count = countOccurrences(source, verb);
+            int count = countVerb(source, verb);
             if (count > 0) {
                 row.verbsPresent.put(verb, count);
             }
         }
 
-        Path workspace = Files.createTempDirectory("carddemo-coverage-");
         try {
+            Files.createDirectories(workspace);
             Files.copy(program, workspace.resolve(program.getFileName().toString()));
             for (Path copybook : copybooks) {
                 Path target = workspace.resolve(copybook.getFileName().toString());
@@ -154,7 +162,7 @@ class CardDemoCoverageReportTest {
                             row.unhandledCount += countOccurrences(content, UNHANDLED);
                         }
                         row.manualActionItems = readActionItemCount(workspace);
-                        row.compile = compile(code);
+                        row.compile = compile(code, row);
                     } else {
                         row.emitError = shortMessage(result.getMessage());
                     }
@@ -205,6 +213,17 @@ class CardDemoCoverageReportTest {
         return count;
     }
 
+    /** Count verb occurrences as whole tokens so "MOVE" does not match inside "REMOVED" or "MOVED". */
+    private static int countVerb(String source, String verb) {
+        Pattern pattern = Pattern.compile("(?i)(?<![\\p{L}\\p{N}-])" + Pattern.quote(verb) + "(?![\\p{L}\\p{N}-])");
+        Matcher matcher = pattern.matcher(source);
+        int count = 0;
+        while (matcher.find()) {
+            count++;
+        }
+        return count;
+    }
+
     private static java.util.Optional<String> programId(String source) {
         // Strip fixed-format sequence numbers (cols 1-6) so PROGRAM-ID can be read even when the
         // program name sits on the next line. COBOL program names start with a letter.
@@ -229,7 +248,7 @@ class CardDemoCoverageReportTest {
         }
     }
 
-    private boolean compile(Map<String, String> generatedCode) {
+    private boolean compile(Map<String, String> generatedCode, Row row) {
         var compiler = ToolProvider.getSystemJavaCompiler();
         if (compiler == null) {
             return false;
@@ -247,12 +266,18 @@ class CardDemoCoverageReportTest {
                     arguments.add(file.toString());
                 }
                 Files.createDirectories(dir.resolve("classes"));
-                Writer sink = new StringWriter();
-                return compiler.run(null, null, null, arguments.toArray(String[]::new)) == 0 && sink.toString().isEmpty();
+                java.io.ByteArrayOutputStream sink = new java.io.ByteArrayOutputStream();
+                boolean success = compiler.run(null, null, sink, arguments.toArray(String[]::new)) == 0;
+                if (success) {
+                    return true;
+                }
+                row.compileError = shortMessage(new String(sink.toByteArray(), StandardCharsets.UTF_8));
+                return false;
             } finally {
                 deleteRecursively(dir);
             }
         } catch (Exception e) {
+            row.compileError = shortMessage(e);
             return false;
         }
     }
@@ -325,6 +350,9 @@ class CardDemoCoverageReportTest {
             if (row.emitError != null) {
                 node.put("emitError", row.emitError);
             }
+            if (row.compileError != null) {
+                node.put("compileError", row.compileError);
+            }
         }
 
         ObjectNode inventory = root.putObject("inventory");
@@ -389,6 +417,24 @@ class CardDemoCoverageReportTest {
         md.append("## E2E candidates for issue #216 (simplest batch programs)\n\n");
         for (JsonNode node : json.get("e2eCandidates")) {
             md.append("- `").append(node.asText()).append("`\n");
+        }
+        md.append("\n");
+
+        md.append("## Compilation failures\n\n");
+        List<JsonNode> failed = new ArrayList<>();
+        for (JsonNode node : json.get("programs")) {
+            if (node.has("compileError")) {
+                failed.add(node);
+            }
+        }
+        if (failed.isEmpty()) {
+            md.append("None — every emitted program compiled.\n");
+        } else {
+            md.append("| Program | Error |\n| --- | --- |\n");
+            for (JsonNode node : failed) {
+                md.append("| `").append(node.get("programId").asText()).append("` | `")
+                        .append(node.get("compileError").asText().replace("`", "'")).append("` |\n");
+            }
         }
         md.append("\n");
 
@@ -465,5 +511,6 @@ class CardDemoCoverageReportTest {
         int unhandledCount;
         String parseError;
         String emitError;
+        String compileError;
     }
 }

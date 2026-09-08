@@ -11,14 +11,14 @@ Run: `mvn -pl renovatio-provider-cobol test -Dgroups=coverage -Drenovatio.surefi
 | COBOL programs | 44 |
 | Parse OK | 44 |
 | Emit Java OK | 44 |
-| Generated Java compiles | 10 |
+| Generated Java compiles | 11 |
 | Copybooks | 62 |
 
 ## By subsystem
 
 | Subsystem | Programs | Parse | Emit | Compile |
 | --- | --: | --: | --: | --: |
-| batch | 14 | 14 | 14 | 9 |
+| batch | 14 | 14 | 14 | 10 |
 | cics-online | 19 | 19 | 19 | 0 |
 | db2 | 3 | 3 | 3 | 1 |
 | ims-mq | 8 | 8 | 8 | 0 |
@@ -27,42 +27,80 @@ Run: `mvn -pl renovatio-provider-cobol test -Dgroups=coverage -Drenovatio.surefi
 
 | Construct | Programs | Occurrences |
 | --- | --: | --: |
-| `READ` | 36 | 424 |
-| `SET` | 36 | 1269 |
-| `DISPLAY` | 34 | 624 |
-| `INITIALIZE` | 32 | 144 |
-| `CONTINUE` | 31 | 276 |
-| `STRING` | 24 | 258 |
-| `OPEN` | 22 | 349 |
-| `CLOSE` | 21 | 173 |
-| `GOBACK` | 19 | 27 |
-| `WRITE` | 19 | 222 |
+| `SET` | 36 | 897 |
+| `DISPLAY` | 33 | 479 |
+| `READ` | 32 | 113 |
+| `CONTINUE` | 31 | 278 |
+| `INITIALIZE` | 25 | 103 |
+| `STRING` | 24 | 125 |
+| `OPEN` | 21 | 95 |
+| `GOBACK` | 19 | 23 |
+| `CLOSE` | 18 | 63 |
+| `WRITE` | 15 | 130 |
+| `ACCEPT` | 11 | 19 |
 | `GO TO` | 10 | 186 |
-| `REWRITE` | 8 | 11 |
-| `SEARCH` | 8 | 67 |
+| `SEARCH` | 8 | 33 |
 | `INSPECT` | 7 | 21 |
-| `ACCEPT` | 6 | 14 |
+| `REWRITE` | 6 | 8 |
 | `STOP RUN` | 2 | 2 |
-| `UNSTRING` | 1 | 2 |
+| `UNSTRING` | 1 | 1 |
 
 ## E2E candidates for issue #216 (simplest batch programs)
 
+- `CBCUS01C`
+- `CBACT01C`
 - `COBSWAIT`
-- `CSUTLDTC`
-- `CBACT02C`
+
+## Compilation failures
+
+| Program | Error |
+| --- | --- |
+| `CBEXPORT` | `/tmp/carddemo-coverage-javac-1138891816078446257/CbexportServiceImpl.java:41: error: ';' expected           output.setExpCustAddrLine(1)(input.getCustAddrLine1());                                     …` |
+| `CBIMPORT` | `/tmp/carddemo-coverage-javac-12524342467415319457/CbimportServiceImpl.java:57: error: ')' or ',' expected           output.setCustAddrLine1(input.getExpCustAddrLine(1)());                             …` |
+| `CBPAUP0C` | `/tmp/carddemo-coverage-javac-13592690296836122111/Cbpaup0cDTO.java:29: error: variable filler is already defined in class Cbpaup0cDTO   private String filler;                  ^ /tmp/carddemo-coverage…` |
+| `CBSTM03A` | `/tmp/carddemo-coverage-javac-166194525680612878/Cbstm03aDTO.java:64: error: variable filler is already defined in class Cbstm03aDTO   private String filler;                  ^ /tmp/carddemo-coverage-j…` |
+| `CBTRN01C` | `/tmp/carddemo-coverage-javac-11976501293270169404/Cbtrn01cServiceImpl.java:24: error: cannot find symbol           if (input.getEndOfDailyTransFile() == "N") {                    ^   symbol:   method …` |
+| `COACCT01` | `/tmp/carddemo-coverage-javac-15981688135565463489/Coacct01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COACTUPC` | `/tmp/carddemo-coverage-javac-2077636843575340779/CoactupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COACTVWC` | `/tmp/carddemo-coverage-javac-14698237758601495907/CoactvwcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COADM01C` | `/tmp/carddemo-coverage-javac-10407700648748361507/Coadm01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COBIL00C` | `/tmp/carddemo-coverage-javac-9308402922611821623/Cobil00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COCRDLIC` | `/tmp/carddemo-coverage-javac-5117867723965141450/CocrdlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COCRDSLC` | `/tmp/carddemo-coverage-javac-2896343316791290932/CocrdslcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COCRDUPC` | `/tmp/carddemo-coverage-javac-6866547014631840545/CocrdupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `CODATE01` | `/tmp/carddemo-coverage-javac-12209529996827557274/Codate01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COMEN01C` | `/tmp/carddemo-coverage-javac-9291913318570261614/Comen01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COPAUA0C` | `/tmp/carddemo-coverage-javac-13596850329287108698/Copaua0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COPAUS0C` | `/tmp/carddemo-coverage-javac-12593864328196285598/Copaus0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COPAUS1C` | `/tmp/carddemo-coverage-javac-6238762668554195187/Copaus1cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COPAUS2C` | `/tmp/carddemo-coverage-javac-8268742924309463328/Copaus2cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `CORPT00C` | `/tmp/carddemo-coverage-javac-671195130699304536/Corpt00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {       …` |
+| `COSGN00C` | `/tmp/carddemo-coverage-javac-3788452496136864234/Cosgn00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COTRN00C` | `/tmp/carddemo-coverage-javac-3162019334431671285/Cotrn00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COTRN01C` | `/tmp/carddemo-coverage-javac-6757792584043894188/Cotrn01cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COTRN02C` | `/tmp/carddemo-coverage-javac-17899317245743960545/Cotrn02cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COTRTLIC` | `/tmp/carddemo-coverage-javac-15446196791873978532/CotrtlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COTRTUPC` | `/tmp/carddemo-coverage-javac-6077878006690746385/CotrtupcCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> 04530000(@RequestBody Map<String, Object> payload) {    …` |
+| `COUSR00C` | `/tmp/carddemo-coverage-javac-3310391418066423354/Cousr00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …` |
+| `COUSR01C` | `/tmp/carddemo-coverage-javac-13988216428478928828/Cousr01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COUSR02C` | `/tmp/carddemo-coverage-javac-10738897467491952422/Cousr02cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `COUSR03C` | `/tmp/carddemo-coverage-javac-12588455250516724502/Cousr03cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …` |
+| `DBUNLDGS` | `/tmp/carddemo-coverage-javac-5224769324442777469/DbunldgsDTO.java:36: error: variable filler is already defined in class DbunldgsDTO   private String filler;                  ^ /tmp/carddemo-coverage-…` |
+| `PAUDBLOD` | `/tmp/carddemo-coverage-javac-15738545455566223789/PaudblodDTO.java:32: error: variable filler is already defined in class PaudblodDTO   private String filler;                  ^ /tmp/carddemo-coverage…` |
+| `PAUDBUNL` | `/tmp/carddemo-coverage-javac-15218901066860226501/PaudbunlDTO.java:29: error: variable filler is already defined in class PaudbunlDTO   private String filler;                  ^ /tmp/carddemo-coverage…` |
 
 ## Per program
 
 | Program | Subsystem | LOC | Parse | Emit | Compile | Java files | Action items | TODO | Unhandled |
 | --- | --- | --: | :-: | :-: | :-: | --: | --: | --: | --: |
-| `CBACT01C` | batch | 430 | yes | yes | no | 3 | 0 | 0 | 0 |
+| `CBACT01C` | batch | 430 | yes | yes | yes | 3 | 0 | 0 | 0 |
 | `CBACT02C` | batch | 178 | yes | yes | yes | 3 | 0 | 1 | 0 |
 | `CBACT03C` | batch | 178 | yes | yes | yes | 3 | 0 | 1 | 0 |
 | `CBACT04C` | batch | 652 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `CBCUS01C` | batch | 178 | yes | yes | no | 3 | 0 | 0 | 0 |
-| `CBEXPORT` | batch | 582 | yes | yes | yes | 3 | 0 | 1 | 0 |
+| `CBCUS01C` | batch | 178 | yes | yes | yes | 3 | 0 | 0 | 0 |
+| `CBEXPORT` | batch | 582 | yes | yes | no | 3 | 0 | 0 | 0 |
 | `CBIMPORT` | batch | 487 | yes | yes | no | 3 | 0 | 0 | 0 |
-| `CBPAUP0C` | ims-mq | 386 | yes | yes | no | 3 | 0 | 1 | 0 |
+| `CBPAUP0C` | ims-mq | 386 | yes | yes | no | 3 | 0 | 0 | 0 |
 | `CBSTM03A` | batch | 924 | yes | yes | no | 3 | 0 | 0 | 0 |
 | `CBSTM03B` | batch | 230 | yes | yes | yes | 3 | 0 | 1 | 0 |
 | `CBTRN01C` | batch | 494 | yes | yes | no | 3 | 0 | 0 | 0 |
