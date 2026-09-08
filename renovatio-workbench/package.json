@@ -29,9 +29,14 @@
     "build": "npm run build:extension && npm run build:application",
     "test": "npm run test --workspace @renovatio/core-ui",
     "start": "npm run start --workspace @renovatio/workbench-browser",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium",
     "smoke": "node scripts/http-smoke.mjs",
     "hardening:audit": "node scripts/release-hardening-audit.mjs",
     "performance:budget": "node scripts/performance-budget.mjs",
     "pilot:demo": "node scripts/demo-pilot.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
   }
 }
