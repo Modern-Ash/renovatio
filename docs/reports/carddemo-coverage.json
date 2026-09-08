@@ -36,73 +36,17 @@
     }
   },
   "unsupportedConstructs" : [ {
-    "construct" : "SET",
-    "programs" : 36,
-    "occurrences" : 897
-  }, {
-    "construct" : "DISPLAY",
-    "programs" : 33,
-    "occurrences" : 479
-  }, {
     "construct" : "READ",
-    "programs" : 32,
-    "occurrences" : 113
-  }, {
-    "construct" : "CONTINUE",
-    "programs" : 31,
-    "occurrences" : 278
-  }, {
-    "construct" : "INITIALIZE",
-    "programs" : 25,
-    "occurrences" : 103
-  }, {
-    "construct" : "STRING",
-    "programs" : 24,
-    "occurrences" : 125
-  }, {
-    "construct" : "OPEN",
-    "programs" : 21,
-    "occurrences" : 95
-  }, {
-    "construct" : "GOBACK",
-    "programs" : 19,
-    "occurrences" : 23
-  }, {
-    "construct" : "CLOSE",
-    "programs" : 18,
-    "occurrences" : 63
-  }, {
-    "construct" : "WRITE",
-    "programs" : 15,
-    "occurrences" : 130
-  }, {
-    "construct" : "ACCEPT",
-    "programs" : 11,
-    "occurrences" : 19
-  }, {
-    "construct" : "GO TO",
-    "programs" : 10,
-    "occurrences" : 186
-  }, {
-    "construct" : "SEARCH",
-    "programs" : 8,
-    "occurrences" : 33
-  }, {
-    "construct" : "INSPECT",
-    "programs" : 7,
-    "occurrences" : 21
-  }, {
-    "construct" : "REWRITE",
-    "programs" : 6,
-    "occurrences" : 8
-  }, {
-    "construct" : "STOP RUN",
     "programs" : 2,
     "occurrences" : 2
   }, {
-    "construct" : "UNSTRING",
+    "construct" : "WRITE",
+    "programs" : 2,
+    "occurrences" : 18
+  }, {
+    "construct" : "CLOSE",
     "programs" : 1,
-    "occurrences" : 1
+    "occurrences" : 7
   } ],
   "e2eCandidates" : [ "CBCUS01C", "CBACT01C", "COBSWAIT" ],
   "programs" : [ {
@@ -117,7 +61,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "WRITE" ]
   }, {
     "programId" : "CBACT02C",
     "file" : "app/cbl/CBACT02C.cbl",
@@ -130,7 +75,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBACT03C",
     "file" : "app/cbl/CBACT03C.cbl",
@@ -143,7 +89,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBACT04C",
     "file" : "app/cbl/CBACT04C.cbl",
@@ -156,7 +103,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ", "REWRITE", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "STRING", "WRITE" ]
   }, {
     "programId" : "CBCUS01C",
     "file" : "app/cbl/CBCUS01C.cbl",
@@ -169,7 +117,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBEXPORT",
     "file" : "app/cbl/CBEXPORT.cbl",
@@ -182,8 +131,12 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "CLOSE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "STRING", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-1138891816078446257/CbexportServiceImpl.java:41: error: ';' expected           output.setExpCustAddrLine(1)(input.getCustAddrLine1());                                     …"
+    "notTranslated" : [ {
+      "construct" : "READ",
+      "evidence" : 1
+    } ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-372106904496612116/CbexportServiceImpl.java:41: error: ';' expected           output.setExpCustAddrLine(1)(input.getCustAddrLine1());                                      …"
   }, {
     "programId" : "CBIMPORT",
     "file" : "app/cbl/CBIMPORT.cbl",
@@ -196,8 +149,18 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-12524342467415319457/CbimportServiceImpl.java:57: error: ')' or ',' expected           output.setCustAddrLine1(input.getExpCustAddrLine(1)());                             …"
+    "notTranslated" : [ {
+      "construct" : "CLOSE",
+      "evidence" : 7
+    }, {
+      "construct" : "READ",
+      "evidence" : 1
+    }, {
+      "construct" : "WRITE",
+      "evidence" : 6
+    } ],
+    "present" : [ "ADD", "CALL", "CLOSE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-18027544796301207724/CbimportServiceImpl.java:57: error: ')' or ',' expected           output.setCustAddrLine1(input.getExpCustAddrLine(1)());                             …"
   }, {
     "programId" : "CBPAUP0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/CBPAUP0C.cbl",
@@ -210,8 +173,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "DISPLAY", "GOBACK", "READ", "SET" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-13592690296836122111/Cbpaup0cDTO.java:29: error: variable filler is already defined in class Cbpaup0cDTO   private String filler;                  ^ /tmp/carddemo-coverage…"
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC DLI", "GOBACK", "IF", "MOVE", "PERFORM", "READ", "SET", "SUBTRACT" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-12598806197653237254/Cbpaup0cDTO.java:29: error: variable filler is already defined in class Cbpaup0cDTO   private String filler;                  ^ /tmp/carddemo-coverage…"
   }, {
     "programId" : "CBSTM03A",
     "file" : "app/cbl/CBSTM03A.CBL",
@@ -224,8 +188,12 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GO TO", "GOBACK", "INITIALIZE", "OPEN", "SET", "STRING", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-166194525680612878/Cbstm03aDTO.java:64: error: variable filler is already defined in class Cbstm03aDTO   private String filler;                  ^ /tmp/carddemo-coverage-j…"
+    "notTranslated" : [ {
+      "construct" : "WRITE",
+      "evidence" : 12
+    } ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "GO TO", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-705197583225886615/Cbstm03aDTO.java:64: error: variable filler is already defined in class Cbstm03aDTO   private String filler;                  ^ /tmp/carddemo-coverage-j…"
   }, {
     "programId" : "CBSTM03B",
     "file" : "app/cbl/CBSTM03B.CBL",
@@ -238,7 +206,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "GO TO", "GOBACK", "OPEN", "READ" ]
+    "notTranslated" : [ ],
+    "present" : [ "CLOSE", "EVALUATE", "GO TO", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ]
   }, {
     "programId" : "CBTRN01C",
     "file" : "app/cbl/CBTRN01C.cbl",
@@ -251,8 +220,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-11976501293270169404/Cbtrn01cServiceImpl.java:24: error: cannot find symbol           if (input.getEndOfDailyTransFile() == \"N\") {                    ^   symbol:   method …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-10643475364570039294/Cbtrn01cServiceImpl.java:24: error: cannot find symbol           if (input.getEndOfDailyTransFile() == \"N\") {                    ^   symbol:   method …"
   }, {
     "programId" : "CBTRN02C",
     "file" : "app/cbl/CBTRN02C.cbl",
@@ -265,7 +235,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "REWRITE", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "WRITE" ]
   }, {
     "programId" : "CBTRN03C",
     "file" : "app/cbl/CBTRN03C.cbl",
@@ -278,7 +249,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "WRITE" ]
   }, {
     "programId" : "COACCT01",
     "file" : "app/app-vsam-mq/cbl/COACCT01.cbl",
@@ -291,8 +263,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-15981688135565463489/Coacct01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC CICS", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-11514605169021539458/Coacct01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
   }, {
     "programId" : "COACTUPC",
     "file" : "app/cbl/COACTUPC.cbl",
@@ -305,8 +278,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "CONTINUE", "GO TO", "INITIALIZE", "INSPECT", "OPEN", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-2077636843575340779/CoactupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-627318615622552173/CoactupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {       …"
   }, {
     "programId" : "COACTVWC",
     "file" : "app/cbl/COACTVWC.cbl",
@@ -319,8 +293,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "DISPLAY", "GO TO", "INITIALIZE", "READ", "SEARCH", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-14698237758601495907/CoactvwcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-13992855443142581318/CoactvwcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
   }, {
     "programId" : "COADM01C",
     "file" : "app/cbl/COADM01C.cbl",
@@ -333,8 +308,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "INSPECT", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-10407700648748361507/Coadm01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-9303438633228115581/Coadm01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COBIL00C",
     "file" : "app/cbl/COBIL00C.cbl",
@@ -347,8 +323,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "REWRITE", "SET", "STRING", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-9308402922611821623/Cobil00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-4610740257211464504/Cobil00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COBSWAIT",
     "file" : "app/cbl/COBSWAIT.cbl",
@@ -361,7 +338,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "STOP RUN" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "CALL", "MOVE", "STOP RUN" ]
   }, {
     "programId" : "COBTUPDT",
     "file" : "app/app-transaction-type-db2/cbl/COBTUPDT.cbl",
@@ -374,7 +352,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "DISPLAY", "OPEN", "READ", "SET", "STOP RUN", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "CLOSE", "DISPLAY", "EVALUATE", "EXEC SQL", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STOP RUN", "STRING" ]
   }, {
     "programId" : "COCRDLIC",
     "file" : "app/cbl/COCRDLIC.cbl",
@@ -387,8 +366,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "INSPECT", "READ", "SEARCH", "SET" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-5117867723965141450/CocrdlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "SUBTRACT" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-15059782931094066169/CocrdlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
   }, {
     "programId" : "COCRDSLC",
     "file" : "app/cbl/COCRDSLC.cbl",
@@ -401,8 +381,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "DISPLAY", "GO TO", "INITIALIZE", "READ", "SEARCH", "SET" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-2896343316791290932/CocrdslcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-2796800096996784724/CocrdslcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COCRDUPC",
     "file" : "app/cbl/COCRDUPC.cbl",
@@ -415,8 +396,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "CONTINUE", "GO TO", "INITIALIZE", "INSPECT", "READ", "REWRITE", "SEARCH", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-6866547014631840545/CocrdupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-5968770009985129443/CocrdupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "CODATE01",
     "file" : "app/app-vsam-mq/cbl/CODATE01.cbl",
@@ -429,8 +411,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-12209529996827557274/Codate01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC CICS", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-4050406742861772822/Codate01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COMEN01C",
     "file" : "app/cbl/COMEN01C.cbl",
@@ -443,8 +426,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "INSPECT", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-9291913318570261614/Comen01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-17226934333804441780/Comen01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
   }, {
     "programId" : "COPAUA0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUA0C.cbl",
@@ -457,8 +441,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "INITIALIZE", "OPEN", "READ", "SET", "STRING", "UNSTRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-13596850329287108698/Copaua0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "UNSTRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-8442749468722835173/Copaua0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COPAUS0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS0C.cbl",
@@ -471,8 +456,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "INITIALIZE", "READ", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-12593864328196285598/Copaus0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-2508794955673664280/Copaus0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COPAUS1C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS1C.cbl",
@@ -485,8 +471,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "DISPLAY", "INITIALIZE", "SEARCH", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-6238762668554195187/Copaus1cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "DISPLAY", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "SEARCH", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-6432523415287555464/Copaus1cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COPAUS2C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS2C.cbl",
@@ -499,8 +486,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-8268742924309463328/Copaus2cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "COMPUTE", "EXEC CICS", "EXEC SQL", "IF", "MOVE", "PERFORM", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-2208162648258957869/Copaus2cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "CORPT00C",
     "file" : "app/cbl/CORPT00C.cbl",
@@ -513,8 +501,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "SET", "STRING", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-671195130699304536/Corpt00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {       …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "SET", "STRING", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-8010225871298073799/Corpt00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COSGN00C",
     "file" : "app/cbl/COSGN00C.cbl",
@@ -527,8 +516,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "READ", "SET" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-3788452496136864234/Cosgn00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-17713315059533420439/Cosgn00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
   }, {
     "programId" : "COTRN00C",
     "file" : "app/cbl/COTRN00C.cbl",
@@ -541,8 +531,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "SET" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-3162019334431671285/Cotrn00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-1205908645135233282/Cotrn00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COTRN01C",
     "file" : "app/cbl/COTRN01C.cbl",
@@ -555,8 +546,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "READ", "SET" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-6757792584043894188/Cotrn01cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-16014917055925257565/Cotrn01cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
   }, {
     "programId" : "COTRN02C",
     "file" : "app/cbl/COTRN02C.cbl",
@@ -569,8 +561,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "SET", "STRING", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-17899317245743960545/Cotrn02cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-12503244207629160528/Cotrn02cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
   }, {
     "programId" : "COTRTLIC",
     "file" : "app/app-transaction-type-db2/cbl/COTRTLIC.cbl",
@@ -583,8 +576,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "INSPECT", "OPEN", "READ", "SEARCH", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-15446196791873978532/CotrtlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "EXEC SQL", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "SEARCH", "SET", "STRING", "SUBTRACT" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-6399838752074087458/CotrtlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COTRTUPC",
     "file" : "app/app-transaction-type-db2/cbl/COTRTUPC.cbl",
@@ -597,8 +591,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "CONTINUE", "GO TO", "INITIALIZE", "INSPECT", "READ", "SEARCH", "SET", "STRING", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-6077878006690746385/CotrtupcCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> 04530000(@RequestBody Map<String, Object> payload) {    …"
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC SQL", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "STRING", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-5361867216019337902/CotrtupcCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> 04530000(@RequestBody Map<String, Object> payload) {    …"
   }, {
     "programId" : "COUSR00C",
     "file" : "app/cbl/COUSR00C.cbl",
@@ -611,8 +606,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "SET" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-3310391418066423354/Cousr00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
+    "notTranslated" : [ ],
+    "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-13510410726517304764/Cousr00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
   }, {
     "programId" : "COUSR01C",
     "file" : "app/cbl/COUSR01C.cbl",
@@ -625,8 +621,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "SET", "STRING", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-13988216428478928828/Cousr01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "STRING", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-4316458774015613188/Cousr01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COUSR02C",
     "file" : "app/cbl/COUSR02C.cbl",
@@ -639,8 +636,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "READ", "REWRITE", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-10738897467491952422/Cousr02cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-1603777273940813939/Cousr02cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "COUSR03C",
     "file" : "app/cbl/COUSR03C.cbl",
@@ -653,8 +651,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "READ", "SET", "STRING" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-12588455250516724502/Cousr03cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {     …"
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET", "STRING" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-8990593810105450904/Cousr03cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {      …"
   }, {
     "programId" : "CSUTLDTC",
     "file" : "app/cbl/CSUTLDTC.cbl",
@@ -667,7 +666,8 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "DISPLAY", "GOBACK", "INITIALIZE", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "CALL", "DISPLAY", "EVALUATE", "GOBACK", "INITIALIZE", "MOVE", "PERFORM", "STRING" ]
   }, {
     "programId" : "DBUNLDGS",
     "file" : "app/app-authorization-ims-db2-mq/cbl/DBUNLDGS.CBL",
@@ -680,8 +680,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-5224769324442777469/DbunldgsDTO.java:36: error: variable filler is already defined in class DbunldgsDTO   private String filler;                  ^ /tmp/carddemo-coverage-…"
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-9288996138035684641/DbunldgsDTO.java:36: error: variable filler is already defined in class DbunldgsDTO   private String filler;                  ^ /tmp/carddemo-coverage-…"
   }, {
     "programId" : "PAUDBLOD",
     "file" : "app/app-authorization-ims-db2-mq/cbl/PAUDBLOD.CBL",
@@ -694,8 +695,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-15738545455566223789/PaudblodDTO.java:32: error: variable filler is already defined in class PaudblodDTO   private String filler;                  ^ /tmp/carddemo-coverage…"
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-8372403586355645096/PaudblodDTO.java:32: error: variable filler is already defined in class PaudblodDTO   private String filler;                  ^ /tmp/carddemo-coverage-…"
   }, {
     "programId" : "PAUDBUNL",
     "file" : "app/app-authorization-ims-db2-mq/cbl/PAUDBUNL.CBL",
@@ -708,8 +710,9 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ],
-    "compileError" : "/tmp/carddemo-coverage-javac-15218901066860226501/PaudbunlDTO.java:29: error: variable filler is already defined in class PaudbunlDTO   private String filler;                  ^ /tmp/carddemo-coverage…"
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ],
+    "compileError" : "/tmp/carddemo-coverage-javac-7930900777695708632/PaudbunlDTO.java:29: error: variable filler is already defined in class PaudbunlDTO   private String filler;                  ^ /tmp/carddemo-coverage-…"
   } ],
   "inventory" : {
     "cobolFiles" : 44,

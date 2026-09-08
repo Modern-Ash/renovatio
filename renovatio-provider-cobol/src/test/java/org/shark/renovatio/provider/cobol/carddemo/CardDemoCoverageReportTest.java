@@ -60,19 +60,35 @@ class CardDemoCoverageReportTest {
         return Files.isDirectory(fromRoot) ? fromRoot : local;
     }
     private static final String TODO = "// TODO: Implement COBOL business logic";
+
+    /**
+     * Signals the pipeline actually emits into the generated Java when a statement is not
+     * translated as real code (spec D3). These are matched against the emitted Java, not the
+     * COBOL source, so the "not translated" ranking derives from pipeline evidence instead of a
+     * lexical scan. Patterns (see PopulateCobolProcessRecipe): {@code // EXEC SQL <sql>},
+     * {@code // CALL <program>}, {@code // <VIEW|OPEN|READ|CLOSE|WRITE|DELETE|SEARCH|...> <file>}
+     * and the fallback {@code // Unhandled COBOL statement}.
+     */
+    private static final Pattern PIPELINE_COMMENT =
+            Pattern.compile("(?i)//\\s*("
+                    + "EXEC SQL\\b[.\\s]*.*"
+                    + "|CALL\\b[.\\s]+[^\\n]+"
+                    + "|(?:VIEW|OPEN|READ|CLOSE|WRITE|DELETE|SEARCH|SORT|MERGE|REWRITE|COMMIT|ROLLBACK|STARTER)\\b[.\\s]+[^\\n]+"
+                    + ")");
+
+    /**
+     * Pipeline fallback marker (no construct name is emitted) used to count dropped statements.
+     * {@link #PIPELINE_COMMENT} intentionally does not match it because the verb would be
+     * unidentifiable.
+     */
     private static final String UNHANDLED = "// Unhandled COBOL statement";
 
     /**
-     * COBOL procedural verbs the translator renders as real Java today
-     * (SimpleCobolIrParser#parseStatements + PopulateCobolProcessRecipe): MOVE, COMPUTE, IF,
-     * PERFORM, EVALUATE, CALL and ADD/SUBTRACT/MULTIPLY/DIVIDE (normalised to COMPUTE).
-     * READ/WRITE/OPEN/CLOSE and EXEC SQL parse but are only emitted as comments, so they count as
-     * not-yet-translated here. Any other verb on a PROCEDURE DIVISION line is silently skipped.
+     * Procedural verbs / constructs we scan for in the COBOL source. These only feed the
+     * {@code present} column (lexical context, spec D3); the "not translated" ranking is
+     * derived exclusively from pipeline evidence in the emitted Java
+     * (see {@link #collectPipelineEvidence}).
      */
-    private static final List<String> SUPPORTED_VERBS = List.of(
-            "MOVE", "COMPUTE", "IF", "PERFORM", "EVALUATE", "CALL",
-            "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE");
-    /** Procedural verbs / constructs we scan for lexically. */
     private static final List<String> SCANNED_VERBS = List.of(
             "MOVE", "COMPUTE", "IF", "PERFORM", "EVALUATE", "CALL", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE",
             "READ", "WRITE", "REWRITE", "OPEN", "CLOSE",
@@ -160,6 +176,7 @@ class CardDemoCoverageReportTest {
                         for (String content : code.values()) {
                             row.todoCount += countOccurrences(content, TODO);
                             row.unhandledCount += countOccurrences(content, UNHANDLED);
+                            collectPipelineEvidence(content, row.unsupportedEvidenced);
                         }
                         row.manualActionItems = readActionItemCount(workspace);
                         row.compile = compile(code, row);
@@ -175,12 +192,6 @@ class CardDemoCoverageReportTest {
             deleteRecursively(workspace);
         }
 
-        for (String verb : row.verbsPresent.keySet()) {
-            boolean procedural = SCANNED_VERBS.contains(verb) && !verb.startsWith("EXEC");
-            if (procedural && !SUPPORTED_VERBS.contains(verb)) {
-                row.unsupportedHeuristic.add(verb);
-            }
-        }
         return row;
     }
 
@@ -211,6 +222,25 @@ class CardDemoCoverageReportTest {
             index = haystack.indexOf(needle, index + needle.length());
         }
         return count;
+    }
+
+    /**
+     * Extract construct names from pipeline-emitted comments in the generated Java (spec D3:
+     * evidence must come from emitted {@code Unhandled} markers, comments the translator emits
+     * for statements it renders as comments, or ManualActionItems — not from a lexical scan of
+     * the COBOL source).
+     */
+    private static void collectPipelineEvidence(String java, Map<String, Integer> tally) {
+        Matcher matcher = PIPELINE_COMMENT.matcher(java);
+        while (matcher.find()) {
+            String construct = matcher.group(1).trim().toUpperCase(Locale.ROOT);
+            if (construct.startsWith("EXEC ")) {
+                construct = "EXEC SQL";
+            } else {
+                construct = construct.split("\\s+", 2)[0];
+            }
+            tally.merge(construct, 1, Integer::sum);
+        }
     }
 
     /** Count verb occurrences as whole tokens so "MOVE" does not match inside "REMOVED" or "MOVED". */
@@ -309,10 +339,10 @@ class CardDemoCoverageReportTest {
 
         Map<String, int[]> unsupported = new TreeMap<>();
         for (Row row : rows) {
-            for (String verb : row.unsupportedHeuristic) {
-                int[] tally = unsupported.computeIfAbsent(verb, ignored -> new int[2]);
+            for (Map.Entry<String, Integer> entry : row.unsupportedEvidenced.entrySet()) {
+                int[] tally = unsupported.computeIfAbsent(entry.getKey(), ignored -> new int[2]);
                 tally[0]++;
-                tally[1] += row.verbsPresent.getOrDefault(verb, 0);
+                tally[1] += entry.getValue();
             }
         }
         ArrayNode unsupportedNode = root.putArray("unsupportedConstructs");
@@ -342,8 +372,14 @@ class CardDemoCoverageReportTest {
             node.put("manualActionItems", row.manualActionItems);
             node.put("todoBodies", row.todoCount);
             node.put("unhandledStatements", row.unhandledCount);
-            ArrayNode unsup = node.putArray("unsupported");
-            row.unsupportedHeuristic.stream().sorted().forEach(unsup::add);
+            ArrayNode unsup = node.putArray("notTranslated");
+            row.unsupportedEvidenced.forEach((construct, count) -> {
+                ObjectNode entry = unsup.addObject();
+                entry.put("construct", construct);
+                entry.put("evidence", count);
+            });
+            ArrayNode present = node.putArray("present");
+            row.verbsPresent.keySet().stream().sorted().forEach(present::add);
             if (row.parseError != null) {
                 node.put("parseError", row.parseError);
             }
@@ -405,12 +441,15 @@ class CardDemoCoverageReportTest {
         });
         md.append("\n");
 
-        md.append("## Constructs not translated today (heuristic: verb present, not in the supported set)\n\n");
-        md.append("| Construct | Programs | Occurrences |\n| --- | --: | --: |\n");
+        md.append("## Constructs not translated today (pipeline evidence from emitted Java, D3)\n\n");
+        md.append("| Construct | Programs | Evidence |\n| --- | --: | --: |\n");
         for (JsonNode node : json.get("unsupportedConstructs")) {
             md.append("| `").append(node.get("construct").asText()).append("` | ")
                     .append(node.get("programs").asInt()).append(" | ")
                     .append(node.get("occurrences").asInt()).append(" |\n");
+        }
+        if (json.get("unsupportedConstructs").isEmpty()) {
+            md.append("_No statements were emitted as comments by the pipeline._\n");
         }
         md.append("\n");
 
@@ -439,9 +478,11 @@ class CardDemoCoverageReportTest {
         md.append("\n");
 
         md.append("## Per program\n\n");
-        md.append("| Program | Subsystem | LOC | Parse | Emit | Compile | Java files | Action items | TODO | Unhandled |\n");
-        md.append("| --- | --- | --: | :-: | :-: | :-: | --: | --: | --: | --: |\n");
+        md.append("| Program | Subsystem | LOC | Parse | Emit | Compile | Java files | Action items | TODO | Unhandled | Present (lexical) |\n");
+        md.append("| --- | --- | --: | :-: | :-: | :-: | --: | --: | --: | --: | --- |\n");
         for (JsonNode node : json.get("programs")) {
+            List<String> present = new ArrayList<>();
+            node.get("present").forEach(p -> present.add(p.asText()));
             md.append("| `").append(node.get("programId").asText()).append("` | ")
                     .append(node.get("subsystem").asText()).append(" | ")
                     .append(node.get("loc").asInt()).append(" | ")
@@ -451,7 +492,8 @@ class CardDemoCoverageReportTest {
                     .append(node.get("javaFiles").asInt()).append(" | ")
                     .append(node.get("manualActionItems").asInt()).append(" | ")
                     .append(node.get("todoBodies").asInt()).append(" | ")
-                    .append(node.get("unhandledStatements").asInt()).append(" |\n");
+                    .append(node.get("unhandledStatements").asInt()).append(" | ")
+                    .append(String.join(", ", present)).append(" |\n");
         }
         return md.toString();
     }
@@ -501,7 +543,7 @@ class CardDemoCoverageReportTest {
         int loc;
         String subsystem;
         final Map<String, Integer> verbsPresent = new LinkedHashMap<>();
-        final List<String> unsupportedHeuristic = new ArrayList<>();
+        final Map<String, Integer> unsupportedEvidenced = new TreeMap<>();
         boolean parse;
         boolean emit;
         boolean compile;
