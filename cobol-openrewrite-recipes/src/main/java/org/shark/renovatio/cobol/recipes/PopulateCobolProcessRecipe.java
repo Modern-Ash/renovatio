@@ -20,6 +20,8 @@ import java.util.*;
 
 public class PopulateCobolProcessRecipe extends Recipe {
 
+    private record ResolvedCondition(CobolDataItem parent, Level88Condition condition) { }
+
     public static final String CONTEXT_KEY = "renovatio.cobol.ir";
     /** One DISPLAY operand: a single- or double-quoted literal, or a run of non-space characters. */
     private static final java.util.regex.Pattern DISPLAY_OPERAND =
@@ -298,6 +300,12 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (statement instanceof FileOperationStatement fileOp) {
                 return List.of(renderFileOperation(fileOp));
             }
+            if (statement instanceof InitializeStatement initialize) {
+                return renderInitialize(initialize, model, varName);
+            }
+            if (statement instanceof SetConditionStatement setCondition) {
+                return renderSetCondition(setCondition, model, varName);
+            }
             if (statement instanceof SimpleStatement simple) {
                 return renderSimple(simple, varName);
             }
@@ -379,6 +387,73 @@ public class PopulateCobolProcessRecipe extends Recipe {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
             return String.format(Locale.ROOT, "%s.%s(%s);",
                     targetVar, toSetter(compute.target()), translateExpression(compute.expression()));
+        }
+
+        private List<String> renderInitialize(InitializeStatement initialize,
+                                              CobolIntermediateModel model,
+                                              @Nullable String varName) {
+            String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            List<String> lines = new ArrayList<>();
+            for (String target : initialize.targets()) {
+                Optional<CobolDataItem> item = findDataItem(model, target);
+                if (item.isEmpty()) {
+                    lines.add("// COBOL not translated: INITIALIZE " + truncate(target)
+                            + " (not an elementary data item)");
+                    continue;
+                }
+                Optional<String> initialValue = CobolDataVerbValueResolver.initialValue(item.orElseThrow());
+                if (initialValue.isEmpty()) {
+                    lines.add("// COBOL not translated: INITIALIZE " + truncate(target)
+                            + " (unsupported Java type " + item.orElseThrow().javaType() + ")");
+                    continue;
+                }
+                lines.add(String.format(Locale.ROOT, "%s.%s(%s);",
+                        targetVar, toSetter(target), initialValue.orElseThrow()));
+            }
+            return lines;
+        }
+
+        private List<String> renderSetCondition(SetConditionStatement setCondition,
+                                                CobolIntermediateModel model,
+                                                @Nullable String varName) {
+            String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            List<String> lines = new ArrayList<>();
+            for (String conditionName : setCondition.conditionNames()) {
+                Optional<ResolvedCondition> resolved = findCondition(model, conditionName);
+                if (resolved.isEmpty()) {
+                    lines.add("// COBOL not translated: SET " + truncate(conditionName)
+                            + " TO " + setCondition.value() + " (unknown level-88 condition)");
+                    continue;
+                }
+                ResolvedCondition condition = resolved.orElseThrow();
+                Optional<String> value = CobolDataVerbValueResolver.conditionValue(
+                        condition.parent(), condition.condition(), setCondition.value());
+                if (value.isEmpty()) {
+                    lines.add("// COBOL not translated: " + truncate(setCondition.sourceText())
+                            + " (no representable level-88 value)");
+                    continue;
+                }
+                lines.add(String.format(Locale.ROOT, "%s.%s(%s);", targetVar,
+                        toSetter(condition.parent().name()), value.orElseThrow()));
+            }
+            return lines;
+        }
+
+        private Optional<CobolDataItem> findDataItem(CobolIntermediateModel model, String name) {
+            return model.getDataItems().stream()
+                    .filter(item -> item.name().equalsIgnoreCase(name))
+                    .findFirst();
+        }
+
+        private Optional<ResolvedCondition> findCondition(CobolIntermediateModel model, String name) {
+            for (CobolDataItem item : model.getDataItems()) {
+                for (Level88Condition condition : item.level88Conditions()) {
+                    if (condition.name().equalsIgnoreCase(name)) {
+                        return Optional.of(new ResolvedCondition(item, condition));
+                    }
+                }
+            }
+            return Optional.empty();
         }
 
         private List<String> renderPerform(PerformStatement perform,

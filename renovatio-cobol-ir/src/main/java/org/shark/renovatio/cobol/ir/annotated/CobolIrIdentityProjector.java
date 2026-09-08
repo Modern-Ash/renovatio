@@ -258,6 +258,9 @@ public final class CobolIrIdentityProjector {
         if (value instanceof CallStatement v) return map("target", v.target(), "arguments", v.arguments());
         if (value instanceof Db2Statement v) return map("sql", v.sql());
         if (value instanceof FileOperationStatement v) return map("operationType", v.operationType().name(), "fileName", v.fileName());
+        if (value instanceof InitializeStatement v) return map("targets", v.targets(), "sourceText", v.sourceText());
+        if (value instanceof SetConditionStatement v) return map("conditionNames", v.conditionNames(),
+                "value", v.value(), "sourceText", v.sourceText());
         throw new IllegalArgumentException("unmapped identity-bearing statement type: " + value.getClass().getName());
     }
 
@@ -274,6 +277,8 @@ public final class CobolIrIdentityProjector {
         if (value instanceof CallStatement) return AnnotatedNodeKind.CALL_STATEMENT;
         if (value instanceof Db2Statement) return AnnotatedNodeKind.DB2_STATEMENT;
         if (value instanceof FileOperationStatement) return AnnotatedNodeKind.FILE_OPERATION_STATEMENT;
+        if (value instanceof InitializeStatement) return AnnotatedNodeKind.INITIALIZE_STATEMENT;
+        if (value instanceof SetConditionStatement) return AnnotatedNodeKind.SET_CONDITION_STATEMENT;
         throw new IllegalArgumentException("unmapped identity-bearing statement type: " + value.getClass().getName());
     }
 

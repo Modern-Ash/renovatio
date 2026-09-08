@@ -163,10 +163,14 @@ class PopulateCobolProcessRecipeTest {
                 WORKING-STORAGE SECTION.
                 01 CUSTOMER-NAME PIC X(30).
                 01 CUSTOMER-RATING PIC 9(2).
+                01 CUSTOMER-STATUS PIC X.
+                   88 CUSTOMER-READY VALUE 'Y'.
                 PROCEDURE DIVISION.
                 MAIN-PARA.
                     DISPLAY 'RATING ' CUSTOMER-RATING.
                     INITIALIZE CUSTOMER-NAME.
+                    SET CUSTOMER-READY TO TRUE.
+                    SET CUSTOMER-READY TO FALSE.
                     IF CUSTOMER-RATING > 80
                         GOBACK
                     ELSE
@@ -179,7 +183,9 @@ class PopulateCobolProcessRecipeTest {
         String updated = applyRecipe(cobol);
 
         assertThat(updated).contains("System.out.println(\"RATING \" + input.getCustomerRating());");
-        assertThat(updated).contains("// COBOL not translated: INITIALIZE CUSTOMER-NAME");
+        assertThat(updated).contains("output.setCustomerName(\" \".repeat(30));");
+        assertThat(updated).contains("output.setCustomerStatus(\"Y\");");
+        assertThat(updated).contains("output.setCustomerStatus(\" \");");
         assertThat(updated).contains("; // CONTINUE");
         assertThat(updated).contains("return output;");
         assertThat(updated).doesNotContain("// Unhandled COBOL statement");

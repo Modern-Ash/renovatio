@@ -134,6 +134,35 @@ class JavaGenerationServiceTest {
     }
 
     @Test
+    void unresolvedInitializeAndSetProduceStableManualActionItems() throws Exception {
+        Files.writeString(tempDir.resolve("data-verbs.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. DATA-VERBS.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 CUSTOMER-STATUS PIC X.
+                   88 CUSTOMER-READY VALUE 'Y'.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    INITIALIZE MISSING-GROUP.
+                    SET MISSING-CONDITION TO TRUE.
+                    GOBACK.
+                """);
+
+        StubResult first = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(first.isSuccess(), first.getMessage());
+        Path report = tempDir.resolve(ManualActionItemWriter.DEFAULT_REPORT);
+        String firstReport = Files.readString(report);
+
+        StubResult second = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(second.isSuccess(), second.getMessage());
+        assertEquals(firstReport, Files.readString(report));
+        assertTrue(firstReport.contains("INITIALIZE MISSING-GROUP"));
+        assertTrue(firstReport.contains("SET MISSING-CONDITION TO TRUE"));
+        assertEquals(2, firstReport.split("COBOL-STATEMENT-UNTRANSLATED", -1).length - 1);
+    }
+
+    @Test
     void testGenerateInterfaceStubsUsesCustomOutputDir() throws IOException {
         Path outputDir = tempDir.resolve("custom-stubs");
         workspace.setMetadata(Map.of("outputDir", outputDir.toString()));

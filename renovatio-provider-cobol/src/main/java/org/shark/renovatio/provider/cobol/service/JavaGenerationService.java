@@ -13,7 +13,11 @@ import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.ir.model.CobolStatement;
 import org.shark.renovatio.cobol.ir.model.EvaluateStatement;
 import org.shark.renovatio.cobol.ir.model.IfStatement;
+import org.shark.renovatio.cobol.ir.model.InitializeStatement;
+import org.shark.renovatio.cobol.ir.model.Level88Condition;
+import org.shark.renovatio.cobol.ir.model.SetConditionStatement;
 import org.shark.renovatio.cobol.ir.model.SimpleStatement;
+import org.shark.renovatio.cobol.recipes.CobolDataVerbValueResolver;
 import org.shark.renovatio.core.service.TargetEmitterRegistry;
 import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
@@ -566,12 +570,13 @@ public class JavaGenerationService {
                                                Map<String, ManualActionItem> actionItems) {
         model.getParagraphs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
             int[] statementIndex = {0};
-            collectUntranslatedStatements(entry.getValue().statements(), sourceFile, model.getProgramId(),
-                    entry.getKey(), statementIndex, actionItems);
+            collectUntranslatedStatements(entry.getValue().statements(), model, sourceFile,
+                    model.getProgramId(), entry.getKey(), statementIndex, actionItems);
         });
     }
 
-    private void collectUntranslatedStatements(List<CobolStatement> statements, String sourceFile,
+    private void collectUntranslatedStatements(List<CobolStatement> statements, CobolIntermediateModel model,
+                                               String sourceFile,
                                                String programId, String paragraph, int[] statementIndex,
                                                Map<String, ManualActionItem> actionItems) {
         for (CobolStatement statement : statements) {
@@ -581,16 +586,58 @@ public class JavaGenerationService {
                 ManualActionItem item = annotationActionItemFactory.toUntranslatedStatement(
                         simple, sourceFile, programId, paragraph, currentIndex);
                 actionItems.putIfAbsent(item.id(), item);
+            } else if (statement instanceof InitializeStatement initialize) {
+                List<String> unknownTargets = initialize.targets().stream()
+                        .filter(target -> modelDataItem(model, target)
+                                .flatMap(CobolDataVerbValueResolver::initialValue).isEmpty())
+                        .toList();
+                if (!unknownTargets.isEmpty()) {
+                    ManualActionItem item = annotationActionItemFactory.toUnsupportedStatement(
+                            initialize.sourceText(), "INITIALIZE",
+                            "INITIALIZE targets are not elementary data items: " + unknownTargets,
+                            sourceFile, programId, paragraph, currentIndex);
+                    actionItems.putIfAbsent(item.id(), item);
+                }
+            } else if (statement instanceof SetConditionStatement setCondition) {
+                List<String> unknownConditions = setCondition.conditionNames().stream()
+                        .filter(condition -> !hasRepresentableConditionValue(
+                                model, condition, setCondition.value()))
+                        .toList();
+                if (!unknownConditions.isEmpty()) {
+                    ManualActionItem item = annotationActionItemFactory.toUnsupportedStatement(
+                            setCondition.sourceText(), "SET_CONDITION",
+                            "SET targets are not declared or have no representable level-88 value: "
+                                    + unknownConditions,
+                            sourceFile, programId, paragraph, currentIndex);
+                    actionItems.putIfAbsent(item.id(), item);
+                }
             } else if (statement instanceof IfStatement conditional) {
-                collectUntranslatedStatements(conditional.thenStatements(), sourceFile, programId,
-                        paragraph, statementIndex, actionItems);
-                collectUntranslatedStatements(conditional.elseStatements(), sourceFile, programId,
-                        paragraph, statementIndex, actionItems);
+                collectUntranslatedStatements(conditional.thenStatements(), model, sourceFile,
+                        programId, paragraph, statementIndex, actionItems);
+                collectUntranslatedStatements(conditional.elseStatements(), model, sourceFile,
+                        programId, paragraph, statementIndex, actionItems);
             } else if (statement instanceof EvaluateStatement evaluation) {
-                evaluation.branches().forEach(branch -> collectUntranslatedStatements(branch.statements(),
+                evaluation.branches().forEach(branch -> collectUntranslatedStatements(branch.statements(), model,
                         sourceFile, programId, paragraph, statementIndex, actionItems));
             }
         }
+    }
+
+    private Optional<CobolDataItem> modelDataItem(CobolIntermediateModel model, String name) {
+        return model.getDataItems().stream()
+                .filter(item -> item.name().equalsIgnoreCase(name))
+                .findFirst();
+    }
+
+    private boolean hasRepresentableConditionValue(CobolIntermediateModel model, String name, boolean value) {
+        for (CobolDataItem item : model.getDataItems()) {
+            for (Level88Condition condition : item.level88Conditions()) {
+                if (condition.name().equalsIgnoreCase(name)) {
+                    return CobolDataVerbValueResolver.conditionValue(item, condition, value).isPresent();
+                }
+            }
+        }
+        return false;
     }
 
     private SemanticProgram semanticProgram(Path source, NqlQuery query, Workspace workspace) throws Exception {

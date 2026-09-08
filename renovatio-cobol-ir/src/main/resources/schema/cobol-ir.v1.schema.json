@@ -96,7 +96,8 @@
         { "$ref": "#/$defs/moveStatement" }, { "$ref": "#/$defs/computeStatement" },
         { "$ref": "#/$defs/ifStatement" }, { "$ref": "#/$defs/evaluateStatement" },
         { "$ref": "#/$defs/performStatement" }, { "$ref": "#/$defs/callStatement" },
-        { "$ref": "#/$defs/db2Statement" }, { "$ref": "#/$defs/fileOperationStatement" }
+        { "$ref": "#/$defs/db2Statement" }, { "$ref": "#/$defs/fileOperationStatement" },
+        { "$ref": "#/$defs/initializeStatement" }, { "$ref": "#/$defs/setConditionStatement" }
       ]
     },
     "moveStatement": {
@@ -150,6 +151,22 @@
       "properties": {
         "operationType": { "enum": ["READ", "WRITE", "REWRITE", "DELETE", "OPEN", "CLOSE"] },
         "fileName": { "$ref": "#/$defs/name" }
+      }
+    },
+    "initializeStatement": {
+      "type": "object", "additionalProperties": false, "required": ["targets", "sourceText"],
+      "properties": {
+        "targets": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/name" } },
+        "sourceText": { "$ref": "#/$defs/name" }
+      }
+    },
+    "setConditionStatement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["conditionNames", "value", "sourceText"],
+      "properties": {
+        "conditionNames": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/name" } },
+        "value": { "type": "boolean" },
+        "sourceText": { "$ref": "#/$defs/name" }
       }
     },
     "controlFlowGraph": {

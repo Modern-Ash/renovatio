@@ -38,6 +38,9 @@ public class SimpleCobolIrParser {
             "(?ms)^\\s*([A-Z][A-Z0-9-]*)\\.(.*?)(?=^\\s*[A-Z][A-Z0-9-]*\\.|\\Z)"
     );
     private static final Pattern EXEC_SQL_PATTERN = Pattern.compile(Regexes.EXEC_SQL + "(.*?)" + Keywords.END_EXEC, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern DATA_NAME_PATTERN = Pattern.compile("[A-Z][A-Z0-9-]*", Pattern.CASE_INSENSITIVE);
+    private static final Pattern SET_CONDITION_PATTERN = Pattern.compile(
+            "(?i)^SET\\s+(.+?)\\s+TO\\s+(TRUE|FALSE)$");
 
     private static final Pattern ENTRY_BLOCK_PATTERN;
 
@@ -54,7 +57,7 @@ public class SimpleCobolIrParser {
             Keywords.IF, Keywords.ELSE, Keywords.MOVE, Keywords.COMPUTE, Keywords.EVALUATE, Keywords.PERFORM,
             Keywords.CALL, Keywords.GOBACK, Keywords.STOP, Keywords.EXIT, Keywords.EXEC, Keywords.READ,
             Keywords.WRITE, Keywords.ADD, Keywords.SUBTRACT, Keywords.MULTIPLY, Keywords.DIVIDE, Keywords.ENTRY,
-            "DISPLAY", "CONTINUE"
+            Keywords.INITIALIZE, Keywords.SET, "DISPLAY", "CONTINUE"
     );
     private static final Set<String> EXCLUDED_END_HEADERS = Set.of("END-IF", "END-EVALUATE", "END-EXEC");
 
@@ -114,6 +117,8 @@ public class SimpleCobolIrParser {
         static final String MULTIPLY = "MULTIPLY";
         static final String DIVIDE = "DIVIDE";
         static final String MOVE = "MOVE";
+        static final String INITIALIZE = "INITIALIZE";
+        static final String SET = "SET";
 
         static final String GIVING = "GIVING";
 
@@ -494,6 +499,14 @@ public class SimpleCobolIrParser {
                 statements.add(parseMove(line));
                 continue;
             }
+            if (upperLine.startsWith(Keywords.INITIALIZE)) {
+                statements.add(parseInitialize(line));
+                continue;
+            }
+            if (upperLine.startsWith(Keywords.SET)) {
+                statements.add(parseSetCondition(line));
+                continue;
+            }
             SimpleStatement simple = parseSimpleStatement(line, upperLine);
             if (simple != null) {
                 statements.add(simple);
@@ -789,6 +802,38 @@ public class SimpleCobolIrParser {
             return new MoveStatement(remainder, remainder);
         }
         return new MoveStatement(parts[0].trim(), parts[1].trim());
+    }
+
+    private CobolStatement parseInitialize(String line) {
+        String sourceText = stripTrailingPeriod(line);
+        String remainder = sourceText.substring(Keywords.INITIALIZE.length()).trim();
+        if (remainder.isEmpty() || remainder.toUpperCase(Locale.ROOT).contains(" REPLACING ")) {
+            return new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, sourceText);
+        }
+        List<String> targets = Arrays.stream(remainder.split("[,\\s]+"))
+                .filter(token -> !token.isBlank())
+                .toList();
+        if (targets.isEmpty() || targets.stream().anyMatch(target -> !DATA_NAME_PATTERN.matcher(target).matches())) {
+            return new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, sourceText);
+        }
+        return new InitializeStatement(targets, sourceText);
+    }
+
+    private CobolStatement parseSetCondition(String line) {
+        String sourceText = stripTrailingPeriod(line);
+        Matcher matcher = SET_CONDITION_PATTERN.matcher(sourceText);
+        if (!matcher.matches()) {
+            return new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, sourceText);
+        }
+        List<String> conditionNames = Arrays.stream(matcher.group(1).trim().split("[,\\s]+"))
+                .filter(token -> !token.isBlank())
+                .toList();
+        if (conditionNames.isEmpty()
+                || conditionNames.stream().anyMatch(name -> !DATA_NAME_PATTERN.matcher(name).matches())) {
+            return new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, sourceText);
+        }
+        return new SetConditionStatement(conditionNames,
+                Boolean.parseBoolean(matcher.group(2).toLowerCase(Locale.ROOT)), sourceText);
     }
 
     private String normalizeCondition(String condition) {
