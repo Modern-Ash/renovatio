@@ -1,0 +1,4 @@
+
+# Vendored third-party corpus (issue #217) — keep verbatim, exclude from language stats
+renovatio-provider-cobol/src/test/resources/corpus/** linguist-vendored
+renovatio-provider-cobol/src/test/resources/corpus/** -text

@@ -1,0 +1,54 @@
+# Work events
+
+- 2026-09-08T02:20:35.332800Z | work.created | state=drafting actor=project:owner
+- 2026-09-08T02:21:34.607446Z | artifact.added | kind=spec uri=repo://docs/specs/issue-217-carddemo-coverage.md actor=project:owner
+- 2026-09-08T02:21:34.848754Z | work.criterion-stage-marked | criterion=corpus-vendored actor=project:owner stage=specified
+- 2026-09-08T02:21:35.084552Z | work.criterion-stage-marked | criterion=coverage-tool actor=project:owner stage=specified
+- 2026-09-08T02:21:35.312688Z | work.criterion-stage-marked | criterion=aggregate-report actor=project:owner stage=specified
+- 2026-09-08T02:21:35.539174Z | work.criterion-stage-marked | criterion=tracking-json actor=project:owner stage=specified
+- 2026-09-08T02:21:35.761812Z | work.criterion-stage-marked | criterion=e2e-candidates actor=project:owner stage=specified
+- 2026-09-08T02:21:35.985062Z | work.criterion-stage-marked | criterion=reproducible-ci actor=project:owner stage=specified
+- 2026-09-08T02:21:36.211575Z | work.criterion-stage-marked | criterion=no-engine-change actor=project:owner stage=specified
+- 2026-09-08T02:22:11.603924Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-08T02:22:32.842023Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-08T02:23:12.255715Z | artifact.added | kind=spec uri=repo://docs/specs/issue-217-carddemo-coverage.md actor=project:owner
+- 2026-09-08T02:23:23.472143Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-09-08T02:23:29.862617Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-08T02:24:23.865089Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/issue-217-carddemo-coverage.md actor=project:owner
+- 2026-09-08T02:24:24.089394Z | work.criterion-stage-marked | criterion=corpus-vendored actor=project:owner stage=planned
+- 2026-09-08T02:24:24.306213Z | work.criterion-stage-marked | criterion=coverage-tool actor=project:owner stage=planned
+- 2026-09-08T02:24:24.522873Z | work.criterion-stage-marked | criterion=aggregate-report actor=project:owner stage=planned
+- 2026-09-08T02:24:24.740725Z | work.criterion-stage-marked | criterion=tracking-json actor=project:owner stage=planned
+- 2026-09-08T02:24:24.972431Z | work.criterion-stage-marked | criterion=e2e-candidates actor=project:owner stage=planned
+- 2026-09-08T02:24:25.190937Z | work.criterion-stage-marked | criterion=reproducible-ci actor=project:owner stage=planned
+- 2026-09-08T02:24:25.404963Z | work.criterion-stage-marked | criterion=no-engine-change actor=project:owner stage=planned
+- 2026-09-08T02:24:25.638257Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-08T02:24:25.863407Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-08T02:34:29.672332Z | artifact.added | kind=coverage-report uri=repo://docs/reports/carddemo-coverage.md actor=project:agent
+- 2026-09-08T02:34:29.873944Z | artifact.added | kind=verification-report uri=repo://docs/reports/issue-217-carddemo-coverage-verification.md actor=project:agent
+- 2026-09-08T02:34:30.085687Z | work.criterion-stage-marked | criterion=corpus-vendored actor=project:agent stage=implemented
+- 2026-09-08T02:34:30.302398Z | work.criterion-stage-marked | criterion=coverage-tool actor=project:agent stage=implemented
+- 2026-09-08T02:34:30.513154Z | work.criterion-stage-marked | criterion=aggregate-report actor=project:agent stage=implemented
+- 2026-09-08T02:34:30.721569Z | work.criterion-stage-marked | criterion=tracking-json actor=project:agent stage=implemented
+- 2026-09-08T02:34:30.928641Z | work.criterion-stage-marked | criterion=e2e-candidates actor=project:agent stage=implemented
+- 2026-09-08T02:34:31.135907Z | work.criterion-stage-marked | criterion=reproducible-ci actor=project:agent stage=implemented
+- 2026-09-08T02:34:31.345290Z | work.criterion-stage-marked | criterion=no-engine-change actor=project:agent stage=implemented
+- 2026-09-08T02:34:31.553112Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-08T02:34:37.814100Z | work.criterion-stage-marked | criterion=corpus-vendored actor=project:owner stage=verified
+- 2026-09-08T02:34:38.018041Z | work.criterion-stage-marked | criterion=corpus-vendored actor=project:owner stage=accepted
+- 2026-09-08T02:34:38.222541Z | work.criterion-stage-marked | criterion=coverage-tool actor=project:owner stage=verified
+- 2026-09-08T02:34:38.425030Z | work.criterion-stage-marked | criterion=coverage-tool actor=project:owner stage=accepted
+- 2026-09-08T02:34:38.629231Z | work.criterion-stage-marked | criterion=aggregate-report actor=project:owner stage=verified
+- 2026-09-08T02:34:38.833015Z | work.criterion-stage-marked | criterion=aggregate-report actor=project:owner stage=accepted
+- 2026-09-08T02:34:39.045998Z | work.criterion-stage-marked | criterion=tracking-json actor=project:owner stage=verified
+- 2026-09-08T02:34:39.256886Z | work.criterion-stage-marked | criterion=tracking-json actor=project:owner stage=accepted
+- 2026-09-08T02:34:39.474601Z | work.criterion-stage-marked | criterion=e2e-candidates actor=project:owner stage=verified
+- 2026-09-08T02:34:39.689177Z | work.criterion-stage-marked | criterion=e2e-candidates actor=project:owner stage=accepted
+- 2026-09-08T02:34:39.907358Z | work.criterion-stage-marked | criterion=reproducible-ci actor=project:owner stage=verified
+- 2026-09-08T02:34:40.141617Z | work.criterion-stage-marked | criterion=reproducible-ci actor=project:owner stage=accepted
+- 2026-09-08T02:34:40.369525Z | work.criterion-stage-marked | criterion=no-engine-change actor=project:owner stage=verified
+- 2026-09-08T02:34:40.607251Z | work.criterion-stage-marked | criterion=no-engine-change actor=project:owner stage=accepted
+- 2026-09-08T02:35:05.031981Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-08T02:35:05.247244Z | evidence.added | id=evidence-000002 type=report result=success revision=1 actor=project:agent
+- 2026-09-08T02:35:11.855255Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-08T02:35:15.900661Z | work.transitioned | from=verifying to=completed actor=project:owner
