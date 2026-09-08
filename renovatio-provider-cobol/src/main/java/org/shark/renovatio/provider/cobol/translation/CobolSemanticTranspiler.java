@@ -78,13 +78,14 @@ public class CobolSemanticTranspiler {
         return enrichServiceImplementation(javaSource, model, annotatedContext, sourceFile, sink, null);
     }
 
-    private String enrichServiceImplementation(String javaSource, CobolIntermediateModel model,
-                                                AnnotatedCobolContext annotatedContext,
-                                                String sourceFile, Consumer<List<ManualActionItem>> sink,
-                                                List<SemanticProgram.DataIntent> neutralDataIntents) {
+    public String enrichServiceImplementation(String javaSource, CobolIntermediateModel model,
+                                               AnnotatedCobolContext annotatedContext,
+                                               String sourceFile, Consumer<List<ManualActionItem>> sink,
+                                               List<SemanticProgram.DataIntent> neutralDataIntents) {
         if (javaSource == null || javaSource.isBlank() || model == null) {
             return javaSource;
         }
+        Consumer<List<ManualActionItem>> effectiveSink = sink == null ? ignored -> { } : sink;
         ExecutionContext ctx = new InMemoryExecutionContext(Throwable::printStackTrace);
         ctx.putMessage(PopulateCobolProcessRecipe.CONTEXT_KEY, model);
         if (annotatedContext != null && annotatedContext.baseModel() == model && isValid(annotatedContext)) {
@@ -101,7 +102,7 @@ public class CobolSemanticTranspiler {
         List<SourceFile> sources = javaParser.parse(ctx, javaSource).collect(java.util.stream.Collectors.toList());
 
         OpenRewriteRunResult runResult = runner.runRecipe(new PopulateCobolProcessRecipe(), ctx, sources);
-        drainAnnotationOutcomes(ctx, model, sourceFile, sink);
+        drainAnnotationOutcomes(ctx, model, sourceFile, effectiveSink);
         if (!runResult.getValidationErrors().isEmpty() || runResult.getResults().isEmpty()) {
             return javaSource;
         }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
+import org.shark.renovatio.provider.cobol.guardrail.ManualActionItemWriter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -94,6 +95,42 @@ class JavaGenerationServiceTest {
         assertTrue(dtoCode.contains("String wsName"));
         assertTrue(dtoCode.contains("Integer wsAge"));
         assertTrue(dtoCode.contains("BigDecimal wsSalary"));
+        String implementation = result.getGeneratedCode().entrySet().stream()
+                .filter(entry -> entry.getKey().endsWith("ServiceImpl.java"))
+                .map(Map.Entry::getValue).findFirst().orElseThrow();
+        assertTrue(implementation.contains("System.out.println"));
+        assertFalse(implementation.contains("// TODO: Implement COBOL business logic"));
+        assertEquals(tempDir.resolve("generated-java-stubs").toString(),
+                result.getMetadata().get("outputPath"));
+    }
+
+    @Test
+    void untranslatedStatementsProduceOneStableManualActionItem() throws Exception {
+        Files.writeString(tempDir.resolve("unsupported.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. UNSUPPORTED.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 INPUT-VALUE PIC X(10).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY INPUT-VALUE.
+                    STOP 'PAUSE'.
+                    GOBACK.
+                """);
+
+        StubResult first = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(first.isSuccess(), first.getMessage());
+        Path report = tempDir.resolve(ManualActionItemWriter.DEFAULT_REPORT);
+        String firstReport = Files.readString(report);
+
+        StubResult second = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(second.isSuccess(), second.getMessage());
+        assertEquals(firstReport, Files.readString(report));
+        assertTrue(firstReport.contains("manual-action-item.v1"));
+        assertTrue(firstReport.contains("COBOL-STATEMENT-UNTRANSLATED"));
+        assertTrue(firstReport.contains("STOP 'PAUSE'"));
+        assertEquals(1, firstReport.split("COBOL-STATEMENT-UNTRANSLATED", -1).length - 1);
     }
 
     @Test

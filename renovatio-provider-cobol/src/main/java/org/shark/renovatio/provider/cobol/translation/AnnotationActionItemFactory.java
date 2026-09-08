@@ -1,5 +1,6 @@
 package org.shark.renovatio.provider.cobol.translation;
 
+import org.shark.renovatio.cobol.ir.model.SimpleStatement;
 import org.shark.renovatio.cobol.recipes.annotate.DroppedAnnotation;
 import org.shark.renovatio.provider.cobol.guardrail.GuardrailGate;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;
@@ -9,6 +10,22 @@ import org.shark.renovatio.provider.cobol.guardrail.ManualActionSeverity;
 
 /** Maps recipe-neutral annotation outcomes onto the versioned manual-action-item contract. */
 public final class AnnotationActionItemFactory {
+
+    public ManualActionItem toUntranslatedStatement(SimpleStatement statement, String sourceFile,
+                                                     String programId, String paragraph, int statementIndex) {
+        String sourceSpan = paragraph + "#statement-" + statementIndex;
+        String family = "UNTRANSLATED";
+        String reason = "Unsupported COBOL statement requires manual translation: " + statement.text();
+        String id = ManualActionItemIds.from(sourceFile, programId, sourceSpan, family, reason);
+        return new ManualActionItem(id, sourceFile, programId, "PROCEDURE", null, paragraph, sourceSpan,
+                sourceSpan, null, family, reason, GuardrailGate.CHARACTERIZATION,
+                "COBOL-STATEMENT-UNTRANSLATED",
+                "Generated Java retains an explicit untranslated-source comment",
+                "Translate and characterize the COBOL statement: " + statement.text(),
+                "The statement has a deterministic translation with equivalent characterized behavior",
+                ManualActionSeverity.WARNING, ManualActionReviewStatus.PENDING,
+                null, null, null, null, null, null);
+    }
 
     public ManualActionItem toResolutionDiagnostic(String diagnostic, String sourceFile, String programId) {
         boolean stale = diagnostic.contains("baseIrHash");
