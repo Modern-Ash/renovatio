@@ -50,3 +50,21 @@
 - 2026-09-08T22:59:06.120002Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:owner stage=accepted
 - 2026-09-08T22:59:06.406295Z | work.criterion-stage-marked | criterion=rollback actor=project:owner stage=accepted
 - 2026-09-08T22:59:11.301827Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-08T23:00:40.939223Z | tool.prepared | run=tool-20260908t23001788919240z tool=repository operation=commit actor=project:agent
+- 2026-09-08T23:00:40.947374Z | tool.running | run=tool-20260908t23001788919240z actor=project:agent
+- 2026-09-08T23:00:40.986674Z | tool.completed | run=tool-20260908t23001788919240z exit-code=0
+- 2026-09-08T23:00:56.195911Z | tool.prepared | run=tool-20260908t23001788919256z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-08T23:00:56.203019Z | tool.running | run=tool-20260908t23001788919256z actor=project:agent
+- 2026-09-08T23:00:58.245726Z | tool.completed | run=tool-20260908t23001788919256z exit-code=0
+- 2026-09-08T23:01:26.007311Z | tool.prepared | run=tool-20260908t23011788919286z tool=github-pull-requests operation=create actor=project:agent
+- 2026-09-08T23:01:26.013821Z | tool.running | run=tool-20260908t23011788919286z actor=project:agent
+- 2026-09-08T23:01:28.357483Z | tool.completed | run=tool-20260908t23011788919286z exit-code=0
+- 2026-09-08T23:01:39.462505Z | tool.prepared | run=tool-20260908t23011788919299z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-08T23:01:39.468631Z | tool.running | run=tool-20260908t23011788919299z actor=project:agent
+- 2026-09-08T23:01:40.436974Z | tool.completed | run=tool-20260908t23011788919299z exit-code=0
+- 2026-09-08T23:05:19.412558Z | tool.prepared | run=tool-20260908t23051788919519z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-08T23:05:19.420714Z | tool.running | run=tool-20260908t23051788919519z actor=project:agent
+- 2026-09-08T23:05:20.461732Z | tool.completed | run=tool-20260908t23051788919519z exit-code=0
+- 2026-09-08T23:05:52.304328Z | artifact.added | kind=ci-report uri=repo://.agora/tool-runs/tool-20260908t23051788919519z/RESULT.md actor=project:agent
+- 2026-09-08T23:05:52.593787Z | evidence.added | id=issue-222-pr-ci type=ci result=success revision=1 actor=project:agent
+- 2026-09-08T23:05:56.825906Z | work.transitioned | from=verifying to=completed actor=project:owner
