@@ -673,3 +673,6 @@
 - 2026-09-08T13:25:43.630613Z | tool.prepared | run=tool-20260908t13251788884743z tool=repository operation=status actor=project:agent
 - 2026-09-08T13:25:43.635808Z | tool.running | run=tool-20260908t13251788884743z tool=repository operation=status actor=project:agent
 - 2026-09-08T13:25:43.672571Z | tool.completed | run=tool-20260908t13251788884743z tool=repository operation=status actor=project:agent
+- 2026-09-08T13:26:10.977923Z | tool.prepared | run=tool-20260908t13261788884770z tool=repository operation=commit actor=project:agent
+- 2026-09-08T13:26:10.983698Z | tool.running | run=tool-20260908t13261788884770z tool=repository operation=commit actor=project:agent
+- 2026-09-08T13:26:11.010764Z | tool.completed | run=tool-20260908t13261788884770z tool=repository operation=commit actor=project:agent
