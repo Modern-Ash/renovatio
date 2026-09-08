@@ -12,7 +12,7 @@ type: test
 phase: null
 result: success
 revision: 1
-artifact-references: [repo://docs/reports/issue-222-baseline-test-report.md]
+artifact-references: [repo://.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0001/snapshot/artifacts/issue-222-baseline-test-report.md]
 artifact-content-sha256: 32e582ca5c8210940dcc721300222bfc7ce509113abb36e195208c28362bd3e8
 produced-by: project:agent
 timestamp: 2026-09-08T22:58:53.837867Z
@@ -33,7 +33,7 @@ type: test
 phase: null
 result: success
 revision: 1
-artifact-references: [repo://docs/reports/issue-222-baseline-test-report.md]
+artifact-references: [repo://.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0001/snapshot/artifacts/issue-222-baseline-test-report.md]
 artifact-content-sha256: 32e582ca5c8210940dcc721300222bfc7ce509113abb36e195208c28362bd3e8
 produced-by: project:agent
 timestamp: 2026-09-08T22:58:54.102434Z
