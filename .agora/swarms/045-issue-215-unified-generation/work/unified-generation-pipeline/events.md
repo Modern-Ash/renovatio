@@ -50,3 +50,7 @@
 - 2026-09-08T14:24:20.855182Z | work.criterion-stage-marked | criterion=architecture-record actor=project:owner stage=accepted
 - 2026-09-08T14:24:21.204182Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=accepted
 - 2026-09-08T14:24:21.518073Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-08T14:25:16.201515Z | tool.prepared | run=tool-20260908t14251788888316z tool=repository operation=commit actor=project:agent
+- 2026-09-08T14:25:16.208204Z | tool.running | run=tool-20260908t14251788888316z actor=project:agent
+- 2026-09-08T14:25:16.235629Z | tool.completed | run=tool-20260908t14251788888316z exit-code=0
+- 2026-09-08T14:25:20.475462Z | work.transitioned | from=verifying to=completed actor=project:owner
