@@ -47,4 +47,3 @@ lógica de negocio fallará de forma explícita.
   coincide con `--out`.
 - **Regresiones en perfiles/manifest:** se conserva `TargetEmitterRegistry` y se prueban las rutas
   existentes además del nuevo ciclo.
-

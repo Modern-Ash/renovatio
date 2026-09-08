@@ -65,4 +65,3 @@ valida la ruta en vez de copiar desde un directorio interno.
 - El trabajo manual por sintaxis aún no soportada queda auditable y estable.
 - Una futura sustitución de JavaPoet o del nombre del directorio sólo debe preservar el contrato de
   `StubResult`, no lógica de copia en los adaptadores.
-
