@@ -11,14 +11,14 @@ Run: `mvn -pl renovatio-provider-cobol test -Dgroups=coverage -Drenovatio.surefi
 | COBOL programs | 44 |
 | Parse OK | 44 |
 | Emit Java OK | 44 |
-| Generated Java compiles | 10 |
+| Generated Java compiles | 11 |
 | Copybooks | 62 |
 
 ## By subsystem
 
 | Subsystem | Programs | Parse | Emit | Compile |
 | --- | --: | --: | --: | --: |
-| batch | 14 | 14 | 14 | 9 |
+| batch | 14 | 14 | 14 | 10 |
 | cics-online | 19 | 19 | 19 | 0 |
 | db2 | 3 | 3 | 3 | 1 |
 | ims-mq | 8 | 8 | 8 | 0 |
@@ -29,73 +29,69 @@ Run: `mvn -pl renovatio-provider-cobol test -Dgroups=coverage -Drenovatio.surefi
 | --- | --: | --: |
 | `READ` | 36 | 424 |
 | `SET` | 36 | 1269 |
-| `DISPLAY` | 34 | 624 |
 | `INITIALIZE` | 32 | 144 |
-| `CONTINUE` | 31 | 276 |
 | `STRING` | 24 | 258 |
 | `OPEN` | 22 | 349 |
 | `CLOSE` | 21 | 173 |
-| `GOBACK` | 19 | 27 |
 | `WRITE` | 19 | 222 |
 | `GO TO` | 10 | 186 |
 | `REWRITE` | 8 | 11 |
 | `SEARCH` | 8 | 67 |
 | `INSPECT` | 7 | 21 |
 | `ACCEPT` | 6 | 14 |
-| `STOP RUN` | 2 | 2 |
 | `UNSTRING` | 1 | 2 |
 
 ## E2E candidates for issue #216 (simplest batch programs)
 
+- `CBCUS01C`
+- `CBACT01C`
 - `COBSWAIT`
-- `CSUTLDTC`
-- `CBACT02C`
 
 ## Per program
 
 | Program | Subsystem | LOC | Parse | Emit | Compile | Java files | Action items | TODO | Unhandled |
 | --- | --- | --: | :-: | :-: | :-: | --: | --: | --: | --: |
-| `CBACT01C` | batch | 430 | yes | yes | no | 3 | 0 | 0 | 0 |
-| `CBACT02C` | batch | 178 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `CBACT03C` | batch | 178 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `CBACT04C` | batch | 652 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `CBCUS01C` | batch | 178 | yes | yes | no | 3 | 0 | 0 | 0 |
-| `CBEXPORT` | batch | 582 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `CBIMPORT` | batch | 487 | yes | yes | no | 3 | 0 | 0 | 0 |
-| `CBPAUP0C` | ims-mq | 386 | yes | yes | no | 3 | 0 | 1 | 0 |
-| `CBSTM03A` | batch | 924 | yes | yes | no | 3 | 0 | 0 | 0 |
-| `CBSTM03B` | batch | 230 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `CBTRN01C` | batch | 494 | yes | yes | no | 3 | 0 | 0 | 0 |
-| `CBTRN02C` | batch | 731 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `CBTRN03C` | batch | 649 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `COACCT01` | cics-online | 620 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COACTUPC` | cics-online | 4236 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COACTVWC` | cics-online | 941 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COADM01C` | cics-online | 288 | yes | yes | no | 4 | 0 | 0 | 0 |
-| `COBIL00C` | cics-online | 572 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COBSWAIT` | batch | 41 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `COBTUPDT` | db2 | 237 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `COCRDLIC` | cics-online | 1459 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COCRDSLC` | cics-online | 887 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COCRDUPC` | cics-online | 1560 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `CODATE01` | cics-online | 524 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COMEN01C` | cics-online | 308 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COPAUA0C` | ims-mq | 1026 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COPAUS0C` | ims-mq | 1032 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COPAUS1C` | ims-mq | 604 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COPAUS2C` | ims-mq | 244 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `CORPT00C` | cics-online | 649 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COSGN00C` | cics-online | 260 | yes | yes | no | 4 | 0 | 0 | 0 |
-| `COTRN00C` | cics-online | 699 | yes | yes | no | 4 | 0 | 0 | 0 |
-| `COTRN01C` | cics-online | 330 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COTRN02C` | cics-online | 783 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COTRTLIC` | db2 | 2098 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COTRTUPC` | db2 | 1702 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COUSR00C` | cics-online | 695 | yes | yes | no | 4 | 0 | 0 | 0 |
-| `COUSR01C` | cics-online | 299 | yes | yes | no | 4 | 0 | 0 | 0 |
-| `COUSR02C` | cics-online | 414 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `COUSR03C` | cics-online | 359 | yes | yes | no | 4 | 0 | 1 | 0 |
-| `CSUTLDTC` | batch | 157 | yes | yes | yes | 3 | 0 | 1 | 0 |
-| `DBUNLDGS` | ims-mq | 366 | yes | yes | no | 3 | 0 | 1 | 0 |
-| `PAUDBLOD` | ims-mq | 369 | yes | yes | no | 3 | 0 | 1 | 0 |
-| `PAUDBUNL` | ims-mq | 317 | yes | yes | no | 3 | 0 | 1 | 0 |
+| `CBACT01C` | batch | 430 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 |
+| `CBACT02C` | batch | 178 | yes | yes | yes | 3 | 0 | 1 | 0 | 0 |
+| `CBACT03C` | batch | 178 | yes | yes | yes | 3 | 0 | 1 | 0 | 0 |
+| `CBACT04C` | batch | 652 | yes | yes | yes | 3 | 0 | 1 | 0 | 0 |
+| `CBCUS01C` | batch | 178 | yes | yes | yes | 3 | 0 | 0 | 0 | 0 |
+| `CBEXPORT` | batch | 582 | yes | yes | no | 3 | 0 | 0 | 0 | 18 |
+| `CBIMPORT` | batch | 487 | yes | yes | no | 3 | 0 | 0 | 0 | 54 |
+| `CBPAUP0C` | ims-mq | 386 | yes | yes | no | 3 | 0 | 0 | 0 | 2 |
+| `CBSTM03A` | batch | 924 | yes | yes | no | 3 | 0 | 0 | 0 | 18 |
+| `CBSTM03B` | batch | 230 | yes | yes | yes | 3 | 0 | 1 | 0 | 0 |
+| `CBTRN01C` | batch | 494 | yes | yes | no | 3 | 0 | 0 | 0 | 2 |
+| `CBTRN02C` | batch | 731 | yes | yes | yes | 3 | 0 | 1 | 0 | 0 |
+| `CBTRN03C` | batch | 649 | yes | yes | yes | 3 | 0 | 1 | 0 | 0 |
+| `COACCT01` | cics-online | 620 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COACTUPC` | cics-online | 4236 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COACTVWC` | cics-online | 941 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COADM01C` | cics-online | 288 | yes | yes | no | 4 | 0 | 0 | 0 | 11 |
+| `COBIL00C` | cics-online | 572 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COBSWAIT` | batch | 41 | yes | yes | yes | 3 | 0 | 1 | 0 | 0 |
+| `COBTUPDT` | db2 | 237 | yes | yes | yes | 3 | 0 | 1 | 0 | 0 |
+| `COCRDLIC` | cics-online | 1459 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COCRDSLC` | cics-online | 887 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COCRDUPC` | cics-online | 1560 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `CODATE01` | cics-online | 524 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COMEN01C` | cics-online | 308 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COPAUA0C` | ims-mq | 1026 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COPAUS0C` | ims-mq | 1032 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COPAUS1C` | ims-mq | 604 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COPAUS2C` | ims-mq | 244 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `CORPT00C` | cics-online | 649 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COSGN00C` | cics-online | 260 | yes | yes | no | 4 | 0 | 0 | 0 | 267 |
+| `COTRN00C` | cics-online | 699 | yes | yes | no | 4 | 0 | 0 | 0 | 3264 |
+| `COTRN01C` | cics-online | 330 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COTRN02C` | cics-online | 783 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COTRTLIC` | db2 | 2098 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COTRTUPC` | db2 | 1702 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COUSR00C` | cics-online | 695 | yes | yes | no | 4 | 0 | 0 | 0 | 3177 |
+| `COUSR01C` | cics-online | 299 | yes | yes | no | 4 | 0 | 0 | 0 | 410 |
+| `COUSR02C` | cics-online | 414 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `COUSR03C` | cics-online | 359 | yes | yes | no | 4 | 0 | 1 | 0 | 0 |
+| `CSUTLDTC` | batch | 157 | yes | yes | yes | 3 | 0 | 1 | 0 | 0 |
+| `DBUNLDGS` | ims-mq | 366 | yes | yes | no | 3 | 0 | 1 | 0 | 0 |
+| `PAUDBLOD` | ims-mq | 369 | yes | yes | no | 3 | 0 | 1 | 0 | 0 |
+| `PAUDBUNL` | ims-mq | 317 | yes | yes | no | 3 | 0 | 1 | 0 | 0 |

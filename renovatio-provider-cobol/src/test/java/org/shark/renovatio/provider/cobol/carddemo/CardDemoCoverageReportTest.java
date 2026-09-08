@@ -53,17 +53,21 @@ class CardDemoCoverageReportTest {
     private static final Path REPORT_DIR = Path.of("..", "docs", "reports");
     private static final String TODO = "// TODO: Implement COBOL business logic";
     private static final String UNHANDLED = "// Unhandled COBOL statement";
+    private static final String NOT_TRANSLATED = "// COBOL not translated:";
 
     /**
      * COBOL procedural verbs the translator renders as real Java today
      * (SimpleCobolIrParser#parseStatements + PopulateCobolProcessRecipe): MOVE, COMPUTE, IF,
-     * PERFORM, EVALUATE, CALL and ADD/SUBTRACT/MULTIPLY/DIVIDE (normalised to COMPUTE).
+     * PERFORM, EVALUATE, CALL, ADD/SUBTRACT/MULTIPLY/DIVIDE (normalised to COMPUTE), and
+     * DISPLAY / CONTINUE / GOBACK / STOP RUN (#206 cycle 1).
      * READ/WRITE/OPEN/CLOSE and EXEC SQL parse but are only emitted as comments, so they count as
-     * not-yet-translated here. Any other verb on a PROCEDURE DIVISION line is silently skipped.
+     * not-yet-translated here. Any other verb on a PROCEDURE DIVISION line becomes a visible
+     * "// COBOL not translated:" marker (no silent drop).
      */
     private static final List<String> SUPPORTED_VERBS = List.of(
             "MOVE", "COMPUTE", "IF", "PERFORM", "EVALUATE", "CALL",
-            "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE");
+            "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE",
+            "DISPLAY", "CONTINUE", "GOBACK", "STOP RUN");
     /** Procedural verbs / constructs we scan for lexically. */
     private static final List<String> SCANNED_VERBS = List.of(
             "MOVE", "COMPUTE", "IF", "PERFORM", "EVALUATE", "CALL", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE",
@@ -152,6 +156,7 @@ class CardDemoCoverageReportTest {
                         for (String content : code.values()) {
                             row.todoCount += countOccurrences(content, TODO);
                             row.unhandledCount += countOccurrences(content, UNHANDLED);
+                            row.notTranslatedCount += countOccurrences(content, NOT_TRANSLATED);
                         }
                         row.manualActionItems = readActionItemCount(workspace);
                         row.compile = compile(code);
@@ -317,6 +322,7 @@ class CardDemoCoverageReportTest {
             node.put("manualActionItems", row.manualActionItems);
             node.put("todoBodies", row.todoCount);
             node.put("unhandledStatements", row.unhandledCount);
+            node.put("notTranslatedMarkers", row.notTranslatedCount);
             ArrayNode unsup = node.putArray("unsupported");
             row.unsupportedHeuristic.stream().sorted().forEach(unsup::add);
             if (row.parseError != null) {
@@ -339,7 +345,7 @@ class CardDemoCoverageReportTest {
                 .filter(r -> r.subsystem.equals("batch") && r.parse && r.emit)
                 .sorted(Comparator
                         .comparing((Row r) -> r.compile ? 0 : 1)
-                        .thenComparing(r -> r.todoCount + r.unhandledCount)
+                        .thenComparing(r -> r.todoCount + r.unhandledCount + r.notTranslatedCount)
                         .thenComparing(r -> r.manualActionItems)
                         .thenComparing(r -> r.loc)
                         .thenComparing(r -> r.programId))
@@ -405,7 +411,8 @@ class CardDemoCoverageReportTest {
                     .append(node.get("javaFiles").asInt()).append(" | ")
                     .append(node.get("manualActionItems").asInt()).append(" | ")
                     .append(node.get("todoBodies").asInt()).append(" | ")
-                    .append(node.get("unhandledStatements").asInt()).append(" |\n");
+                    .append(node.get("unhandledStatements").asInt()).append(" | ")
+                    .append(node.get("notTranslatedMarkers").asInt()).append(" |\n");
         }
         return md.toString();
     }
@@ -463,6 +470,7 @@ class CardDemoCoverageReportTest {
         int manualActionItems;
         int todoCount;
         int unhandledCount;
+        int notTranslatedCount;
         String parseError;
         String emitError;
     }

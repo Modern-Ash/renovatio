@@ -245,7 +245,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
             try {
                 List<String> lines = new ArrayList<>();
                 for (CobolStatement statement : paragraph.statements()) {
-                    if (appendStopping(lines, renderStatement(statement, model, visitedParagraphs, varName))) {
+                    lines.addAll(renderStatement(statement, model, visitedParagraphs, varName));
+                    // A GOBACK/STOP RUN here, or one reached through an inlined PERFORM, ends the
+                    // run unit: stop so no unreachable Java follows.
+                    if (terminatesFlow(statement)
+                            || (!lines.isEmpty() && lines.get(lines.size() - 1).startsWith("return "))) {
                         break;
                     }
                 }
@@ -256,18 +260,14 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         /**
-         * Appends rendered lines to {@code target}. Returns {@code true} once a {@code return ...;}
-         * line has been emitted, so callers stop rendering later statements in the same block and
-         * do not produce unreachable Java.
+         * True when {@code statement} unconditionally ends the run unit ({@code GOBACK} / {@code STOP
+         * RUN}). Callers stop rendering later statements in the same block so the generated method
+         * has no unreachable Java after the {@code return}.
          */
-        private boolean appendStopping(List<String> target, List<String> rendered) {
-            for (String line : rendered) {
-                target.add(line);
-                if (line.trim().startsWith("return ")) {
-                    return true;
-                }
-            }
-            return false;
+        private boolean terminatesFlow(CobolStatement statement) {
+            return statement instanceof SimpleStatement simple
+                    && (simple.kind() == SimpleStatement.Kind.GOBACK
+                        || simple.kind() == SimpleStatement.Kind.STOP_RUN);
         }
 
         private List<String> renderStatement(CobolStatement statement,
@@ -360,14 +360,10 @@ public class PopulateCobolProcessRecipe extends Recipe {
         private void renderBranch(List<CobolStatement> statements, CobolIntermediateModel model,
                                   Set<String> visitedParagraphs, @Nullable String varName, List<String> lines) {
             for (CobolStatement stmt : statements) {
-                boolean stop = false;
                 for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
                     lines.add(indent(rendered));
-                    if (rendered.trim().startsWith("return ")) {
-                        stop = true;
-                    }
                 }
-                if (stop) {
+                if (terminatesFlow(stmt)) {
                     break;
                 }
             }
@@ -426,14 +422,10 @@ public class PopulateCobolProcessRecipe extends Recipe {
                         : "case " + toJavaExpression(branch.condition());
                 lines.add(indent(label + " -> {"));
                 for (CobolStatement stmt : branch.statements()) {
-                    boolean stop = false;
                     for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
                         lines.add(indent(indent(rendered)));
-                        if (rendered.trim().startsWith("return ")) {
-                            stop = true;
-                        }
                     }
-                    if (stop) {
+                    if (terminatesFlow(stmt)) {
                         break;
                     }
                 }
