@@ -40,3 +40,34 @@
 - 2026-09-08T19:11:53.238998Z | evidence.added | id=evidence-000002 type=coverage-report result=success revision=1 actor=project:agent
 - 2026-09-08T22:00:37.060447Z | work.transitioned | from=verifying to=implementing actor=project:agent
 - 2026-09-08T22:05:06.540319Z | work.criterion-stage-marked | criterion=carddemo-compiles actor=project:agent stage=implemented
+- 2026-09-08T22:11:00.363221Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-08T22:11:00.635078Z | artifact.added | kind=spec uri=repo://docs/specs/issue-207-perform-thru-varying-times.md actor=project:agent
+- 2026-09-08T22:11:00.914939Z | artifact.added | kind=plan uri=repo://docs/plans/issue-207-perform-thru-varying-times.md actor=project:agent
+- 2026-09-08T22:11:01.177411Z | artifact.added | kind=verification uri=repo://docs/reports/issue-207-perform-thru-varying-times-verification.md actor=project:agent
+- 2026-09-08T22:11:01.446954Z | artifact.added | kind=coverage-report uri=repo://docs/reports/carddemo-coverage.md actor=project:agent
+- 2026-09-08T22:11:12.587345Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/issue-207-perform-thru-varying-times.md actor=project:agent
+- 2026-09-08T22:11:12.859266Z | artifact.added | kind=verification-report uri=repo://docs/reports/issue-207-perform-thru-varying-times-verification.md actor=project:agent
+- 2026-09-08T22:11:20.499841Z | evidence.added | id=evidence-000003 type=test-suite result=success revision=1 actor=project:agent
+- 2026-09-08T22:11:20.813179Z | evidence.added | id=evidence-000004 type=coverage result=success revision=1 actor=project:agent
+- 2026-09-08T22:11:49.992404Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-08T22:11:54.637346Z | work.criterion-stage-marked | criterion=carddemo-compiles actor=project:agent stage=verified
+- 2026-09-08T22:11:54.941382Z | work.criterion-stage-marked | criterion=carddemo-compiles actor=project:owner stage=accepted
+- 2026-09-08T22:12:01.053364Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-09-08T22:12:43.749624Z | work.reopened | revision=2 source=human-request actor=project:owner change=change-20260908t221243749517z
+- 2026-09-08T22:13:19.563026Z | work.criterion-satisfied | criterion=ir-representation actor=project:owner
+- 2026-09-08T22:13:29.545685Z | work.criterion-satisfied | criterion=method-extraction actor=project:owner
+- 2026-09-08T22:13:29.814208Z | work.criterion-satisfied | criterion=perform-thru actor=project:owner
+- 2026-09-08T22:13:30.087883Z | work.criterion-satisfied | criterion=looping-variants actor=project:owner
+- 2026-09-08T22:13:30.352608Z | work.criterion-satisfied | criterion=recursion-guard actor=project:owner
+- 2026-09-08T22:13:30.635461Z | work.criterion-satisfied | criterion=traceability actor=project:owner
+- 2026-09-08T22:13:30.903265Z | work.criterion-satisfied | criterion=characterization actor=project:owner
+- 2026-09-08T22:13:31.173258Z | work.criterion-satisfied | criterion=nested-green actor=project:owner
+- 2026-09-08T22:13:31.439068Z | work.criterion-satisfied | criterion=carddemo-compiles actor=project:owner
+- 2026-09-08T22:13:31.709568Z | work.criterion-satisfied | criterion=regression-green actor=project:owner
+- 2026-09-08T22:13:36.957172Z | artifact.added | kind=spec uri=repo://docs/specs/issue-207-perform-thru-varying-times.md actor=project:agent
+- 2026-09-08T22:13:37.222599Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/issue-207-perform-thru-varying-times.md actor=project:agent
+- 2026-09-08T22:13:37.496629Z | artifact.added | kind=verification-report uri=repo://docs/reports/issue-207-perform-thru-varying-times-verification.md actor=project:agent
+- 2026-09-08T22:13:37.765370Z | artifact.added | kind=coverage-report uri=repo://docs/reports/carddemo-coverage.md actor=project:agent
+- 2026-09-08T22:13:45.959916Z | evidence.added | id=evidence-000005 type=test-suite result=success revision=2 actor=project:agent
+- 2026-09-08T22:13:46.243039Z | evidence.added | id=evidence-000006 type=coverage result=success revision=2 actor=project:agent
+- 2026-09-08T22:13:53.747624Z | approval.added | role=spec-owner actor=project:owner delegation=none
