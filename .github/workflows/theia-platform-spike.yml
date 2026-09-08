@@ -38,6 +38,8 @@ jobs:
       - run: npm run hardening:audit
       - run: npm run pilot:demo
       - run: npm run smoke
+      - run: npm run e2e:install
+      - run: npm run e2e
       - run: npm run performance:budget
       - run: docker build --target build -t renovatio-workbench:ci-build .
       - run: npm prune --omit=dev
