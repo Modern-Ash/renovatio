@@ -114,3 +114,18 @@
 - 2026-09-08T23:27:55.788162Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:owner stage=accepted
 - 2026-09-08T23:27:56.068806Z | work.criterion-stage-marked | criterion=rollback actor=project:owner stage=accepted
 - 2026-09-08T23:28:03.282117Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-08T23:28:23.622143Z | tool.prepared | run=tool-20260908t23281788920903z tool=repository operation=commit actor=project:agent
+- 2026-09-08T23:28:23.629779Z | tool.running | run=tool-20260908t23281788920903z actor=project:agent
+- 2026-09-08T23:28:23.669812Z | tool.completed | run=tool-20260908t23281788920903z exit-code=0
+- 2026-09-08T23:28:34.674049Z | tool.prepared | run=tool-20260908t23281788920914z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-08T23:28:34.680445Z | tool.running | run=tool-20260908t23281788920914z actor=project:agent
+- 2026-09-08T23:28:36.547964Z | tool.completed | run=tool-20260908t23281788920914z exit-code=0
+- 2026-09-08T23:29:17.688256Z | tool.prepared | run=tool-20260908t23291788920957z tool=github-pull-requests operation=comment actor=project:agent
+- 2026-09-08T23:29:17.694267Z | tool.running | run=tool-20260908t23291788920957z actor=project:agent
+- 2026-09-08T23:29:18.844329Z | tool.completed | run=tool-20260908t23291788920957z exit-code=0
+- 2026-09-08T23:36:33.100777Z | tool.prepared | run=tool-20260908t23361788921393z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-08T23:36:33.110170Z | tool.running | run=tool-20260908t23361788921393z actor=project:agent
+- 2026-09-08T23:36:34.067823Z | tool.completed | run=tool-20260908t23361788921393z exit-code=0
+- 2026-09-08T23:37:15.338525Z | artifact.added | kind=ci-report-r2 uri=repo://.agora/tool-runs/tool-20260908t23361788921393z/RESULT.md actor=project:agent
+- 2026-09-08T23:37:15.615698Z | evidence.added | id=issue-222-pr-ci-caf23cb8 type=ci result=success revision=2 actor=project:agent
+- 2026-09-08T23:38:04.943488Z | work.transitioned | from=verifying to=completed actor=project:owner

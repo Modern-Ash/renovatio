@@ -1,15 +1,15 @@
 ---
 schema: "agora/evidence-entry/v3"
-id: "issue-222-pr-ci-r2"
+id: "issue-222-pr-ci-caf23cb8"
 type: "ci"
 phase: "review-revalidation"
 result: "success"
 revision: 2
-artifact-references: ["repo://.agora/tool-runs/tool-20260908t23051788919519z/RESULT.md"]
-artifact-content-sha256: {"repo://.agora/tool-runs/tool-20260908t23051788919519z/RESULT.md":"efa5bea45dc7ddf35d5414898363cde3de6c46936acb17c6f7d59c327498b1bf"}
+artifact-references: ["repo://.agora/tool-runs/tool-20260908t23361788921393z/RESULT.md"]
+artifact-content-sha256: {"repo://.agora/tool-runs/tool-20260908t23361788921393z/RESULT.md":"c4b78994fe7f747e4e8e77e03e738427d8a0253ff2e83094b117efe7fb61636a"}
 produced-by: "project:agent"
-timestamp: "2026-09-08T23:27:38.627541Z"
-tested-commit: "b765b20e2440aeff99cba1010c239fb2c48dc841"
+timestamp: "2026-09-08T23:37:15.615465Z"
+tested-commit: "caf23cb88f6dd651a3568395647eebcdc975d399"
 command: ["gh","pr","checks","239"]
 exit-code: 0
 tests-total: null
@@ -19,6 +19,6 @@ environment: "github-actions"
 dedupe-key: null
 ---
 
-# Evidence issue-222-pr-ci-r2
+# Evidence issue-222-pr-ci-caf23cb8
 
 This append-only record captures a governed verification fact. Provider output and credentials are intentionally excluded.
