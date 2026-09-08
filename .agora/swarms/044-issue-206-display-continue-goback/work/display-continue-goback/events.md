@@ -1,0 +1,23 @@
+# Work events
+
+- 2026-09-08T10:20:51.367957Z | work.created | state=drafting actor=project:owner
+- 2026-09-08T10:22:19.876708Z | artifact.added | kind=spec uri=repo://docs/specs/issue-206-display-continue-goback.md actor=project:owner
+- 2026-09-08T10:22:20.101369Z | work.criterion-stage-marked | criterion=display-rendered actor=project:owner stage=specified
+- 2026-09-08T10:22:20.340400Z | work.criterion-stage-marked | criterion=continue-noop actor=project:owner stage=specified
+- 2026-09-08T10:22:20.569707Z | work.criterion-stage-marked | criterion=goback-return actor=project:owner stage=specified
+- 2026-09-08T10:22:20.807657Z | work.criterion-stage-marked | criterion=no-silent-drop actor=project:owner stage=specified
+- 2026-09-08T10:22:21.029035Z | work.criterion-stage-marked | criterion=coverage-delta actor=project:owner stage=specified
+- 2026-09-08T10:22:21.249261Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=specified
+- 2026-09-08T10:22:40.263242Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-08T10:23:15.437150Z | artifact.added | kind=spec uri=repo://docs/specs/issue-206-display-continue-goback.md actor=project:owner
+- 2026-09-08T10:23:34.627255Z | work.clarified-advisory | questions=4 actor=project:owner
+- 2026-09-08T10:23:38.501065Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-08T10:24:25.948799Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/issue-206-display-continue-goback.md actor=project:owner
+- 2026-09-08T10:24:26.184968Z | work.criterion-stage-marked | criterion=display-rendered actor=project:owner stage=planned
+- 2026-09-08T10:24:26.409744Z | work.criterion-stage-marked | criterion=continue-noop actor=project:owner stage=planned
+- 2026-09-08T10:24:26.643104Z | work.criterion-stage-marked | criterion=goback-return actor=project:owner stage=planned
+- 2026-09-08T10:24:26.868877Z | work.criterion-stage-marked | criterion=no-silent-drop actor=project:owner stage=planned
+- 2026-09-08T10:24:27.101222Z | work.criterion-stage-marked | criterion=coverage-delta actor=project:owner stage=planned
+- 2026-09-08T10:24:27.325337Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=planned
+- 2026-09-08T10:24:27.553218Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-08T10:24:27.782492Z | work.transitioned | from=planned to=implementing actor=project:agent
