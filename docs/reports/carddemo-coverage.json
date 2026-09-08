@@ -36,6 +36,10 @@
     }
   },
   "unsupportedConstructs" : [ {
+    "construct" : "READ",
+    "programs" : 36,
+    "occurrences" : 424
+  }, {
     "construct" : "SET",
     "programs" : 36,
     "occurrences" : 1269
@@ -52,25 +56,33 @@
     "programs" : 31,
     "occurrences" : 276
   }, {
-    "construct" : "ADD",
-    "programs" : 30,
-    "occurrences" : 370
-  }, {
     "construct" : "STRING",
     "programs" : 24,
     "occurrences" : 258
+  }, {
+    "construct" : "OPEN",
+    "programs" : 22,
+    "occurrences" : 349
+  }, {
+    "construct" : "CLOSE",
+    "programs" : 21,
+    "occurrences" : 173
   }, {
     "construct" : "GOBACK",
     "programs" : 19,
     "occurrences" : 27
   }, {
+    "construct" : "WRITE",
+    "programs" : 19,
+    "occurrences" : 222
+  }, {
     "construct" : "GO TO",
     "programs" : 10,
     "occurrences" : 186
   }, {
-    "construct" : "SUBTRACT",
-    "programs" : 10,
-    "occurrences" : 17
+    "construct" : "REWRITE",
+    "programs" : 8,
+    "occurrences" : 11
   }, {
     "construct" : "SEARCH",
     "programs" : 8,
@@ -87,10 +99,6 @@
     "construct" : "STOP RUN",
     "programs" : 2,
     "occurrences" : 2
-  }, {
-    "construct" : "DIVIDE",
-    "programs" : 1,
-    "occurrences" : 1
   }, {
     "construct" : "UNSTRING",
     "programs" : 1,
@@ -109,7 +117,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "SET", "SUBTRACT" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
   }, {
     "programId" : "CBACT02C",
     "file" : "app/cbl/CBACT02C.cbl",
@@ -122,7 +130,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GOBACK", "SET", "SUBTRACT" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ", "SET" ]
   }, {
     "programId" : "CBACT03C",
     "file" : "app/cbl/CBACT03C.cbl",
@@ -135,7 +143,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GOBACK", "SET", "SUBTRACT" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ", "SET" ]
   }, {
     "programId" : "CBACT04C",
     "file" : "app/cbl/CBACT04C.cbl",
@@ -148,7 +156,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GOBACK", "STRING" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ", "REWRITE", "STRING", "WRITE" ]
   }, {
     "programId" : "CBCUS01C",
     "file" : "app/cbl/CBCUS01C.cbl",
@@ -161,7 +169,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GOBACK", "SET", "SUBTRACT" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ", "SET" ]
   }, {
     "programId" : "CBEXPORT",
     "file" : "app/cbl/CBEXPORT.cbl",
@@ -174,7 +182,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "ADD", "DISPLAY", "GOBACK", "INITIALIZE", "STRING" ]
+    "unsupported" : [ "ACCEPT", "CLOSE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "STRING", "WRITE" ]
   }, {
     "programId" : "CBIMPORT",
     "file" : "app/cbl/CBIMPORT.cbl",
@@ -187,7 +195,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "DISPLAY", "GOBACK", "INITIALIZE" ]
+    "unsupported" : [ "CLOSE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "WRITE" ]
   }, {
     "programId" : "CBPAUP0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/CBPAUP0C.cbl",
@@ -200,7 +208,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "ADD", "DISPLAY", "GOBACK", "INITIALIZE", "SET", "SUBTRACT" ]
+    "unsupported" : [ "ACCEPT", "DISPLAY", "GOBACK", "INITIALIZE", "READ", "SET" ]
   }, {
     "programId" : "CBSTM03A",
     "file" : "app/cbl/CBSTM03A.CBL",
@@ -213,7 +221,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GO TO", "GOBACK", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GO TO", "GOBACK", "INITIALIZE", "OPEN", "READ", "REWRITE", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "CBSTM03B",
     "file" : "app/cbl/CBSTM03B.CBL",
@@ -226,7 +234,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "GO TO", "GOBACK" ]
+    "unsupported" : [ "CLOSE", "GO TO", "GOBACK", "OPEN", "READ", "REWRITE", "WRITE" ]
   }, {
     "programId" : "CBTRN01C",
     "file" : "app/cbl/CBTRN01C.cbl",
@@ -239,7 +247,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GOBACK" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "OPEN", "READ" ]
   }, {
     "programId" : "CBTRN02C",
     "file" : "app/cbl/CBTRN02C.cbl",
@@ -252,7 +260,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "REWRITE", "WRITE" ]
   }, {
     "programId" : "CBTRN03C",
     "file" : "app/cbl/CBTRN03C.cbl",
@@ -265,7 +273,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "SET", "SUBTRACT" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
   }, {
     "programId" : "COACCT01",
     "file" : "app/app-vsam-mq/cbl/COACCT01.cbl",
@@ -278,7 +286,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "DISPLAY", "GOBACK", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CLOSE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "STRING" ]
   }, {
     "programId" : "COACTUPC",
     "file" : "app/cbl/COACTUPC.cbl",
@@ -291,7 +299,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DIVIDE", "GO TO", "INITIALIZE", "INSPECT", "SEARCH", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "GO TO", "INITIALIZE", "INSPECT", "OPEN", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COACTVWC",
     "file" : "app/cbl/COACTVWC.cbl",
@@ -304,7 +312,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "GO TO", "INITIALIZE", "SEARCH", "SET", "STRING" ]
+    "unsupported" : [ "GO TO", "INITIALIZE", "OPEN", "READ", "SEARCH", "SET", "STRING" ]
   }, {
     "programId" : "COADM01C",
     "file" : "app/cbl/COADM01C.cbl",
@@ -330,7 +338,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "REWRITE", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COBSWAIT",
     "file" : "app/cbl/COBSWAIT.cbl",
@@ -356,7 +364,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "DISPLAY", "SET", "STOP RUN", "STRING" ]
+    "unsupported" : [ "CLOSE", "DISPLAY", "OPEN", "READ", "SET", "STOP RUN", "STRING" ]
   }, {
     "programId" : "COCRDLIC",
     "file" : "app/cbl/COCRDLIC.cbl",
@@ -369,7 +377,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "INSPECT", "SEARCH", "SET", "SUBTRACT" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "INSPECT", "READ", "SEARCH", "SET" ]
   }, {
     "programId" : "COCRDSLC",
     "file" : "app/cbl/COCRDSLC.cbl",
@@ -382,7 +390,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "GO TO", "INITIALIZE", "SEARCH", "SET" ]
+    "unsupported" : [ "GO TO", "INITIALIZE", "READ", "SEARCH", "SET" ]
   }, {
     "programId" : "COCRDUPC",
     "file" : "app/cbl/COCRDUPC.cbl",
@@ -395,7 +403,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "INSPECT", "SEARCH", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "INSPECT", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "CODATE01",
     "file" : "app/app-vsam-mq/cbl/CODATE01.cbl",
@@ -408,7 +416,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "DISPLAY", "GOBACK", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CLOSE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "SET", "STRING" ]
   }, {
     "programId" : "COMEN01C",
     "file" : "app/cbl/COMEN01C.cbl",
@@ -434,7 +442,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "STRING", "UNSTRING" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "INITIALIZE", "OPEN", "READ", "SET", "STRING", "UNSTRING", "WRITE" ]
   }, {
     "programId" : "COPAUS0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS0C.cbl",
@@ -447,7 +455,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "SET", "STRING" ]
   }, {
     "programId" : "COPAUS1C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS1C.cbl",
@@ -460,7 +468,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "DISPLAY", "INITIALIZE", "SEARCH", "SET", "STRING" ]
+    "unsupported" : [ "CLOSE", "DISPLAY", "INITIALIZE", "READ", "SEARCH", "SET", "STRING" ]
   }, {
     "programId" : "COPAUS2C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS2C.cbl",
@@ -473,7 +481,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "SET", "STRING" ]
+    "unsupported" : [ "SET", "STRING" ]
   }, {
     "programId" : "CORPT00C",
     "file" : "app/cbl/CORPT00C.cbl",
@@ -486,7 +494,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COSGN00C",
     "file" : "app/cbl/COSGN00C.cbl",
@@ -499,7 +507,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "SET" ]
+    "unsupported" : [ "CONTINUE", "READ", "SET" ]
   }, {
     "programId" : "COTRN00C",
     "file" : "app/cbl/COTRN00C.cbl",
@@ -512,7 +520,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "SUBTRACT" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "SET" ]
   }, {
     "programId" : "COTRN01C",
     "file" : "app/cbl/COTRN01C.cbl",
@@ -525,7 +533,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "SET" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "SET" ]
   }, {
     "programId" : "COTRN02C",
     "file" : "app/cbl/COTRN02C.cbl",
@@ -538,7 +546,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COTRTLIC",
     "file" : "app/app-transaction-type-db2/cbl/COTRTLIC.cbl",
@@ -551,7 +559,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "INSPECT", "SEARCH", "SET", "STRING", "SUBTRACT" ]
+    "unsupported" : [ "CLOSE", "CONTINUE", "DISPLAY", "GO TO", "INITIALIZE", "INSPECT", "OPEN", "READ", "SEARCH", "SET", "STRING" ]
   }, {
     "programId" : "COTRTUPC",
     "file" : "app/app-transaction-type-db2/cbl/COTRTUPC.cbl",
@@ -564,7 +572,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "GO TO", "INITIALIZE", "INSPECT", "SEARCH", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "GO TO", "INITIALIZE", "INSPECT", "READ", "SEARCH", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COUSR00C",
     "file" : "app/cbl/COUSR00C.cbl",
@@ -577,7 +585,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "SUBTRACT" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "SET" ]
   }, {
     "programId" : "COUSR01C",
     "file" : "app/cbl/COUSR01C.cbl",
@@ -590,7 +598,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ADD", "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COUSR02C",
     "file" : "app/cbl/COUSR02C.cbl",
@@ -603,7 +611,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "REWRITE", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COUSR03C",
     "file" : "app/cbl/COUSR03C.cbl",
@@ -616,7 +624,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "SET", "STRING" ]
+    "unsupported" : [ "CONTINUE", "DISPLAY", "INITIALIZE", "READ", "SET", "STRING" ]
   }, {
     "programId" : "CSUTLDTC",
     "file" : "app/cbl/CSUTLDTC.cbl",
@@ -642,7 +650,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "ADD", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "SET" ]
+    "unsupported" : [ "ACCEPT", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
   }, {
     "programId" : "PAUDBLOD",
     "file" : "app/app-authorization-ims-db2-mq/cbl/PAUDBLOD.CBL",
@@ -655,7 +663,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "ADD", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "SET" ]
+    "unsupported" : [ "ACCEPT", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET" ]
   }, {
     "programId" : "PAUDBUNL",
     "file" : "app/app-authorization-ims-db2-mq/cbl/PAUDBUNL.CBL",
@@ -668,7 +676,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 1,
     "unhandledStatements" : 0,
-    "unsupported" : [ "ACCEPT", "ADD", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "SET" ]
+    "unsupported" : [ "ACCEPT", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
   } ],
   "inventory" : {
     "cobolFiles" : 44,

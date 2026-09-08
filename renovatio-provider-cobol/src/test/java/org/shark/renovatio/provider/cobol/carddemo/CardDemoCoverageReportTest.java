@@ -54,11 +54,20 @@ class CardDemoCoverageReportTest {
     private static final String TODO = "// TODO: Implement COBOL business logic";
     private static final String UNHANDLED = "// Unhandled COBOL statement";
 
-    /** COBOL procedural verbs the production translator renders today (see PopulateCobolProcessRecipe). */
-    private static final List<String> SUPPORTED_VERBS = List.of("MOVE", "COMPUTE", "IF", "PERFORM", "EVALUATE", "CALL");
+    /**
+     * COBOL procedural verbs the translator renders as real Java today
+     * (SimpleCobolIrParser#parseStatements + PopulateCobolProcessRecipe): MOVE, COMPUTE, IF,
+     * PERFORM, EVALUATE, CALL and ADD/SUBTRACT/MULTIPLY/DIVIDE (normalised to COMPUTE).
+     * READ/WRITE/OPEN/CLOSE and EXEC SQL parse but are only emitted as comments, so they count as
+     * not-yet-translated here. Any other verb on a PROCEDURE DIVISION line is silently skipped.
+     */
+    private static final List<String> SUPPORTED_VERBS = List.of(
+            "MOVE", "COMPUTE", "IF", "PERFORM", "EVALUATE", "CALL",
+            "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE");
     /** Procedural verbs / constructs we scan for lexically. */
     private static final List<String> SCANNED_VERBS = List.of(
             "MOVE", "COMPUTE", "IF", "PERFORM", "EVALUATE", "CALL", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE",
+            "READ", "WRITE", "REWRITE", "OPEN", "CLOSE",
             "DISPLAY", "ACCEPT", "STRING", "UNSTRING", "INSPECT", "INITIALIZE", "SET", "SEARCH", "GO TO",
             "GOBACK", "CONTINUE", "STOP RUN", "EXEC CICS", "EXEC SQL", "EXEC DLI");
 

@@ -27,20 +27,22 @@ Run: `mvn -pl renovatio-provider-cobol test -Dgroups=coverage -Drenovatio.surefi
 
 | Construct | Programs | Occurrences |
 | --- | --: | --: |
+| `READ` | 36 | 424 |
 | `SET` | 36 | 1269 |
 | `DISPLAY` | 34 | 624 |
 | `INITIALIZE` | 32 | 144 |
 | `CONTINUE` | 31 | 276 |
-| `ADD` | 30 | 370 |
 | `STRING` | 24 | 258 |
+| `OPEN` | 22 | 349 |
+| `CLOSE` | 21 | 173 |
 | `GOBACK` | 19 | 27 |
+| `WRITE` | 19 | 222 |
 | `GO TO` | 10 | 186 |
-| `SUBTRACT` | 10 | 17 |
+| `REWRITE` | 8 | 11 |
 | `SEARCH` | 8 | 67 |
 | `INSPECT` | 7 | 21 |
 | `ACCEPT` | 6 | 14 |
 | `STOP RUN` | 2 | 2 |
-| `DIVIDE` | 1 | 1 |
 | `UNSTRING` | 1 | 2 |
 
 ## E2E candidates for issue #216 (simplest batch programs)
