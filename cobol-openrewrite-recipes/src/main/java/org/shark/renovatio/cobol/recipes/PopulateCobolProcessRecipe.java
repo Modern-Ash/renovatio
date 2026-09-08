@@ -21,6 +21,9 @@ import java.util.*;
 public class PopulateCobolProcessRecipe extends Recipe {
 
     public static final String CONTEXT_KEY = "renovatio.cobol.ir";
+    /** One DISPLAY operand: a single- or double-quoted literal, or a run of non-space characters. */
+    private static final java.util.regex.Pattern DISPLAY_OPERAND =
+            java.util.regex.Pattern.compile("'[^']*'|\"[^\"]*\"|\\S+");
     public static final String ANNOTATED_CONTEXT_KEY = AnnotatedCobolContext.CONTEXT_KEY;
     public static final String SEMANTIC_DATA_INTENTS_KEY = "renovatio.semantic.data-intents";
 
@@ -242,12 +245,29 @@ public class PopulateCobolProcessRecipe extends Recipe {
             try {
                 List<String> lines = new ArrayList<>();
                 for (CobolStatement statement : paragraph.statements()) {
-                    lines.addAll(renderStatement(statement, model, visitedParagraphs, varName));
+                    if (appendStopping(lines, renderStatement(statement, model, visitedParagraphs, varName))) {
+                        break;
+                    }
                 }
                 return lines;
             } finally {
                 visitedParagraphs.remove(upperName);
             }
+        }
+
+        /**
+         * Appends rendered lines to {@code target}. Returns {@code true} once a {@code return ...;}
+         * line has been emitted, so callers stop rendering later statements in the same block and
+         * do not produce unreachable Java.
+         */
+        private boolean appendStopping(List<String> target, List<String> rendered) {
+            for (String line : rendered) {
+                target.add(line);
+                if (line.trim().startsWith("return ")) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private List<String> renderStatement(CobolStatement statement,
@@ -278,7 +298,48 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (statement instanceof FileOperationStatement fileOp) {
                 return List.of(renderFileOperation(fileOp));
             }
+            if (statement instanceof SimpleStatement simple) {
+                return renderSimple(simple, varName);
+            }
             return List.of("// Unhandled COBOL statement");
+        }
+
+        private List<String> renderSimple(SimpleStatement simple, @Nullable String varName) {
+            String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            switch (simple.kind()) {
+                case CONTINUE:
+                    return List.of("; // CONTINUE");
+                case GOBACK:
+                case STOP_RUN:
+                    return List.of(String.format(Locale.ROOT, "return %s;", targetVar));
+                case DISPLAY:
+                    return List.of(String.format(Locale.ROOT, "System.out.println(%s);",
+                            renderDisplayArguments(simple.text())));
+                case UNTRANSLATED:
+                default:
+                    return List.of("// COBOL not translated: " + truncate(simple.text()));
+            }
+        }
+
+        private String renderDisplayArguments(String operandText) {
+            if (operandText == null || operandText.isBlank()) {
+                return "";
+            }
+            List<String> parts = new ArrayList<>();
+            java.util.regex.Matcher matcher = DISPLAY_OPERAND.matcher(operandText.trim());
+            while (matcher.find()) {
+                String token = matcher.group().trim();
+                if (token.isEmpty()) {
+                    continue;
+                }
+                parts.add(toJavaExpression(token));
+            }
+            return parts.isEmpty() ? "" : String.join(" + ", parts);
+        }
+
+        private static String truncate(String value) {
+            String text = value == null ? "" : value.replace('\n', ' ').trim();
+            return text.length() > 120 ? text.substring(0, 120) : text;
         }
 
         private List<String> renderIf(IfStatement ifStatement,
@@ -287,21 +348,29 @@ public class PopulateCobolProcessRecipe extends Recipe {
                                       @Nullable String varName) {
             List<String> lines = new ArrayList<>();
             lines.add(String.format(Locale.ROOT, "if (%s) {", translateCondition(ifStatement.condition())));
-            for (CobolStatement stmt : ifStatement.thenStatements()) {
-                for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
-                    lines.add(indent(rendered));
-                }
-            }
+            renderBranch(ifStatement.thenStatements(), model, visitedParagraphs, varName, lines);
             if (!ifStatement.elseStatements().isEmpty()) {
                 lines.add("} else {");
-                for (CobolStatement stmt : ifStatement.elseStatements()) {
-                    for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
-                        lines.add(indent(rendered));
-                    }
-                }
+                renderBranch(ifStatement.elseStatements(), model, visitedParagraphs, varName, lines);
             }
             lines.add("}");
             return lines;
+        }
+
+        private void renderBranch(List<CobolStatement> statements, CobolIntermediateModel model,
+                                  Set<String> visitedParagraphs, @Nullable String varName, List<String> lines) {
+            for (CobolStatement stmt : statements) {
+                boolean stop = false;
+                for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
+                    lines.add(indent(rendered));
+                    if (rendered.trim().startsWith("return ")) {
+                        stop = true;
+                    }
+                }
+                if (stop) {
+                    break;
+                }
+            }
         }
 
         private String renderMove(MoveStatement move, @Nullable String varName) {
@@ -357,8 +426,15 @@ public class PopulateCobolProcessRecipe extends Recipe {
                         : "case " + toJavaExpression(branch.condition());
                 lines.add(indent(label + " -> {"));
                 for (CobolStatement stmt : branch.statements()) {
+                    boolean stop = false;
                     for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
                         lines.add(indent(indent(rendered)));
+                        if (rendered.trim().startsWith("return ")) {
+                            stop = true;
+                        }
+                    }
+                    if (stop) {
+                        break;
                     }
                 }
                 lines.add(indent("}"));
@@ -518,10 +594,16 @@ public class PopulateCobolProcessRecipe extends Recipe {
             StringBuilder builder = new StringBuilder();
             builder.append("{\n");
             builder.append(String.format(Locale.ROOT, "    %s %s = new %s();\n", dtoType, targetVar, dtoType));
+            String lastMeaningful = "";
             for (String statement : statements) {
                 builder.append("    ").append(statement).append('\n');
+                if (!statement.trim().isEmpty()) {
+                    lastMeaningful = statement.trim();
+                }
             }
-            builder.append(String.format(Locale.ROOT, "    return %s;\n", targetVar));
+            if (!lastMeaningful.startsWith("return ")) {
+                builder.append(String.format(Locale.ROOT, "    return %s;\n", targetVar));
+            }
             builder.append("}");
             return builder.toString();
         }

@@ -109,7 +109,7 @@ class PopulateCobolProcessRecipeTest {
                     GOBACK.
                 PREP-PARA.
                     MOVE 'INIT' TO CUSTOMER-NAME.
-                    GOBACK.
+                    EXIT.
                 """;
 
         SimpleCobolIrParser parser = new SimpleCobolIrParser();

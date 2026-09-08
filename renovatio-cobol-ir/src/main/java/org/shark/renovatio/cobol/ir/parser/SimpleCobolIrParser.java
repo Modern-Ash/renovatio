@@ -57,6 +57,10 @@ public class SimpleCobolIrParser {
     );
     private static final Set<String> EXCLUDED_END_HEADERS = Set.of("END-IF", "END-EVALUATE", "END-EXEC");
 
+    /** Lines that are structural markers rather than statements (checked upper-case, period stripped). */
+    private static final Set<String> STATEMENT_NOISE = Set.of(
+            "EXIT", "ELSE", "THEN", "WHEN", "NEXT SENTENCE", "END-PERFORM");
+
     // ------------------ Constants extracted for literals ------------------
     private static final class Sections {
         private Sections() {}
@@ -487,9 +491,58 @@ public class SimpleCobolIrParser {
             }
             if (upperLine.startsWith(Keywords.MOVE)) {
                 statements.add(parseMove(line));
+                continue;
+            }
+            SimpleStatement simple = parseSimpleStatement(line, upperLine);
+            if (simple != null) {
+                statements.add(simple);
             }
         }
         return statements;
+    }
+
+    /**
+     * Recognises DISPLAY / CONTINUE / GOBACK / STOP RUN, and captures every other non-noise
+     * PROCEDURE DIVISION line as {@link SimpleStatement.Kind#UNTRANSLATED} instead of dropping it.
+     * Returns {@code null} for structural noise (period-only lines, {@code EXIT}, {@code END-*}).
+     */
+    private SimpleStatement parseSimpleStatement(String line, String upperLine) {
+        String withoutPeriod = stripTrailingPeriod(line);
+        String upper = stripTrailingPeriod(upperLine);
+        if (upper.equals("DISPLAY")) {
+            return new SimpleStatement(SimpleStatement.Kind.DISPLAY, "");
+        }
+        if (upper.startsWith("DISPLAY ")) {
+            return new SimpleStatement(SimpleStatement.Kind.DISPLAY, withoutPeriod.substring("DISPLAY ".length()).trim());
+        }
+        if (upper.equals("CONTINUE")) {
+            return new SimpleStatement(SimpleStatement.Kind.CONTINUE, "");
+        }
+        if (upper.equals("GOBACK")) {
+            return new SimpleStatement(SimpleStatement.Kind.GOBACK, "");
+        }
+        if (upper.equals("STOP") || upper.equals("STOP RUN")) {
+            return new SimpleStatement(SimpleStatement.Kind.STOP_RUN, "");
+        }
+        if (isStatementNoise(upper)) {
+            return null;
+        }
+        return new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, withoutPeriod.trim());
+    }
+
+    private static String stripTrailingPeriod(String value) {
+        String trimmed = value.trim();
+        return trimmed.endsWith(".") ? trimmed.substring(0, trimmed.length() - 1).trim() : trimmed;
+    }
+
+    private static boolean isStatementNoise(String upperNoPeriod) {
+        if (upperNoPeriod.isEmpty()) {
+            return true;
+        }
+        if (STATEMENT_NOISE.contains(upperNoPeriod)) {
+            return true;
+        }
+        return upperNoPeriod.startsWith("END-") || upperNoPeriod.startsWith("EXIT ");
     }
 
     private int parseIf(List<String> lines, int index, List<CobolStatement> statements) {
