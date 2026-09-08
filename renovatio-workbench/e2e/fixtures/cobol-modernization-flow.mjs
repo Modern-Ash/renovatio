@@ -5,6 +5,44 @@ const architectureHash = `sha256:${'c'.repeat(64)}`;
 const shadowHash = `sha256:${'d'.repeat(64)}`;
 const manifestHash = `sha256:${'e'.repeat(64)}`;
 
+export const architectureScenarios = [
+    {
+        style: 'LAYERED_MVC',
+        label: 'LAYERED MVC',
+        expectedServicePath: 'target/java/com/renovatio/payroll/service/PayrollService.java',
+        expectedModelPath: 'target/java/com/renovatio/payroll/model/EmployeePayrollEntity.java',
+        expectedPackage: 'com.renovatio.payroll.service'
+    },
+    {
+        style: 'HEXAGONAL',
+        label: 'HEXAGONAL',
+        expectedServicePath: 'target/java/com/renovatio/payroll/application/PayrollService.java',
+        expectedModelPath: 'target/java/com/renovatio/payroll/domain/EmployeePayrollAggregate.java',
+        expectedPackage: 'com.renovatio.payroll.application'
+    },
+    {
+        style: 'CLEAN',
+        label: 'CLEAN',
+        expectedServicePath: 'target/java/com/renovatio/payroll/usecase/PayrollUseCase.java',
+        expectedModelPath: 'target/java/com/renovatio/payroll/entity/EmployeePayrollEntity.java',
+        expectedPackage: 'com.renovatio.payroll.usecase'
+    },
+    {
+        style: 'LAYERED',
+        label: 'LAYERED',
+        expectedServicePath: 'target/java/com/renovatio/payroll/application/PayrollApplicationService.java',
+        expectedModelPath: 'target/java/com/renovatio/payroll/domain/EmployeePayroll.java',
+        expectedPackage: 'com.renovatio.payroll.application'
+    },
+    {
+        style: 'TRANSACTION_SCRIPT',
+        label: 'TRANSACTION SCRIPT',
+        expectedServicePath: 'target/java/com/renovatio/payroll/script/PayrollTransactionScript.java',
+        expectedModelPath: 'target/java/com/renovatio/payroll/dto/PayrollRecord.java',
+        expectedPackage: 'com.renovatio.payroll.script'
+    }
+];
+
 export const cobolSource = `IDENTIFICATION DIVISION.
 PROGRAM-ID. PAYROLL.
 DATA DIVISION.
@@ -92,8 +130,25 @@ const domainView = {
     ]
 };
 
-function architectureView(profilePatch = {}, revision = 3) {
-    const profile = {
+const architectureProfiles = {
+    LAYERED_MVC: {
+        style: 'LAYERED_MVC',
+        moduleGrouping: 'BY_DOMAIN',
+        framework: 'SPRING_BOOT',
+        persistence: 'JPA',
+        packageRoots: {
+            controller: 'com.renovatio.payroll.web',
+            service: 'com.renovatio.payroll.service',
+            model: 'com.renovatio.payroll.model'
+        },
+        suffixes: { controller: 'Controller', service: 'Service', model: 'Entity' },
+        classNames: { service: 'PayrollService', model: 'EmployeePayrollEntity' },
+        dependencyRules: [
+            { fromLayer: 'controller', toLayer: 'service', allowed: true, reason: 'MVC controllers delegate to services.' },
+            { fromLayer: 'model', toLayer: 'controller', allowed: false, reason: 'Model cannot depend on web controllers.' }
+        ]
+    },
+    HEXAGONAL: {
         style: 'HEXAGONAL',
         moduleGrouping: 'BY_DOMAIN',
         framework: 'SPRING_BOOT',
@@ -104,13 +159,92 @@ function architectureView(profilePatch = {}, revision = 3) {
             model: 'com.renovatio.payroll.domain'
         },
         suffixes: { controller: 'Controller', service: 'Service', model: 'Aggregate' },
-        classNames: { service: 'PayrollService' },
+        classNames: { service: 'PayrollService', model: 'EmployeePayrollAggregate' },
         dependencyRules: [
             { fromLayer: 'controller', toLayer: 'service', allowed: true, reason: 'Inbound adapter may call application service.' },
             { fromLayer: 'model', toLayer: 'controller', allowed: false, reason: 'Domain cannot depend on adapters.' }
-        ],
-        ...profilePatch
+        ]
+    },
+    CLEAN: {
+        style: 'CLEAN',
+        moduleGrouping: 'BY_DOMAIN',
+        framework: 'SPRING_BOOT',
+        persistence: 'SPRING_DATA_JDBC',
+        packageRoots: {
+            controller: 'com.renovatio.payroll.interfaceadapter',
+            service: 'com.renovatio.payroll.usecase',
+            model: 'com.renovatio.payroll.entity'
+        },
+        suffixes: { controller: 'Presenter', service: 'UseCase', model: 'Entity' },
+        classNames: { service: 'PayrollUseCase', model: 'EmployeePayrollEntity' },
+        dependencyRules: [
+            { fromLayer: 'controller', toLayer: 'service', allowed: true, reason: 'Interface adapters invoke use cases.' },
+            { fromLayer: 'service', toLayer: 'model', allowed: true, reason: 'Use cases coordinate enterprise entities.' },
+            { fromLayer: 'model', toLayer: 'controller', allowed: false, reason: 'Entities stay independent of interface adapters.' }
+        ]
+    },
+    LAYERED: {
+        style: 'LAYERED',
+        moduleGrouping: 'SINGLE_MODULE',
+        framework: 'SPRING_BOOT',
+        persistence: 'JPA',
+        packageRoots: {
+            controller: 'com.renovatio.payroll.presentation',
+            service: 'com.renovatio.payroll.application',
+            model: 'com.renovatio.payroll.domain'
+        },
+        suffixes: { controller: 'Endpoint', service: 'ApplicationService', model: '' },
+        classNames: { service: 'PayrollApplicationService', model: 'EmployeePayroll' },
+        dependencyRules: [
+            { fromLayer: 'controller', toLayer: 'service', allowed: true, reason: 'Presentation layer delegates application work.' },
+            { fromLayer: 'service', toLayer: 'model', allowed: true, reason: 'Application layer orchestrates domain objects.' },
+            { fromLayer: 'model', toLayer: 'service', allowed: false, reason: 'Domain remains independent from application orchestration.' }
+        ]
+    },
+    TRANSACTION_SCRIPT: {
+        style: 'TRANSACTION_SCRIPT',
+        moduleGrouping: 'BY_PROGRAM',
+        framework: 'NONE',
+        persistence: 'IN_MEMORY',
+        packageRoots: {
+            controller: 'com.renovatio.payroll.cli',
+            service: 'com.renovatio.payroll.script',
+            model: 'com.renovatio.payroll.dto'
+        },
+        suffixes: { controller: 'Command', service: 'TransactionScript', model: 'Record' },
+        classNames: { service: 'PayrollTransactionScript', model: 'PayrollRecord' },
+        dependencyRules: [
+            { fromLayer: 'controller', toLayer: 'service', allowed: true, reason: 'Command invokes the transaction script.' },
+            { fromLayer: 'service', toLayer: 'model', allowed: true, reason: 'Script maps COBOL records to DTOs.' },
+            { fromLayer: 'model', toLayer: 'service', allowed: false, reason: 'DTOs cannot call transaction scripts.' }
+        ]
+    }
+};
+
+function javaPath(packageName, className) {
+    return `target/java/${packageName.replaceAll('.', '/')}/${className}.java`;
+}
+
+function normalizeArchitectureProfile(input = {}) {
+    const requestedProfile = input.profile ?? input;
+    const style = requestedProfile.style ?? 'HEXAGONAL';
+    const base = architectureProfiles[style] ?? architectureProfiles.HEXAGONAL;
+    return {
+        ...requestedProfile,
+        ...base,
+        style,
+        packageRoots: { ...base.packageRoots },
+        suffixes: { ...base.suffixes },
+        classNames: { ...base.classNames },
+        dependencyRules: base.dependencyRules
     };
+}
+
+function architectureView(profilePatch = {}, revision = 3) {
+    const profile = normalizeArchitectureProfile(profilePatch);
+    const controllerClassName = profile.classNames.controller ?? `Payroll${profile.suffixes.controller}`;
+    const serviceClassName = profile.classNames.service ?? `Payroll${profile.suffixes.service}`;
+    const modelClassName = profile.classNames.model ?? `EmployeePayroll${profile.suffixes.model}`;
     return {
         revision,
         canonicalHash: architectureHash,
@@ -118,15 +252,15 @@ function architectureView(profilePatch = {}, revision = 3) {
         profile,
         preview: { modules: [], components: [], relations: [], diagnostics: [], hasFallback: false },
         canvas: [
-            { id: 'payroll-controller', layer: 'controller', kind: 'adapter', label: 'Payroll API', packageName: profile.packageRoots.controller, className: 'PayrollController', componentId: 'employee-payroll' },
-            { id: 'payroll-service', layer: 'service', kind: 'application', label: 'Payroll Service', packageName: profile.packageRoots.service, className: 'PayrollService', componentId: 'employee-payroll' },
-            { id: 'employee-payroll', layer: 'model', kind: 'aggregate', label: 'Employee Payroll', packageName: profile.packageRoots.model, className: 'EmployeePayrollAggregate', componentId: 'employee-payroll' }
+            { id: 'payroll-controller', layer: 'controller', kind: 'adapter', label: 'Payroll API', packageName: profile.packageRoots.controller, className: controllerClassName, componentId: 'employee-payroll' },
+            { id: 'payroll-service', layer: 'service', kind: 'application', label: 'Payroll Service', packageName: profile.packageRoots.service, className: serviceClassName, componentId: 'employee-payroll' },
+            { id: 'employee-payroll', layer: 'model', kind: 'aggregate', label: 'Employee Payroll', packageName: profile.packageRoots.model, className: modelClassName, componentId: 'employee-payroll' }
         ],
         dependencyRules: profile.dependencyRules,
         dependencyDiagnostics: [],
         manifest: [
-            { path: 'target/java/com/renovatio/payroll/application/PayrollService.java', role: 'generated target', layer: 'service', className: 'PayrollService', packageName: profile.packageRoots.service, componentId: 'employee-payroll' },
-            { path: 'target/java/com/renovatio/payroll/domain/EmployeePayrollAggregate.java', role: 'generated target', layer: 'model', className: 'EmployeePayrollAggregate', packageName: profile.packageRoots.model, componentId: 'employee-payroll' }
+            { path: javaPath(profile.packageRoots.service, serviceClassName), role: 'generated target', layer: 'service', className: serviceClassName, packageName: profile.packageRoots.service, componentId: 'employee-payroll' },
+            { path: javaPath(profile.packageRoots.model, modelClassName), role: 'generated target', layer: 'model', className: modelClassName, packageName: profile.packageRoots.model, componentId: 'employee-payroll' }
         ]
     };
 }
