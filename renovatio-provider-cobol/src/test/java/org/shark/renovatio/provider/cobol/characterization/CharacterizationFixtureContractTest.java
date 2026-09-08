@@ -40,7 +40,8 @@ class CharacterizationFixtureContractTest {
     private static final List<String> FIXTURES = List.of(
             "move-numeric", "move-alphanumeric-boundaries", "compute-decimal-sign", "if-nested",
             "evaluate-level-88", "perform-simple-nested", "perform-thru", "perform-times",
-            "perform-until", "perform-varying", "perform-inline",
+            "perform-until", "perform-until-after", "perform-varying", "perform-varying-after",
+            "perform-inline",
             "goto-reducible", "goto-irreducible",
             "redefines-overlap", "odo-valid-boundary", "odo-invalid-count", "unsupported-construct",
             "data-intent-redefines", "initialize-set-level88");
@@ -48,7 +49,8 @@ class CharacterizationFixtureContractTest {
     private static final Set<String> SUPPORTED =
             Set.of("move-numeric", "data-intent-redefines", "initialize-set-level88",
                     "perform-simple-nested", "perform-thru", "perform-times",
-                    "perform-until", "perform-varying", "perform-inline");
+                    "perform-until", "perform-until-after", "perform-varying", "perform-varying-after",
+                    "perform-inline");
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final CobolIntermediateModelService modelService = new CobolIntermediateModelService();

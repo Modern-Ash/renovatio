@@ -2,6 +2,46 @@
 
 Fecha: 2026-09-08
 
+---
+
+## Revisión 0002 — cierre de `looping-variants` y `characterization`
+
+`PERFORM VARYING ... AFTER` (ejes de iteración secundarios) pasa de gap conocido a implementado:
+
+- **IR:** `PerformStatement` gana el componente `List<VaryingAxis> varyingAfter`
+  (`VaryingAxis(variable, from, by, until)`); constructor de conveniencia de 9 args preservado.
+  `cobol-ir.v1.schema.json` declara `varyingAfter`. `CobolIrIdentityProjector` lo proyecta.
+- **Parser:** `SimpleCobolIrParser.PERFORM_AFTER` extrae los ejes `AFTER` y los separa antes de
+  parsear el `UNTIL` primario (que si no los absorbía por ser `.+$`). Cubre forma con párrafo,
+  `THRU` e inline `END-PERFORM` (en una sola línea lógica).
+- **Render:** `PopulateCobolProcessRecipe.varyingLoop` emite un `for` por eje; los `AFTER`
+  anidan dentro del eje primario, el último `AFTER` es el bucle más interno. Alias de variable
+  de control y `assigned`-set contemplan todos los ejes.
+- **Fixtures nuevos** (`SUPPORTED`, con `expected.java` que compila y comportamiento verificado):
+  - `perform-until-after` → `do { output.setWsCount(1); } while (!(output.getWsCount() > 0));`,
+    observación `"1"`.
+  - `perform-varying-after` → `for (wsI…) { for (wsJ…) { output.setWsTraceNum(wsJ); } }`,
+    observación `"3"`.
+
+### Regresión (revisión 0002)
+
+- `renovatio-cobol-ir`: 84 tests verdes (+2: `parsesPerformVaryingWithAfterAxes`,
+  `parsesInlineVaryingWithAfterAxis`).
+- `cobol-openrewrite-recipes`: 34 tests verdes (+1: `shouldRenderPerformVaryingAfterAsNestedLoops`).
+- `renovatio-provider-cobol`: verde, `CharacterizationFixtureContractTest` cubre 19 fixtures
+  (2 nuevos).
+- Cobertura CardDemo: **44/44/44/9** sin cambio (ningún programa del corpus con `VARYING`
+  compila aún; causas preexistentes descritas abajo).
+- `git diff --check` limpio.
+
+### Criterios tras la revisión 0002
+
+Satisfechos **9/10**: los 7 previos + `looping-variants` + `characterization`.
+Pendiente **1/10**: `carddemo-compiles`, diferido formalmente a #216 (ver «Criterio
+`carddemo-compiles`» más abajo — sin cambios respecto a la revisión 0001).
+
+---
+
 ## Resultado
 
 Todas las verificaciones de regresión finalizaron con código 0 (232 tests):

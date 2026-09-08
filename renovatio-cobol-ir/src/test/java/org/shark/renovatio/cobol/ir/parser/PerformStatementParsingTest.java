@@ -126,6 +126,43 @@ class PerformStatementParsingTest {
     }
 
     @Test
+    void parsesPerformVaryingWithAfterAxes() {
+        List<PerformStatement> statements = performStatements(program(
+                "    PERFORM 100-ADD VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 2"
+                        + " AFTER WS-J FROM 1 BY 1 UNTIL WS-J > 3"
+                        + " AFTER WS-K FROM 0 BY 2 UNTIL WS-K > 4."));
+        assertEquals(1, statements.size());
+        PerformStatement s = statements.get(0);
+        assertEquals("WS-I", s.varyingVariable());
+        assertEquals("WS-I > 2", s.untilCondition());
+        assertEquals(2, s.varyingAfter().size());
+        PerformStatement.VaryingAxis j = s.varyingAfter().get(0);
+        assertEquals("WS-J", j.variable());
+        assertEquals("1", j.from());
+        assertEquals("1", j.by());
+        assertEquals("WS-J > 3", j.until());
+        PerformStatement.VaryingAxis k = s.varyingAfter().get(1);
+        assertEquals("WS-K", k.variable());
+        assertEquals("0", k.from());
+        assertEquals("2", k.by());
+        assertEquals("WS-K > 4", k.until());
+    }
+
+    @Test
+    void parsesInlineVaryingWithAfterAxis() {
+        List<PerformStatement> statements = performStatements(program(
+                "    PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 2 AFTER WS-J FROM 1 BY 1 UNTIL WS-J > 3\n"
+                        + "        MOVE WS-J TO WS-TRACE-NUM\n"
+                        + "    END-PERFORM."));
+        assertEquals(1, statements.size());
+        PerformStatement s = statements.get(0);
+        assertTrue(s.isInline());
+        assertEquals("WS-I", s.varyingVariable());
+        assertEquals(1, s.varyingAfter().size());
+        assertEquals("WS-J", s.varyingAfter().get(0).variable());
+    }
+
+    @Test
     void parsesPerformThruVaryingUntil() {
         List<PerformStatement> statements = performStatements(
                 program("    PERFORM 100-ADD THRU 200-DISPLAY VARYING WS-IDX FROM 1 BY 2 UNTIL WS-IDX > 10."));

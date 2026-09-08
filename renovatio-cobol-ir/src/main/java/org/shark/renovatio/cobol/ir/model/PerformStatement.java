@@ -1,7 +1,6 @@
 package org.shark.renovatio.cobol.ir.model;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A COBOL {@code PERFORM} statement.
@@ -12,6 +11,7 @@ import java.util.Objects;
  *   <li>{@code PERFORM para n TIMES}</li>
  *   <li>{@code PERFORM para UNTIL condition}</li>
  *   <li>{@code PERFORM para VARYING var FROM start BY step UNTIL condition}</li>
+ *   <li>{@code PERFORM para VARYING a ... AFTER b ...} — additional axes render as nested loops</li>
  * </ul>
  * Any combination of {@code THRU} with the modifiers is allowed.
  *
@@ -28,10 +28,31 @@ public record PerformStatement(
         String untilCondition,
         Integer timesCount,
         boolean testAfter,
-        List<CobolStatement> inlineBody) implements CobolStatement {
+        List<CobolStatement> inlineBody,
+        List<VaryingAxis> varyingAfter) implements CobolStatement {
+
+    /**
+     * A secondary iteration axis of a {@code PERFORM VARYING ... AFTER} statement. Each axis
+     * renders as a loop nested inside the axis declared before it, innermost last.
+     */
+    public record VaryingAxis(String variable, String from, String by, String until) {
+        public VaryingAxis {
+            variable = variable != null ? variable.toUpperCase() : null;
+            from = normalizeClause(from);
+            by = normalizeClause(by);
+            until = normalizeClause(until);
+        }
+    }
 
     public PerformStatement(String paragraph, String throughParagraph) {
-        this(paragraph, throughParagraph, null, null, null, null, null, false, List.of());
+        this(paragraph, throughParagraph, null, null, null, null, null, false, List.of(), List.of());
+    }
+
+    public PerformStatement(String paragraph, String throughParagraph, String varyingVariable,
+                            String varyingFrom, String varyingBy, String untilCondition,
+                            Integer timesCount, boolean testAfter, List<CobolStatement> inlineBody) {
+        this(paragraph, throughParagraph, varyingVariable, varyingFrom, varyingBy, untilCondition,
+                timesCount, testAfter, inlineBody, List.of());
     }
 
     public PerformStatement {
@@ -42,6 +63,7 @@ public record PerformStatement(
         varyingBy = normalizeClause(varyingBy);
         untilCondition = normalizeClause(untilCondition);
         inlineBody = List.copyOf(inlineBody == null ? List.of() : inlineBody);
+        varyingAfter = List.copyOf(varyingAfter == null ? List.of() : varyingAfter);
     }
 
     private static String normalizeClause(String value) {

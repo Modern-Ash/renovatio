@@ -264,6 +264,18 @@ public final class CobolIrIdentityProjector {
             if (v.untilCondition() != null) fields.put("untilCondition", v.untilCondition());
             if (v.timesCount() != null) fields.put("timesCount", v.timesCount());
             fields.put("testAfter", v.testAfter());
+            if (!v.varyingAfter().isEmpty()) {
+                List<Map<String, Object>> axes = new ArrayList<>();
+                for (PerformStatement.VaryingAxis axis : v.varyingAfter()) {
+                    Map<String, Object> axisFields = new LinkedHashMap<>();
+                    axisFields.put("variable", axis.variable());
+                    axisFields.put("from", axis.from());
+                    if (axis.by() != null) axisFields.put("by", axis.by());
+                    if (axis.until() != null) axisFields.put("until", axis.until());
+                    axes.add(axisFields);
+                }
+                fields.put("varyingAfter", axes);
+            }
             if (v.isInline()) {
                 fields.put("inlineBody", identityBearing(v.inlineBody()).map(this::statement).toList());
             }

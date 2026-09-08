@@ -773,6 +773,10 @@ public class SimpleCobolIrParser {
     private static final java.util.regex.Pattern PERFORM_VARYING = java.util.regex.Pattern.compile(
             "\\s+VARYING\\s+(\\S+)\\s+FROM\\s+(\\S+)(?:\\s+BY\\s+(\\S+))?(?:\\s+UNTIL\\s+(.+))?$",
             java.util.regex.Pattern.CASE_INSENSITIVE);
+    private static final java.util.regex.Pattern PERFORM_AFTER = java.util.regex.Pattern.compile(
+            "\\s+AFTER\\s+(\\S+)\\s+FROM\\s+(\\S+)(?:\\s+BY\\s+(\\S+))?(?:\\s+UNTIL\\s+(.+?))?"
+                    + "(?=\\s+AFTER\\s+|$)",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
     private static final java.util.regex.Pattern PERFORM_TIMES = java.util.regex.Pattern.compile(
             "(\\d+)\\s+TIMES\\s*$", java.util.regex.Pattern.CASE_INSENSITIVE);
     private static final java.util.regex.Pattern PERFORM_UNTIL = java.util.regex.Pattern.compile(
@@ -836,13 +840,28 @@ public class SimpleCobolIrParser {
         String untilCondition = null;
         Integer timesCount = null;
 
-        java.util.regex.Matcher varying = PERFORM_VARYING.matcher(modifiers);
+        List<PerformStatement.VaryingAxis> varyingAfter = new ArrayList<>();
+        // Peel off any AFTER axes before parsing the primary VARYING clause, otherwise the
+        // primary UNTIL regex greedily swallows the AFTER text.
+        java.util.regex.Matcher afterMatcher = PERFORM_AFTER.matcher(modifiers);
+        int firstAfter = -1;
+        while (afterMatcher.find()) {
+            if (firstAfter < 0) {
+                firstAfter = afterMatcher.start();
+            }
+            varyingAfter.add(new PerformStatement.VaryingAxis(afterMatcher.group(1),
+                    afterMatcher.group(2), afterMatcher.group(3), afterMatcher.group(4)));
+        }
+        String primaryModifiers = firstAfter >= 0 ? modifiers.substring(0, firstAfter) : modifiers;
+
+        java.util.regex.Matcher varying = PERFORM_VARYING.matcher(primaryModifiers);
         if (varying.find()) {
             varyingVariable = varying.group(1);
             varyingFrom = varying.group(2);
             varyingBy = varying.group(3);
             untilCondition = varying.group(4);
         } else {
+            varyingAfter.clear();
             java.util.regex.Matcher times = PERFORM_TIMES.matcher(modifiers);
             if (times.find()) {
                 timesCount = Integer.parseInt(times.group(1));
@@ -860,11 +879,11 @@ public class SimpleCobolIrParser {
         if (first.isEmpty()) {
             // Inline PERFORM ... END-PERFORM block: body starts on the next line.
             PerformStatement head = new PerformStatement(null, thru, varyingVariable, varyingFrom,
-                    varyingBy, untilCondition, timesCount, testAfter, List.of());
+                    varyingBy, untilCondition, timesCount, testAfter, List.of(), varyingAfter);
             return parseInlinePerform(lines, lastIndex + 1, statements, head);
         }
         statements.add(new PerformStatement(first, thru, varyingVariable, varyingFrom,
-                varyingBy, untilCondition, timesCount, testAfter, List.of()));
+                varyingBy, untilCondition, timesCount, testAfter, List.of(), varyingAfter));
         return lastIndex;
     }
 
@@ -897,7 +916,7 @@ public class SimpleCobolIrParser {
         List<CobolStatement> body = parseStatements(String.join(Symbols.NEWLINE, bodyLines));
         statements.add(new PerformStatement(null, head.throughParagraph(), head.varyingVariable(),
                 head.varyingFrom(), head.varyingBy(), head.untilCondition(), head.timesCount(),
-                head.testAfter(), body));
+                head.testAfter(), body, head.varyingAfter()));
         return closed ? j : lines.size();
     }
 

@@ -562,6 +562,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     }
                 } else if (statement instanceof PerformStatement perform) {
                     addAssigned(assigned, perform.varyingVariable());
+                    for (PerformStatement.VaryingAxis axis : perform.varyingAfter()) {
+                        addAssigned(assigned, axis.variable());
+                    }
                     if (perform.isInline()) {
                         collectAssignedStatements(perform.inlineBody(), assigned, model);
                     }
@@ -614,10 +617,18 @@ public class PopulateCobolProcessRecipe extends Recipe {
             List<String> inner = new ArrayList<>();
             if (perform.isInline()) {
                 Map<String, String> savedAliases = variableAliases;
+                Map<String, String> loopAliases = new java.util.HashMap<>();
                 if (perform.varyingVariable() != null && !perform.varyingVariable().isBlank()) {
-                    variableAliases = java.util.Map.of(
-                            perform.varyingVariable().toUpperCase(Locale.ROOT),
+                    loopAliases.put(perform.varyingVariable().toUpperCase(Locale.ROOT),
                             lowerCamel(perform.varyingVariable()));
+                }
+                for (PerformStatement.VaryingAxis axis : perform.varyingAfter()) {
+                    if (axis.variable() != null && !axis.variable().isBlank()) {
+                        loopAliases.put(axis.variable().toUpperCase(Locale.ROOT), lowerCamel(axis.variable()));
+                    }
+                }
+                if (!loopAliases.isEmpty()) {
+                    variableAliases = loopAliases;
                 }
                 try {
                     for (CobolStatement stmt : perform.inlineBody()) {
@@ -816,35 +827,49 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 return wrapped;
             }
             if (varying != null && !varying.isBlank()) {
-                String loopVar = lowerCamel(varying);
-                String start = toJavaExpression(perform.varyingFrom());
-                String step = toJavaExpression(perform.varyingBy());
-                String aliasMap = varying.toUpperCase(Locale.ROOT);
-                String cond = until != null && !until.isBlank()
-                        ? translateCondition(until, java.util.Map.of(aliasMap, loopVar))
-                        : null;
-                List<String> wrapped = new ArrayList<>();
-                if (perform.testAfter()) {
-                    wrapped.add("for (int " + loopVar + " = " + start + "; ; " + loopVar + " += " + step + ") {");
-                    for (String line : inner) {
-                        wrapped.add(indent(line));
-                    }
-                    if (cond != null) {
-                        wrapped.add(indent("if (" + cond + ") break;"));
-                    }
-                    wrapped.add("}");
-                } else {
-                    String loopCond = cond != null ? "!(" + cond + ")" : "true";
-                    wrapped.add("for (int " + loopVar + " = " + start + "; " + loopCond + "; "
-                            + loopVar + " += " + step + ") {");
-                    for (String line : inner) {
-                        wrapped.add(indent(line));
-                    }
-                    wrapped.add("}");
+                // AFTER axes render as loops nested inside the primary axis, innermost last.
+                List<String> body = inner;
+                List<PerformStatement.VaryingAxis> after = perform.varyingAfter();
+                for (int k = after.size() - 1; k >= 0; k--) {
+                    PerformStatement.VaryingAxis axis = after.get(k);
+                    body = varyingLoop(axis.variable(), axis.from(), axis.by(), axis.until(),
+                            perform.testAfter(), body);
                 }
-                return wrapped;
+                return varyingLoop(varying, perform.varyingFrom(), perform.varyingBy(), until,
+                        perform.testAfter(), body);
             }
             return inner;
+        }
+
+        /** Renders a single {@code PERFORM VARYING} axis as a Java {@code for} loop. */
+        private List<String> varyingLoop(String cobolVar, String fromClause, String byClause,
+                                         String untilClause, boolean testAfter, List<String> inner) {
+            String loopVar = lowerCamel(cobolVar);
+            String start = toJavaExpression(fromClause);
+            String step = toJavaExpression(byClause);
+            String cond = untilClause != null && !untilClause.isBlank()
+                    ? translateCondition(untilClause, java.util.Map.of(cobolVar.toUpperCase(Locale.ROOT), loopVar))
+                    : null;
+            List<String> wrapped = new ArrayList<>();
+            if (testAfter) {
+                wrapped.add("for (int " + loopVar + " = " + start + "; ; " + loopVar + " += " + step + ") {");
+                for (String line : inner) {
+                    wrapped.add(indent(line));
+                }
+                if (cond != null) {
+                    wrapped.add(indent("if (" + cond + ") break;"));
+                }
+                wrapped.add("}");
+            } else {
+                String loopCond = cond != null ? "!(" + cond + ")" : "true";
+                wrapped.add("for (int " + loopVar + " = " + start + "; " + loopCond + "; "
+                        + loopVar + " += " + step + ") {");
+                for (String line : inner) {
+                    wrapped.add(indent(line));
+                }
+                wrapped.add("}");
+            }
+            return wrapped;
         }
 
         private String lowerCamel(String cobolName) {

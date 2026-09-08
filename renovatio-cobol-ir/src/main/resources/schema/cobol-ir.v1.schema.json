@@ -142,7 +142,20 @@
         "untilCondition": { "type": ["string", "null"] },
         "timesCount": { "type": ["integer", "null"] },
         "testAfter": { "type": "boolean" },
-        "inlineBody": { "type": "array", "items": { "$ref": "#/$defs/statement" } }
+        "inlineBody": { "type": "array", "items": { "$ref": "#/$defs/statement" } },
+        "varyingAfter": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["variable", "from"],
+            "properties": {
+              "variable": { "$ref": "#/$defs/name" },
+              "from": { "type": "string" },
+              "by": { "type": ["string", "null"] },
+              "until": { "type": ["string", "null"] }
+            }
+          }
+        }
       }
     },
     "callStatement": {

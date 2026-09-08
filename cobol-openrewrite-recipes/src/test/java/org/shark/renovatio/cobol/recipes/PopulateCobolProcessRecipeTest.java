@@ -263,6 +263,32 @@ class PopulateCobolProcessRecipeTest {
     }
 
     @Test
+    void shouldRenderPerformVaryingAfterAsNestedLoops() {
+        String cobol = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAMPLE7B.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-I PIC 9(2).
+                01 WS-J PIC 9(2).
+                01 CUSTOMER-RATING PIC 9(2).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    PERFORM VARYING WS-I FROM 1 BY 1 UNTIL WS-I > 2 AFTER WS-J FROM 1 BY 1 UNTIL WS-J > 3
+                        MOVE WS-J TO CUSTOMER-RATING
+                    END-PERFORM.
+                    STOP RUN.
+                """;
+
+        String updated = applyRecipe(cobol);
+
+        assertThat(updated).contains("for (int wsI = 1; !(wsI > 2); wsI += 1) {");
+        assertThat(updated).contains("for (int wsJ = 1; !(wsJ > 3); wsJ += 1) {");
+        assertThat(updated).contains("output.setCustomerRating(wsJ);");
+        assertThat(updated).doesNotContain("input.getWsJ()");
+    }
+
+    @Test
     void shouldGuardRecursivePerformCycles() {
         String cobol = """
                 IDENTIFICATION DIVISION.

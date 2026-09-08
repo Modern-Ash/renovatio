@@ -36,3 +36,15 @@
 - Condición VARYING compleja se traduce con el traductor de condiciones existente; la variable de control se reescribe a la local del bucle.
 - Corpus CardDemo real con constructores fuera de alcance (GO TO, STRING...) cae en `ManualActionItem`, no bloquea la compilabilidad del programa elegido.
 - Golden-master E2E se valida en #216; aquí se garantiza compilación del Java emitido.
+
+## Addendum — revisión 0002 (`PERFORM VARYING ... AFTER`)
+
+- `PerformStatement` gana `List<VaryingAxis> varyingAfter` (`VaryingAxis(variable, from, by,
+  until)`); el constructor de 9 args queda como conveniencia. `cobol-ir.v1.schema.json` y
+  `CobolIrIdentityProjector` incluyen `varyingAfter`.
+- `SimpleCobolIrParser.PERFORM_AFTER` separa los ejes `AFTER` de los modificadores **antes** de
+  matchear el `VARYING` primario (el `UNTIL` primario es `.+$` y si no los absorbía).
+- `PopulateCobolProcessRecipe.varyingLoop(cobolVar, from, by, until, testAfter, inner)` emite un
+  `for` por eje; los `AFTER` se anidan de dentro hacia fuera (último `AFTER` = bucle interno).
+- Fixtures nuevos: `perform-until-after` (`do { } while`), `perform-varying-after` (anidado),
+  ambos `SUPPORTED` en `CharacterizationFixtureContractTest`.
