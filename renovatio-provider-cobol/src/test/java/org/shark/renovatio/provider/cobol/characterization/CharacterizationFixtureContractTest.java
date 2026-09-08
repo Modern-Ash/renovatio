@@ -41,9 +41,10 @@ class CharacterizationFixtureContractTest {
             "move-numeric", "move-alphanumeric-boundaries", "compute-decimal-sign", "if-nested",
             "evaluate-level-88", "perform-simple-nested", "goto-reducible", "goto-irreducible",
             "redefines-overlap", "odo-valid-boundary", "odo-invalid-count", "unsupported-construct",
-            "data-intent-redefines");
+            "data-intent-redefines", "initialize-set-level88");
     /* Only fixtures exercised end-to-end by today's production translator may be admitted here. */
-    private static final Set<String> SUPPORTED = Set.of("move-numeric", "data-intent-redefines");
+    private static final Set<String> SUPPORTED =
+            Set.of("move-numeric", "data-intent-redefines", "initialize-set-level88");
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final CobolIntermediateModelService modelService = new CobolIntermediateModelService();

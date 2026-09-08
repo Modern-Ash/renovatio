@@ -49,7 +49,10 @@ class GuardrailSchemaCatalogTest {
         assertThat(definitions.has("dataItem")).isTrue();
         assertThat(definitions.path("paragraph").path("additionalProperties").asBoolean()).isFalse();
         assertThat(definitions.path("dataItem").path("additionalProperties").asBoolean()).isFalse();
-        assertThat(definitions.path("statement").path("oneOf").size()).isEqualTo(8);
+        JsonNode statementVariants = definitions.path("statement").path("oneOf");
+        assertThat(statementVariants.size()).isEqualTo(10);
+        assertThat(statementVariants.findValuesAsText("$ref"))
+                .contains("#/$defs/initializeStatement", "#/$defs/setConditionStatement");
         assertThat(catalog.resolve("cobol-ir.v1").path("properties").path("paragraphs")
                 .path("additionalProperties").path("$ref").asText()).isEqualTo("#/$defs/paragraph");
         assertThat(catalog.resolve("cobol-ir.v1").path("properties").path("dataItems")

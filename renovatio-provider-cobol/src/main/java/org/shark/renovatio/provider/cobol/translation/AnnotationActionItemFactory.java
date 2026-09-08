@@ -13,15 +13,22 @@ public final class AnnotationActionItemFactory {
 
     public ManualActionItem toUntranslatedStatement(SimpleStatement statement, String sourceFile,
                                                      String programId, String paragraph, int statementIndex) {
+        return toUnsupportedStatement(statement.text(), "UNTRANSLATED",
+                "Unsupported COBOL statement requires manual translation", sourceFile,
+                programId, paragraph, statementIndex);
+    }
+
+    public ManualActionItem toUnsupportedStatement(String sourceText, String family, String reason,
+                                                    String sourceFile, String programId,
+                                                    String paragraph, int statementIndex) {
         String sourceSpan = paragraph + "#statement-" + statementIndex;
-        String family = "UNTRANSLATED";
-        String reason = "Unsupported COBOL statement requires manual translation: " + statement.text();
-        String id = ManualActionItemIds.from(sourceFile, programId, sourceSpan, family, reason);
+        String fullReason = reason + ": " + sourceText;
+        String id = ManualActionItemIds.from(sourceFile, programId, sourceSpan, family, fullReason);
         return new ManualActionItem(id, sourceFile, programId, "PROCEDURE", null, paragraph, sourceSpan,
-                sourceSpan, null, family, reason, GuardrailGate.CHARACTERIZATION,
+                sourceSpan, null, family, fullReason, GuardrailGate.CHARACTERIZATION,
                 "COBOL-STATEMENT-UNTRANSLATED",
                 "Generated Java retains an explicit untranslated-source comment",
-                "Translate and characterize the COBOL statement: " + statement.text(),
+                "Translate and characterize the COBOL statement: " + sourceText,
                 "The statement has a deterministic translation with equivalent characterized behavior",
                 ManualActionSeverity.WARNING, ManualActionReviewStatus.PENDING,
                 null, null, null, null, null, null);

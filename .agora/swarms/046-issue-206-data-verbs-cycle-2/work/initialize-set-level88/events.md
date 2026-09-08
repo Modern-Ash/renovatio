@@ -1,0 +1,54 @@
+# Work events
+
+- 2026-09-08T14:36:12.497521Z | work.created | state=drafting actor=project:owner
+- 2026-09-08T14:38:28.609616Z | artifact.added | kind=spec uri=docs/specs/issue-206-initialize-set-level88.md actor=project:owner
+- 2026-09-08T14:38:28.914521Z | work.criterion-stage-marked | criterion=typed-ir actor=project:owner stage=specified
+- 2026-09-08T14:38:29.215989Z | work.criterion-stage-marked | criterion=initialize-semantics actor=project:owner stage=specified
+- 2026-09-08T14:38:29.520258Z | work.criterion-stage-marked | criterion=set-level88-semantics actor=project:owner stage=specified
+- 2026-09-08T14:38:29.822637Z | work.criterion-stage-marked | criterion=unsupported-visible actor=project:owner stage=specified
+- 2026-09-08T14:38:30.130230Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=specified
+- 2026-09-08T14:38:30.444861Z | work.criterion-stage-marked | criterion=coverage-delta actor=project:owner stage=specified
+- 2026-09-08T14:38:30.778457Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=specified
+- 2026-09-08T14:38:31.090399Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-08T14:38:31.414918Z | artifact.added | kind=implementation-plan uri=docs/plans/issue-206-initialize-set-level88.md actor=project:owner
+- 2026-09-08T14:38:31.750948Z | work.criterion-stage-marked | criterion=typed-ir actor=project:owner stage=planned
+- 2026-09-08T14:38:32.080922Z | work.criterion-stage-marked | criterion=initialize-semantics actor=project:owner stage=planned
+- 2026-09-08T14:38:32.412924Z | work.criterion-stage-marked | criterion=set-level88-semantics actor=project:owner stage=planned
+- 2026-09-08T14:38:32.755065Z | work.criterion-stage-marked | criterion=unsupported-visible actor=project:owner stage=planned
+- 2026-09-08T14:38:33.087083Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=planned
+- 2026-09-08T14:38:33.429372Z | work.criterion-stage-marked | criterion=coverage-delta actor=project:owner stage=planned
+- 2026-09-08T14:38:33.764132Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=planned
+- 2026-09-08T14:38:34.106484Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-08T14:38:34.404231Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-08T14:59:29.088878Z | artifact.added | kind=coverage-report uri=docs/reports/issue-206-initialize-set-level88-coverage.md actor=project:agent
+- 2026-09-08T14:59:29.395163Z | artifact.added | kind=verification-report uri=docs/reports/issue-206-initialize-set-level88-verification.md actor=project:agent
+- 2026-09-08T14:59:29.688197Z | work.criterion-stage-marked | criterion=typed-ir actor=project:agent stage=implemented
+- 2026-09-08T14:59:29.980222Z | work.criterion-stage-marked | criterion=initialize-semantics actor=project:agent stage=implemented
+- 2026-09-08T14:59:30.291970Z | work.criterion-stage-marked | criterion=set-level88-semantics actor=project:agent stage=implemented
+- 2026-09-08T14:59:30.590591Z | work.criterion-stage-marked | criterion=unsupported-visible actor=project:agent stage=implemented
+- 2026-09-08T14:59:30.893587Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=implemented
+- 2026-09-08T14:59:31.201360Z | work.criterion-stage-marked | criterion=coverage-delta actor=project:agent stage=implemented
+- 2026-09-08T14:59:31.507962Z | work.criterion-stage-marked | criterion=regression-green actor=project:agent stage=implemented
+- 2026-09-08T15:00:05.877623Z | tool.prepared | run=tool-20260908t15001788890405z tool=repository operation=commit actor=project:agent
+- 2026-09-08T15:00:05.884986Z | tool.running | run=tool-20260908t15001788890405z actor=project:agent
+- 2026-09-08T15:00:05.904273Z | tool.failed | run=tool-20260908t15001788890405z exit-code=128
+- 2026-09-08T15:00:52.781759Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-08T15:01:11.997430Z | evidence.added | id=evidence-000001 type=regression-tests result=success revision=1 actor=project:agent
+- 2026-09-08T15:01:12.295859Z | evidence.added | id=evidence-000002 type=characterization-tests result=success revision=1 actor=project:agent
+- 2026-09-08T15:01:12.604506Z | evidence.added | id=evidence-000003 type=coverage-report result=success revision=1 actor=project:agent
+- 2026-09-08T15:01:35.023897Z | work.criterion-stage-marked | criterion=typed-ir actor=project:owner stage=verified
+- 2026-09-08T15:01:35.330190Z | work.criterion-stage-marked | criterion=initialize-semantics actor=project:owner stage=verified
+- 2026-09-08T15:01:35.640283Z | work.criterion-stage-marked | criterion=set-level88-semantics actor=project:owner stage=verified
+- 2026-09-08T15:01:35.951248Z | work.criterion-stage-marked | criterion=unsupported-visible actor=project:owner stage=verified
+- 2026-09-08T15:01:36.251888Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=verified
+- 2026-09-08T15:01:36.552228Z | work.criterion-stage-marked | criterion=coverage-delta actor=project:owner stage=verified
+- 2026-09-08T15:01:36.870199Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=verified
+- 2026-09-08T15:01:37.179011Z | work.criterion-stage-marked | criterion=typed-ir actor=project:owner stage=accepted
+- 2026-09-08T15:01:37.487309Z | work.criterion-stage-marked | criterion=initialize-semantics actor=project:owner stage=accepted
+- 2026-09-08T15:01:37.789330Z | work.criterion-stage-marked | criterion=set-level88-semantics actor=project:owner stage=accepted
+- 2026-09-08T15:01:38.103704Z | work.criterion-stage-marked | criterion=unsupported-visible actor=project:owner stage=accepted
+- 2026-09-08T15:01:38.424093Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=accepted
+- 2026-09-08T15:01:38.738739Z | work.criterion-stage-marked | criterion=coverage-delta actor=project:owner stage=accepted
+- 2026-09-08T15:01:39.063096Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=accepted
+- 2026-09-08T15:01:43.238964Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-08T15:02:06.303416Z | work.transitioned | from=verifying to=completed actor=project:owner

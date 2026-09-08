@@ -55,9 +55,9 @@ class SimpleStatementParsingTest {
 
     @Test
     void capturesUnrecognisedStatementInsteadOfDroppingIt() {
-        SimpleStatement untranslated = single("    INITIALIZE WS-COUNTERS.");
+        SimpleStatement untranslated = single("    INSPECT WS-COUNTERS TALLYING WS-TOTAL FOR ALL 'X'.");
         assertEquals(SimpleStatement.Kind.UNTRANSLATED, untranslated.kind());
-        assertEquals("INITIALIZE WS-COUNTERS", untranslated.text());
+        assertEquals("INSPECT WS-COUNTERS TALLYING WS-TOTAL FOR ALL 'X'", untranslated.text());
     }
 
     @Test
