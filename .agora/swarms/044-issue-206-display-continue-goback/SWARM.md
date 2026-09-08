@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "issue-206-display-continue-goback"
 method: "spec-driven"
-status: "completed"
+status: "running"
 branch: "agora/issue-206-control-io-verbs"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

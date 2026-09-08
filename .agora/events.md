@@ -670,3 +670,6 @@
 - 2026-09-07T12:55:43.993689Z | tool.prepared | run=tool-20260907t12551788796543z tool=github-pull-requests operation=create actor=project:agent
 - 2026-09-07T12:55:43.998696Z | tool.running | run=tool-20260907t12551788796543z tool=github-pull-requests operation=create actor=project:agent
 - 2026-09-07T12:55:46.370461Z | tool.completed | run=tool-20260907t12551788796543z tool=github-pull-requests operation=create actor=project:agent
+- 2026-09-08T13:25:43.630613Z | tool.prepared | run=tool-20260908t13251788884743z tool=repository operation=status actor=project:agent
+- 2026-09-08T13:25:43.635808Z | tool.running | run=tool-20260908t13251788884743z tool=repository operation=status actor=project:agent
+- 2026-09-08T13:25:43.672571Z | tool.completed | run=tool-20260908t13251788884743z tool=repository operation=status actor=project:agent

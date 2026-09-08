@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "issue-217-carddemo-coverage"
 method: "spec-driven"
-status: "completed"
+status: "running"
 branch: "agora/issue-218-manifest-consistency"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

@@ -37,56 +37,16 @@
   },
   "unsupportedConstructs" : [ {
     "construct" : "READ",
-    "programs" : 36,
-    "occurrences" : 424
-  }, {
-    "construct" : "SET",
-    "programs" : 36,
-    "occurrences" : 1269
-  }, {
-    "construct" : "INITIALIZE",
-    "programs" : 32,
-    "occurrences" : 144
-  }, {
-    "construct" : "STRING",
-    "programs" : 24,
-    "occurrences" : 258
-  }, {
-    "construct" : "OPEN",
-    "programs" : 22,
-    "occurrences" : 349
-  }, {
-    "construct" : "CLOSE",
-    "programs" : 21,
-    "occurrences" : 173
+    "programs" : 2,
+    "occurrences" : 2
   }, {
     "construct" : "WRITE",
-    "programs" : 19,
-    "occurrences" : 222
+    "programs" : 2,
+    "occurrences" : 18
   }, {
-    "construct" : "GO TO",
-    "programs" : 10,
-    "occurrences" : 186
-  }, {
-    "construct" : "REWRITE",
-    "programs" : 8,
-    "occurrences" : 11
-  }, {
-    "construct" : "SEARCH",
-    "programs" : 8,
-    "occurrences" : 67
-  }, {
-    "construct" : "INSPECT",
-    "programs" : 7,
-    "occurrences" : 21
-  }, {
-    "construct" : "ACCEPT",
-    "programs" : 6,
-    "occurrences" : 14
-  }, {
-    "construct" : "UNSTRING",
+    "construct" : "CLOSE",
     "programs" : 1,
-    "occurrences" : 2
+    "occurrences" : 7
   } ],
   "e2eCandidates" : [ "CBCUS01C", "CBACT01C", "COBSWAIT" ],
   "programs" : [ {
@@ -102,7 +62,8 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "WRITE" ]
   }, {
     "programId" : "CBACT02C",
     "file" : "app/cbl/CBACT02C.cbl",
@@ -116,7 +77,8 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "OPEN", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBACT03C",
     "file" : "app/cbl/CBACT03C.cbl",
@@ -130,7 +92,8 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "OPEN", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBACT04C",
     "file" : "app/cbl/CBACT04C.cbl",
@@ -144,7 +107,8 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "OPEN", "READ", "REWRITE", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "STRING", "WRITE" ]
   }, {
     "programId" : "CBCUS01C",
     "file" : "app/cbl/CBCUS01C.cbl",
@@ -158,7 +122,8 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "OPEN", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBEXPORT",
     "file" : "app/cbl/CBEXPORT.cbl",
@@ -172,7 +137,12 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 18,
-    "unsupported" : [ "ACCEPT", "CLOSE", "INITIALIZE", "OPEN", "READ", "STRING", "WRITE" ]
+    "notTranslated" : [ {
+      "construct" : "READ",
+      "evidence" : 1
+    } ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "WRITE" ],
+    "compileError" : "CbexportServiceImpl.java:41: error: ';' expected           output.setExpCustAddrLine(1)(input.getCustAddrLine1());                                       ^ CbexportServiceImpl.java:41: error: ';' expec…"
   }, {
     "programId" : "CBIMPORT",
     "file" : "app/cbl/CBIMPORT.cbl",
@@ -186,7 +156,18 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 54,
-    "unsupported" : [ "CLOSE", "INITIALIZE", "OPEN", "READ", "WRITE" ]
+    "notTranslated" : [ {
+      "construct" : "CLOSE",
+      "evidence" : 7
+    }, {
+      "construct" : "READ",
+      "evidence" : 1
+    }, {
+      "construct" : "WRITE",
+      "evidence" : 6
+    } ],
+    "present" : [ "ADD", "CALL", "CLOSE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "WRITE" ],
+    "compileError" : "CbimportServiceImpl.java:57: error: ')' or ',' expected           output.setCustAddrLine1(input.getExpCustAddrLine(1)());                                                              ^ CbimportService…"
   }, {
     "programId" : "CBPAUP0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/CBPAUP0C.cbl",
@@ -200,7 +181,9 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 2,
-    "unsupported" : [ "ACCEPT", "INITIALIZE", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC DLI", "GOBACK", "IF", "MOVE", "PERFORM", "READ", "SET", "SUBTRACT" ],
+    "compileError" : "Cbpaup0cDTO.java:29: error: variable filler is already defined in class Cbpaup0cDTO   private String filler;                  ^ Cbpaup0cDTO.java:33: error: variable filler is already defined in class …"
   }, {
     "programId" : "CBSTM03A",
     "file" : "app/cbl/CBSTM03A.CBL",
@@ -214,7 +197,12 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 18,
-    "unsupported" : [ "CLOSE", "GO TO", "INITIALIZE", "OPEN", "READ", "REWRITE", "SET", "STRING", "WRITE" ]
+    "notTranslated" : [ {
+      "construct" : "WRITE",
+      "evidence" : 12
+    } ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "GO TO", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING", "WRITE" ],
+    "compileError" : "Cbstm03aDTO.java:64: error: variable filler is already defined in class Cbstm03aDTO   private String filler;                  ^ Cbstm03aDTO.java:74: error: variable filler is already defined in class …"
   }, {
     "programId" : "CBSTM03B",
     "file" : "app/cbl/CBSTM03B.CBL",
@@ -228,7 +216,8 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "GO TO", "OPEN", "READ", "REWRITE", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "CLOSE", "EVALUATE", "GO TO", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ]
   }, {
     "programId" : "CBTRN01C",
     "file" : "app/cbl/CBTRN01C.cbl",
@@ -242,7 +231,9 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 2,
-    "unsupported" : [ "CLOSE", "OPEN", "READ" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ],
+    "compileError" : "Cbtrn01cServiceImpl.java:24: error: cannot find symbol           if (input.getEndOfDailyTransFile() == \"N\") {                    ^   symbol:   method getEndOfDailyTransFile()   location: variable inpu…"
   }, {
     "programId" : "CBTRN02C",
     "file" : "app/cbl/CBTRN02C.cbl",
@@ -256,7 +247,8 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "INITIALIZE", "OPEN", "READ", "REWRITE", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "WRITE" ]
   }, {
     "programId" : "CBTRN03C",
     "file" : "app/cbl/CBTRN03C.cbl",
@@ -270,7 +262,8 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "WRITE" ]
   }, {
     "programId" : "COACCT01",
     "file" : "app/app-vsam-mq/cbl/COACCT01.cbl",
@@ -284,7 +277,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "INITIALIZE", "OPEN", "READ", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC CICS", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING" ],
+    "compileError" : "Coacct01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Coacct01CicsControl…"
   }, {
     "programId" : "COACTUPC",
     "file" : "app/cbl/COACTUPC.cbl",
@@ -298,7 +293,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "GO TO", "INITIALIZE", "INSPECT", "OPEN", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ],
+    "compileError" : "CoactupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CoactupcCicsControl…"
   }, {
     "programId" : "COACTVWC",
     "file" : "app/cbl/COACTVWC.cbl",
@@ -312,7 +309,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "GO TO", "INITIALIZE", "OPEN", "READ", "SEARCH", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "STRING" ],
+    "compileError" : "CoactvwcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CoactvwcCicsControl…"
   }, {
     "programId" : "COADM01C",
     "file" : "app/cbl/COADM01C.cbl",
@@ -326,7 +325,9 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 11,
-    "unsupported" : [ "INSPECT", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING" ],
+    "compileError" : "Coadm01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Coadm01cCicsControl…"
   }, {
     "programId" : "COBIL00C",
     "file" : "app/cbl/COBIL00C.cbl",
@@ -340,7 +341,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "INITIALIZE", "READ", "REWRITE", "SET", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING", "WRITE" ],
+    "compileError" : "Cobil00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cobil00cCicsControl…"
   }, {
     "programId" : "COBSWAIT",
     "file" : "app/cbl/COBSWAIT.cbl",
@@ -354,7 +357,8 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "ACCEPT" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "CALL", "MOVE", "STOP RUN" ]
   }, {
     "programId" : "COBTUPDT",
     "file" : "app/app-transaction-type-db2/cbl/COBTUPDT.cbl",
@@ -368,7 +372,8 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "OPEN", "READ", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "CLOSE", "DISPLAY", "EVALUATE", "EXEC SQL", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STOP RUN", "STRING" ]
   }, {
     "programId" : "COCRDLIC",
     "file" : "app/cbl/COCRDLIC.cbl",
@@ -382,7 +387,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "GO TO", "INITIALIZE", "INSPECT", "READ", "SEARCH", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "SUBTRACT" ],
+    "compileError" : "CocrdlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CocrdlicCicsControl…"
   }, {
     "programId" : "COCRDSLC",
     "file" : "app/cbl/COCRDSLC.cbl",
@@ -396,7 +403,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "GO TO", "INITIALIZE", "READ", "SEARCH", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET" ],
+    "compileError" : "CocrdslcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CocrdslcCicsControl…"
   }, {
     "programId" : "COCRDUPC",
     "file" : "app/cbl/COCRDUPC.cbl",
@@ -410,7 +419,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "GO TO", "INITIALIZE", "INSPECT", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING" ],
+    "compileError" : "CocrdupcCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CocrdupcCicsControl…"
   }, {
     "programId" : "CODATE01",
     "file" : "app/app-vsam-mq/cbl/CODATE01.cbl",
@@ -424,7 +435,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "INITIALIZE", "OPEN", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC CICS", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING" ],
+    "compileError" : "Codate01CicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Codate01CicsControl…"
   }, {
     "programId" : "COMEN01C",
     "file" : "app/cbl/COMEN01C.cbl",
@@ -438,7 +451,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "INSPECT", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING" ],
+    "compileError" : "Comen01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Comen01cCicsControl…"
   }, {
     "programId" : "COPAUA0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUA0C.cbl",
@@ -452,7 +467,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "INITIALIZE", "OPEN", "READ", "SET", "STRING", "UNSTRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "UNSTRING" ],
+    "compileError" : "Copaua0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Copaua0cCicsControl…"
   }, {
     "programId" : "COPAUS0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS0C.cbl",
@@ -466,7 +483,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "INITIALIZE", "READ", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING" ],
+    "compileError" : "Copaus0cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Copaus0cCicsControl…"
   }, {
     "programId" : "COPAUS1C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS1C.cbl",
@@ -480,7 +499,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "INITIALIZE", "READ", "SEARCH", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "DISPLAY", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "SEARCH", "SET", "STRING" ],
+    "compileError" : "Copaus1cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Copaus1cCicsControl…"
   }, {
     "programId" : "COPAUS2C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS2C.cbl",
@@ -494,7 +515,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "COMPUTE", "EXEC CICS", "EXEC SQL", "IF", "MOVE", "PERFORM", "SET", "STRING" ],
+    "compileError" : "Copaus2cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Copaus2cCicsControl…"
   }, {
     "programId" : "CORPT00C",
     "file" : "app/cbl/CORPT00C.cbl",
@@ -508,7 +531,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "GO TO", "INITIALIZE", "SET", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "SET", "STRING", "WRITE" ],
+    "compileError" : "Corpt00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Corpt00cCicsControl…"
   }, {
     "programId" : "COSGN00C",
     "file" : "app/cbl/COSGN00C.cbl",
@@ -522,7 +547,9 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 267,
-    "unsupported" : [ "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ],
+    "compileError" : "Cosgn00cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cosgn00cCicsControl…"
   }, {
     "programId" : "COTRN00C",
     "file" : "app/cbl/COTRN00C.cbl",
@@ -536,7 +563,9 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 3264,
-    "unsupported" : [ "INITIALIZE", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT" ],
+    "compileError" : "Cotrn00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cotrn00cCicsControl…"
   }, {
     "programId" : "COTRN01C",
     "file" : "app/cbl/COTRN01C.cbl",
@@ -550,7 +579,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "INITIALIZE", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ],
+    "compileError" : "Cotrn01cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cotrn01cCicsControl…"
   }, {
     "programId" : "COTRN02C",
     "file" : "app/cbl/COTRN02C.cbl",
@@ -564,7 +595,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "INITIALIZE", "READ", "SET", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "WRITE" ],
+    "compileError" : "Cotrn02cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cotrn02cCicsControl…"
   }, {
     "programId" : "COTRTLIC",
     "file" : "app/app-transaction-type-db2/cbl/COTRTLIC.cbl",
@@ -578,7 +611,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "CLOSE", "GO TO", "INITIALIZE", "INSPECT", "OPEN", "READ", "SEARCH", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "EXEC SQL", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "SEARCH", "SET", "STRING", "SUBTRACT" ],
+    "compileError" : "CotrtlicCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ CotrtlicCicsControl…"
   }, {
     "programId" : "COTRTUPC",
     "file" : "app/app-transaction-type-db2/cbl/COTRTUPC.cbl",
@@ -592,7 +627,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "GO TO", "INITIALIZE", "INSPECT", "READ", "SEARCH", "SET", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC SQL", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "STRING", "WRITE" ],
+    "compileError" : "CotrtupcCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> 04530000(@RequestBody Map<String, Object> payload) {                                  ^ CotrtupcCicsContr…"
   }, {
     "programId" : "COUSR00C",
     "file" : "app/cbl/COUSR00C.cbl",
@@ -606,7 +643,9 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 3177,
-    "unsupported" : [ "INITIALIZE", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT" ],
+    "compileError" : "Cousr00cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cousr00cCicsControl…"
   }, {
     "programId" : "COUSR01C",
     "file" : "app/cbl/COUSR01C.cbl",
@@ -620,7 +659,9 @@
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 410,
-    "unsupported" : [ "INITIALIZE", "SET", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ADD", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "STRING", "WRITE" ],
+    "compileError" : "Cousr01cCicsController.java:22: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cousr01cCicsControl…"
   }, {
     "programId" : "COUSR02C",
     "file" : "app/cbl/COUSR02C.cbl",
@@ -634,7 +675,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "INITIALIZE", "READ", "REWRITE", "SET", "STRING", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING" ],
+    "compileError" : "Cousr02cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cousr02cCicsControl…"
   }, {
     "programId" : "COUSR03C",
     "file" : "app/cbl/COUSR03C.cbl",
@@ -648,7 +691,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "INITIALIZE", "READ", "SET", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET", "STRING" ],
+    "compileError" : "Cousr03cCicsController.java:27: error: <identifier> expected     public ResponseEntity<String> return(@RequestBody Map<String, Object> payload) {                                  ^ Cousr03cCicsControl…"
   }, {
     "programId" : "CSUTLDTC",
     "file" : "app/cbl/CSUTLDTC.cbl",
@@ -662,7 +707,8 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "INITIALIZE", "STRING" ]
+    "notTranslated" : [ ],
+    "present" : [ "CALL", "DISPLAY", "EVALUATE", "GOBACK", "INITIALIZE", "MOVE", "PERFORM", "STRING" ]
   }, {
     "programId" : "DBUNLDGS",
     "file" : "app/app-authorization-ims-db2-mq/cbl/DBUNLDGS.CBL",
@@ -676,7 +722,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "ACCEPT", "CLOSE", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ],
+    "compileError" : "DbunldgsDTO.java:36: error: variable filler is already defined in class DbunldgsDTO   private String filler;                  ^ DbunldgsDTO.java:40: error: variable filler is already defined in class …"
   }, {
     "programId" : "PAUDBLOD",
     "file" : "app/app-authorization-ims-db2-mq/cbl/PAUDBLOD.CBL",
@@ -690,7 +738,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "ACCEPT", "CLOSE", "INITIALIZE", "OPEN", "READ", "SET" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ" ],
+    "compileError" : "PaudblodDTO.java:32: error: variable filler is already defined in class PaudblodDTO   private String filler;                  ^ PaudblodDTO.java:36: error: variable filler is already defined in class …"
   }, {
     "programId" : "PAUDBUNL",
     "file" : "app/app-authorization-ims-db2-mq/cbl/PAUDBUNL.CBL",
@@ -704,7 +754,9 @@
     "todoBodies" : 1,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "unsupported" : [ "ACCEPT", "CLOSE", "INITIALIZE", "OPEN", "READ", "SET", "WRITE" ]
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ],
+    "compileError" : "PaudbunlDTO.java:29: error: variable filler is already defined in class PaudbunlDTO   private String filler;                  ^ PaudbunlDTO.java:33: error: variable filler is already defined in class …"
   } ],
   "inventory" : {
     "cobolFiles" : 44,

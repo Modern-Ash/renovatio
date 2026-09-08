@@ -44,3 +44,7 @@
 - 2026-09-08T10:42:11.837011Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
 - 2026-09-08T10:42:12.042257Z | approval.added | role=spec-owner actor=project:owner delegation=none
 - 2026-09-08T10:42:12.247066Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-09-08T13:24:58.466408Z | work.reopened | revision=2 source=user-authorization actor=project:owner change=change-20260908t132458466312z
+- 2026-09-08T13:25:43.632526Z | tool.prepared | run=tool-20260908t13251788884743z tool=repository operation=status actor=project:agent
+- 2026-09-08T13:25:43.637383Z | tool.running | run=tool-20260908t13251788884743z actor=project:agent
+- 2026-09-08T13:25:43.674490Z | tool.completed | run=tool-20260908t13251788884743z exit-code=0

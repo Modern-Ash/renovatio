@@ -29,6 +29,19 @@ Run the automated server check after building:
 npm run smoke
 ```
 
+Run the Playwright product e2e after building and installing a Chromium browser:
+
+```bash
+npm run e2e:install
+npm run e2e
+```
+
+The e2e test starts the built Theia browser distribution, mocks the governed workbench API with a
+versioned COBOL modernization fixture, and verifies the path that motivated the refactor:
+COBOL source scan → DomainModel review → architecture profile → shadow impact → approved target
+change set → equivalence evidence. The test fails if the target apply action is reachable before the
+diff and manifest approval step.
+
 ## Install from zero
 
 From a clean clone:
@@ -43,6 +56,8 @@ npm test
 npm run hardening:audit
 npm run pilot:demo
 npm run smoke
+npm run e2e:install
+npm run e2e
 npm run performance:budget
 ```
 
@@ -163,5 +178,6 @@ verification commands and known release debt.
 
 ## Verification status
 
-Linux build, contract tests, runtime HTTP smoke, hardening audit, performance budget, demo pilot and
-production dependency audit are enforced by `.github/workflows/theia-platform-spike.yml`.
+Linux build, contract tests, runtime HTTP smoke, Playwright product e2e, hardening audit,
+performance budget, demo pilot and production dependency audit are enforced by
+`.github/workflows/theia-platform-spike.yml`.

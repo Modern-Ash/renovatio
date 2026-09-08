@@ -52,3 +52,4 @@
 - 2026-09-08T02:35:05.247244Z | evidence.added | id=evidence-000002 type=report result=success revision=1 actor=project:agent
 - 2026-09-08T02:35:11.855255Z | approval.added | role=spec-owner actor=project:owner delegation=none
 - 2026-09-08T02:35:15.900661Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-09-08T13:24:58.720298Z | work.reopened | revision=2 source=user-authorization actor=project:owner change=change-20260908t132458720180z

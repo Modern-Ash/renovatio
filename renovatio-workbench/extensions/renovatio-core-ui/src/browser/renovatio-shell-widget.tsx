@@ -1452,6 +1452,13 @@ export class RenovatioShellWidget extends ReactWidget {
                         <button type='button' onClick={() => void this.startEquivalenceRun(fixture)}>Run COBOL case in Theia</button>
                     </li>)}</ol>
                 </section>
+                <section aria-label='Generated target evidence'>
+                    <h3>Generated targets</h3>
+                    {lab.generatedTargets.length ? <ol>{lab.generatedTargets.map(target => <li key={target.id} className='renovatio-equivalence-card'>
+                        <strong>{target.name}</strong>
+                        <span>{target.id}</span>
+                    </li>)}</ol> : <p>No generated target artifacts are linked to this equivalence view.</p>}
+                </section>
                 <section aria-label='Input editor for sequential files and DB2 responses'>
                     <h3>Inputs, sequential files and DB2 responses</h3>
                     {lab.fixtures.map(fixture => <article key={`${fixture.id}:inputs`} className='renovatio-equivalence-card'>

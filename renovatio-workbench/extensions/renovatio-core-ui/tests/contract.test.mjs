@@ -233,6 +233,8 @@ test('provides integrated Equivalence Lab execution and promotion gates (issue #
     assert.match(shell, /renderEquivalenceLab/);
     assert.match(shell, /aria-label='Integrated Equivalence Lab'/);
     assert.match(shell, /Equivalence fixture selector/);
+    assert.match(shell, /Generated target evidence/);
+    assert.match(shell, /lab\.generatedTargets/);
     assert.match(shell, /Input editor for sequential files and DB2 responses/);
     assert.match(shell, /Async runs, progress, logs and cancellation/);
     assert.match(shell, /State output file SQL comparison and divergences/);
