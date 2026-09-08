@@ -54,6 +54,7 @@
         <module>renovatio-profile</module>
         <module>renovatio-decisions</module>
         <module>renovatio-llm</module>
+        <module>renovatio-evals</module>
         <module>renovatio-persistence</module>
         <module>renovatio-emitter-node</module>
         <module>cobol-openrewrite-recipes</module>

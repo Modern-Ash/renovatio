@@ -1,0 +1,58 @@
+# Work events
+
+- 2026-09-07T22:55:20.528467Z | work.created | state=drafting actor=project:owner
+- 2026-09-07T22:58:09.371477Z | artifact.added | kind=spec uri=repo://docs/specs/llm-eval-methodology.md actor=project:owner
+- 2026-09-07T22:58:09.583775Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/llm-eval-methodology.md actor=project:agent
+- 2026-09-07T22:58:09.818976Z | artifact.added | kind=verification-report uri=repo://docs/reports/llm-eval-methodology-verification.md actor=project:agent
+- 2026-09-07T22:58:10.043953Z | artifact.added | kind=eval-report uri=repo://docs/reports/llm-eval-methodology-sample-report.json actor=project:agent
+- 2026-09-07T22:58:16.454858Z | evidence.added | id=evidence-000001 type=tests result=success revision=1 actor=project:agent
+- 2026-09-07T22:58:26.560235Z | work.criterion-stage-marked | criterion=schema-validity actor=project:owner stage=specified
+- 2026-09-07T22:58:26.783487Z | work.criterion-stage-marked | criterion=critical-regressions actor=project:owner stage=specified
+- 2026-09-07T22:58:27.009921Z | work.criterion-stage-marked | criterion=comparable-reports actor=project:owner stage=specified
+- 2026-09-07T22:58:27.234136Z | work.criterion-stage-marked | criterion=human-review-boundary actor=project:owner stage=specified
+- 2026-09-07T22:58:27.458483Z | work.criterion-stage-marked | criterion=metrics actor=project:owner stage=specified
+- 2026-09-07T22:58:27.688126Z | work.criterion-stage-marked | criterion=agora-evidence actor=project:owner stage=specified
+- 2026-09-07T22:58:27.913415Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-07T22:58:28.131498Z | work.criterion-stage-marked | criterion=schema-validity actor=project:owner stage=planned
+- 2026-09-07T22:58:28.360568Z | work.criterion-stage-marked | criterion=critical-regressions actor=project:owner stage=planned
+- 2026-09-07T22:58:28.588958Z | work.criterion-stage-marked | criterion=comparable-reports actor=project:owner stage=planned
+- 2026-09-07T22:58:28.806315Z | work.criterion-stage-marked | criterion=human-review-boundary actor=project:owner stage=planned
+- 2026-09-07T22:58:29.031249Z | work.criterion-stage-marked | criterion=metrics actor=project:owner stage=planned
+- 2026-09-07T22:58:29.253717Z | work.criterion-stage-marked | criterion=agora-evidence actor=project:owner stage=planned
+- 2026-09-07T22:58:29.923612Z | work.criterion-stage-marked | criterion=schema-validity actor=project:agent stage=implemented
+- 2026-09-07T22:58:30.144368Z | work.criterion-stage-marked | criterion=critical-regressions actor=project:agent stage=implemented
+- 2026-09-07T22:58:30.366618Z | work.criterion-stage-marked | criterion=comparable-reports actor=project:agent stage=implemented
+- 2026-09-07T22:58:30.586289Z | work.criterion-stage-marked | criterion=human-review-boundary actor=project:agent stage=implemented
+- 2026-09-07T22:58:30.807949Z | work.criterion-stage-marked | criterion=metrics actor=project:agent stage=implemented
+- 2026-09-07T22:58:31.030759Z | work.criterion-stage-marked | criterion=agora-evidence actor=project:agent stage=implemented
+- 2026-09-07T22:58:31.487775Z | work.criterion-stage-marked | criterion=schema-validity actor=project:agent stage=verified
+- 2026-09-07T22:58:31.720219Z | work.criterion-stage-marked | criterion=critical-regressions actor=project:agent stage=verified
+- 2026-09-07T22:58:31.952676Z | work.criterion-stage-marked | criterion=comparable-reports actor=project:agent stage=verified
+- 2026-09-07T22:58:32.189578Z | work.criterion-stage-marked | criterion=human-review-boundary actor=project:agent stage=verified
+- 2026-09-07T22:58:32.422893Z | work.criterion-stage-marked | criterion=metrics actor=project:agent stage=verified
+- 2026-09-07T22:58:32.660401Z | work.criterion-stage-marked | criterion=agora-evidence actor=project:agent stage=verified
+- 2026-09-07T22:58:47.638383Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-07T22:58:47.881561Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-07T22:58:48.116582Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-07T23:53:23.328667Z | work.criterion-satisfied | criterion=schema-validity actor=project:owner
+- 2026-09-07T23:53:28.848647Z | work.criterion-satisfied | criterion=critical-regressions actor=project:owner
+- 2026-09-07T23:53:33.601313Z | work.criterion-satisfied | criterion=comparable-reports actor=project:owner
+- 2026-09-07T23:53:38.148917Z | work.criterion-satisfied | criterion=human-review-boundary actor=project:owner
+- 2026-09-07T23:53:43.643506Z | work.criterion-satisfied | criterion=metrics actor=project:owner
+- 2026-09-07T23:53:47.461516Z | work.criterion-satisfied | criterion=agora-evidence actor=project:owner
+- 2026-09-07T23:53:52.915317Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T23:53:57.511358Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-09-07T23:54:46.918231Z | work.reopened | revision=2 source=chat actor=project:owner change=change-20260907t235446918145z
+- 2026-09-07T23:55:00.219408Z | artifact.added | kind=spec uri=repo://docs/specs/llm-eval-methodology.md actor=project:owner
+- 2026-09-07T23:55:05.911536Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/llm-eval-methodology.md actor=project:owner
+- 2026-09-07T23:55:11.118235Z | artifact.added | kind=verification-report uri=repo://docs/reports/llm-eval-methodology-verification.md actor=project:owner
+- 2026-09-07T23:55:16.378155Z | artifact.added | kind=eval-report uri=repo://docs/reports/llm-eval-methodology-sample-report.json actor=project:owner
+- 2026-09-07T23:55:22.711150Z | evidence.added | id=evidence-000002 type=tests result=success revision=2 actor=project:owner
+- 2026-09-07T23:55:28.784126Z | work.criterion-satisfied | criterion=schema-validity actor=project:owner
+- 2026-09-07T23:55:28.983465Z | work.criterion-satisfied | criterion=critical-regressions actor=project:owner
+- 2026-09-07T23:55:29.175019Z | work.criterion-satisfied | criterion=comparable-reports actor=project:owner
+- 2026-09-07T23:55:29.367200Z | work.criterion-satisfied | criterion=human-review-boundary actor=project:owner
+- 2026-09-07T23:55:29.558211Z | work.criterion-satisfied | criterion=metrics actor=project:owner
+- 2026-09-07T23:55:29.750134Z | work.criterion-satisfied | criterion=agora-evidence actor=project:owner
+- 2026-09-07T23:55:34.758386Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T23:55:39.688351Z | work.transitioned | from=verifying to=completed actor=project:owner

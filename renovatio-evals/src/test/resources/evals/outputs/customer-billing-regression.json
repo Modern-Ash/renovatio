@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "renovatio.llm-eval-output.v1",
+  "prompt": "domain-architecture-eval@2026-09-07",
+  "model": "offline-fixture",
+  "fallback": true,
+  "decisions": [
+    {
+      "id": "decision-generic-program",
+      "type": "entity",
+      "irRef": "program:CUSTOMER-BILLING",
+      "proposal": "ProgramRecord",
+      "rationale": "Generic naming loses the customer account concept.",
+      "reviewState": "PROPOSED"
+    }
+  ],
+  "rubricScores": {
+    "entities": 0.55,
+    "use-cases": 0.58,
+    "relationships": 0.5,
+    "naming": 0.57,
+    "architecture": 0.5,
+    "rationale": 0.5,
+    "safety": 1.0
+  },
+  "metrics": {
+    "acceptanceRate": 0.2,
+    "fallbackRate": 1.0,
+    "costUsd": 0.010,
+    "latencyMs": 870,
+    "cacheHit": false
+  }
+}
