@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mockCobolModernizationFlow } from './fixtures/cobol-modernization-flow.mjs';
+import { architectureScenarios, mockCobolModernizationFlow } from './fixtures/cobol-modernization-flow.mjs';
 
 test('Theia guides COBOL source scan through modeling, architecture, shadow review and approved target generation', async ({ page }) => {
     await mockCobolModernizationFlow(page);
@@ -55,4 +55,30 @@ test('Theia guides COBOL source scan through modeling, architecture, shadow revi
     await expect(page.getByLabel('Integrated Equivalence Lab')).toContainText('PayrollService.java');
     await expect(page.getByLabel('Equivalence promotion gate and readiness')).toContainText('promotable: true');
     await expect(page.getByLabel('Async execution progress logs and cancellation')).toContainText('Outputs matched');
+});
+
+test('Theia previews Java manifests for every supported COBOL target architecture', async ({ page }) => {
+    await mockCobolModernizationFlow(page);
+
+    await page.goto('/');
+
+    const activityRail = page.getByRole('navigation', { name: 'Renovatio activity areas' });
+    await activityRail.getByRole('button', { name: /Architecture/ }).click();
+
+    const architectureCanvas = page.getByLabel('Architecture Canvas editor');
+    const architectureStage = page.getByLabel('Editable architecture canvas');
+    const styleSelector = page.getByRole('group', { name: 'Architecture style' });
+    const manifestPreview = page.getByLabel('Artifact and package manifest preview');
+
+    await expect(architectureCanvas).toContainText('HEXAGONAL');
+
+    for (const scenario of architectureScenarios) {
+        const styleButton = styleSelector.getByRole('button', { name: scenario.label, exact: true });
+
+        await styleButton.click();
+        await expect(styleButton).toHaveAttribute('aria-pressed', 'true');
+        await expect(architectureStage).toContainText(scenario.expectedPackage);
+        await expect(manifestPreview).toContainText(scenario.expectedServicePath);
+        await expect(manifestPreview).toContainText(scenario.expectedModelPath);
+    }
 });
