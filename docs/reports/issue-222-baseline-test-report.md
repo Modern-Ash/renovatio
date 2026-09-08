@@ -1,7 +1,9 @@
 # Issue #222 — Baseline test and verification report
 
-Date: 2026-09-08  
-Baseline: `origin/main` at `6b46865171a795a18e84c570211c1dea14a7e6ea`  
+Date: 2026-09-08
+
+Baseline: `origin/main` at `6b46865171a795a18e84c570211c1dea14a7e6ea`
+
 Environment: Linux 7.0.0-31-generic x86_64, OpenJDK 21.0.12, Maven 3.9.12
 
 ## Outcome

@@ -3,8 +3,8 @@ schema: "agora/work/v1"
 id: "baseline-reconciliation"
 swarm: "architecture-convergence-2026"
 title: "AC-01: reconciliar ramas y establecer baseline can\u00f3nica (#222)"
-state: "completed"
-revision: 1
+state: "verifying"
+revision: 2
 operational-status: "active"
 status-reason: null
 status-by: null
