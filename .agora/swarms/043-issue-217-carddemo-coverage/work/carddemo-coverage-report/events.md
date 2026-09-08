@@ -1,0 +1,26 @@
+# Work events
+
+- 2026-09-08T02:20:35.332800Z | work.created | state=drafting actor=project:owner
+- 2026-09-08T02:21:34.607446Z | artifact.added | kind=spec uri=repo://docs/specs/issue-217-carddemo-coverage.md actor=project:owner
+- 2026-09-08T02:21:34.848754Z | work.criterion-stage-marked | criterion=corpus-vendored actor=project:owner stage=specified
+- 2026-09-08T02:21:35.084552Z | work.criterion-stage-marked | criterion=coverage-tool actor=project:owner stage=specified
+- 2026-09-08T02:21:35.312688Z | work.criterion-stage-marked | criterion=aggregate-report actor=project:owner stage=specified
+- 2026-09-08T02:21:35.539174Z | work.criterion-stage-marked | criterion=tracking-json actor=project:owner stage=specified
+- 2026-09-08T02:21:35.761812Z | work.criterion-stage-marked | criterion=e2e-candidates actor=project:owner stage=specified
+- 2026-09-08T02:21:35.985062Z | work.criterion-stage-marked | criterion=reproducible-ci actor=project:owner stage=specified
+- 2026-09-08T02:21:36.211575Z | work.criterion-stage-marked | criterion=no-engine-change actor=project:owner stage=specified
+- 2026-09-08T02:22:11.603924Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-08T02:22:32.842023Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-08T02:23:12.255715Z | artifact.added | kind=spec uri=repo://docs/specs/issue-217-carddemo-coverage.md actor=project:owner
+- 2026-09-08T02:23:23.472143Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-09-08T02:23:29.862617Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-08T02:24:23.865089Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/issue-217-carddemo-coverage.md actor=project:owner
+- 2026-09-08T02:24:24.089394Z | work.criterion-stage-marked | criterion=corpus-vendored actor=project:owner stage=planned
+- 2026-09-08T02:24:24.306213Z | work.criterion-stage-marked | criterion=coverage-tool actor=project:owner stage=planned
+- 2026-09-08T02:24:24.522873Z | work.criterion-stage-marked | criterion=aggregate-report actor=project:owner stage=planned
+- 2026-09-08T02:24:24.740725Z | work.criterion-stage-marked | criterion=tracking-json actor=project:owner stage=planned
+- 2026-09-08T02:24:24.972431Z | work.criterion-stage-marked | criterion=e2e-candidates actor=project:owner stage=planned
+- 2026-09-08T02:24:25.190937Z | work.criterion-stage-marked | criterion=reproducible-ci actor=project:owner stage=planned
+- 2026-09-08T02:24:25.404963Z | work.criterion-stage-marked | criterion=no-engine-change actor=project:owner stage=planned
+- 2026-09-08T02:24:25.638257Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-08T02:24:25.863407Z | work.transitioned | from=planned to=implementing actor=project:agent
