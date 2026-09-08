@@ -1,0 +1,52 @@
+# Work events
+
+- 2026-09-08T22:44:00.606973Z | work.created | state=drafting actor=project:owner
+- 2026-09-08T22:46:18.664646Z | artifact.added | kind=spec uri=repo://docs/specs/issue-222-baseline-reconciliation.md actor=project:owner
+- 2026-09-08T22:46:18.904010Z | work.criterion-stage-marked | criterion=inventory actor=project:owner stage=specified
+- 2026-09-08T22:46:19.147940Z | work.criterion-stage-marked | criterion=clean-integration actor=project:owner stage=specified
+- 2026-09-08T22:46:19.397419Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:owner stage=specified
+- 2026-09-08T22:46:19.629944Z | work.criterion-stage-marked | criterion=history-integrity actor=project:owner stage=specified
+- 2026-09-08T22:46:19.885164Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:owner stage=specified
+- 2026-09-08T22:46:20.137046Z | work.criterion-stage-marked | criterion=rollback actor=project:owner stage=specified
+- 2026-09-08T22:46:24.412661Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-08T22:46:38.158071Z | tool.prepared | run=tool-20260908t22461788918398z tool=repository operation=create-branch actor=project:agent
+- 2026-09-08T22:46:38.164596Z | tool.running | run=tool-20260908t22461788918398z actor=project:agent
+- 2026-09-08T22:46:38.182534Z | tool.failed | run=tool-20260908t22461788918398z exit-code=128
+- 2026-09-08T22:47:01.310517Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/issue-222-baseline-reconciliation.md actor=project:agent
+- 2026-09-08T22:47:06.003728Z | work.criterion-stage-marked | criterion=inventory actor=project:owner stage=planned
+- 2026-09-08T22:47:06.233632Z | work.criterion-stage-marked | criterion=clean-integration actor=project:owner stage=planned
+- 2026-09-08T22:47:06.456762Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:owner stage=planned
+- 2026-09-08T22:47:06.682376Z | work.criterion-stage-marked | criterion=history-integrity actor=project:owner stage=planned
+- 2026-09-08T22:47:06.904215Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:owner stage=planned
+- 2026-09-08T22:47:07.127578Z | work.criterion-stage-marked | criterion=rollback actor=project:owner stage=planned
+- 2026-09-08T22:47:07.359120Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-08T22:47:07.586871Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-08T22:47:33.708422Z | tool.prepared | run=tool-20260908t22471788918453z tool=github-issues operation=view actor=project:agent
+- 2026-09-08T22:47:33.714327Z | tool.running | run=tool-20260908t22471788918453z actor=project:agent
+- 2026-09-08T22:47:33.754074Z | tool.failed | run=tool-20260908t22471788918453z exit-code=1
+- 2026-09-08T22:58:24.203492Z | artifact.added | kind=integration-report uri=repo://docs/reports/issue-222-branch-reconciliation.md actor=project:agent
+- 2026-09-08T22:58:24.478472Z | artifact.added | kind=decision-record uri=repo://docs/adr/0003-main-baseline-and-mvc-cics-contract.md actor=project:agent
+- 2026-09-08T22:58:24.750245Z | artifact.added | kind=test-report uri=repo://docs/reports/issue-222-baseline-test-report.md actor=project:agent
+- 2026-09-08T22:58:28.625627Z | work.criterion-stage-marked | criterion=inventory actor=project:agent stage=implemented
+- 2026-09-08T22:58:28.906847Z | work.criterion-stage-marked | criterion=clean-integration actor=project:agent stage=implemented
+- 2026-09-08T22:58:29.198988Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:agent stage=implemented
+- 2026-09-08T22:58:29.501041Z | work.criterion-stage-marked | criterion=history-integrity actor=project:agent stage=implemented
+- 2026-09-08T22:58:29.789425Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:agent stage=implemented
+- 2026-09-08T22:58:30.089571Z | work.criterion-stage-marked | criterion=rollback actor=project:agent stage=implemented
+- 2026-09-08T22:58:32.819752Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-08T22:58:53.571481Z | evidence.added | id=issue-222-reconciliation-audit type=audit result=success revision=1 actor=project:agent
+- 2026-09-08T22:58:53.838067Z | evidence.added | id=issue-222-mvc-contract type=test result=success revision=1 actor=project:agent
+- 2026-09-08T22:58:54.102664Z | evidence.added | id=issue-222-full-reactor type=test result=success revision=1 actor=project:agent
+- 2026-09-08T22:59:03.290142Z | work.criterion-stage-marked | criterion=inventory actor=project:agent stage=verified
+- 2026-09-08T22:59:03.578560Z | work.criterion-stage-marked | criterion=clean-integration actor=project:agent stage=verified
+- 2026-09-08T22:59:03.853215Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:agent stage=verified
+- 2026-09-08T22:59:04.117872Z | work.criterion-stage-marked | criterion=history-integrity actor=project:agent stage=verified
+- 2026-09-08T22:59:04.396916Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:agent stage=verified
+- 2026-09-08T22:59:04.670986Z | work.criterion-stage-marked | criterion=rollback actor=project:agent stage=verified
+- 2026-09-08T22:59:04.948383Z | work.criterion-stage-marked | criterion=inventory actor=project:owner stage=accepted
+- 2026-09-08T22:59:05.234880Z | work.criterion-stage-marked | criterion=clean-integration actor=project:owner stage=accepted
+- 2026-09-08T22:59:05.529547Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:owner stage=accepted
+- 2026-09-08T22:59:05.832830Z | work.criterion-stage-marked | criterion=history-integrity actor=project:owner stage=accepted
+- 2026-09-08T22:59:06.120002Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:owner stage=accepted
+- 2026-09-08T22:59:06.406295Z | work.criterion-stage-marked | criterion=rollback actor=project:owner stage=accepted
+- 2026-09-08T22:59:11.301827Z | approval.added | role=spec-owner actor=project:owner delegation=none
