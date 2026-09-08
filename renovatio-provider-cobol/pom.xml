@@ -14,6 +14,11 @@
     <name>Renovatio COBOL Provider</name>
     <description>COBOL language provider</description>
 
+    <properties>
+        <!-- JUnit tags kept out of the default Surefire run; override with -DexcludedGroups= to opt in. -->
+        <renovatio.surefire.excludedGroups>coverage</renovatio.surefire.excludedGroups>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.shark.renovatio</groupId>
@@ -149,6 +154,16 @@
 
     <build>
         <plugins>
+            <!-- The CardDemo pipeline-coverage report (issue #217) is measurement-only and slow;
+                 it carries the JUnit tag "coverage" and is kept out of the default build.
+                 Run it with:  mvn -pl renovatio-provider-cobol test -Dgroups=coverage -Drenovatio.surefire.excludedGroups= -Dexec.skip=true -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${renovatio.surefire.excludedGroups}</excludedGroups>
+                </configuration>
+            </plugin>
             <!-- Enforce 100% coverage always for this module -->
             <plugin>
                 <groupId>org.jacoco</groupId>
