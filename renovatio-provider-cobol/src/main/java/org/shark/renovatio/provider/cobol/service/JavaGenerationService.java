@@ -7,8 +7,13 @@ import org.shark.renovatio.architecture.ArchitectureResult;
 import org.shark.renovatio.architecture.ArchitectureTransformer;
 import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
 import org.shark.renovatio.architecture.GroupingConfiguration;
+import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.shark.renovatio.cobol.ir.model.CobolDataItem;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.shark.renovatio.cobol.ir.model.CobolStatement;
+import org.shark.renovatio.cobol.ir.model.EvaluateStatement;
+import org.shark.renovatio.cobol.ir.model.IfStatement;
+import org.shark.renovatio.cobol.ir.model.SimpleStatement;
 import org.shark.renovatio.core.service.TargetEmitterRegistry;
 import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
@@ -58,6 +63,8 @@ import java.util.function.Function;
  */
 @Service
 public class JavaGenerationService {
+
+    private static final String BUSINESS_LOGIC_PLACEHOLDER = "// TODO: Implement COBOL business logic";
 
     private final CobolParsingService parsingService;
     private final TemplateCodeGenerationService templateService;
@@ -201,6 +208,11 @@ public class JavaGenerationService {
                     : "Generated " + generatedFiles.size() + " target files in: " + outputPath);
             result.setGeneratedCode(generatedFiles);
             result.setTargetLanguage(effective.profile().target().language().name());
+            Map<String, Object> metadata = new LinkedHashMap<>();
+            metadata.put("outputPath", outputPath);
+            metadata.put("generatedFileCount", generatedFiles.size());
+            metadata.put("generatedFiles", generatedFiles.keySet().stream().sorted().toList());
+            result.setMetadata(metadata);
             return result;
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
@@ -428,6 +440,7 @@ public class JavaGenerationService {
                 Map<String, Object> metadata = program.getMetadata();
                 String fileName = (String) metadata.get("filePath");
                 Path cobolPath = Path.of(fileName).toAbsolutePath().normalize();
+                String sourceReference = sourceReference(workspace, cobolPath);
                 if (selectedSource != null && !selectedSource.toAbsolutePath().normalize().equals(cobolPath)) continue;
                 String baseName = cobolPath.getFileName().toString();
                 // Clean and sanitize the class base name
@@ -443,7 +456,7 @@ public class JavaGenerationService {
                             new AnnotatedContextResolver.Request(Optional.empty(), Optional.empty(), cobolPath), model);
                     annotatedResolution.diagnostics().stream()
                             .map(diagnostic -> annotationActionItemFactory.toResolutionDiagnostic(
-                                    diagnostic, fileName, model.getProgramId()))
+                                    diagnostic, sourceReference, model.getProgramId()))
                             .forEach(item -> actionItems.putIfAbsent(item.id(), item));
 
                     // Generate DTO class for data structures
@@ -451,7 +464,7 @@ public class JavaGenerationService {
                     if (annotatedResolution.context().isPresent()) {
                         dtoClass = semanticTranspiler.enrichServiceImplementation(dtoClass,
                                 annotatedResolution.context().orElseThrow(),
-                                fileName,
+                                sourceReference,
                                 items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)),
                                 currentSemantic == null ? null : currentSemantic.dataIntents());
                     }
@@ -461,15 +474,9 @@ public class JavaGenerationService {
                     putArtifact(generatedFiles, classBase + "Service.java", serviceInterface);
                     // Generate implementation template
                     String serviceImpl = generateServiceImplementation(classBase, metadata);
-                    if (annotatedResolution.context().isPresent()) {
-                        serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl,
-                                annotatedResolution.context().orElseThrow(),
-                                fileName,
-                                items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)),
-                                currentSemantic == null ? null : currentSemantic.dataIntents());
-                    } else {
-                        serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl, model);
-                    }
+                    collectUntranslatedStatements(model, sourceReference, actionItems);
+                    serviceImpl = translateServiceImplementation(serviceImpl, model,
+                            annotatedResolution.context().orElse(null), sourceReference, currentSemantic, actionItems);
                     // DEBUG: print generated service implementation for verification
                     System.out.println("Generated Service Implementation (" + classBase + "):\n" + serviceImpl);
                     putArtifact(generatedFiles, classBase + "ServiceImpl.java", serviceImpl);
@@ -525,6 +532,64 @@ public class JavaGenerationService {
         String existing = artifacts.putIfAbsent(path, content);
         if (existing != null && !existing.equals(content)) {
             throw new IllegalArgumentException("duplicate artifact path: " + path);
+        }
+    }
+
+    private static String sourceReference(Workspace workspace, Path source) {
+        Path root = workspaceRoot(workspace);
+        return source.startsWith(root)
+                ? root.relativize(source).toString().replace('\\', '/')
+                : source.toString().replace('\\', '/');
+    }
+
+    private String translateServiceImplementation(String javaSource, CobolIntermediateModel model,
+                                                  AnnotatedCobolContext annotated, String sourceFile,
+                                                  SemanticProgram semantic, Map<String, ManualActionItem> actionItems) {
+        String translated = semanticTranspiler.enrichServiceImplementation(javaSource, model, annotated,
+                sourceFile,
+                items -> items.forEach(item -> actionItems.putIfAbsent(item.id(), item)),
+                semantic == null ? null : semantic.dataIntents());
+        boolean hasExecutableStatements = model.getParagraphs().values().stream()
+                .anyMatch(paragraph -> !paragraph.statements().isEmpty());
+        if (!hasExecutableStatements && translated != null) {
+            translated = translated.replace(BUSINESS_LOGIC_PLACEHOLDER,
+                    "// No executable COBOL statements");
+        }
+        if (translated == null || translated.contains(BUSINESS_LOGIC_PLACEHOLDER)) {
+            throw new IllegalStateException("semantic translation left the COBOL business-logic placeholder for "
+                    + model.getProgramId());
+        }
+        return translated;
+    }
+
+    private void collectUntranslatedStatements(CobolIntermediateModel model, String sourceFile,
+                                               Map<String, ManualActionItem> actionItems) {
+        model.getParagraphs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            int[] statementIndex = {0};
+            collectUntranslatedStatements(entry.getValue().statements(), sourceFile, model.getProgramId(),
+                    entry.getKey(), statementIndex, actionItems);
+        });
+    }
+
+    private void collectUntranslatedStatements(List<CobolStatement> statements, String sourceFile,
+                                               String programId, String paragraph, int[] statementIndex,
+                                               Map<String, ManualActionItem> actionItems) {
+        for (CobolStatement statement : statements) {
+            int currentIndex = statementIndex[0]++;
+            if (statement instanceof SimpleStatement simple
+                    && simple.kind() == SimpleStatement.Kind.UNTRANSLATED) {
+                ManualActionItem item = annotationActionItemFactory.toUntranslatedStatement(
+                        simple, sourceFile, programId, paragraph, currentIndex);
+                actionItems.putIfAbsent(item.id(), item);
+            } else if (statement instanceof IfStatement conditional) {
+                collectUntranslatedStatements(conditional.thenStatements(), sourceFile, programId,
+                        paragraph, statementIndex, actionItems);
+                collectUntranslatedStatements(conditional.elseStatements(), sourceFile, programId,
+                        paragraph, statementIndex, actionItems);
+            } else if (statement instanceof EvaluateStatement evaluation) {
+                evaluation.branches().forEach(branch -> collectUntranslatedStatements(branch.statements(),
+                        sourceFile, programId, paragraph, statementIndex, actionItems));
+            }
         }
     }
 

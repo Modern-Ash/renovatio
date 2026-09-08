@@ -1,0 +1,27 @@
+# Work events
+
+- 2026-09-08T13:56:38.846520Z | work.created | state=drafting actor=project:owner
+- 2026-09-08T13:57:35.258174Z | artifact.added | kind=spec uri=repo://docs/specs/issue-215-unified-generation.md actor=project:owner
+- 2026-09-08T13:57:35.557937Z | work.criterion-stage-marked | criterion=canonical-body-path actor=project:owner stage=specified
+- 2026-09-08T13:57:35.857127Z | work.criterion-stage-marked | criterion=cli-plan-apply actor=project:owner stage=specified
+- 2026-09-08T13:57:36.167951Z | work.criterion-stage-marked | criterion=api-lifecycle actor=project:owner stage=specified
+- 2026-09-08T13:57:36.475036Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=specified
+- 2026-09-08T13:57:36.803975Z | work.criterion-stage-marked | criterion=architecture-record actor=project:owner stage=specified
+- 2026-09-08T13:57:37.111720Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=specified
+- 2026-09-08T13:59:16.526223Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-08T14:00:30.254801Z | artifact.added | kind=implementation-plan uri=docs/plans/issue-215-unified-generation.md actor=project:owner
+- 2026-09-08T14:00:36.445995Z | work.criterion-stage-marked | criterion=canonical-body-path actor=project:owner stage=planned
+- 2026-09-08T14:00:36.737810Z | work.criterion-stage-marked | criterion=cli-plan-apply actor=project:owner stage=planned
+- 2026-09-08T14:00:37.033051Z | work.criterion-stage-marked | criterion=api-lifecycle actor=project:owner stage=planned
+- 2026-09-08T14:00:37.330728Z | work.criterion-stage-marked | criterion=manual-actions actor=project:owner stage=planned
+- 2026-09-08T14:00:37.624524Z | work.criterion-stage-marked | criterion=architecture-record actor=project:owner stage=planned
+- 2026-09-08T14:00:37.920437Z | work.criterion-stage-marked | criterion=regression-green actor=project:owner stage=planned
+- 2026-09-08T14:00:48.831984Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-08T14:00:49.144562Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-08T14:19:59.878813Z | artifact.added | kind=architecture-decision-record uri=docs/adr/0002-canonical-cobol-java-generation.md actor=project:owner
+- 2026-09-08T14:20:00.197813Z | work.criterion-stage-marked | criterion=canonical-body-path actor=project:agent stage=implemented
+- 2026-09-08T14:20:00.503813Z | work.criterion-stage-marked | criterion=cli-plan-apply actor=project:agent stage=implemented
+- 2026-09-08T14:20:00.815527Z | work.criterion-stage-marked | criterion=api-lifecycle actor=project:agent stage=implemented
+- 2026-09-08T14:20:01.139003Z | work.criterion-stage-marked | criterion=manual-actions actor=project:agent stage=implemented
+- 2026-09-08T14:20:01.482965Z | work.criterion-stage-marked | criterion=architecture-record actor=project:agent stage=implemented
+- 2026-09-08T14:20:01.811776Z | work.criterion-stage-marked | criterion=regression-green actor=project:agent stage=implemented

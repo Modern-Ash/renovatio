@@ -34,9 +34,16 @@ public final class ApplyCommand extends AbstractCoreCommand {
     @Parameters(index = "0", paramLabel = "<planId>", description = "Plan id printed by 'renovatio plan'.")
     String planId;
 
-    @Option(names = "--dry-run", negatable = true, defaultValue = "true",
+    @Option(names = "--dry-run",
             description = "Preview without writing files (default: true).")
-    boolean dryRun;
+    boolean dryRun = true;
+
+    @Option(names = "--no-dry-run", description = "Write the generated artifacts.")
+    void disableDryRun(boolean selected) {
+        if (selected) {
+            dryRun = false;
+        }
+    }
 
     @Option(names = "--out", description = "Output directory for generated Java (real apply only).")
     String out;
@@ -82,7 +89,13 @@ public final class ApplyCommand extends AbstractCoreCommand {
             }
 
             if (!dryRun && hasOut()) {
-                copyDirectory(executionWorkspace.resolve("generated-java-stubs"), requestedOutputDir);
+                Path engineOutput = javaOutputDirectory(applied.result())
+                        .orElseThrow(() -> new IOException(
+                                "apply succeeded without reporting changes.javaOutputDirectory"));
+                if (!engineOutput.equals(requestedOutputDir)) {
+                    throw new IOException("apply wrote Java to " + engineOutput
+                            + " instead of requested output " + requestedOutputDir);
+                }
             }
 
             String cliRunId = UUID.randomUUID().toString();
@@ -124,6 +137,18 @@ public final class ApplyCommand extends AbstractCoreCommand {
         return out != null && !out.isBlank();
     }
 
+    private static Optional<Path> javaOutputDirectory(Map<String, Object> result) {
+        Object changes = result.get("changes");
+        if (!(changes instanceof Map<?, ?> changeMap)) {
+            return Optional.empty();
+        }
+        Object outputDirectory = changeMap.get("javaOutputDirectory");
+        if (outputDirectory == null || outputDirectory.toString().isBlank()) {
+            return Optional.empty();
+        }
+        return Optional.of(Path.of(outputDirectory.toString()).toAbsolutePath().normalize());
+    }
+
     private static void copyWorkspace(Path source, Path target) throws IOException {
         Files.createDirectories(target);
         Files.walkFileTree(source, new SimpleFileVisitor<>() {
@@ -152,37 +177,6 @@ public final class ApplyCommand extends AbstractCoreCommand {
                             StandardCopyOption.REPLACE_EXISTING,
                             StandardCopyOption.COPY_ATTRIBUTES);
                 }
-                return FileVisitResult.CONTINUE;
-            }
-        });
-    }
-
-    private static void copyDirectory(Path source, Path target) throws IOException {
-        if (!Files.isDirectory(source)) {
-            return;
-        }
-        Files.createDirectories(target);
-        Files.walkFileTree(source, new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-                Path relative = source.relativize(dir);
-                if (!relative.toString().isEmpty()) {
-                    Files.createDirectories(target.resolve(relative));
-                }
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Path relative = source.relativize(file);
-                Path destination = target.resolve(relative);
-                Path parent = destination.getParent();
-                if (parent != null) {
-                    Files.createDirectories(parent);
-                }
-                Files.copy(file, destination,
-                        StandardCopyOption.REPLACE_EXISTING,
-                        StandardCopyOption.COPY_ATTRIBUTES);
                 return FileVisitResult.CONTINUE;
             }
         });
