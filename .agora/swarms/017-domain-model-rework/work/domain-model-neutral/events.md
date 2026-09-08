@@ -1,0 +1,40 @@
+# Work events
+
+- 2026-09-04T23:13:55.353559Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T23:14:11.091292Z | artifact.added | kind=spec uri=.agora/swarms/017-domain-model-rework/work/domain-model-neutral/spec.md actor=project:owner
+- 2026-09-04T23:14:11.323422Z | artifact.added | kind=implementation-plan uri=.agora/swarms/017-domain-model-rework/work/domain-model-neutral/implementation-plan.md actor=project:owner
+- 2026-09-04T23:14:18.614624Z | work.criterion-stage-marked | criterion=domain-contract actor=project:owner stage=specified
+- 2026-09-04T23:14:18.920774Z | work.criterion-stage-marked | criterion=evidence-traceability actor=project:owner stage=specified
+- 2026-09-04T23:14:19.229413Z | work.criterion-stage-marked | criterion=validation actor=project:owner stage=specified
+- 2026-09-04T23:14:19.519646Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=specified
+- 2026-09-04T23:14:19.819309Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=specified
+- 2026-09-04T23:14:26.057786Z | work.criterion-stage-marked | criterion=domain-contract actor=project:owner stage=planned
+- 2026-09-04T23:14:26.307072Z | work.criterion-stage-marked | criterion=evidence-traceability actor=project:owner stage=planned
+- 2026-09-04T23:14:26.537545Z | work.criterion-stage-marked | criterion=validation actor=project:owner stage=planned
+- 2026-09-04T23:14:26.747396Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=planned
+- 2026-09-04T23:14:26.957050Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=planned
+- 2026-09-04T23:14:27.166581Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T23:14:27.386203Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T23:14:27.597248Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T23:15:55.237447Z | artifact.added | kind=verification-report uri=.agora/swarms/017-domain-model-rework/work/domain-model-neutral/verification-report.md actor=project:agent
+- 2026-09-04T23:15:55.451169Z | artifact.added | kind=review-report uri=.agora/swarms/017-domain-model-rework/work/domain-model-neutral/review-report.md actor=project:owner
+- 2026-09-04T23:15:55.671579Z | evidence.added | id=domain-model-tests type=test result=success revision=1 actor=project:agent
+- 2026-09-04T23:15:55.894018Z | evidence.added | id=domain-model-diff-check type=hygiene result=success revision=1 actor=project:agent
+- 2026-09-04T23:16:02.050922Z | work.criterion-stage-marked | criterion=domain-contract actor=project:agent stage=implemented
+- 2026-09-04T23:16:02.354101Z | work.criterion-stage-marked | criterion=evidence-traceability actor=project:agent stage=implemented
+- 2026-09-04T23:16:02.656036Z | work.criterion-stage-marked | criterion=validation actor=project:agent stage=implemented
+- 2026-09-04T23:16:02.958514Z | work.criterion-stage-marked | criterion=compatibility actor=project:agent stage=implemented
+- 2026-09-04T23:16:03.261084Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=implemented
+- 2026-09-04T23:16:03.551168Z | work.criterion-stage-marked | criterion=domain-contract actor=project:agent stage=verified
+- 2026-09-04T23:16:03.846916Z | work.criterion-stage-marked | criterion=evidence-traceability actor=project:agent stage=verified
+- 2026-09-04T23:16:04.145317Z | work.criterion-stage-marked | criterion=validation actor=project:agent stage=verified
+- 2026-09-04T23:16:04.439062Z | work.criterion-stage-marked | criterion=compatibility actor=project:agent stage=verified
+- 2026-09-04T23:16:04.735053Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified
+- 2026-09-04T23:16:07.445446Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T23:17:38.061517Z | work.criterion-stage-marked | criterion=domain-contract actor=project:owner stage=accepted
+- 2026-09-04T23:17:38.354625Z | work.criterion-stage-marked | criterion=evidence-traceability actor=project:owner stage=accepted
+- 2026-09-04T23:17:38.661149Z | work.criterion-stage-marked | criterion=validation actor=project:owner stage=accepted
+- 2026-09-04T23:17:38.960761Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=accepted
+- 2026-09-04T23:17:39.253824Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=accepted
+- 2026-09-04T23:17:43.314636Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-04T23:17:48.849761Z | work.transitioned | from=verifying to=completed actor=project:owner

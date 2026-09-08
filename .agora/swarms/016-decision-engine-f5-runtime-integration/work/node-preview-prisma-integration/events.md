@@ -1,0 +1,46 @@
+# Work events
+
+- 2026-09-04T16:56:15.821613Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T16:56:53.499691Z | artifact.added | kind=spec uri=.agora/swarms/016-decision-engine-f5-runtime-integration/work/node-preview-prisma-integration/spec.md actor=project:owner
+- 2026-09-04T16:56:53.709050Z | artifact.added | kind=implementation-plan uri=.agora/swarms/016-decision-engine-f5-runtime-integration/work/node-preview-prisma-integration/implementation-plan.md actor=project:owner
+- 2026-09-04T16:56:57.892212Z | work.criterion-stage-marked | criterion=project-backed-preview actor=project:owner stage=specified
+- 2026-09-04T16:56:58.111137Z | work.criterion-stage-marked | criterion=prisma-artifacts actor=project:owner stage=specified
+- 2026-09-04T16:56:58.324290Z | work.criterion-stage-marked | criterion=idiom-integration actor=project:owner stage=specified
+- 2026-09-04T16:56:58.544158Z | work.criterion-stage-marked | criterion=multi-program-compatibility actor=project:owner stage=specified
+- 2026-09-04T16:56:58.762378Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=specified
+- 2026-09-04T16:57:14.047586Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T16:57:22.408823Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T16:57:35.668414Z | work.criterion-stage-marked | criterion=project-backed-preview actor=project:owner stage=planned
+- 2026-09-04T16:57:35.904032Z | work.criterion-stage-marked | criterion=prisma-artifacts actor=project:owner stage=planned
+- 2026-09-04T16:57:36.133580Z | work.criterion-stage-marked | criterion=idiom-integration actor=project:owner stage=planned
+- 2026-09-04T16:57:36.376667Z | work.criterion-stage-marked | criterion=multi-program-compatibility actor=project:owner stage=planned
+- 2026-09-04T16:57:36.618754Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=planned
+- 2026-09-04T16:57:40.722917Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T16:59:19.496712Z | artifact.added | kind=verification-report uri=.agora/swarms/016-decision-engine-f5-runtime-integration/work/node-preview-prisma-integration/verification-report.md actor=project:agent
+- 2026-09-04T16:59:19.724553Z | artifact.added | kind=review-report uri=.agora/swarms/016-decision-engine-f5-runtime-integration/work/node-preview-prisma-integration/review-report.md actor=project:owner
+- 2026-09-04T16:59:36.392588Z | evidence.added | id=node-preview-compile type=build result=success revision=1 actor=project:agent
+- 2026-09-04T16:59:36.616103Z | evidence.added | id=node-preview-diff-check type=hygiene result=success revision=1 actor=project:agent
+- 2026-09-04T16:59:42.752304Z | work.criterion-stage-marked | criterion=project-backed-preview actor=project:agent stage=implemented
+- 2026-09-04T16:59:42.970827Z | work.criterion-stage-marked | criterion=multi-program-compatibility actor=project:agent stage=implemented
+- 2026-09-04T16:59:43.189679Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=implemented
+- 2026-09-04T19:10:05.344180Z | artifact.added | kind=verification-report uri=.agora/swarms/016-decision-engine-f5-runtime-integration/work/node-preview-prisma-integration/verification-report.md actor=project:agent
+- 2026-09-04T19:10:05.570256Z | evidence.added | id=node-prisma-emitter-test type=test result=success revision=1 actor=project:agent
+- 2026-09-04T19:10:05.802517Z | work.criterion-stage-marked | criterion=prisma-artifacts actor=project:agent stage=implemented
+- 2026-09-04T19:10:19.126817Z | evidence.added | id=node-prisma-emitter-test-corrected type=test result=success revision=1 actor=project:agent
+- 2026-09-04T19:20:58.051142Z | artifact.added | kind=verification-report uri=.agora/swarms/016-decision-engine-f5-runtime-integration/work/node-preview-prisma-integration/verification-report.md actor=project:agent
+- 2026-09-04T19:20:58.277006Z | evidence.added | id=node-idiom-test type=test result=success revision=1 actor=project:agent
+- 2026-09-04T19:20:58.515424Z | work.criterion-stage-marked | criterion=idiom-integration actor=project:agent stage=implemented
+- 2026-09-04T19:21:09.197926Z | evidence.added | id=node-idiom-test-corrected type=test result=success revision=1 actor=project:agent
+- 2026-09-04T19:21:14.220087Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T19:24:04.509877Z | work.criterion-stage-marked | criterion=project-backed-preview actor=project:agent stage=verified
+- 2026-09-04T19:24:04.724839Z | work.criterion-stage-marked | criterion=prisma-artifacts actor=project:agent stage=verified
+- 2026-09-04T19:24:04.944441Z | work.criterion-stage-marked | criterion=idiom-integration actor=project:agent stage=verified
+- 2026-09-04T19:24:05.157318Z | work.criterion-stage-marked | criterion=multi-program-compatibility actor=project:agent stage=verified
+- 2026-09-04T19:24:05.380442Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified
+- 2026-09-04T19:27:59.187801Z | work.criterion-stage-marked | criterion=project-backed-preview actor=project:owner stage=accepted
+- 2026-09-04T19:27:59.485098Z | work.criterion-stage-marked | criterion=prisma-artifacts actor=project:owner stage=accepted
+- 2026-09-04T19:27:59.794412Z | work.criterion-stage-marked | criterion=idiom-integration actor=project:owner stage=accepted
+- 2026-09-04T19:28:00.087014Z | work.criterion-stage-marked | criterion=multi-program-compatibility actor=project:owner stage=accepted
+- 2026-09-04T19:28:00.382628Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=accepted
+- 2026-09-04T19:28:06.753533Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-04T19:28:14.384821Z | work.transitioned | from=verifying to=completed actor=project:owner

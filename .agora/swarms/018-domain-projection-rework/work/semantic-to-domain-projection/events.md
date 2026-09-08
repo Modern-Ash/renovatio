@@ -1,0 +1,41 @@
+# Work events
+
+- 2026-09-04T23:20:04.368512Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T23:20:21.199659Z | artifact.added | kind=spec uri=.agora/swarms/018-domain-projection-rework/work/semantic-to-domain-projection/spec.md actor=project:owner
+- 2026-09-04T23:20:21.428789Z | artifact.added | kind=implementation-plan uri=.agora/swarms/018-domain-projection-rework/work/semantic-to-domain-projection/implementation-plan.md actor=project:owner
+- 2026-09-04T23:20:27.760207Z | work.criterion-stage-marked | criterion=deterministic-mapping actor=project:owner stage=specified
+- 2026-09-04T23:20:28.062562Z | work.criterion-stage-marked | criterion=evidence actor=project:owner stage=specified
+- 2026-09-04T23:20:28.351815Z | work.criterion-stage-marked | criterion=llm-boundary actor=project:owner stage=specified
+- 2026-09-04T23:20:28.654903Z | work.criterion-stage-marked | criterion=multi-program actor=project:owner stage=specified
+- 2026-09-04T23:20:28.966846Z | work.criterion-stage-marked | criterion=regression actor=project:owner stage=specified
+- 2026-09-04T23:20:29.327641Z | work.criterion-stage-marked | criterion=deterministic-mapping actor=project:owner stage=planned
+- 2026-09-04T23:20:29.655324Z | work.criterion-stage-marked | criterion=evidence actor=project:owner stage=planned
+- 2026-09-04T23:20:29.980581Z | work.criterion-stage-marked | criterion=llm-boundary actor=project:owner stage=planned
+- 2026-09-04T23:20:30.328923Z | work.criterion-stage-marked | criterion=multi-program actor=project:owner stage=planned
+- 2026-09-04T23:20:30.642159Z | work.criterion-stage-marked | criterion=regression actor=project:owner stage=planned
+- 2026-09-04T23:20:33.933405Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T23:20:34.149247Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T23:20:34.366439Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T23:21:44.797638Z | artifact.added | kind=verification-report uri=.agora/swarms/018-domain-projection-rework/work/semantic-to-domain-projection/verification-report.md actor=project:agent
+- 2026-09-04T23:21:45.012326Z | artifact.added | kind=review-report uri=.agora/swarms/018-domain-projection-rework/work/semantic-to-domain-projection/review-report.md actor=project:owner
+- 2026-09-04T23:21:45.224707Z | evidence.added | id=semantic-domain-tests type=test result=success revision=1 actor=project:agent
+- 2026-09-04T23:21:45.444138Z | evidence.added | id=semantic-domain-diff type=hygiene result=success revision=1 actor=project:agent
+- 2026-09-04T23:21:56.252544Z | evidence.added | id=semantic-domain-tests-corrected type=test result=success revision=1 actor=project:agent
+- 2026-09-04T23:22:03.516301Z | work.criterion-stage-marked | criterion=deterministic-mapping actor=project:agent stage=implemented
+- 2026-09-04T23:22:03.831960Z | work.criterion-stage-marked | criterion=evidence actor=project:agent stage=implemented
+- 2026-09-04T23:22:04.149507Z | work.criterion-stage-marked | criterion=llm-boundary actor=project:agent stage=implemented
+- 2026-09-04T23:22:04.477572Z | work.criterion-stage-marked | criterion=multi-program actor=project:agent stage=implemented
+- 2026-09-04T23:22:04.802368Z | work.criterion-stage-marked | criterion=regression actor=project:agent stage=implemented
+- 2026-09-04T23:22:05.114134Z | work.criterion-stage-marked | criterion=deterministic-mapping actor=project:agent stage=verified
+- 2026-09-04T23:22:05.413029Z | work.criterion-stage-marked | criterion=evidence actor=project:agent stage=verified
+- 2026-09-04T23:22:05.703961Z | work.criterion-stage-marked | criterion=llm-boundary actor=project:agent stage=verified
+- 2026-09-04T23:22:05.990398Z | work.criterion-stage-marked | criterion=multi-program actor=project:agent stage=verified
+- 2026-09-04T23:22:06.281896Z | work.criterion-stage-marked | criterion=regression actor=project:agent stage=verified
+- 2026-09-04T23:22:09.474027Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T23:22:34.732020Z | work.criterion-stage-marked | criterion=deterministic-mapping actor=project:owner stage=accepted
+- 2026-09-04T23:22:35.021777Z | work.criterion-stage-marked | criterion=evidence actor=project:owner stage=accepted
+- 2026-09-04T23:22:35.323990Z | work.criterion-stage-marked | criterion=llm-boundary actor=project:owner stage=accepted
+- 2026-09-04T23:22:35.621064Z | work.criterion-stage-marked | criterion=multi-program actor=project:owner stage=accepted
+- 2026-09-04T23:22:35.911894Z | work.criterion-stage-marked | criterion=regression actor=project:owner stage=accepted
+- 2026-09-04T23:22:40.988563Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-04T23:22:41.294165Z | work.transitioned | from=verifying to=completed actor=project:owner

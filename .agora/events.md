@@ -514,3 +514,12 @@
 - 2026-09-03T11:49:58.360619Z | tool.prepared | run=tool-20260903t11491788446998z tool=repository operation=commit actor=project:agent
 - 2026-09-03T11:49:58.364783Z | tool.running | run=tool-20260903t11491788446998z tool=repository operation=commit actor=project:agent
 - 2026-09-03T11:49:58.379464Z | tool.failed | run=tool-20260903t11491788446998z tool=repository operation=commit actor=project:agent
+- 2026-09-04T16:44:12.087593Z | session.prepared | session=run-decision-engine-f4-dataaccess-data-access-project-runtime-20260904t16441788551052z actor=project:agent executor=project:agent swarm=decision-engine-f4-dataaccess
+- 2026-09-04T16:44:12.090468Z | session.running | session=run-decision-engine-f4-dataaccess-data-access-project-runtime-20260904t16441788551052z
+- 2026-09-04T16:44:12.190094Z | session.failed | session=run-decision-engine-f4-dataaccess-data-access-project-runtime-20260904t16441788551052z exit-code=1
+- 2026-09-08T12:43:10.939407Z | tool.prepared | run=tool-20260908t12431788882190z tool=github-issues operation=search actor=project:owner
+- 2026-09-08T12:43:10.946118Z | tool.running | run=tool-20260908t12431788882190z tool=github-issues operation=search actor=project:owner
+- 2026-09-08T12:43:10.991563Z | tool.failed | run=tool-20260908t12431788882190z tool=github-issues operation=search actor=project:owner
+- 2026-09-08T12:43:38.072797Z | tool.prepared | run=tool-20260908t12431788882218z tool=github-issues operation=search actor=project:owner
+- 2026-09-08T12:43:38.077368Z | tool.running | run=tool-20260908t12431788882218z tool=github-issues operation=search actor=project:owner
+- 2026-09-08T12:43:38.991518Z | tool.failed | run=tool-20260908t12431788882218z tool=github-issues operation=search actor=project:owner

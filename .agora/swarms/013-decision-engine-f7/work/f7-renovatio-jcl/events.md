@@ -108,3 +108,13 @@
 - 2026-09-03T12:01:00.461226Z | work.transitioned | from=verifying to=implementing actor=project:agent
 - 2026-09-03T12:03:21.828148Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-09-03T12:03:39.833955Z | evidence.added | id=evidence-000004 type=review-revalidation result=success revision=2 actor=project:agent
+- 2026-09-04T19:28:00.675860Z | work.criterion-stage-marked | criterion=jcl-parse actor=project:owner stage=accepted
+- 2026-09-04T19:28:00.978640Z | work.criterion-stage-marked | criterion=cond-truth-table actor=project:owner stage=accepted
+- 2026-09-04T19:28:01.279568Z | work.criterion-stage-marked | criterion=spring-batch-emit actor=project:owner stage=accepted
+- 2026-09-04T19:28:01.580032Z | work.criterion-stage-marked | criterion=sort-fixture actor=project:owner stage=accepted
+- 2026-09-04T19:28:01.872231Z | work.criterion-stage-marked | criterion=dd-datasets actor=project:owner stage=accepted
+- 2026-09-04T19:28:02.173437Z | work.criterion-stage-marked | criterion=missing-proc actor=project:owner stage=accepted
+- 2026-09-04T19:28:02.476031Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=accepted
+- 2026-09-04T19:28:02.781663Z | work.criterion-stage-marked | criterion=defaults-safe actor=project:owner stage=accepted
+- 2026-09-04T19:28:07.059675Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-04T19:28:14.686977Z | work.transitioned | from=verifying to=completed actor=project:owner

@@ -1,0 +1,43 @@
+# Work events
+
+- 2026-09-04T16:41:38.942313Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T16:42:57.038416Z | artifact.added | kind=spec uri=.agora/swarms/015-decision-engine-f4-dataaccess/work/data-access-project-runtime/spec.md actor=project:owner
+- 2026-09-04T16:43:11.801658Z | work.criterion-stage-marked | criterion=real-project-data actor=project:owner stage=specified
+- 2026-09-04T16:43:12.100946Z | work.criterion-stage-marked | criterion=project-isolation actor=project:owner stage=specified
+- 2026-09-04T16:43:12.398917Z | work.criterion-stage-marked | criterion=effective-profile actor=project:owner stage=specified
+- 2026-09-04T16:43:12.700464Z | work.criterion-stage-marked | criterion=safe-empty-contract actor=project:owner stage=specified
+- 2026-09-04T16:43:13.068807Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=specified
+- 2026-09-04T16:43:16.323757Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T16:43:30.235015Z | artifact.added | kind=implementation-plan uri=.agora/swarms/015-decision-engine-f4-dataaccess/work/data-access-project-runtime/implementation-plan.md actor=project:owner
+- 2026-09-04T16:43:30.537945Z | work.criterion-stage-marked | criterion=real-project-data actor=project:owner stage=planned
+- 2026-09-04T16:43:30.834607Z | work.criterion-stage-marked | criterion=project-isolation actor=project:owner stage=planned
+- 2026-09-04T16:43:31.127919Z | work.criterion-stage-marked | criterion=effective-profile actor=project:owner stage=planned
+- 2026-09-04T16:43:31.413203Z | work.criterion-stage-marked | criterion=safe-empty-contract actor=project:owner stage=planned
+- 2026-09-04T16:43:31.704165Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=planned
+- 2026-09-04T16:43:34.756200Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T16:43:39.070067Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T16:48:12.694615Z | artifact.added | kind=verification-report uri=.agora/swarms/015-decision-engine-f4-dataaccess/work/data-access-project-runtime/verification-report.md actor=project:agent
+- 2026-09-04T16:48:13.002853Z | artifact.added | kind=review-report uri=.agora/swarms/015-decision-engine-f4-dataaccess/work/data-access-project-runtime/review-report.md actor=project:agent
+- 2026-09-04T16:48:36.901020Z | evidence.added | id=data-access-focused-tests type=test result=success revision=1 actor=project:agent
+- 2026-09-04T16:48:37.201996Z | evidence.added | id=data-access-compile type=build result=success revision=1 actor=project:agent
+- 2026-09-04T16:48:37.503792Z | evidence.added | id=data-access-diff-check type=hygiene result=success revision=1 actor=project:agent
+- 2026-09-04T16:48:43.343537Z | work.criterion-stage-marked | criterion=real-project-data actor=project:agent stage=implemented
+- 2026-09-04T16:48:43.672039Z | work.criterion-stage-marked | criterion=project-isolation actor=project:agent stage=implemented
+- 2026-09-04T16:48:43.998068Z | work.criterion-stage-marked | criterion=effective-profile actor=project:agent stage=implemented
+- 2026-09-04T16:48:44.305319Z | work.criterion-stage-marked | criterion=safe-empty-contract actor=project:agent stage=implemented
+- 2026-09-04T16:48:44.603995Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=implemented
+- 2026-09-04T16:48:44.910261Z | work.criterion-stage-marked | criterion=real-project-data actor=project:agent stage=verified
+- 2026-09-04T16:48:45.218339Z | work.criterion-stage-marked | criterion=project-isolation actor=project:agent stage=verified
+- 2026-09-04T16:48:45.517503Z | work.criterion-stage-marked | criterion=effective-profile actor=project:agent stage=verified
+- 2026-09-04T16:48:45.810277Z | work.criterion-stage-marked | criterion=safe-empty-contract actor=project:agent stage=verified
+- 2026-09-04T16:48:46.109122Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified
+- 2026-09-04T16:48:49.241980Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T16:50:33.288349Z | evidence.added | id=data-access-focused-tests-final type=test result=success revision=1 actor=project:agent
+- 2026-09-04T16:50:33.601292Z | evidence.added | id=data-access-compile-final type=build result=success revision=1 actor=project:agent
+- 2026-09-04T19:27:57.684388Z | work.criterion-stage-marked | criterion=real-project-data actor=project:owner stage=accepted
+- 2026-09-04T19:27:57.983827Z | work.criterion-stage-marked | criterion=project-isolation actor=project:owner stage=accepted
+- 2026-09-04T19:27:58.281480Z | work.criterion-stage-marked | criterion=effective-profile actor=project:owner stage=accepted
+- 2026-09-04T19:27:58.583760Z | work.criterion-stage-marked | criterion=safe-empty-contract actor=project:owner stage=accepted
+- 2026-09-04T19:27:58.882951Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=accepted
+- 2026-09-04T19:28:06.462181Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-04T19:28:14.085609Z | work.transitioned | from=verifying to=completed actor=project:owner

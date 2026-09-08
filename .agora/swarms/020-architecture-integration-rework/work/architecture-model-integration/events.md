@@ -1,0 +1,36 @@
+# Work events
+
+- 2026-09-04T23:27:58.771710Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T23:29:30.525759Z | artifact.added | kind=spec uri=.agora/swarms/020-architecture-integration-rework/work/architecture-model-integration/spec.md actor=project:owner
+- 2026-09-04T23:29:30.740846Z | artifact.added | kind=implementation-plan uri=.agora/swarms/020-architecture-integration-rework/work/architecture-model-integration/implementation-plan.md actor=project:owner
+- 2026-09-04T23:29:30.949333Z | artifact.added | kind=verification-report uri=.agora/swarms/020-architecture-integration-rework/work/architecture-model-integration/verification-report.md actor=project:agent
+- 2026-09-04T23:29:31.162331Z | artifact.added | kind=review-report uri=.agora/swarms/020-architecture-integration-rework/work/architecture-model-integration/review-report.md actor=project:agent
+- 2026-09-04T23:29:41.621038Z | work.criterion-stage-marked | criterion=contract-adapter actor=project:owner stage=specified
+- 2026-09-04T23:29:41.827964Z | work.criterion-stage-marked | criterion=preview-consumption actor=project:owner stage=specified
+- 2026-09-04T23:29:42.050581Z | work.criterion-stage-marked | criterion=deterministic actor=project:owner stage=specified
+- 2026-09-04T23:29:42.273969Z | work.criterion-stage-marked | criterion=regression actor=project:owner stage=specified
+- 2026-09-04T23:29:42.491263Z | work.criterion-stage-marked | criterion=contract-adapter actor=project:owner stage=planned
+- 2026-09-04T23:29:42.710736Z | work.criterion-stage-marked | criterion=preview-consumption actor=project:owner stage=planned
+- 2026-09-04T23:29:42.927742Z | work.criterion-stage-marked | criterion=deterministic actor=project:owner stage=planned
+- 2026-09-04T23:29:43.159566Z | work.criterion-stage-marked | criterion=regression actor=project:owner stage=planned
+- 2026-09-04T23:29:43.386760Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T23:29:43.629560Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T23:29:43.870086Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T23:29:44.095698Z | work.criterion-stage-marked | criterion=contract-adapter actor=project:agent stage=implemented
+- 2026-09-04T23:29:44.301155Z | work.criterion-stage-marked | criterion=preview-consumption actor=project:agent stage=implemented
+- 2026-09-04T23:29:44.509613Z | work.criterion-stage-marked | criterion=deterministic actor=project:agent stage=implemented
+- 2026-09-04T23:29:44.720992Z | work.criterion-stage-marked | criterion=regression actor=project:agent stage=implemented
+- 2026-09-04T23:29:44.932629Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T23:29:56.850658Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-04T23:29:57.070421Z | evidence.added | id=evidence-000002 type=diff-check result=success revision=1 actor=project:agent
+- 2026-09-04T23:34:27.397016Z | evidence.added | id=evidence-000003 type=compile result=success revision=1 actor=project:agent
+- 2026-09-05T00:01:58.154800Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-05T00:02:23.257294Z | work.criterion-stage-marked | criterion=contract-adapter actor=project:agent stage=verified
+- 2026-09-05T00:02:23.484648Z | work.criterion-stage-marked | criterion=preview-consumption actor=project:agent stage=verified
+- 2026-09-05T00:02:23.731981Z | work.criterion-stage-marked | criterion=deterministic actor=project:agent stage=verified
+- 2026-09-05T00:02:23.971363Z | work.criterion-stage-marked | criterion=regression actor=project:agent stage=verified
+- 2026-09-05T00:02:24.209838Z | work.criterion-stage-marked | criterion=contract-adapter actor=project:owner stage=accepted
+- 2026-09-05T00:02:24.429723Z | work.criterion-stage-marked | criterion=preview-consumption actor=project:owner stage=accepted
+- 2026-09-05T00:02:24.660185Z | work.criterion-stage-marked | criterion=deterministic actor=project:owner stage=accepted
+- 2026-09-05T00:02:24.874022Z | work.criterion-stage-marked | criterion=regression actor=project:owner stage=accepted
+- 2026-09-05T00:02:25.326442Z | work.transitioned | from=verifying to=completed actor=project:owner

@@ -1,0 +1,31 @@
+# Work events
+
+- 2026-09-05T00:24:18.837061Z | work.created | state=drafting actor=project:owner
+- 2026-09-05T00:24:31.206332Z | artifact.added | kind=spec uri=.agora/swarms/021-equivalence-validation-rework/work/cobol-target-equivalence/spec.md actor=project:owner
+- 2026-09-05T00:24:31.444099Z | artifact.added | kind=implementation-plan uri=.agora/swarms/021-equivalence-validation-rework/work/cobol-target-equivalence/implementation-plan.md actor=project:owner
+- 2026-09-05T00:24:31.701079Z | work.criterion-stage-marked | criterion=replay actor=project:owner stage=specified
+- 2026-09-05T00:24:31.939988Z | work.criterion-stage-marked | criterion=comparison actor=project:owner stage=specified
+- 2026-09-05T00:24:32.175991Z | work.criterion-stage-marked | criterion=gate actor=project:owner stage=specified
+- 2026-09-05T00:24:32.396965Z | work.criterion-stage-marked | criterion=evidence actor=project:owner stage=specified
+- 2026-09-05T00:24:32.623458Z | work.criterion-stage-marked | criterion=replay actor=project:owner stage=planned
+- 2026-09-05T00:24:32.841726Z | work.criterion-stage-marked | criterion=comparison actor=project:owner stage=planned
+- 2026-09-05T00:24:33.066329Z | work.criterion-stage-marked | criterion=gate actor=project:owner stage=planned
+- 2026-09-05T00:24:33.285670Z | work.criterion-stage-marked | criterion=evidence actor=project:owner stage=planned
+- 2026-09-05T00:24:33.512476Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-05T00:24:33.744785Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-05T17:18:13.827279Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-05T17:18:14.067507Z | work.criterion-stage-marked | criterion=replay actor=project:agent stage=implemented
+- 2026-09-05T17:18:14.288381Z | work.criterion-stage-marked | criterion=comparison actor=project:agent stage=implemented
+- 2026-09-05T17:18:14.519311Z | work.criterion-stage-marked | criterion=gate actor=project:agent stage=implemented
+- 2026-09-05T22:29:20.716735Z | artifact.added | kind=verification-report uri=docs/test-reports/equivalence-harness-local.md actor=project:agent
+- 2026-09-05T22:56:45.527682Z | artifact.added | kind=review-report uri=docs/test-reports/equivalence-review-local.md actor=project:agent
+- 2026-09-05T22:57:21.546122Z | evidence.added | id=evidence-000001 type=harness-tests result=success revision=1 actor=project:agent
+- 2026-09-05T23:33:02.818143Z | evidence.added | id=evidence-000002 type=source-compare-smoke result=success revision=1 actor=project:agent
+- 2026-09-05T23:33:03.037392Z | evidence.added | id=evidence-000003 type=source-compare-divergence result=success revision=1 actor=project:agent
+- 2026-09-05T23:35:03.389316Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-05T23:39:40.031187Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-05T23:40:24.501514Z | work.criterion-satisfied | criterion=replay actor=project:owner
+- 2026-09-05T23:40:24.769652Z | work.criterion-satisfied | criterion=comparison actor=project:owner
+- 2026-09-05T23:40:25.035852Z | work.criterion-satisfied | criterion=gate actor=project:owner
+- 2026-09-05T23:40:25.262741Z | work.criterion-satisfied | criterion=evidence actor=project:owner
+- 2026-09-05T23:40:50.179761Z | work.transitioned | from=verifying to=completed actor=project:owner

@@ -1,0 +1,76 @@
+# Work events
+
+- 2026-09-06T01:38:05.832343Z | work.created | state=drafting actor=project:owner
+- 2026-09-06T01:39:32.916630Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-06T01:40:12.063048Z | artifact.added | kind=spec uri=.agora/swarms/022-renovatio-workbench/work/issue-176-theia-platform-spike/spec.md actor=project:owner
+- 2026-09-06T01:40:19.954923Z | work.criterion-stage-marked | criterion=prototype-build actor=project:owner stage=specified
+- 2026-09-06T01:40:20.182421Z | work.criterion-stage-marked | criterion=renovatio-widget actor=project:owner stage=specified
+- 2026-09-06T01:40:20.400948Z | work.criterion-stage-marked | criterion=platform-distribution actor=project:owner stage=specified
+- 2026-09-06T01:40:20.637252Z | work.criterion-stage-marked | criterion=extension-compatibility actor=project:owner stage=specified
+- 2026-09-06T01:40:20.869276Z | work.criterion-stage-marked | criterion=environment-security actor=project:owner stage=specified
+- 2026-09-06T01:40:21.091358Z | work.criterion-stage-marked | criterion=adr-decision actor=project:owner stage=specified
+- 2026-09-06T01:40:21.321939Z | work.criterion-stage-marked | criterion=non-production-impact actor=project:owner stage=specified
+- 2026-09-06T01:40:21.545205Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=specified
+- 2026-09-06T01:40:30.355728Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-06T01:40:53.827068Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-06T01:48:00.709104Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-06T01:48:24.297861Z | artifact.added | kind=implementation-plan uri=repo://.agora/swarms/022-renovatio-workbench/work/issue-176-theia-platform-spike/implementation-plan.md actor=project:agent
+- 2026-09-06T01:48:24.564314Z | work.criterion-stage-marked | criterion=prototype-build actor=project:owner stage=planned
+- 2026-09-06T01:48:24.824001Z | work.criterion-stage-marked | criterion=renovatio-widget actor=project:owner stage=planned
+- 2026-09-06T01:48:25.083682Z | work.criterion-stage-marked | criterion=platform-distribution actor=project:owner stage=planned
+- 2026-09-06T01:48:25.343104Z | work.criterion-stage-marked | criterion=extension-compatibility actor=project:owner stage=planned
+- 2026-09-06T01:48:25.576286Z | work.criterion-stage-marked | criterion=environment-security actor=project:owner stage=planned
+- 2026-09-06T01:48:25.817939Z | work.criterion-stage-marked | criterion=adr-decision actor=project:owner stage=planned
+- 2026-09-06T01:48:26.050370Z | work.criterion-stage-marked | criterion=non-production-impact actor=project:owner stage=planned
+- 2026-09-06T01:48:26.274179Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=planned
+- 2026-09-06T01:48:40.740482Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-06T02:12:49.769200Z | tool.prepared | run=tool-20260906t02121788671569z tool=repository operation=commit actor=project:agent
+- 2026-09-06T02:12:49.772338Z | tool.running | run=tool-20260906t02121788671569z actor=project:agent
+- 2026-09-06T02:12:49.797028Z | tool.completed | run=tool-20260906t02121788671569z exit-code=0
+- 2026-09-06T02:13:07.528647Z | artifact.added | kind=prototype uri=git://70ee6fb183849fa8c6e9ff97d513d38d0cf70329 actor=project:agent
+- 2026-09-06T02:13:07.811930Z | artifact.added | kind=architecture-decision-record uri=git://70ee6fb183849fa8c6e9ff97d513d38d0cf70329 actor=project:agent
+- 2026-09-06T02:13:08.094090Z | artifact.added | kind=runbook uri=git://70ee6fb183849fa8c6e9ff97d513d38d0cf70329 actor=project:agent
+- 2026-09-06T02:13:08.376467Z | artifact.added | kind=compatibility-risk-matrix uri=git://70ee6fb183849fa8c6e9ff97d513d38d0cf70329 actor=project:agent
+- 2026-09-06T02:13:08.676501Z | artifact.added | kind=verification-report uri=git://70ee6fb183849fa8c6e9ff97d513d38d0cf70329 actor=project:agent
+- 2026-09-06T02:13:30.657098Z | work.criterion-stage-marked | criterion=prototype-build actor=project:agent stage=implemented
+- 2026-09-06T02:13:30.945551Z | work.criterion-stage-marked | criterion=renovatio-widget actor=project:agent stage=implemented
+- 2026-09-06T02:13:31.236518Z | work.criterion-stage-marked | criterion=platform-distribution actor=project:agent stage=implemented
+- 2026-09-06T02:13:31.531037Z | work.criterion-stage-marked | criterion=extension-compatibility actor=project:agent stage=implemented
+- 2026-09-06T02:13:31.831421Z | work.criterion-stage-marked | criterion=environment-security actor=project:agent stage=implemented
+- 2026-09-06T02:13:32.127570Z | work.criterion-stage-marked | criterion=adr-decision actor=project:agent stage=implemented
+- 2026-09-06T02:13:32.424387Z | work.criterion-stage-marked | criterion=non-production-impact actor=project:agent stage=implemented
+- 2026-09-06T02:13:32.715597Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:agent stage=implemented
+- 2026-09-06T02:13:35.364712Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-06T02:13:48.296051Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-06T02:13:48.594135Z | evidence.added | id=evidence-000002 type=http-smoke result=success revision=1 actor=project:agent
+- 2026-09-06T02:13:49.160538Z | evidence.added | id=evidence-000003 type=browser-visual result=failure revision=1 actor=project:agent
+- 2026-09-06T02:13:56.393035Z | evidence.added | id=evidence-000004 type=build result=success revision=1 actor=project:agent
+- 2026-09-06T02:13:56.676118Z | evidence.added | id=evidence-000005 type=dependency-audit result=success revision=1 actor=project:agent
+- 2026-09-06T02:14:24.604418Z | artifact.added | kind=review-report uri=repo://renovatio-workbench/docs/review-report.md actor=project:owner
+- 2026-09-06T02:14:29.127103Z | work.criterion-stage-marked | criterion=prototype-build actor=project:owner stage=verified
+- 2026-09-06T02:14:29.417291Z | work.criterion-stage-marked | criterion=extension-compatibility actor=project:owner stage=verified
+- 2026-09-06T02:14:29.715293Z | work.criterion-stage-marked | criterion=environment-security actor=project:owner stage=verified
+- 2026-09-06T02:14:30.024230Z | work.criterion-stage-marked | criterion=adr-decision actor=project:owner stage=verified
+- 2026-09-06T02:14:30.322413Z | work.criterion-stage-marked | criterion=non-production-impact actor=project:owner stage=verified
+- 2026-09-06T02:14:38.904528Z | work.block | from=active to=blocked actor=project:agent change=change-20260906t021438904412z
+- 2026-09-06T02:16:28.972576Z | work.resume | from=blocked to=active actor=project:agent change=change-20260906t021628972432z
+- 2026-09-06T02:16:36.066649Z | tool.prepared | run=tool-20260906t02161788671796z tool=repository operation=commit actor=project:agent
+- 2026-09-06T02:16:36.069745Z | tool.running | run=tool-20260906t02161788671796z actor=project:agent
+- 2026-09-06T02:16:36.094429Z | tool.completed | run=tool-20260906t02161788671796z exit-code=0
+- 2026-09-06T02:16:39.312188Z | work.block | from=active to=blocked actor=project:agent change=change-20260906t021639311997z
+- 2026-09-08T01:10:05.269937Z | work.resume | from=blocked to=active actor=project:agent change=change-20260908t011005269808z
+- 2026-09-08T01:11:14.524783Z | artifact.added | kind=verification-report uri=git://09e3163512006b9d0c618fed03a884768784500e actor=project:agent
+- 2026-09-08T01:11:23.922292Z | evidence.added | id=evidence-000006 type=playwright-e2e result=success revision=1 actor=project:agent
+- 2026-09-08T01:12:50.823539Z | work.criterion-stage-marked | criterion=prototype-build actor=project:owner stage=accepted
+- 2026-09-08T01:12:51.506693Z | work.criterion-stage-marked | criterion=extension-compatibility actor=project:owner stage=accepted
+- 2026-09-08T01:12:51.728114Z | work.criterion-stage-marked | criterion=environment-security actor=project:owner stage=accepted
+- 2026-09-08T01:12:51.948782Z | work.criterion-stage-marked | criterion=adr-decision actor=project:owner stage=accepted
+- 2026-09-08T01:12:52.168344Z | work.criterion-stage-marked | criterion=non-production-impact actor=project:owner stage=accepted
+- 2026-09-08T01:13:10.179207Z | work.criterion-stage-marked | criterion=renovatio-widget actor=project:owner stage=verified
+- 2026-09-08T01:13:10.394817Z | work.criterion-stage-marked | criterion=renovatio-widget actor=project:owner stage=accepted
+- 2026-09-08T01:13:10.624907Z | work.criterion-stage-marked | criterion=platform-distribution actor=project:owner stage=verified
+- 2026-09-08T01:13:10.834237Z | work.criterion-stage-marked | criterion=platform-distribution actor=project:owner stage=accepted
+- 2026-09-08T01:13:11.052237Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=verified
+- 2026-09-08T01:13:11.274547Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=accepted
+- 2026-09-08T01:13:20.653600Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-08T01:13:30.059517Z | work.transitioned | from=verifying to=completed actor=project:owner

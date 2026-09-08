@@ -1,0 +1,45 @@
+# Work events
+
+- 2026-09-04T23:23:32.431252Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T23:23:49.147218Z | artifact.added | kind=spec uri=.agora/swarms/019-architecture-projection-rework/work/domain-to-architecture-projection/spec.md actor=project:owner
+- 2026-09-04T23:23:49.370983Z | artifact.added | kind=implementation-plan uri=.agora/swarms/019-architecture-projection-rework/work/domain-to-architecture-projection/implementation-plan.md actor=project:owner
+- 2026-09-04T23:23:54.514877Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:owner stage=specified
+- 2026-09-04T23:23:54.805056Z | work.criterion-stage-marked | criterion=transaction-script actor=project:owner stage=specified
+- 2026-09-04T23:23:55.102736Z | work.criterion-stage-marked | criterion=layered-mvc actor=project:owner stage=specified
+- 2026-09-04T23:23:55.403081Z | work.criterion-stage-marked | criterion=hexagonal actor=project:owner stage=specified
+- 2026-09-04T23:23:55.696271Z | work.criterion-stage-marked | criterion=target-compatibility actor=project:owner stage=specified
+- 2026-09-04T23:23:55.989507Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=specified
+- 2026-09-04T23:23:56.283250Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:owner stage=planned
+- 2026-09-04T23:23:56.569212Z | work.criterion-stage-marked | criterion=transaction-script actor=project:owner stage=planned
+- 2026-09-04T23:23:56.864253Z | work.criterion-stage-marked | criterion=layered-mvc actor=project:owner stage=planned
+- 2026-09-04T23:23:57.160678Z | work.criterion-stage-marked | criterion=hexagonal actor=project:owner stage=planned
+- 2026-09-04T23:23:57.448879Z | work.criterion-stage-marked | criterion=target-compatibility actor=project:owner stage=planned
+- 2026-09-04T23:23:57.742856Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=planned
+- 2026-09-04T23:24:01.017409Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T23:24:01.230015Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T23:24:01.454015Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T23:26:52.812841Z | artifact.added | kind=verification-report uri=.agora/swarms/019-architecture-projection-rework/work/domain-to-architecture-projection/verification-report.md actor=project:agent
+- 2026-09-04T23:26:53.030939Z | artifact.added | kind=review-report uri=.agora/swarms/019-architecture-projection-rework/work/domain-to-architecture-projection/review-report.md actor=project:agent
+- 2026-09-04T23:26:53.251465Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-04T23:26:53.478070Z | evidence.added | id=evidence-000002 type=diff-check result=success revision=1 actor=project:agent
+- 2026-09-04T23:27:04.663473Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:agent stage=implemented
+- 2026-09-04T23:27:04.888945Z | work.criterion-stage-marked | criterion=transaction-script actor=project:agent stage=implemented
+- 2026-09-04T23:27:05.111874Z | work.criterion-stage-marked | criterion=layered-mvc actor=project:agent stage=implemented
+- 2026-09-04T23:27:05.341428Z | work.criterion-stage-marked | criterion=hexagonal actor=project:agent stage=implemented
+- 2026-09-04T23:27:05.564974Z | work.criterion-stage-marked | criterion=target-compatibility actor=project:agent stage=implemented
+- 2026-09-04T23:27:05.788756Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=implemented
+- 2026-09-04T23:27:10.102954Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-05T00:01:57.727692Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-05T00:02:20.544945Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:agent stage=verified
+- 2026-09-05T00:02:20.766174Z | work.criterion-stage-marked | criterion=transaction-script actor=project:agent stage=verified
+- 2026-09-05T00:02:20.988177Z | work.criterion-stage-marked | criterion=layered-mvc actor=project:agent stage=verified
+- 2026-09-05T00:02:21.213663Z | work.criterion-stage-marked | criterion=hexagonal actor=project:agent stage=verified
+- 2026-09-05T00:02:21.433238Z | work.criterion-stage-marked | criterion=target-compatibility actor=project:agent stage=verified
+- 2026-09-05T00:02:21.657409Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified
+- 2026-09-05T00:02:21.877863Z | work.criterion-stage-marked | criterion=architecture-contract actor=project:owner stage=accepted
+- 2026-09-05T00:02:22.109452Z | work.criterion-stage-marked | criterion=transaction-script actor=project:owner stage=accepted
+- 2026-09-05T00:02:22.341862Z | work.criterion-stage-marked | criterion=layered-mvc actor=project:owner stage=accepted
+- 2026-09-05T00:02:22.561625Z | work.criterion-stage-marked | criterion=hexagonal actor=project:owner stage=accepted
+- 2026-09-05T00:02:22.787637Z | work.criterion-stage-marked | criterion=target-compatibility actor=project:owner stage=accepted
+- 2026-09-05T00:02:23.023030Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=accepted
+- 2026-09-05T00:02:25.102223Z | work.transitioned | from=verifying to=completed actor=project:owner

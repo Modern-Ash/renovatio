@@ -1,0 +1,34 @@
+# Work events
+
+- 2026-09-04T23:36:14.210694Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T23:38:12.557899Z | artifact.added | kind=spec uri=.agora/swarms/020-architecture-integration-rework/work/domain-model-review-ui/spec.md actor=project:owner
+- 2026-09-04T23:38:12.778434Z | artifact.added | kind=implementation-plan uri=.agora/swarms/020-architecture-integration-rework/work/domain-model-review-ui/implementation-plan.md actor=project:owner
+- 2026-09-04T23:38:12.999614Z | work.criterion-stage-marked | criterion=model-source actor=project:owner stage=specified
+- 2026-09-04T23:38:13.226950Z | work.criterion-stage-marked | criterion=review-screen actor=project:owner stage=specified
+- 2026-09-04T23:38:13.450002Z | work.criterion-stage-marked | criterion=projection-submit actor=project:owner stage=specified
+- 2026-09-04T23:38:13.661264Z | work.criterion-stage-marked | criterion=regression actor=project:owner stage=specified
+- 2026-09-04T23:38:13.876675Z | work.criterion-stage-marked | criterion=model-source actor=project:owner stage=planned
+- 2026-09-04T23:38:14.101723Z | work.criterion-stage-marked | criterion=review-screen actor=project:owner stage=planned
+- 2026-09-04T23:38:14.313919Z | work.criterion-stage-marked | criterion=projection-submit actor=project:owner stage=planned
+- 2026-09-04T23:38:14.542141Z | work.criterion-stage-marked | criterion=regression actor=project:owner stage=planned
+- 2026-09-04T23:38:14.760656Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T23:38:14.979535Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-05T00:05:35.745860Z | artifact.added | kind=verification-report uri=.agora/swarms/020-architecture-integration-rework/work/domain-model-review-ui/verification-report.md actor=project:agent
+- 2026-09-05T00:05:35.964017Z | artifact.added | kind=review-report uri=.agora/swarms/020-architecture-integration-rework/work/domain-model-review-ui/review-report.md actor=project:agent
+- 2026-09-05T00:05:36.184659Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-05T00:05:36.413073Z | work.criterion-stage-marked | criterion=model-source actor=project:agent stage=implemented
+- 2026-09-05T00:05:36.634571Z | work.criterion-stage-marked | criterion=review-screen actor=project:agent stage=implemented
+- 2026-09-05T00:05:36.850941Z | work.criterion-stage-marked | criterion=projection-submit actor=project:agent stage=implemented
+- 2026-09-05T00:05:37.062770Z | work.criterion-stage-marked | criterion=regression actor=project:agent stage=implemented
+- 2026-09-05T00:05:37.277529Z | work.criterion-stage-marked | criterion=model-source actor=project:agent stage=verified
+- 2026-09-05T00:05:37.488820Z | work.criterion-stage-marked | criterion=review-screen actor=project:agent stage=verified
+- 2026-09-05T00:05:37.719438Z | work.criterion-stage-marked | criterion=projection-submit actor=project:agent stage=verified
+- 2026-09-05T00:05:37.939009Z | work.criterion-stage-marked | criterion=regression actor=project:agent stage=verified
+- 2026-09-05T00:05:38.155623Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-05T00:05:47.699454Z | evidence.added | id=evidence-000001 type=ui-tests result=success revision=1 actor=project:agent
+- 2026-09-05T00:05:52.450683Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-05T00:05:52.671495Z | work.criterion-stage-marked | criterion=model-source actor=project:owner stage=accepted
+- 2026-09-05T00:05:52.898846Z | work.criterion-stage-marked | criterion=review-screen actor=project:owner stage=accepted
+- 2026-09-05T00:05:53.121423Z | work.criterion-stage-marked | criterion=projection-submit actor=project:owner stage=accepted
+- 2026-09-05T00:05:53.346690Z | work.criterion-stage-marked | criterion=regression actor=project:owner stage=accepted
+- 2026-09-05T00:05:53.580795Z | work.transitioned | from=verifying to=completed actor=project:owner

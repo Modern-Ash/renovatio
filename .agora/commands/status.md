@@ -5,15 +5,24 @@ description: "Inspect and validate durable Agora project state"
 
 # Inspect Agora state
 
-When invoked from chat or another non-TTY host, set `AGORA_TRACE=compact` and relay Agora's stderr
-lines; keep stdout intact for the structured result.
+Tell the user in one sentence what state and durable source you will inspect. This is read-only; do
+not ask for confirmation.
 
-Use `agora status`, `agora next`, `agora inbox`, and the domain `list` commands before selecting work
-or reporting project state.
-Use `agora event list` for attributed history and `agora validate` before relying on cross-record
-references. Treat validation errors as durable-state problems: report the exact code and path, and do
-not silently rewrite or infer missing records. Distinguish Method Pack state from work
-`operational-status`. Inspect nested status changes before explaining a block, resumption, rejection,
-or cancellation.
+Use the narrowest query. For named work, start with
+`agora work inspect --swarm <swarm> --work <work>`; on an older CLI, use targeted `show` and
+`readiness` queries. For work selection use `agora next --actor <actor> --swarm <swarm> --limit 1`.
+Reuse its `snapshot_token` on repeated inspections so unchanged work returns only the compact
+not-modified envelope. Never use `--full` merely to refresh known state.
+Use `status` for a project overview, `inbox` for human attention, domain lists to resolve scope,
+`event list` for history, and `validate` only for health or cross-record integrity. Do not run all of
+them by default.
+
+Preserve a selected `AGORA_TRACE`; otherwise use `compact`. Summarize instead of echoing traces or
+payloads. Report validation errors by exact code and path without rewriting or inferring records.
+Distinguish Method Pack state from `operational-status`; inspect nested changes only to explain an
+interruption. Report state, blockers, next action, and durable source.
+
+If this inspection launches a governed session, select `--execution-profile efficient` and a
+64 KiB transcript; status work does not justify complex reasoning or a large durable transcript.
 
 Query target: `$ARGUMENTS`
