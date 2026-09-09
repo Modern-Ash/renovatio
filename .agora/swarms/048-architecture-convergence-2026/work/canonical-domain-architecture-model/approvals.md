@@ -7,6 +7,5 @@ approval-roles: []
 
 # Approvals
 
-| Role | Actor | Decision | Timestamp | Reason |
-| --- | --- | --- | --- | --- |
-| spec-owner | project:owner | pending | - | Awaiting spec review |
+| Role | Approved by | Note | Timestamp |
+| --- | --- | --- | --- |

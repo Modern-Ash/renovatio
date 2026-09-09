@@ -19,6 +19,10 @@
         </dependency>
         <dependency>
             <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-domain-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-profile</artifactId>
         </dependency>
         <dependency>
@@ -28,6 +32,12 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>1.4.1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

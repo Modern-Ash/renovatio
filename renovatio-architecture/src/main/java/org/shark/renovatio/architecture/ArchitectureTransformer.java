@@ -13,7 +13,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-/** Aggregate project transformation used as the single preview/emission source. */
+/**
+ * Aggregate project transformation used as the single preview/emission source.
+ *
+ * @deprecated Use {@link CanonicalProjectionService} for unified projection from
+ *             DomainModel + DecisionSet to ArchitectureModel + ArtifactManifest.
+ *             This class will be removed in a future version.
+ */
+@Deprecated(forRemoval = true)
 public final class ArchitectureTransformer {
     private final ModuleGroupingResolver groupingResolver;
     private final Map<MigrationProfile.ArchitectureStyle, ArchitectureProfile> profiles;
@@ -108,8 +115,13 @@ public final class ArchitectureTransformer {
                     transformed.effectiveStyle(), model, componentIds, artifactIds));
         }
 
+        ArchitectureGraph graph = new ArchitectureGraph(modules, components, relations);
+        ArtifactManifest manifest = new ArtifactManifest(manifestArtifacts);
+        CanonicalProjectionService.CanonicalProjection canonical = new CanonicalProjectionService()
+                .project(request, grouping, graph, manifest);
         return new ArchitectureResult(ArchitectureResult.SCHEMA_VERSION, request.requestHash(), architected,
-                new ArchitectureGraph(modules, components, relations), new ArtifactManifest(manifestArtifacts), diagnostics);
+                canonical.domain(), canonical.decisions(), canonical.architecture(),
+                canonical.architecture().legacyGraph(), canonical.manifest(), canonical.manifestHash(), diagnostics);
     }
 
     private List<ArtifactManifest.Artifact> planArtifacts(ArchitectureRequest request, String moduleId,

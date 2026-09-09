@@ -2,6 +2,7 @@ package org.shark.renovatio.architecture;
 
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.shared.emission.TargetModel;
+import org.shark.renovatio.domain.model.DomainModel;
 
 import java.util.HashSet;
 import java.util.List;
@@ -11,7 +12,8 @@ import java.util.Set;
 /** Fully validated result shared by preview and emission orchestration. */
 public record ArchitectureResult(String schemaVersion, String requestHash,
                                  List<ArchitectedProgram> programs,
-                                 ArchitectureGraph graph, ArtifactManifest manifest,
+                                 DomainModel domainModel, DecisionSet decisionSet, ArchitectureModel architectureModel,
+                                 ArchitectureGraph graph, ArtifactManifest manifest, String manifestHash,
                                  List<Diagnostic> diagnostics) {
     public static final String SCHEMA_VERSION = "1";
 
@@ -25,6 +27,12 @@ public record ArchitectureResult(String schemaVersion, String requestHash,
         unique(programs.stream().map(ArchitectedProgram::programId).toList(), "program result");
         graph = Objects.requireNonNull(graph, "graph");
         manifest = Objects.requireNonNull(manifest, "manifest");
+        domainModel = Objects.requireNonNull(domainModel, "domainModel");
+        decisionSet = Objects.requireNonNull(decisionSet, "decisionSet");
+        architectureModel = Objects.requireNonNull(architectureModel, "architectureModel");
+        manifestHash = ArchitectureSupport.hash(manifestHash, "manifestHash");
+        if (!graph.equals(architectureModel.legacyGraph())) throw new IllegalArgumentException(
+                "legacy graph diverges from canonical architecture");
         diagnostics = (diagnostics == null ? List.<Diagnostic>of() : diagnostics).stream()
                 .peek(Objects::requireNonNull).sorted(java.util.Comparator.comparing(Diagnostic::code)
                         .thenComparing(Diagnostic::programId)).toList();
