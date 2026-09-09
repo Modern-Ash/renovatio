@@ -133,7 +133,7 @@ jobs:
           restore-keys: maven-
 
       - name: Run characterization tests
-        run: ./mvnw verify -pl renovatio-provider-cobol -Djacoco.skip=true -Dtest="*Characterization*"
+        run: ./mvnw verify -pl renovatio-provider-cobol -Djacoco.skip=true -Dtest="*Characterization*" -Dsurefire.failIfNoSpecifiedTests=false
 
   equivalence:
     name: Equivalence Tests
@@ -155,4 +155,4 @@ jobs:
           restore-keys: maven-
 
       - name: Run equivalence tests
-        run: ./mvnw verify -Djacoco.skip=true -Dtest="*Equivalence*"
+        run: ./mvnw verify -Djacoco.skip=true -Dtest="*Equivalence*" -Dsurefire.failIfNoSpecifiedTests=false
