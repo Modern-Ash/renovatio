@@ -17,3 +17,19 @@
 - 2026-09-08T22:10:00.400000Z | evidence.added | actor=project:agent type=ci-config result=configured id=evidence-000005
 - 2026-09-08T22:10:00.500000Z | work.transitioned | actor=project:agent from=implementing to=verifying
 - 2026-09-08T22:15:00.000000Z | work.transitioned | actor=project:owner from=verifying to=completed
+- 2026-09-09T16:19:37.635560Z | work.reopened | revision=4 source=github-pr actor=project:owner change=change-20260909t161937635462z
+- 2026-09-09T16:19:51.326865Z | artifact.added | kind=spec uri=spec.md actor=project:owner
+- 2026-09-09T16:19:51.635516Z | artifact.added | kind=implementation-plan uri=implementation-plan.md actor=project:owner
+- 2026-09-09T16:19:51.940102Z | artifact.added | kind=build-manifest uri=evidence/evidence-000001/EVIDENCE.md actor=project:owner
+- 2026-09-09T16:19:52.249603Z | artifact.added | kind=ci-report uri=evidence/evidence-000002/EVIDENCE.md actor=project:owner
+- 2026-09-09T16:19:52.557636Z | artifact.added | kind=test-report uri=evidence/evidence-000003/EVIDENCE.md actor=project:owner
+- 2026-09-09T16:20:05.012639Z | evidence.added | id=evidence-post-merge-pr243 type=ci result=success revision=4 actor=project:agent
+- 2026-09-09T16:20:08.647416Z | work.criterion-satisfied | criterion=single-bootstrap actor=project:owner
+- 2026-09-09T16:20:08.949854Z | work.criterion-satisfied | criterion=maven-green actor=project:owner
+- 2026-09-09T16:20:09.258242Z | work.criterion-satisfied | criterion=node-collision actor=project:owner
+- 2026-09-09T16:20:09.565940Z | work.criterion-satisfied | criterion=versions-pinned actor=project:owner
+- 2026-09-09T16:20:09.874199Z | work.criterion-satisfied | criterion=ci-matrix actor=project:owner
+- 2026-09-09T16:20:10.184254Z | work.criterion-satisfied | criterion=clean-clone-proof actor=project:owner
+- 2026-09-09T16:20:10.501141Z | work.criterion-satisfied | criterion=developer-parity actor=project:owner
+- 2026-09-09T16:20:14.662971Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-09T16:20:18.708691Z | work.transitioned | from=verifying to=completed actor=project:owner
