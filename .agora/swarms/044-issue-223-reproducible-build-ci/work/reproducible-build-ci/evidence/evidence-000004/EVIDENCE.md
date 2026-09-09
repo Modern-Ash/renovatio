@@ -6,15 +6,18 @@ swarm: "issue-223-reproducible-build-ci"
 artifact: "bootstrap.sh"
 result: "pass"
 date: "2026-09-09"
+content-hash: "sha256:07f2f0876cc47d66731d258283edf646bc91ed62187c2212e5cca4484998d1d1"
+source-ref: "0ad4fd45b37a4566c8b164f6179aae51c9cd20c9"
 ---
 
 # Evidence: Bootstrap Script
 
 - **Type:** script
 - **Result:** success
-- **Date:** 2026-09-08
+- **Date:** 2026-09-09
 - **Command:** `./scripts/bootstrap.sh --skip-tests`
 - **Environment:** Ubuntu 24.04, Java 21, Node 24.20.0, Python 3.14.4
+- **Content Hash:** sha256:07f2f0876cc47d66731d258283edf646bc91ed62187c2212e5cca4484998d1d1
 
 ## What it does
 
@@ -29,3 +32,15 @@ date: "2026-09-09"
 ## Result
 
 All components built successfully. Script is idempotent and fails on first error.
+
+## Verification
+
+```bash
+# Verify bootstrap script hash
+sha256sum scripts/bootstrap.sh
+# Expected: 07f2f0876cc47d66731d258283edf646bc91ed62187c2212e5cca4484998d1d1
+
+# Run bootstrap
+./scripts/bootstrap.sh --skip-tests
+# Expected: All components built successfully
+```

@@ -156,3 +156,63 @@ jobs:
 
       - name: Run equivalence tests
         run: ./mvnw verify -Djacoco.skip=true -Dexec.skip=true -Dtest="*Equivalence*" -Dsurefire.failIfNoSpecifiedTests=false
+
+  bootstrap:
+    name: Bootstrap Integration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.20.0'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-
+
+      - name: Run bootstrap
+        run: ./scripts/bootstrap.sh --skip-tests
+
+  pip-audit:
+    name: Python Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Audit renovatio-provider-python
+        run: |
+          cd renovatio-provider-python
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install -e ".[test]"
+          pip install pip-audit
+          pip-audit --skip-editable --ignore-vuln PYSEC-2026-196 --ignore-vuln PYSEC-2026-1795 --ignore-vuln PYSEC-2026-1796 --ignore-vuln PYSEC-2026-2875 --ignore-vuln PYSEC-2026-2876 --ignore-vuln PYSEC-2026-3721
+
+      - name: Audit migration spec
+        run: |
+          cd specs/1-cobol-python-migration
+          bash scripts/setup_env.sh
+          source .venv/bin/activate
+          pip install --upgrade pip
+          pip install pip-audit
+          pip-audit --ignore-vuln PYSEC-2026-196 --ignore-vuln PYSEC-2026-1795 --ignore-vuln PYSEC-2026-1796 --ignore-vuln PYSEC-2026-2875 --ignore-vuln PYSEC-2026-2876 --ignore-vuln PYSEC-2026-3721

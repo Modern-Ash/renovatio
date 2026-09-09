@@ -53,11 +53,13 @@ class NodeEmitterTest {
         assertTrue(firstFiles.get("src/first/domain/first.entity.ts").contains("interface FirstEntity"));
         assertTrue(firstFiles.get("src/first/domain/first.repository.ts").contains("interface FirstRepository"));
         assertTrue(firstFiles.get("src/first/api/first.controller.ts").contains("firstController"));
-        for (String shared : List.of("src/main.ts", "package.json", "tsconfig.json")) {
+        for (String shared : List.of("src/main.ts", "package.json", "tsconfig.json", "docs/node-idioms.md")) {
             assertEquals(firstFiles.get(shared), secondFiles.get(shared), shared);
         }
         assertFalse(firstFiles.get("src/main.ts").contains("FIRST"));
         assertFalse(firstFiles.get("package.json").contains("first"));
+        assertTrue(firstFiles.get("docs/node-idioms.md").contains("COBOL to TypeScript Idiom Mappings"));
+        assertTrue(firstFiles.get("docs/node-idioms.md").contains("| MOVE | assignment |"));
     }
 
     @Test
@@ -73,7 +75,7 @@ class NodeEmitterTest {
 
         assertTrue(firstFiles.get("src/first/domain/first.service.ts")
                 .startsWith("/**\n * Migrated from COBOL program FIRST"));
-        for (String shared : List.of("src/main.ts", "package.json", "tsconfig.json")) {
+        for (String shared : List.of("src/main.ts", "package.json", "tsconfig.json", "docs/node-idioms.md")) {
             assertEquals(firstFiles.get(shared), secondFiles.get(shared), shared);
             assertFalse(firstFiles.get(shared).contains("Migrated from COBOL"), shared);
         }
