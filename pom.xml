@@ -28,7 +28,6 @@
         <javapoet.version>1.13.0</javapoet.version>
         <freemarker.version>2.3.32</freemarker.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
-        <skip.npm.build>false</skip.npm.build>
         <lucene.version>9.8.0</lucene.version>
         <jgit.version>6.7.0.202309050840-r</jgit.version>
         <antlr4.version>4.11.1</antlr4.version>

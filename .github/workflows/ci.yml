@@ -36,7 +36,7 @@ jobs:
           restore-keys: maven-
 
       - name: Build and test
-        run: ./mvnw clean install -Djacoco.skip=true -Dskip.npm.build=true
+        run: ./mvnw clean install -Djacoco.skip=true -Dexec.skip=true
 
   renovatio-ui:
     name: renovatio-ui
