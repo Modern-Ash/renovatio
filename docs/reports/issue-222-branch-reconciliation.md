@@ -52,7 +52,11 @@ su patch ID. Resultados principales:
 |---|---:|---:|---:|
 | F8 | 85 / 108 | 82 / 105 | 3 / 82 / 83 / 0 |
 | workbench-bootstrap | 86 / 108 | 83 / 105 | 3 / 83 / 83 / 0 |
-| #217 | 0 / 16 | 0 / 16 | 0 / 0 / 16 / 0 |
+| #217 | 0 / 16 | 0 / 16 | 0 / 0 / 11 / 0 |
+
+Las columnas raw conservan todos los commits, incluidos merges. El resumen
+`range-diff` usa únicamente los 11 commits no-merge, igual que
+`git range-diff` al comparar las series.
 
 Los tres pares exactos por `patch-id --stable` son:
 

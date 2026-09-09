@@ -224,3 +224,5 @@
 - 2026-09-08T23:57:10.938184Z | work.criterion-stage-marked | criterion=rollback actor=project:owner stage=accepted
 - 2026-09-08T23:57:11.236878Z | approval.added | role=spec-owner actor=project:owner delegation=none
 - 2026-09-08T23:57:15.127971Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-09-09T00:05:26.504930Z | work.reopened | revision=5 source=github-pull-request-review actor=project:owner change=change-20260909t000526504771z
+- 2026-09-09T00:05:26.952428Z | work.transitioned | from=verifying to=implementing actor=project:agent

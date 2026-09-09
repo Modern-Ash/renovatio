@@ -33,9 +33,9 @@ for candidate in "$@"; do
   fi
 
   if [[ "$merge_base" == "$head_sha" ]]; then
-    range_summary="0/0/$(git rev-list --count "$merge_base..$baseline")/0"
+    range_summary="0/0/$(git rev-list --no-merges --count "$merge_base..$baseline")/0"
   elif [[ "$merge_base" == "$(git rev-parse "$baseline")" ]]; then
-    range_summary="0/$(git rev-list --count "$merge_base..$candidate")/0/0"
+    range_summary="0/$(git rev-list --no-merges --count "$merge_base..$candidate")/0/0"
   else
     range_summary=$(git range-diff --no-color "$merge_base..$candidate" "$merge_base..$baseline" |
       awk '/^[ 0-9-]+:/ {
