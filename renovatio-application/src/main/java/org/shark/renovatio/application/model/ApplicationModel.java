@@ -32,6 +32,7 @@ public final class ApplicationModel {
             if (hash == null || hash.isBlank()) hash = computed;
             if (!hash.equals(computed)) throw new IllegalArgumentException("source hash does not match files");
         }
+        @Override public Map<String, byte[]> files() { return immutableBytes(files); }
     }
 
     public record Analysis(String sourceHash, Object semanticModel, List<String> evidence) {
@@ -70,6 +71,7 @@ public final class ApplicationModel {
             if (id == null || id.isBlank()) id = computed;
             if (!id.equals(computed)) throw new IllegalArgumentException("manifest id does not match content");
         }
+        @Override public Map<String, byte[]> artifacts() { return immutableBytes(artifacts); }
     }
 
     public record ValidationResult(boolean valid, List<String> evidence) {
@@ -88,6 +90,8 @@ public final class ApplicationModel {
             evidence = List.copyOf(evidence == null ? List.of() : evidence);
             Objects.requireNonNull(occurredAt, "occurredAt");
         }
+        @Override public Map<String, byte[]> preimage() { return immutableBytes(preimage); }
+        @Override public Map<String, byte[]> postimage() { return immutableBytes(postimage); }
         public ChangeSet withState(ChangeState next, List<String> nextEvidence) {
             return new ChangeSet(id, projectId, manifestId, preimage, postimage, next, nextEvidence, occurredAt);
         }

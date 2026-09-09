@@ -79,5 +79,7 @@ class DefaultRenovatioApplicationTest {
         byte[] bytes = "safe".getBytes(StandardCharsets.UTF_8);
         SourceSnapshot snapshot = new SourceSnapshot("project", null, Map.of("file", bytes));
         bytes[0] = 'X'; assertEquals("safe", new String(snapshot.files().get("file"), StandardCharsets.UTF_8));
+        snapshot.files().get("file")[0] = 'Y';
+        assertEquals("safe", new String(snapshot.files().get("file"), StandardCharsets.UTF_8));
     }
 }

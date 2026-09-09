@@ -36,6 +36,7 @@ public final class ApplicationPorts {
     }
     public interface ArtifactRepository {
         Map<String, byte[]> read(String projectId);
+        /** Atomically replaces the complete artifact set or leaves the previous set untouched. */
         void replace(String projectId, Map<String, byte[]> artifacts);
         void saveChangeSet(ChangeSet changeSet);
         List<ChangeSet> history(String projectId);
@@ -45,6 +46,7 @@ public final class ApplicationPorts {
         void save(IdempotencyRecord record);
     }
     public interface GitPort {
+        /** Creates a local, compensable checkpoint; remote pushes are expressly outside this port. */
         String checkpoint(String projectId, String changeSetId);
         void compensate(String projectId, String checkpoint);
     }
