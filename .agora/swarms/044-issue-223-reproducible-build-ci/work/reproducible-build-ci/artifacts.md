@@ -1,7 +1,14 @@
+---
+schema: "agora/artifacts/v2"
+artifact-kinds: ["spec","implementation-plan","build-manifest","ci-report","test-report"]
+---
+
 # Artifacts
 
-- **spec** (2026-09-08): spec.md — Specification completa con 7 ACs detallados, alcance, problemas observados y evidencia esperada.
-- **implementation-plan** (2026-09-08): implementation-plan.md — Plan de 7 fases con 17 pasos, dependency graph y risk register.
-- **build-manifest** (2026-09-08): evidence-000001 — Maven reactor 22/22 módulos SUCCESS, toolchains fijadas.
-- **ci-report** (2026-09-08): evidence-000005 — GitHub Actions CI matrix configurada con 6 jobs.
-- **test-report** (2026-09-08): evidence-000001+000002+000003 — Tests pasando: Java (22 módulos), UI (28), Workbench (21), Python (7+9).
+| Kind | URI | Content SHA-256 | Produced by | Timestamp |
+| --- | --- | --- | --- | --- |
+| spec | .agora/swarms/044-issue-223-reproducible-build-ci/work/reproducible-build-ci/spec.md | none | project:owner | 2026-09-08T21:40:00Z |
+| implementation-plan | .agora/swarms/044-issue-223-reproducible-build-ci/work/reproducible-build-ci/implementation-plan.md | none | project:agent | 2026-09-08T21:42:00Z |
+| build-manifest | git://92c693078588e800f76d178827aeac29d214a5e6 | none | project:agent | 2026-09-08T22:05:00Z |
+| ci-report | git://92c693078588e800f76d178827aeac29d214a5e6 | none | project:agent | 2026-09-09T10:40:00Z |
+| test-report | git://92c693078588e800f76d178827aeac29d214a5e6 | none | project:agent | 2026-09-08T22:06:00Z |

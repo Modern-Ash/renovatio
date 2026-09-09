@@ -1,7 +1,14 @@
+---
+schema: "agora/evidence/v2"
+results: ["success","success","success","success","success"]
+---
+
 # Evidence
 
-- evidence-000001: Maven Reactor Build (22/22 SUCCESS, all tests pass)
-- evidence-000002: Node Build (UI: 28 tests, Workbench: 21 tests)
-- evidence-000003: Python Build (provider: 7 tests, migration spec: 9 tests)
-- evidence-000004: Bootstrap Script (executed successfully, all components built)
-- evidence-000005: CI Matrix (GitHub Actions configured, 6 jobs)
+| Type | Result | Artifact references | Content SHA-256 | Produced by | Timestamp |
+| --- | --- | --- | --- | --- | --- |
+| build | success | git://92c693078588e800f76d178827aeac29d214a5e6 | none | project:agent | 2026-09-08T22:05:00Z |
+| test | success | git://92c693078588e800f76d178827aeac29d214a5e6 | none | project:agent | 2026-09-08T22:06:00Z |
+| test | success | git://92c693078588e800f76d178827aeac29d214a5e6 | none | project:agent | 2026-09-08T22:06:00Z |
+| build | success | git://92c693078588e800f76d178827aeac29d214a5e6 | none | project:agent | 2026-09-08T22:05:00Z |
+| ci | success | git://92c693078588e800f76d178827aeac29d214a5e6 | none | project:agent | 2026-09-09T10:40:00Z |
