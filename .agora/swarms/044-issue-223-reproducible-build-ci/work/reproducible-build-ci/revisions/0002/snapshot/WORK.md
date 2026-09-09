@@ -4,7 +4,7 @@ id: "reproducible-build-ci"
 swarm: "issue-223-reproducible-build-ci"
 title: "Build reproducible y CI obligatoria de producto completo (#223)"
 state: "completed"
-revision: 3
+revision: 2
 operational-status: "active"
 status-reason: "Todos los AC verificados: bootstrap.sh funciona, reactor Maven verde en CI (6 jobs), colisión Node resuelta, versiones fijadas, README actualizado."
 status-by: "project:agent"

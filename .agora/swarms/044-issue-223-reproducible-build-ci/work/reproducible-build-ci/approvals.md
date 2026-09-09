@@ -8,4 +8,5 @@ approval-roles: []
 
 # Approvals
 
-(none yet)
+| Role | Approved by | Note | Timestamp |
+| --- | --- | --- | --- |

@@ -4,11 +4,11 @@ id: "reproducible-build-ci"
 swarm: "issue-223-reproducible-build-ci"
 title: "Build reproducible y CI obligatoria de producto completo (#223)"
 state: "completed"
-revision: 3
+revision: 1
 operational-status: "active"
-status-reason: "Todos los AC verificados: bootstrap.sh funciona, reactor Maven verde en CI (6 jobs), colisión Node resuelta, versiones fijadas, README actualizado."
-status-by: "project:agent"
-status-at: "2026-09-09T10:40:30Z"
+status-reason: null
+status-by: null
+status-at: null
 acceptance-criteria: {"single-bootstrap":"Un clone limpio dispone de una orden documentada que instala toolchains/dependencias bloqueadas por lockfile y ejecuta el build completo sin estado previo de node_modules.","maven-green":"El reactor Maven completo termina verde, incluyendo Node, CLI, API y renovatio-llm-evals.","node-collision":"La generación Node multiprograma no produce paths duplicados para docs/node-idioms.md y conserva determinismo del manifest.","versions-pinned":"Java, Maven plugins incluido JaCoCo, Node/package manager y Python están fijados o validados explícitamente.","ci-matrix":"CI ejecuta Maven, renovatio-ui, renovatio-workbench, Python, caracterización y equivalencia, con fallos de seguridad relevantes no tolerados mediante ignore incondicional.","clean-clone-proof":"La evidencia proviene de un clone temporal limpio sin targets ni node_modules heredados.","developer-parity":"Las mismas órdenes funcionan localmente y en CI y están documentadas en el README de desarrollo."}
 satisfied-criteria: ["single-bootstrap","maven-green","node-collision","versions-pinned","ci-matrix","clean-clone-proof","developer-parity"]
 criterion-statuses: {"single-bootstrap":["specified","planned","implemented","verified","accepted"],"maven-green":["specified","planned","implemented","verified","accepted"],"node-collision":["specified","planned","implemented","verified","accepted"],"versions-pinned":["specified","planned","implemented","verified","accepted"],"ci-matrix":["specified","planned","implemented","verified","accepted"],"clean-clone-proof":["specified","planned","implemented","verified","accepted"],"developer-parity":["specified","planned","implemented","verified","accepted"]}
