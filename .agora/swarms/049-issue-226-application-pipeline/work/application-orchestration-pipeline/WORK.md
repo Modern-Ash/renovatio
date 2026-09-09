@@ -3,7 +3,7 @@ schema: "agora/work/v1"
 id: "application-orchestration-pipeline"
 swarm: "issue-226-application-pipeline"
 title: "AC-05: Crear un \u00fanico pipeline de aplicaci\u00f3n para preview y apply"
-state: "verifying"
+state: "implementing"
 revision: 1
 operational-status: "active"
 status-reason: null
