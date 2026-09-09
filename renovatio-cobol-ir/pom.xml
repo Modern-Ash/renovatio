@@ -22,7 +22,6 @@
         <dependency>
             <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-cobol-runtime</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -65,7 +64,6 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.10</version>
                 <executions>
                     <execution>
                         <goals>
