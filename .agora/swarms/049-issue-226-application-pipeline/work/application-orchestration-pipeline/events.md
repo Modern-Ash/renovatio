@@ -49,3 +49,6 @@
 - 2026-09-09T21:33:03.330858Z | evidence.added | id=evidence-000001 type=test-suite result=success revision=1 actor=project:agent
 - 2026-09-09T21:33:09.285365Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-09-09T21:51:15.324808Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-09T21:51:31.625281Z | tool.prepared | run=tool-20260909t21511789001491z tool=repository operation=commit actor=project:agent
+- 2026-09-09T21:51:31.633133Z | tool.running | run=tool-20260909t21511789001491z actor=project:agent
+- 2026-09-09T21:51:31.661780Z | tool.completed | run=tool-20260909t21511789001491z exit-code=0
