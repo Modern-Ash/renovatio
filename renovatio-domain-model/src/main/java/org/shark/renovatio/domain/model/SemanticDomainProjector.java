@@ -22,6 +22,14 @@ public final class SemanticDomainProjector {
             nodes.add(new DomainNode(useCaseId, Kind.USE_CASE, "Process " + program.programId(), List.of(evidence), Origin.DETERMINISTIC, 0.8));
             relations.add(new DomainRelation("relation:" + aggregateId + ":" + useCaseId,
                     aggregateId, useCaseId, RelationKind.CONTAINS));
+            for (SemanticProgram.SemanticType type : program.types()) {
+                String id = "entity:" + program.programId() + ":" + type.header().id();
+                Kind kind = type.typeKind() == SemanticProgram.TypeKind.GROUP ? Kind.ENTITY : Kind.VALUE_OBJECT;
+                nodes.add(new DomainNode(id, kind, type.symbol(), List.of(evidence(program, type.symbol())),
+                        Origin.DETERMINISTIC, 0.9));
+                relations.add(new DomainRelation("relation:" + aggregateId + ":" + id,
+                        aggregateId, id, RelationKind.CONTAINS));
+            }
             for (SemanticProgram.IoOperation io : program.ioOperations()) {
                 String id = "boundary:" + program.programId() + ":" + io.header().id();
                 Kind kind = io.ioKind() == SemanticProgram.IoKind.DATABASE || io.ioKind() == SemanticProgram.IoKind.FILE
@@ -29,6 +37,13 @@ public final class SemanticDomainProjector {
                 nodes.add(new DomainNode(id, kind, io.operation(), List.of(evidence(program, io.operation())),
                         Origin.DETERMINISTIC, 0.7));
                 relations.add(new DomainRelation("relation:" + useCaseId + ":" + id, useCaseId, id, RelationKind.USES));
+            }
+            for (SemanticProgram.UnclassifiedDataAccess access : program.unclassifiedDataAccesses()) {
+                String id = "unresolved:" + program.programId() + ":" + access.header().id();
+                nodes.add(new DomainNode(id, Kind.EXTERNAL_SYSTEM, access.subject(),
+                        List.of(evidence(program, access.reason())), Origin.DETERMINISTIC, 0.3));
+                relations.add(new DomainRelation("relation:" + useCaseId + ":" + id,
+                        useCaseId, id, RelationKind.USES));
             }
         }
         return new DomainModel(DomainModel.SCHEMA_VERSION, projectId, nodes, relations, List.of());

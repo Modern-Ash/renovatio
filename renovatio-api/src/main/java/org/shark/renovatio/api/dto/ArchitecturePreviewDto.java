@@ -11,6 +11,7 @@ import java.util.List;
 public record ArchitecturePreviewDto(
         String schemaVersion,
         String requestHash,
+        String manifestHash,
         String profileHash,
         List<Program> programs,
         List<Module> modules,
@@ -25,6 +26,7 @@ public record ArchitecturePreviewDto(
         return new ArchitecturePreviewDto(
                 result.schemaVersion(),
                 result.requestHash(),
+                result.manifestHash(),
                 result.programs().get(0).targetModel().profileHash(),
                 programs,
                 result.graph().modules().stream().map(Module::from).toList(),

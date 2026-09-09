@@ -251,6 +251,34 @@ class JavaGenerationServiceTest {
     }
 
     @Test
+    void generationEnforcesPreviewManifestPrecondition() throws Exception {
+        Files.writeString(tempDir.resolve("manifest.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. MANIFEST.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 VALUE-A PIC X(10).
+                PROCEDURE DIVISION.
+                    DISPLAY VALUE-A.
+                    STOP RUN.
+                """);
+        NqlQuery query = new NqlQuery();
+        var effective = javaGenerationService.effectiveProfile(workspace);
+        String manifestHash = javaGenerationService.previewArchitecture(query, workspace, effective).manifestHash();
+
+        StubResult accepted = javaGenerationService.generateInterfaceStubs(
+                query, workspace, effective, manifestHash);
+        assertTrue(accepted.isSuccess(), accepted.getMessage());
+        assertEquals(manifestHash, accepted.getMetadata().get("manifestHash"));
+
+        StubResult rejected = javaGenerationService.generateInterfaceStubs(
+                query, workspace, effective, "0".repeat(64));
+        assertFalse(rejected.isSuccess());
+        assertTrue(rejected.getMessage().contains(JavaGenerationService.ManifestChangedException.CODE));
+        assertTrue(rejected.getMessage().contains("run preview again"));
+    }
+
+    @Test
     void generatesEntryMethodsAndDtoFromLinkage() throws Exception {
         String cobol = """
             identification division.

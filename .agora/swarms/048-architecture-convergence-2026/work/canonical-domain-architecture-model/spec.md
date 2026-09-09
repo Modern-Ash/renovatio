@@ -3,7 +3,7 @@ schema: "agora/spec/v1"
 work-item: "canonical-domain-architecture-model"
 swarm: "architecture-convergence-2026"
 revision: 1
-status: "draft"
+status: "accepted"
 ---
 
 # Specification: Canonical Domain-Architecture Model Unification
@@ -13,7 +13,7 @@ status: "draft"
 Conviven dos caminos de autoridad para la transformación de código fuente a artefactos generados:
 
 1. **Camino directo**: `SemanticProgram → ArchitectureTransformer → ArchitectureGraph + ArtifactManifest`
-2. **Camino Domain**: `SemanticProgram → DomainModel → ArchitectureModel → adapter → ArchitectureGraph`
+2. **Camino Domain incompleto**: `SemanticProgram → DomainModel`, sin enlazarse al resultado productivo.
 
 Preview, persistencia y generación pueden describir soluciones distintas para el mismo snapshot, violando el principio de una sola fuente de verdad.
 
@@ -48,9 +48,9 @@ public record CanonicalProjection(
 ### Schema Versioning
 
 ```java
-public record DomainModel(String schemaVersion, ...) {
-    public static final String SCHEMA_VERSION = "2"; // bumped for unification
-}
+`DomainModel` conserva schema v1 para compatibilidad con proyectos persistidos. Las versiones
+desconocidas fallan con un diagnóstico que indica explícitamente la versión soportada; no se
+publica un adaptador v1→v2 hasta que exista un schema v2 real.
 
 public record ArchitectureModel(String schemaVersion, ...) {
     public static final String SCHEMA_VERSION = "1";

@@ -73,6 +73,7 @@ class ArchitecturePreviewApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.schemaVersion").value("1"))
                 .andExpect(jsonPath("$.requestHash").isString())
+                .andExpect(jsonPath("$.manifestHash").isString())
                 .andExpect(jsonPath("$.profileHash").isString())
                 .andExpect(jsonPath("$.programs[0].programId").value("PREVIEW"))
                 .andExpect(jsonPath("$.programs[0].fallback").value(false))

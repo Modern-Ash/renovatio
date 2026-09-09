@@ -59,6 +59,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     private static final String KEY_MESSAGE = "message";
     private static final String KEY_DATA = "data";
     private static final String KEY_GENERATED = "generated";
+    private static final String KEY_EXPECTED_MANIFEST_HASH = "expectedManifestHash";
 
     // Common values
     private static final String TYPE_OBJECT = "object";
@@ -177,7 +178,10 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     public Optional<StubResult> generateStubs(NqlQuery query, Workspace workspace,
                                               MigrationProfiles.EffectiveProfile effective) {
         try {
-            return Optional.of(javaGenerationService.generateInterfaceStubs(query, workspace, effective));
+            Object expected = query == null || query.getParameters() == null ? null
+                    : query.getParameters().get(KEY_EXPECTED_MANIFEST_HASH);
+            return Optional.of(javaGenerationService.generateInterfaceStubs(query, workspace, effective,
+                    expected == null ? null : expected.toString()));
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
         } catch (Exception e) {

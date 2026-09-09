@@ -184,10 +184,20 @@ public class JavaGenerationService {
     /** Routes an effective F1 target envelope through the F2 target registry. */
     public StubResult generateInterfaceStubs(NqlQuery query, Workspace workspace,
                                              MigrationProfiles.EffectiveProfile effective) {
+        return generateInterfaceStubs(query, workspace, effective, null);
+    }
+
+    /** Applies only when the workspace still projects to the manifest returned by preview. */
+    public StubResult generateInterfaceStubs(NqlQuery query, Workspace workspace,
+                                             MigrationProfiles.EffectiveProfile effective,
+                                             String expectedManifestHash) {
         try {
             Path root = workspaceRoot(workspace);
             ArchitecturePreparation preparation = prepareArchitecture(query, workspace, effective);
             ArchitectureResult architecture = preparation.architecture();
+            if (expectedManifestHash != null && !expectedManifestHash.equals(architecture.manifestHash())) {
+                throw new ManifestChangedException(expectedManifestHash, architecture.manifestHash());
+            }
             Map<String, String> generatedFiles = new LinkedHashMap<>();
             Map<String, ManualActionItem> actionItems = new LinkedHashMap<>();
             for (ArchitectureResult.ArchitectedProgram architected : architecture.programs()) {
@@ -220,12 +230,20 @@ public class JavaGenerationService {
             metadata.put("outputPath", outputPath);
             metadata.put("generatedFileCount", generatedFiles.size());
             metadata.put("generatedFiles", generatedFiles.keySet().stream().sorted().toList());
+            metadata.put("manifestHash", architecture.manifestHash());
             result.setMetadata(metadata);
             return result;
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
         } catch (Exception exception) {
             return new StubResult(false, "Stub generation failed: " + exception.getMessage());
+        }
+    }
+
+    public static final class ManifestChangedException extends IllegalStateException {
+        public static final String CODE = "ARCHITECTURE_MANIFEST_CHANGED";
+        public ManifestChangedException(String expected, String actual) {
+            super(CODE + ": expected=" + expected + ", actual=" + actual + "; run preview again");
         }
     }
 

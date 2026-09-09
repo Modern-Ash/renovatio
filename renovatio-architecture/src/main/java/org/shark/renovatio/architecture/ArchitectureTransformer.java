@@ -13,7 +13,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-/** Aggregate project transformation used as the single preview/emission source. */
+/**
+ * Aggregate project transformation used as the single preview/emission source.
+ *
+ * @deprecated Use {@link CanonicalProjectionService} for unified projection from
+ *             DomainModel + DecisionSet to ArchitectureModel + ArtifactManifest.
+ *             This class will be removed in a future version.
+ */
+@Deprecated(forRemoval = true)
 public final class ArchitectureTransformer {
     private final ModuleGroupingResolver groupingResolver;
     private final Map<MigrationProfile.ArchitectureStyle, ArchitectureProfile> profiles;
@@ -68,6 +75,8 @@ public final class ArchitectureTransformer {
                 .sorted(java.util.Comparator.comparing(Enum::name)).toList());
 
         ModuleGroupingResolver.GroupingResult grouping = groupingResolver.resolve(request);
+        CanonicalProjectionService projectionService = new CanonicalProjectionService();
+        CanonicalProjectionService.BaseProjection baseProjection = projectionService.project(request, grouping);
         Map<String, String> moduleIds = new TreeMap<>();
         grouping.moduleByProgram().values().stream().distinct().sorted().forEach(name -> moduleIds.put(name,
                 ArchitectureSupport.id(request.requestHash(), "MODULE", name, name, "module")));
@@ -92,10 +101,12 @@ public final class ArchitectureTransformer {
             components.addAll(transformed.components());
             relations.addAll(transformed.relations());
             diagnostics.addAll(transformed.diagnostics());
-            List<String> componentIds = transformed.components().stream().map(ArchitectureGraph.Component::id).toList();
+            List<ArchitectureModel.Component> canonicalComponents = baseProjection.architecture().components().stream()
+                    .filter(component -> component.programId().equals(program.programId())).toList();
+            List<String> componentIds = canonicalComponents.stream().map(ArchitectureModel.Component::id).toList();
             List<String> codes = transformed.diagnostics().stream().map(ArchitectureResult.Diagnostic::code).toList();
             List<ArtifactManifest.Artifact> programArtifacts = planArtifacts(request, moduleId,
-                    moduleNamesById.get(moduleId), program, transformed);
+                    moduleNamesById.get(moduleId), program, transformed, canonicalComponents);
             manifestArtifacts.addAll(programArtifacts);
             List<String> artifactIds = programArtifacts.stream().map(ArtifactManifest.Artifact::id).toList();
             List<String> artifactPaths = programArtifacts.stream().map(ArtifactManifest.Artifact::path).toList();
@@ -108,13 +119,17 @@ public final class ArchitectureTransformer {
                     transformed.effectiveStyle(), model, componentIds, artifactIds));
         }
 
+        ArtifactManifest manifest = new ArtifactManifest(manifestArtifacts);
+        CanonicalProjectionService.CanonicalProjection canonical = projectionService.complete(baseProjection, manifest);
         return new ArchitectureResult(ArchitectureResult.SCHEMA_VERSION, request.requestHash(), architected,
-                new ArchitectureGraph(modules, components, relations), new ArtifactManifest(manifestArtifacts), diagnostics);
+                canonical.domain(), canonical.decisions(), canonical.architecture(),
+                canonical.architecture().legacyGraph(), canonical.manifest(), canonical.manifestHash(), diagnostics);
     }
 
     private List<ArtifactManifest.Artifact> planArtifacts(ArchitectureRequest request, String moduleId,
                                                           String moduleName, SemanticProgram program,
-                                                          ArchitectureProfile.ProgramResult transformed) {
+                                                          ArchitectureProfile.ProgramResult transformed,
+                                                          List<ArchitectureModel.Component> canonicalComponents) {
         MigrationProfile.Language language = request.effectiveProfile().profile().target().language();
         ArtifactLayoutPlanner planner = layoutPlanners.get(language);
         if (planner == null) return List.of();
@@ -122,10 +137,29 @@ public final class ArchitectureTransformer {
                 new ArtifactLayoutPlanner.LayoutContext(request.requestHash(), moduleId, moduleName, program,
                         transformed.effectiveStyle(), transformed.components(), request.effectiveProfile())),
                 "artifact plan"));
+        Map<String, ArchitectureGraph.ComponentKind> legacyKinds = transformed.components().stream()
+                .collect(java.util.stream.Collectors.toMap(ArchitectureGraph.Component::id,
+                        ArchitectureGraph.Component::kind));
         return planned.stream().map(value -> new ArtifactManifest.Artifact(
                 ArchitectureSupport.id(request.requestHash(), "ARTIFACT", moduleId, program.programId(),
-                        value.role()), value.path(), value.componentId(), moduleId, program.programId(), language,
+                        value.role()), value.path(), canonicalComponentId(value.componentId(), legacyKinds,
+                        canonicalComponents), moduleId, program.programId(), language,
                 value.role())).toList();
+    }
+
+    private static String canonicalComponentId(String legacyId,
+                                               Map<String, ArchitectureGraph.ComponentKind> legacyKinds,
+                                               List<ArchitectureModel.Component> canonicalComponents) {
+        if (canonicalComponents.isEmpty()) throw new IllegalArgumentException(
+                "artifact references a program without canonical components");
+        ArchitectureGraph.ComponentKind legacyKind = legacyKinds.get(legacyId);
+        if (legacyKind != null) {
+            ArchitectureModel.ComponentKind expected = ArchitectureModel.ComponentKind.valueOf(legacyKind.name());
+            return canonicalComponents.stream().filter(component -> component.kind() == expected)
+                    .map(ArchitectureModel.Component::id).findFirst()
+                    .orElseGet(() -> canonicalComponents.getFirst().id());
+        }
+        return canonicalComponents.getFirst().id();
     }
 
     public static final class ArchitectureStyleNotActiveException extends IllegalStateException {
