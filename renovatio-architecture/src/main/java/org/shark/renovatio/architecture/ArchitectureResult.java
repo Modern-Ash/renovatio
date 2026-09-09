@@ -43,6 +43,13 @@ public record ArchitectureResult(String schemaVersion, String requestHash,
         graph.components().forEach(value -> {
             if (!programIds.contains(value.programId())) throw new IllegalArgumentException("component references unknown program");
         });
+        Set<String> componentIds = new HashSet<>(architectureModel.components().stream()
+                .map(ArchitectureModel.Component::id).toList());
+        manifest.artifacts().forEach(value -> {
+            if (!componentIds.contains(value.componentId())) {
+                throw new IllegalArgumentException("artifact references unknown canonical component");
+            }
+        });
     }
 
     public record ArchitectedProgram(String programId, String moduleId,

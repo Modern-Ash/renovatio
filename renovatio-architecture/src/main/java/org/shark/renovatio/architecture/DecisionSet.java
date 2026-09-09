@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 
 /** Immutable architectural decisions consumed by the canonical projection. */
 public record DecisionSet(String schemaVersion, String profileHash,
@@ -23,13 +25,16 @@ public record DecisionSet(String schemaVersion, String profileHash,
         Objects.requireNonNull(moduleByProgram, "moduleByProgram").forEach((program, module) ->
                 ordered.put(ArchitectureSupport.program(program), ArchitectureSupport.moduleName(module)));
         if (ordered.isEmpty()) throw new IllegalArgumentException("moduleByProgram must not be empty");
-        moduleByProgram = Map.copyOf(ordered);
+        moduleByProgram = Collections.unmodifiableMap(new LinkedHashMap<>(ordered));
         appliedDecisionIds = (appliedDecisionIds == null ? List.<String>of() : appliedDecisionIds).stream()
                 .map(value -> ArchitectureSupport.text(value, "decisionId")).distinct().sorted().toList();
     }
 
     public String canonicalHash() {
-        return ArchitectureSupport.sha256(schemaVersion + "\n" + profileHash + "\n" + architectureStyle
-                + "\n" + targetLanguage + "\n" + moduleByProgram + "\n" + appliedDecisionIds);
+        StringBuilder canonical = new StringBuilder(schemaVersion).append('\n').append(profileHash).append('\n')
+                .append(architectureStyle).append('\n').append(targetLanguage).append('\n');
+        moduleByProgram.forEach((program, module) -> canonical.append(program).append('=').append(module).append('\n'));
+        appliedDecisionIds.forEach(value -> canonical.append("decision=").append(value).append('\n'));
+        return ArchitectureSupport.sha256(canonical.toString());
     }
 }

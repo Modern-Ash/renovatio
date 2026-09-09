@@ -12,7 +12,9 @@ class DomainModelArchitectureTest {
         noClasses().that().resideInAPackage("org.shark.renovatio.domain.model..")
                 .should().dependOnClassesThat().resideInAnyPackage(
                         "org.springframework..",
-                        "com.fasterxml.jackson..")
+                        "com.fasterxml.jackson..",
+                        "java.io..",
+                        "java.nio.file..")
                 .check(classes);
     }
 
