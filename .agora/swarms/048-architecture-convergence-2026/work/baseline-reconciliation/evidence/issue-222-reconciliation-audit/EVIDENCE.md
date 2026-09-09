@@ -5,8 +5,8 @@ type: "audit"
 phase: null
 result: "success"
 revision: 1
-artifact-references: ["repo://docs/reports/issue-222-branch-reconciliation.md"]
-artifact-content-sha256: {"repo://docs/reports/issue-222-branch-reconciliation.md":"8383254f55a6ab75fca0cc770b8673c2757c4cf70082ac4f45b8263ab1484aff"}
+artifact-references: ["repo://.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0001/snapshot/artifacts/issue-222-branch-reconciliation.md"]
+artifact-content-sha256: {"repo://.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0001/snapshot/artifacts/issue-222-branch-reconciliation.md":"8383254f55a6ab75fca0cc770b8673c2757c4cf70082ac4f45b8263ab1484aff"}
 produced-by: "project:agent"
 timestamp: "2026-09-08T22:58:53.571296Z"
 tested-commit: "6b46865171a795a18e84c570211c1dea14a7e6ea"

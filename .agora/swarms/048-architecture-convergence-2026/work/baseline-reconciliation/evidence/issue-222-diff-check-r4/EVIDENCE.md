@@ -5,8 +5,8 @@ type: "review-revalidation"
 phase: "review-revalidation"
 result: "success"
 revision: 4
-artifact-references: ["repo://docs/reports/issue-222-review-revalidation.md"]
-artifact-content-sha256: {"repo://docs/reports/issue-222-review-revalidation.md":"f2d985792827d14fc931759bcc78de429f259e1209120ba6844ab130cbaa8f72"}
+artifact-references: ["repo://.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0002/snapshot/artifacts/issue-222-review-revalidation.md"]
+artifact-content-sha256: {"repo://.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0002/snapshot/artifacts/issue-222-review-revalidation.md":"f2d985792827d14fc931759bcc78de429f259e1209120ba6844ab130cbaa8f72"}
 produced-by: "project:agent"
 timestamp: "2026-09-08T23:56:53.948078Z"
 tested-commit: null

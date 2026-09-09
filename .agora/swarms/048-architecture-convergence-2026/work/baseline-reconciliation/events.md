@@ -226,3 +226,62 @@
 - 2026-09-08T23:57:15.127971Z | work.transitioned | from=verifying to=completed actor=project:owner
 - 2026-09-09T00:05:26.504930Z | work.reopened | revision=5 source=github-pull-request-review actor=project:owner change=change-20260909t000526504771z
 - 2026-09-09T00:05:26.952428Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-09T00:06:16.672009Z | tool.prepared | run=tool-20260909t00061788923176z tool=repository operation=commit actor=project:agent
+- 2026-09-09T00:06:16.679859Z | tool.running | run=tool-20260909t00061788923176z actor=project:agent
+- 2026-09-09T00:06:16.718798Z | tool.completed | run=tool-20260909t00061788923176z exit-code=0
+- 2026-09-09T00:06:27.524911Z | tool.prepared | run=tool-20260909t00061788923187z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-09T00:06:27.532824Z | tool.running | run=tool-20260909t00061788923187z actor=project:agent
+- 2026-09-09T00:06:29.494270Z | tool.completed | run=tool-20260909t00061788923187z exit-code=0
+- 2026-09-09T00:13:11.224811Z | tool.prepared | run=tool-20260909t00131788923591z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-09T00:13:11.232834Z | tool.running | run=tool-20260909t00131788923591z actor=project:agent
+- 2026-09-09T00:13:12.586181Z | tool.completed | run=tool-20260909t00131788923591z exit-code=0
+- 2026-09-09T00:13:19.471376Z | artifact.added | kind=spec uri=repo://docs/specs/issue-222-baseline-reconciliation.md actor=project:agent
+- 2026-09-09T00:13:19.766287Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/issue-222-baseline-reconciliation.md actor=project:agent
+- 2026-09-09T00:13:20.048541Z | artifact.added | kind=integration-report uri=repo://docs/reports/issue-222-branch-reconciliation.md actor=project:agent
+- 2026-09-09T00:13:20.312680Z | artifact.added | kind=decision-record uri=repo://docs/adr/0003-main-baseline-and-mvc-cics-contract.md actor=project:agent
+- 2026-09-09T00:13:20.585408Z | artifact.added | kind=test-report uri=repo://docs/reports/issue-222-baseline-test-report.md actor=project:agent
+- 2026-09-09T00:13:20.866032Z | artifact.added | kind=review-report uri=repo://docs/reports/issue-222-review-revalidation.md actor=project:agent
+- 2026-09-09T00:13:21.136188Z | artifact.added | kind=revision1-test-report-archive uri=repo://.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0001/snapshot/artifacts/issue-222-baseline-test-report.md actor=project:agent
+- 2026-09-09T00:13:21.411660Z | artifact.added | kind=audit-script uri=repo://scripts/audit-branch-convergence.sh actor=project:agent
+- 2026-09-09T00:13:21.693027Z | artifact.added | kind=ci-report-r5 uri=repo://.agora/tool-runs/tool-20260909t00131788923591z/RESULT.md actor=project:agent
+- 2026-09-09T00:13:27.096002Z | work.criterion-stage-marked | criterion=inventory actor=project:owner stage=specified
+- 2026-09-09T00:13:27.382754Z | work.criterion-stage-marked | criterion=clean-integration actor=project:owner stage=specified
+- 2026-09-09T00:13:27.673794Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:owner stage=specified
+- 2026-09-09T00:13:27.955757Z | work.criterion-stage-marked | criterion=history-integrity actor=project:owner stage=specified
+- 2026-09-09T00:13:28.264949Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:owner stage=specified
+- 2026-09-09T00:13:28.565697Z | work.criterion-stage-marked | criterion=rollback actor=project:owner stage=specified
+- 2026-09-09T00:13:28.883684Z | work.criterion-stage-marked | criterion=inventory actor=project:owner stage=planned
+- 2026-09-09T00:13:29.186131Z | work.criterion-stage-marked | criterion=clean-integration actor=project:owner stage=planned
+- 2026-09-09T00:13:29.488788Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:owner stage=planned
+- 2026-09-09T00:13:29.772541Z | work.criterion-stage-marked | criterion=history-integrity actor=project:owner stage=planned
+- 2026-09-09T00:13:30.109154Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:owner stage=planned
+- 2026-09-09T00:13:30.397460Z | work.criterion-stage-marked | criterion=rollback actor=project:owner stage=planned
+- 2026-09-09T00:13:30.689668Z | work.criterion-stage-marked | criterion=inventory actor=project:agent stage=implemented
+- 2026-09-09T00:13:30.972162Z | work.criterion-stage-marked | criterion=clean-integration actor=project:agent stage=implemented
+- 2026-09-09T00:13:31.250346Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:agent stage=implemented
+- 2026-09-09T00:13:31.526734Z | work.criterion-stage-marked | criterion=history-integrity actor=project:agent stage=implemented
+- 2026-09-09T00:13:31.812324Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:agent stage=implemented
+- 2026-09-09T00:13:32.103672Z | work.criterion-stage-marked | criterion=rollback actor=project:agent stage=implemented
+- 2026-09-09T00:13:32.404293Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-09T00:13:48.205126Z | evidence.added | id=issue-222-mvc-contract-r5 type=test result=success revision=5 actor=project:agent
+- 2026-09-09T00:13:48.479808Z | evidence.added | id=issue-222-full-reactor-r5 type=test result=success revision=5 actor=project:agent
+- 2026-09-09T00:13:48.764665Z | evidence.added | id=issue-222-reconciliation-audit-r5 type=audit result=success revision=5 actor=project:agent
+- 2026-09-09T00:13:49.048316Z | evidence.added | id=issue-222-diff-check-r5 type=review-revalidation result=success revision=5 actor=project:agent
+- 2026-09-09T00:13:49.333103Z | evidence.added | id=issue-222-revision1-report-archive-r5 type=audit-integrity result=success revision=5 actor=project:agent
+- 2026-09-09T00:13:49.618651Z | evidence.added | id=issue-222-pr-ci-a7a7a9dc type=ci result=success revision=5 actor=project:agent
+- 2026-09-09T00:15:43.664089Z | artifact.added | kind=revision1-integration-report-archive uri=repo://.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0001/snapshot/artifacts/issue-222-branch-reconciliation.md actor=project:agent
+- 2026-09-09T00:15:43.892827Z | artifact.added | kind=revision2-review-report-archive uri=repo://.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0002/snapshot/artifacts/issue-222-review-revalidation.md actor=project:agent
+- 2026-09-09T00:15:57.701363Z | work.criterion-stage-marked | criterion=inventory actor=project:agent stage=verified
+- 2026-09-09T00:15:58.004815Z | work.criterion-stage-marked | criterion=clean-integration actor=project:agent stage=verified
+- 2026-09-09T00:15:58.304635Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:agent stage=verified
+- 2026-09-09T00:15:58.596999Z | work.criterion-stage-marked | criterion=history-integrity actor=project:agent stage=verified
+- 2026-09-09T00:15:58.909939Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:agent stage=verified
+- 2026-09-09T00:15:59.202547Z | work.criterion-stage-marked | criterion=rollback actor=project:agent stage=verified
+- 2026-09-09T00:15:59.478963Z | work.criterion-stage-marked | criterion=inventory actor=project:owner stage=accepted
+- 2026-09-09T00:15:59.755663Z | work.criterion-stage-marked | criterion=clean-integration actor=project:owner stage=accepted
+- 2026-09-09T00:16:00.037034Z | work.criterion-stage-marked | criterion=mvc-contract actor=project:owner stage=accepted
+- 2026-09-09T00:16:00.299404Z | work.criterion-stage-marked | criterion=history-integrity actor=project:owner stage=accepted
+- 2026-09-09T00:16:00.587181Z | work.criterion-stage-marked | criterion=baseline-tests actor=project:owner stage=accepted
+- 2026-09-09T00:16:00.866051Z | work.criterion-stage-marked | criterion=rollback actor=project:owner stage=accepted
+- 2026-09-09T00:16:01.140638Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-09T00:16:04.588763Z | work.transitioned | from=verifying to=completed actor=project:owner
