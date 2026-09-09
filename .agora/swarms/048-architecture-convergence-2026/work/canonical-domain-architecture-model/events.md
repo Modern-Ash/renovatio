@@ -91,3 +91,27 @@ swarm: "architecture-convergence-2026"
 - 2026-09-09T20:52:06.203189Z | artifact.added | kind=architecture-diagram uri=diagrams/unified-projection.md actor=project:agent
 - 2026-09-09T20:52:06.429642Z | artifact.added | kind=compatibility-report uri=compatibility-report.md actor=project:agent
 - 2026-09-09T20:52:06.660806Z | artifact.added | kind=test-report uri=test-report.md actor=project:agent
+- 2026-09-09T20:52:33.397516Z | tool.prepared | run=tool-20260909t20521788997953z tool=repository operation=commit actor=project:agent
+- 2026-09-09T20:52:33.405106Z | tool.running | run=tool-20260909t20521788997953z actor=project:agent
+- 2026-09-09T20:52:33.425040Z | tool.failed | run=tool-20260909t20521788997953z exit-code=128
+- 2026-09-09T20:52:41.398987Z | tool.prepared | run=tool-20260909t20521788997961z tool=repository operation=commit actor=project:agent
+- 2026-09-09T20:52:41.405700Z | tool.running | run=tool-20260909t20521788997961z actor=project:agent
+- 2026-09-09T20:52:41.444268Z | tool.completed | run=tool-20260909t20521788997961z exit-code=0
+- 2026-09-09T20:54:37.064231Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-09T20:54:42.392708Z | evidence.added | id=evidence-000002 type=test result=success revision=2 actor=project:agent
+- 2026-09-09T20:54:48.130834Z | work.criterion-stage-marked | criterion=semantic-levels actor=project:owner stage=verified
+- 2026-09-09T20:54:48.444291Z | work.criterion-stage-marked | criterion=semantic-levels actor=project:owner stage=accepted
+- 2026-09-09T20:54:48.693230Z | work.criterion-stage-marked | criterion=canonical-projection actor=project:owner stage=verified
+- 2026-09-09T20:54:48.949780Z | work.criterion-stage-marked | criterion=canonical-projection actor=project:owner stage=accepted
+- 2026-09-09T20:54:49.210393Z | work.criterion-stage-marked | criterion=preview-apply actor=project:owner stage=verified
+- 2026-09-09T20:54:49.494801Z | work.criterion-stage-marked | criterion=preview-apply actor=project:owner stage=accepted
+- 2026-09-09T20:54:49.777434Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=verified
+- 2026-09-09T20:54:50.050952Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=accepted
+- 2026-09-09T20:54:50.326439Z | work.criterion-stage-marked | criterion=invariants actor=project:owner stage=verified
+- 2026-09-09T20:54:50.603883Z | work.criterion-stage-marked | criterion=invariants actor=project:owner stage=accepted
+- 2026-09-09T20:54:50.848779Z | work.criterion-stage-marked | criterion=dependency-rules actor=project:owner stage=verified
+- 2026-09-09T20:54:51.084552Z | work.criterion-stage-marked | criterion=dependency-rules actor=project:owner stage=accepted
+- 2026-09-09T20:54:51.323064Z | work.criterion-stage-marked | criterion=legacy-retirement actor=project:owner stage=verified
+- 2026-09-09T20:54:51.552184Z | work.criterion-stage-marked | criterion=legacy-retirement actor=project:owner stage=accepted
+- 2026-09-09T20:54:51.775878Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-09T20:54:52.012836Z | work.transitioned | from=verifying to=completed actor=project:owner

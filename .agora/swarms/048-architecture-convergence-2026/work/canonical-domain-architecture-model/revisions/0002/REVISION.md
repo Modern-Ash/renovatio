@@ -3,16 +3,16 @@ schema: "agora/work-revision/v1"
 swarm: "architecture-convergence-2026"
 work: "canonical-domain-architecture-model"
 revision: 2
-status: "open"
+status: "closed"
 initial-state: "verifying"
-final-state: null
+final-state: "completed"
 opened-by: "project:owner"
 opened-at: "2026-09-09T20:49:28.882096Z"
-closed-by: null
-closed-at: null
+closed-by: "project:owner"
+closed-at: "2026-09-09T20:54:52.016908Z"
 source: "github-review"
 source-id: "245"
-snapshot-sha256: null
+snapshot-sha256: "b6447e3f837480dfa4dd7d556f9f998a981f700fa17fa45c1317a12e61427265"
 ---
 
 # Work revision 2
