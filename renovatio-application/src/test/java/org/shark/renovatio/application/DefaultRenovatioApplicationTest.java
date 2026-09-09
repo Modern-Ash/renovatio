@@ -75,6 +75,20 @@ class DefaultRenovatioApplicationTest {
         assertEquals("before", new String(kit.artifacts.workspace.get("existing.txt"), StandardCharsets.UTF_8));
     }
 
+    @Test void idempotencyPersistenceFailureCompensatesCompletedApplyEffects() {
+        var kit = new ApplicationContractTestKit(); var app = kit.application(); kit.seed(app);
+        kit.artifacts.workspace = ApplicationContractTestKit.bytes("existing.txt", "before");
+        MigrationPlan plan = app.plan(new Plan("project"));
+        ArtifactManifest manifest = app.preview(new Preview("project", plan.id()));
+        kit.idempotency.failSave = true;
+        assertThrows(ApplicationFailure.ApplyReverted.class,
+                () -> app.apply(new Apply("project", manifest.id(), manifest.sourceHash(), "apply-fails")));
+        assertEquals("before", new String(kit.artifacts.workspace.get("existing.txt"), StandardCharsets.UTF_8));
+        assertEquals(1, kit.git.compensations);
+        assertTrue(kit.idempotency.find("project", "apply", "apply-fails").isEmpty());
+        assertEquals(ChangeState.REVERTED, kit.artifacts.history.get(kit.artifacts.history.size() - 1).state());
+    }
+
     @Test void valuesDefensivelyCopyArtifactBytes() {
         byte[] bytes = "safe".getBytes(StandardCharsets.UTF_8);
         SourceSnapshot snapshot = new SourceSnapshot("project", null, Map.of("file", bytes));

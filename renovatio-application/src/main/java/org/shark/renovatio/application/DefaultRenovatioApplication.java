@@ -93,11 +93,18 @@ public final class DefaultRenovatioApplication implements RenovatioApplication {
     @Override public ChangeSet apply(Apply command) {
         requireProject(command.projectId()); requireKey(command.idempotencyKey());
         String digest = ApplicationModel.digest(command.projectId() + "|" + command.manifestId() + "|" + command.expectedSourceHash());
-        return idempotent(command.projectId(), "apply", command.idempotencyKey(), digest, ChangeSet.class,
-                () -> doApply(command));
+        var previous = idempotency.find(command.projectId(), "apply", command.idempotencyKey());
+        if (previous.isPresent()) {
+            IdempotencyRecord record = previous.get();
+            if (!record.commandDigest().equals(digest)) {
+                throw new ApplicationFailure.IdempotencyConflict("idempotency key reused with different command");
+            }
+            if (record.successful()) return ChangeSet.class.cast(record.result());
+        }
+        return doApply(command, digest);
     }
 
-    private ChangeSet doApply(Apply command) {
+    private ChangeSet doApply(Apply command, String commandDigest) {
         ArtifactManifest manifest = manifest(command.projectId(), command.manifestId());
         if (!manifest.sourceHash().equals(command.expectedSourceHash())) throw new ApplicationFailure.StaleManifest("unexpected manifest source hash");
         SourceSnapshot current = analyzer.snapshot(command.projectId());
@@ -115,10 +122,15 @@ public final class DefaultRenovatioApplication implements RenovatioApplication {
             checkpoint = git.checkpoint(command.projectId(), changeId);
             List<String> evidence = new ArrayList<>(validation.evidence()); evidence.add("git:" + checkpoint);
             ChangeSet applied = prepared.withState(ChangeState.APPLIED, evidence);
-            artifacts.saveChangeSet(applied); return applied;
+            artifacts.saveChangeSet(applied);
+            idempotency.save(new IdempotencyRecord(command.projectId(), "apply", command.idempotencyKey(),
+                    commandDigest, applied, true));
+            return applied;
         } catch (RuntimeException failure) {
             try { artifacts.replace(command.projectId(), preimage); } catch (RuntimeException rollback) { failure.addSuppressed(rollback); }
             if (checkpoint != null) try { git.compensate(command.projectId(), checkpoint); } catch (RuntimeException rollback) { failure.addSuppressed(rollback); }
+            try { idempotency.delete(command.projectId(), "apply", command.idempotencyKey()); }
+            catch (RuntimeException rollback) { failure.addSuppressed(rollback); }
             ChangeSet reverted = prepared.withState(ChangeState.REVERTED, List.of("reverted:" + failure.getClass().getSimpleName()));
             artifacts.saveChangeSet(reverted);
             throw new ApplicationFailure.ApplyReverted(changeId, failure);

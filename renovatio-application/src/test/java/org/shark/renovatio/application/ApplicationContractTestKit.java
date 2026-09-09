@@ -84,9 +84,14 @@ public final class ApplicationContractTestKit {
 
     public static final class MemoryIdempotency implements IdempotencyRepository {
         final Map<String, IdempotencyRecord> values = new HashMap<>();
+        boolean failSave;
         private String key(String project, String operation, String key) { return project + ":" + operation + ":" + key; }
         @Override public Optional<IdempotencyRecord> find(String project, String operation, String key) { return Optional.ofNullable(values.get(key(project, operation, key))); }
-        @Override public void save(IdempotencyRecord value) { values.put(key(value.projectId(), value.operation(), value.key()), value); }
+        @Override public void save(IdempotencyRecord value) {
+            if (failSave) throw new IllegalStateException("injected idempotency failure");
+            values.put(key(value.projectId(), value.operation(), value.key()), value);
+        }
+        @Override public void delete(String project, String operation, String key) { values.remove(key(project, operation, key)); }
     }
 
     public static final class RecordingGit implements GitPort {

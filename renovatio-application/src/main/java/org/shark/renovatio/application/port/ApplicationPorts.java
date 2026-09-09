@@ -44,6 +44,7 @@ public final class ApplicationPorts {
     public interface IdempotencyRepository {
         Optional<IdempotencyRecord> find(String projectId, String operation, String key);
         void save(IdempotencyRecord record);
+        void delete(String projectId, String operation, String key);
     }
     public interface GitPort {
         /** Creates a local, compensable checkpoint; remote pushes are expressly outside this port. */

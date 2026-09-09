@@ -34,3 +34,14 @@ Ambos comandos finalizaron con `BUILD SUCCESS`, sin fallos ni errores. El reacto
 La suite MCP intentó conexiones opcionales a servidores locales no disponibles en el sandbox;
 esas comprobaciones no ejecutaron tests externos y el conjunto local MCP terminó con 22 pruebas
 exitosas.
+
+## Revisión del PR #246
+
+Después de integrar `main`, se añadieron regresiones específicas para los tres comentarios:
+
+- apply productivo rechaza un plan si cambió cualquier fuente del workspace y no persiste un run;
+- un fallo al persistir la idempotencia compensa artifacts y Git y registra `REVERTED`;
+- un fallback HEXAGONAL inseguro conserva el grafo efectivo TRANSACTION_SCRIPT en el modelo canónico.
+
+Se repitió el reactor afectado con architecture incluido. Resultado: `BUILD SUCCESS` en 21 módulos;
+application reportó 9, core 43, MCP 22, CLI 25 y API 64 pruebas exitosas.

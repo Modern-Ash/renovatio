@@ -69,6 +69,12 @@ class ArchitectureTransformerTest {
         assertEquals(MigrationProfile.ArchitectureStyle.TRANSACTION_SCRIPT, fallback.effectiveStyle());
         assertEquals(List.of(HexagonalArchitectureProfile.FALLBACK_CODE),
                 fallback.targetModel().targetStructure().diagnosticCodes());
+        assertTrue(result.graph().components().stream()
+                .filter(value -> value.programId().equals("UNSAFE"))
+                .anyMatch(value -> value.kind() == ArchitectureGraph.ComponentKind.SERVICE));
+        assertFalse(result.graph().components().stream()
+                .filter(value -> value.programId().equals("UNSAFE"))
+                .anyMatch(value -> value.kind() == ArchitectureGraph.ComponentKind.INBOUND_PORT));
         assertEquals(1, result.diagnostics().size());
         assertEquals("UNSAFE", result.diagnostics().get(0).programId());
     }
