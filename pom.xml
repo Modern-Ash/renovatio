@@ -43,6 +43,7 @@
         <module>renovatio-jcl</module>
         <module>renovatio-shared</module>
         <module>renovatio-architecture</module>
+        <module>renovatio-application</module>
         <module>renovatio-core</module>
         <module>renovatio-provider-java</module>
         <module>renovatio-provider-cobol</module>
@@ -87,6 +88,11 @@
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-architecture</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-application</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

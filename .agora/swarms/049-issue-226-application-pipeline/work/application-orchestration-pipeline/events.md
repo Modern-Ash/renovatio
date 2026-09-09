@@ -19,3 +19,17 @@
 - 2026-09-09T21:10:41.205467Z | tool.running | run=tool-20260909t21101788999041z actor=project:agent
 - 2026-09-09T21:10:41.234653Z | tool.completed | run=tool-20260909t21101788999041z exit-code=0
 - 2026-09-09T21:11:18.459634Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-09-09T21:14:03.115359Z | artifact.added | kind=implementation-plan uri=implementation-plan.md actor=project:agent
+- 2026-09-09T21:14:03.451166Z | artifact.added | kind=application-contract uri=application-contract.md actor=project:agent
+- 2026-09-09T21:14:08.546545Z | work.criterion-stage-marked | criterion=use-cases actor=project:owner stage=planned
+- 2026-09-09T21:14:08.884500Z | work.criterion-stage-marked | criterion=ports actor=project:owner stage=planned
+- 2026-09-09T21:14:09.194400Z | work.criterion-stage-marked | criterion=side-effects actor=project:owner stage=planned
+- 2026-09-09T21:14:09.513904Z | work.criterion-stage-marked | criterion=idempotency actor=project:owner stage=planned
+- 2026-09-09T21:14:09.823781Z | work.criterion-stage-marked | criterion=atomicity actor=project:owner stage=planned
+- 2026-09-09T21:14:10.152602Z | work.criterion-stage-marked | criterion=thin-adapters actor=project:owner stage=planned
+- 2026-09-09T21:14:10.475576Z | work.criterion-stage-marked | criterion=contract-tests actor=project:owner stage=planned
+- 2026-09-09T21:14:13.857596Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-09T21:14:14.103980Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-09T21:17:19.249771Z | tool.prepared | run=tool-20260909t21171788999439z tool=repository operation=commit actor=project:agent
+- 2026-09-09T21:17:19.257832Z | tool.running | run=tool-20260909t21171788999439z actor=project:agent
+- 2026-09-09T21:17:19.278292Z | tool.failed | run=tool-20260909t21171788999439z exit-code=128
