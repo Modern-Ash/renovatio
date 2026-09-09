@@ -105,3 +105,20 @@ Los errores deben ser tipados en application y conservar una traducción estable
 - AC-04 / #225 está mergeado y su modelo canónico es la autoridad de manifest.
 - AC-02 / #223 aporta build y CI reproducibles.
 - Los cambios que crucen COBOL→target deberán ejecutar el characterization guardrail.
+
+## Decisiones de aclaración resueltas
+
+1. El límite atómico cubre el conjunto de artefactos del workspace y el registro durable de
+   ChangeSet/idempotencia. Todo se prepara antes de publicar; un fallo restaura el preimage. Git local
+   sólo ocurre después de materializar y validar y debe poder compensarse. Red y pushes remotos no
+   forman parte de `apply` en AC-05.
+2. AC-05 migra las rutas productivas de plan, preview, validate y apply de API, CLI y MCP. AC-09
+   conserva la unificación completa de catálogo de capabilities, discovery, UX y demás operaciones.
+3. La orquestación legacy sólo puede sobrevivir como adaptador temporal detrás de los nuevos puertos.
+   No habrá dual routing productivo para una misma operación; el retiro restante pertenece a AC-06.
+4. La idempotency key se identifica por proyecto, caso de uso y clave, y persiste el digest canónico
+   del comando y su resultado terminal. Misma clave y digest reproduce el resultado sin efectos;
+   misma clave con otro digest falla. Los intentos revertidos nunca se presentan como exitosos.
+5. Los nueve casos de uso deben existir como contratos públicos. Plan, preview, validate y apply
+   quedan conectados end-to-end; los demás pueden adaptar servicios actuales, pero requieren tests de
+   contrato y no pueden dejar decisiones de orquestación en los transportes.
