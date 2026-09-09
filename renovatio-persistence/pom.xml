@@ -16,17 +16,14 @@
         <dependency>
             <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-semantic-ir</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-profile</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-shared</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

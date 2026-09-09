@@ -1,53 +1,152 @@
-name: Python COBOL→Python CI
+name: CI
 
 on:
   push:
-    branches: [ '**' ]
+    branches: [main]
   pull_request:
-    branches: [ '**' ]
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  java:
+    name: Java Reactor
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-java@v4
         with:
-          python-version: '3.11'
+          java-version: '21'
+          distribution: 'temurin'
 
-      - name: Install system deps
-        run: |
-          python -m pip install --upgrade pip
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-
 
-      - name: Install Python deps
+      - name: Build and test
+        run: ./mvnw clean install -Djacoco.skip=true
+
+  renovatio-ui:
+    name: renovatio-ui
+    runs-on: ubuntu-latest
+    needs: java
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.20.0'
+
+      - name: Cache npm (ui)
+        uses: actions/cache@v4
+        with:
+          path: renovatio-ui/node_modules
+          key: npm-ui-${{ hashFiles('renovatio-ui/package-lock.json') }}
+          restore-keys: npm-ui-
+
+      - name: Install and build
         run: |
+          cd renovatio-ui
+          npm ci
+          npm test
+          npm run build
+
+  renovatio-workbench:
+    name: renovatio-workbench
+    runs-on: ubuntu-latest
+    needs: java
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.20.0'
+
+      - name: Cache npm (workbench)
+        uses: actions/cache@v4
+        with:
+          path: renovatio-workbench/node_modules
+          key: npm-wb-${{ hashFiles('renovatio-workbench/package-lock.json') }}
+          restore-keys: npm-wb-
+
+      - name: Install and build
+        run: |
+          cd renovatio-workbench
+          npm ci
+          npm test
+          npm run build
+
+  python:
+    name: Python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: renovatio-provider-python
+        run: |
+          cd renovatio-provider-python
           python -m venv .venv
           source .venv/bin/activate
-          pip install -r specs/1-cobol-python-migration/requirements.txt
+          pip install -e ".[test]"
+          pytest
 
-      - name: Run generator on examples
+      - name: Migration spec
         run: |
+          cd specs/1-cobol-python-migration
+          bash scripts/setup_env.sh
           source .venv/bin/activate
-          python3 specs/1-cobol-python-migration/tools/generate.py --ir specs/1-cobol-python-migration/examples/p1/ir_prog1.json --templates specs/1-cobol-python-migration/templates --out specs/1-cobol-python-migration/generated
+          pytest tests/
 
-      - name: Run pytest
-        run: |
-          source .venv/bin/activate
-          PYTHONPATH=specs/1-cobol-python-migration pytest -q
+  characterization:
+    name: Characterization Tests
+    runs-on: ubuntu-latest
+    needs: java
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Security scan (pip-audit)
-        run: |
-          source .venv/bin/activate
-          pip install pip-audit
-          pip-audit --progress-spinner never || true
-
-      - name: Upload generated artifacts
-        if: success()
-        uses: actions/upload-artifact@v4
+      - uses: actions/setup-java@v4
         with:
-          name: generated-artifacts
-          path: specs/1-cobol-python-migration/generated
+          java-version: '21'
+          distribution: 'temurin'
 
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-
+
+      - name: Run characterization tests
+        run: ./mvnw verify -pl renovatio-provider-cobol -Djacoco.skip=true -Dtest="*Characterization*"
+
+  equivalence:
+    name: Equivalence Tests
+    runs-on: ubuntu-latest
+    needs: java
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Maven
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: maven-
+
+      - name: Run equivalence tests
+        run: ./mvnw verify -Djacoco.skip=true -Dtest="*Equivalence*"

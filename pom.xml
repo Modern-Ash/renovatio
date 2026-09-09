@@ -100,11 +100,6 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
-                <artifactId>renovatio-mcp-server</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>info.picocli</groupId>
                 <artifactId>picocli</artifactId>
                 <version>${picocli.version}</version>
@@ -164,10 +159,19 @@
                 <artifactId>renovatio-emitter-node</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
-                <artifactId>renovatio-mcp-server</artifactId>
+                <artifactId>renovatio-cli</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-cobol-runtime</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-evals</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -309,6 +313,11 @@
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>0.8.10</version>
                 </plugin>
             </plugins>
         </pluginManagement>

@@ -160,14 +160,55 @@ linked in the Documentation Index below.
 
 ## Quick Start
 
-```bash
-# 1. Build (Java 21+, Maven)
-mvn clean install
+### Prerequisites
 
-# 2. Run the MCP server (HTTP mode)
+- **Java 21+** (JDK, not JRE)
+- **Node.js 24.20.0** (use [nvm](https://github.com/nvm-sh/nvm): `nvm install 24.20.0`)
+- **npm 11+** (bundled with Node 24)
+- **Python 3.10+** with `venv` support
+
+### One-command bootstrap
+
+```bash
+git clone https://github.com/Modern-Ash/renovatio.git
+cd renovatio
+./scripts/bootstrap.sh
+```
+
+This builds everything (Java reactor, renovatio-ui, renovatio-workbench, Python) and runs all tests from a clean clone. Use `--skip-tests` for build-only.
+
+### What `bootstrap.sh` does
+
+1. Verifies toolchain versions (Java 21, Node 24, Python 3.10+)
+2. `./mvnw clean install` — builds all 21 Java modules
+3. `cd renovatio-ui && npm ci && npm run build` — Vite SPA → `renovatio-api/src/main/resources/static/`
+4. `cd renovatio-workbench && npm ci && npm run build` — Theia workbench
+5. `cd renovatio-provider-python && pip install -e ".[test]" && pytest` — Python provider
+6. `cd specs/1-cobol-python-migration && pytest tests/` — migration spec tests
+
+### Individual components
+
+```bash
+# Java only (Maven Wrapper)
+./mvnw clean install
+
+# renovatio-ui (Vite + React)
+cd renovatio-ui && npm ci && npm run build
+
+# renovatio-workbench (Theia)
+cd renovatio-workbench && npm ci && npm run build
+
+# Python provider
+cd renovatio-provider-python && python3 -m venv .venv && source .venv/bin/activate && pip install -e ".[test]" && pytest
+```
+
+### Run the MCP server
+
+```bash
+# HTTP mode
 java -jar renovatio-mcp-server/target/renovatio-mcp-server-*.jar
 
-# 3. Or stdio mode, for direct MCP clients
+# stdio mode
 java -cp renovatio-mcp-server/target/renovatio-mcp-server-*.jar \
      org.shark.renovatio.mcp.server.McpStdioServerApplication
 ```
