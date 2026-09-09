@@ -14,9 +14,9 @@ result-kind: "repository-change"
 
 ## Standard error
 
-    remote: 
-    remote: GitHub found 43 vulnerabilities on Modern-Ash/renovatio's default branch (2 critical, 6 high, 31 moderate, 4 low). To find out more, visit:        
-    remote:      https://github.com/Modern-Ash/renovatio/security/dependabot        
-    remote: 
+    remote:
+    remote: GitHub found 43 vulnerabilities on Modern-Ash/renovatio's default branch (2 critical, 6 high, 31 moderate, 4 low). To find out more, visit:
+    remote:      https://github.com/Modern-Ash/renovatio/security/dependabot
+    remote:
     To https://github.com/Modern-Ash/renovatio.git
        c283f8af..a7a7a9dc  HEAD -> agora/issue-222-baseline-reconciliation
