@@ -84,7 +84,15 @@ if [[ "$PYTHON_MAJOR" -lt 3 ]] || { [[ "$PYTHON_MAJOR" -eq 3 ]] && [[ "$PYTHON_M
 fi
 echo "  Python: $PYTHON_VERSION ✓"
 
-# ─── 2. Maven build ─────────────────────────────────────────────────
+# ─── 2. Install UI dependencies (needed by renovatio-api Maven exec) ─
+
+log "Installing renovatio-ui dependencies"
+(
+  cd renovatio-ui
+  npm ci
+)
+
+# ─── 3. Maven build ─────────────────────────────────────────────────
 
 log "Building Java reactor"
 if [[ "$SKIP_TESTS" == true ]]; then
@@ -93,12 +101,11 @@ else
   ./mvnw clean install -Djacoco.skip=true
 fi
 
-# ─── 3. Build renovatio-ui ──────────────────────────────────────────
+# ─── 4. Build renovatio-ui ──────────────────────────────────────────
 
 log "Building renovatio-ui"
 (
   cd renovatio-ui
-  npm ci
   if [[ "$SKIP_TESTS" == true ]]; then
     npm run build
   else
@@ -107,7 +114,7 @@ log "Building renovatio-ui"
   fi
 )
 
-# ─── 4. Build renovatio-workbench ───────────────────────────────────
+# ─── 5. Build renovatio-workbench ───────────────────────────────────
 
 log "Building renovatio-workbench"
 (
@@ -121,7 +128,7 @@ log "Building renovatio-workbench"
   fi
 )
 
-# ─── 5. Build Python ────────────────────────────────────────────────
+# ─── 6. Build Python ────────────────────────────────────────────────
 
 log "Building renovatio-provider-python"
 (
@@ -137,7 +144,7 @@ log "Building renovatio-provider-python"
   fi
 )
 
-# ─── 6. Build migration spec Python ────────────────────────────────
+# ─── 7. Build migration spec Python ────────────────────────────────
 
 log "Building migration spec Python"
 (
