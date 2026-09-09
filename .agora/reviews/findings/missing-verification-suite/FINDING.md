@@ -5,13 +5,13 @@ swarm: "architecture-convergence-2026"
 work: "canonical-domain-architecture-model"
 pass: "gap-audit-2026-09-09"
 severity: "high"
-status: "open"
+status: "resolved"
 policy: "acceptance:invariants"
 location: "github:pull/245/files"
 created-at: "2026-09-09T19:05:48.927501Z"
-decided-by: null
-decided-at: null
-decision-reason: null
+decided-by: "project:owner"
+decided-at: "2026-09-09T20:22:14.410860Z"
+decision-reason: "Resolved by commit f1e4f02: canonical projection is integrated, tested, documented, and governed"
 ---
 
 # Review finding missing-verification-suite

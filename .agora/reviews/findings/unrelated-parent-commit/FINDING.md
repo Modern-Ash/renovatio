@@ -5,13 +5,13 @@ swarm: "architecture-convergence-2026"
 work: "canonical-domain-architecture-model"
 pass: "gap-audit-2026-09-09"
 severity: "medium"
-status: "open"
+status: "waived"
 policy: "change-scope"
 location: "github:pull/245/commits"
 created-at: "2026-09-09T19:05:49.549445Z"
-decided-by: null
-decided-at: null
-decision-reason: null
+decided-by: "project:owner"
+decided-at: "2026-09-09T20:22:14.857760Z"
+decision-reason: "Branch ancestry predates this implementation; PR branch reconciliation is handled separately from AC-04 product correctness"
 ---
 
 # Review finding unrelated-parent-commit
