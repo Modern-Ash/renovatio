@@ -1,7 +1,16 @@
+---
+schema: "agora/evidence/v2"
+id: "evidence-reproducible-build-ci"
+work-item: "reproducible-build-ci"
+swarm: "issue-223-reproducible-build-ci"
+---
+
 # Evidence
 
-- evidence-000001: Maven Reactor Build (22/22 SUCCESS, all tests pass)
-- evidence-000002: Node Build (UI: 28 tests, Workbench: 21 tests)
-- evidence-000003: Python Build (provider: 7 tests, migration spec: 9 tests)
-- evidence-000004: Bootstrap Script (executed successfully, all components built)
-- evidence-000005: CI Matrix (GitHub Actions configured, 6 jobs)
+| entry | date | path | artifact | result |
+|---|---|---|---|---|
+| evidence-000001 | 2026-09-09 | evidence/evidence-000001/EVIDENCE.md | build-manifest | pass |
+| evidence-000002 | 2026-09-09 | evidence/evidence-000002/EVIDENCE.md | ci-report | pass |
+| evidence-000003 | 2026-09-09 | evidence/evidence-000003/EVIDENCE.md | test-report | pass |
+| evidence-000004 | 2026-09-09 | evidence/evidence-000004/EVIDENCE.md | bootstrap.sh | pass |
+| evidence-000005 | 2026-09-09 | evidence/evidence-000005/EVIDENCE.md | ci.yml | pass |

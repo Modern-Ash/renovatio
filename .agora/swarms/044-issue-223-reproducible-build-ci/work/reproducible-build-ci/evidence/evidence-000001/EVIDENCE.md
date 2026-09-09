@@ -1,3 +1,13 @@
+---
+schema: "agora/evidence-entry/v3"
+id: "evidence-000001"
+work-item: "reproducible-build-ci"
+swarm: "issue-223-reproducible-build-ci"
+artifact: "build-manifest"
+result: "pass"
+date: "2026-09-09"
+---
+
 # Evidence: Maven Reactor Build
 
 - **Type:** build

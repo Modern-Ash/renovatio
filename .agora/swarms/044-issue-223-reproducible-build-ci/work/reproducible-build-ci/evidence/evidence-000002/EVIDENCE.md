@@ -1,3 +1,13 @@
+---
+schema: "agora/evidence-entry/v3"
+id: "evidence-000002"
+work-item: "reproducible-build-ci"
+swarm: "issue-223-reproducible-build-ci"
+artifact: "ci-report"
+result: "pass"
+date: "2026-09-09"
+---
+
 # Evidence: Node Build
 
 - **Type:** build
