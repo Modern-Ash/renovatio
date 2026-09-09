@@ -33,3 +33,4 @@
 - 2026-09-09T21:17:19.249771Z | tool.prepared | run=tool-20260909t21171788999439z tool=repository operation=commit actor=project:agent
 - 2026-09-09T21:17:19.257832Z | tool.running | run=tool-20260909t21171788999439z actor=project:agent
 - 2026-09-09T21:17:19.278292Z | tool.failed | run=tool-20260909t21171788999439z exit-code=128
+- 2026-09-09T21:19:01.813817Z | work.clarified-advisory | questions=0 actor=project:owner
