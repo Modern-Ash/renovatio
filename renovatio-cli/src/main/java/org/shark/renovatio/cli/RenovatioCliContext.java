@@ -1,6 +1,7 @@
 package org.shark.renovatio.cli;
 
 import org.shark.renovatio.core.service.LanguageProviderRegistry;
+import org.shark.renovatio.application.spi.ApplicationCommandBus;
 import org.springframework.boot.Banner;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -36,6 +37,10 @@ public final class RenovatioCliContext implements AutoCloseable {
 
     public LanguageProviderRegistry registry() {
         return context.getBean(LanguageProviderRegistry.class);
+    }
+
+    public ApplicationCommandBus application() {
+        return context.getBean(ApplicationCommandBus.class);
     }
 
     public <T> T bean(Class<T> type) {

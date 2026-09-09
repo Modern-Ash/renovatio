@@ -34,7 +34,7 @@ public abstract class AbstractCoreCommand implements Callable<Integer> {
         try {
             System.setOut(mutedOut);
             System.setErr(mutedErr);
-            return context().registry().routeToolCall(tool, args);
+            return context().application().execute(tool, args);
         } finally {
             System.setOut(originalOut);
             System.setErr(originalErr);

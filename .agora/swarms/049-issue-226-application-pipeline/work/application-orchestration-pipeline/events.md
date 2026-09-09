@@ -34,3 +34,12 @@
 - 2026-09-09T21:17:19.257832Z | tool.running | run=tool-20260909t21171788999439z actor=project:agent
 - 2026-09-09T21:17:19.278292Z | tool.failed | run=tool-20260909t21171788999439z exit-code=128
 - 2026-09-09T21:19:01.813817Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-09-09T21:32:13.450680Z | artifact.added | kind=architecture-report uri=architecture-report.md actor=project:agent
+- 2026-09-09T21:32:13.770280Z | artifact.added | kind=test-report uri=test-report.md actor=project:agent
+- 2026-09-09T21:32:19.693059Z | work.criterion-stage-marked | criterion=use-cases actor=project:agent stage=implemented
+- 2026-09-09T21:32:19.998836Z | work.criterion-stage-marked | criterion=ports actor=project:agent stage=implemented
+- 2026-09-09T21:32:20.304450Z | work.criterion-stage-marked | criterion=side-effects actor=project:agent stage=implemented
+- 2026-09-09T21:32:20.613234Z | work.criterion-stage-marked | criterion=idempotency actor=project:agent stage=implemented
+- 2026-09-09T21:32:20.917465Z | work.criterion-stage-marked | criterion=atomicity actor=project:agent stage=implemented
+- 2026-09-09T21:32:21.226529Z | work.criterion-stage-marked | criterion=thin-adapters actor=project:agent stage=implemented
+- 2026-09-09T21:32:21.538650Z | work.criterion-stage-marked | criterion=contract-tests actor=project:agent stage=implemented

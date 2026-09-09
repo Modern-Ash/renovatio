@@ -498,9 +498,11 @@ public class LanguageProviderRegistry {
             logger.debug("Converting ApplyResult: success={}, message={}", ar.isSuccess(), ar.getMessage());
             map.put("success", ar.isSuccess());
             map.put("message", ar.getMessage());
+            map.put("runId", ar.getRunId());
             map.put("dryRun", ar.isDryRun());
             map.put("diff", ar.getDiff());
             map.put("changes", ar.getChanges());
+            map.put("modifiedFiles", ar.getModifiedFiles());
             map.put("type", "apply");
 
         } else if (result instanceof DiffResult) {
