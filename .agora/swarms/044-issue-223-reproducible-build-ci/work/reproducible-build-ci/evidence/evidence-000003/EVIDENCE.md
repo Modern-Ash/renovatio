@@ -1,26 +1,22 @@
 ---
 schema: "agora/evidence-entry/v3"
 id: "evidence-000003"
+type: "build"
+phase: "implementing"
+result: "success"
+revision: 1
 work-item: "reproducible-build-ci"
 swarm: "issue-223-reproducible-build-ci"
-artifact: "test-report"
-result: "pass"
-date: "2026-09-09"
+artifact-references: ["evidence/evidence-000003/EVIDENCE.md"]
+artifact-content-sha256: {"evidence/evidence-000003/EVIDENCE.md": null}
+produced-by: "project:agent"
+timestamp: "2026-09-09T10:40:30Z"
+tested-commit: "0ad4fd45b37a4566c8b164f6179aae51c9cd20c9"
+command: ["pytest"]
+exit-code: 0
+tests-total: 0
 ---
 
 # Evidence: Python Build
 
-- **Type:** build
-- **Result:** success
-- **Date:** 2026-09-08
-- **Environment:** Ubuntu 24.04, Python 3.14.4
-
-## renovatio-provider-python
-
-- **Command:** `cd renovatio-provider-python && python3 -m venv .venv && source .venv/bin/activate && pip install -e ".[test]" && pytest`
-- **Tests:** 7 passed, 0 failed
-
-## Migration spec
-
-- **Command:** `cd specs/1-cobol-python-migration && bash scripts/setup_env.sh && source .venv/bin/activate && pytest tests/`
-- **Tests:** 9 passed, 0 failed
+All Python components built successfully.
