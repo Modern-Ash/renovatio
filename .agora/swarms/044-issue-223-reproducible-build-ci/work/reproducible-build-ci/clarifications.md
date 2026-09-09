@@ -1,5 +1,14 @@
+---
+schema: "agora/clarifications/v1"
+id: "clarifications-reproducible-build-ci"
+work-item: "reproducible-build-ci"
+swarm: "issue-223-reproducible-build-ci"
+---
+
 # Clarifications
 
-- **java-version** (2026-09-08, project:owner): Unificar todos los módulos a Java 21. Los módulos shared, core y provider-java migran de 17 a 21.
-- **node-idioms-origin** (2026-09-08, project:owner): `docs/node-idioms.md` es un artifact generado por el build del emitter-node, no un archivo committed.
-- **ci-platform** (2026-09-08, project:owner): Usar GitHub Actions para la CI matrix.
+| question | date | answer | asker | source |
+|---|---|---|---|---|
+| Java version target? | 2026-09-09 | Java 21 (unified across shared, core, provider-java) | project:agent | faguero |
+| docs/node-idioms.md committed? | 2026-09-09 | No, it is a generated artifact not in source control | project:agent | faguero |
+| CI platform? | 2026-09-09 | GitHub Actions | project:agent | faguero |

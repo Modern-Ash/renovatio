@@ -1,3 +1,13 @@
+---
+schema: "agora/evidence-entry/v3"
+id: "evidence-000003"
+work-item: "reproducible-build-ci"
+swarm: "issue-223-reproducible-build-ci"
+artifact: "test-report"
+result: "pass"
+date: "2026-09-09"
+---
+
 # Evidence: Python Build
 
 - **Type:** build
