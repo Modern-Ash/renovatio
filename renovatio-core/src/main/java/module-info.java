@@ -1,4 +1,5 @@
 open module org.shark.renovatio.core {
+    requires transitive org.shark.renovatio.application;
     requires transitive org.shark.renovatio.shared;
     requires spring.context;
     requires spring.core;

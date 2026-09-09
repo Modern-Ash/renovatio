@@ -1,0 +1,59 @@
+# Work events
+
+- 2026-09-09T21:04:08.052983Z | work.created | state=drafting actor=project:owner
+- 2026-09-09T21:04:39.402115Z | artifact.added | kind=spec uri=spec.md actor=project:owner
+- 2026-09-09T21:04:39.629077Z | work.criterion-stage-marked | criterion=use-cases actor=project:owner stage=specified
+- 2026-09-09T21:04:39.848737Z | work.criterion-stage-marked | criterion=ports actor=project:owner stage=specified
+- 2026-09-09T21:04:40.071924Z | work.criterion-stage-marked | criterion=side-effects actor=project:owner stage=specified
+- 2026-09-09T21:04:40.294916Z | work.criterion-stage-marked | criterion=idempotency actor=project:owner stage=specified
+- 2026-09-09T21:04:40.524044Z | work.criterion-stage-marked | criterion=atomicity actor=project:owner stage=specified
+- 2026-09-09T21:04:40.747149Z | work.criterion-stage-marked | criterion=thin-adapters actor=project:owner stage=specified
+- 2026-09-09T21:04:40.971222Z | work.criterion-stage-marked | criterion=contract-tests actor=project:owner stage=specified
+- 2026-09-09T21:05:31.423757Z | tool.prepared | run=tool-20260909t21051788998731z tool=repository operation=commit actor=project:agent
+- 2026-09-09T21:05:31.432210Z | tool.running | run=tool-20260909t21051788998731z actor=project:agent
+- 2026-09-09T21:05:31.461467Z | tool.completed | run=tool-20260909t21051788998731z exit-code=0
+- 2026-09-09T21:10:08.567777Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-09T21:10:22.958045Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-09-09T21:10:23.411877Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-09T21:10:41.198154Z | tool.prepared | run=tool-20260909t21101788999041z tool=repository operation=commit actor=project:agent
+- 2026-09-09T21:10:41.205467Z | tool.running | run=tool-20260909t21101788999041z actor=project:agent
+- 2026-09-09T21:10:41.234653Z | tool.completed | run=tool-20260909t21101788999041z exit-code=0
+- 2026-09-09T21:11:18.459634Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-09-09T21:14:03.115359Z | artifact.added | kind=implementation-plan uri=implementation-plan.md actor=project:agent
+- 2026-09-09T21:14:03.451166Z | artifact.added | kind=application-contract uri=application-contract.md actor=project:agent
+- 2026-09-09T21:14:08.546545Z | work.criterion-stage-marked | criterion=use-cases actor=project:owner stage=planned
+- 2026-09-09T21:14:08.884500Z | work.criterion-stage-marked | criterion=ports actor=project:owner stage=planned
+- 2026-09-09T21:14:09.194400Z | work.criterion-stage-marked | criterion=side-effects actor=project:owner stage=planned
+- 2026-09-09T21:14:09.513904Z | work.criterion-stage-marked | criterion=idempotency actor=project:owner stage=planned
+- 2026-09-09T21:14:09.823781Z | work.criterion-stage-marked | criterion=atomicity actor=project:owner stage=planned
+- 2026-09-09T21:14:10.152602Z | work.criterion-stage-marked | criterion=thin-adapters actor=project:owner stage=planned
+- 2026-09-09T21:14:10.475576Z | work.criterion-stage-marked | criterion=contract-tests actor=project:owner stage=planned
+- 2026-09-09T21:14:13.857596Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-09T21:14:14.103980Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-09T21:17:19.249771Z | tool.prepared | run=tool-20260909t21171788999439z tool=repository operation=commit actor=project:agent
+- 2026-09-09T21:17:19.257832Z | tool.running | run=tool-20260909t21171788999439z actor=project:agent
+- 2026-09-09T21:17:19.278292Z | tool.failed | run=tool-20260909t21171788999439z exit-code=128
+- 2026-09-09T21:19:01.813817Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-09-09T21:32:13.450680Z | artifact.added | kind=architecture-report uri=architecture-report.md actor=project:agent
+- 2026-09-09T21:32:13.770280Z | artifact.added | kind=test-report uri=test-report.md actor=project:agent
+- 2026-09-09T21:32:19.693059Z | work.criterion-stage-marked | criterion=use-cases actor=project:agent stage=implemented
+- 2026-09-09T21:32:19.998836Z | work.criterion-stage-marked | criterion=ports actor=project:agent stage=implemented
+- 2026-09-09T21:32:20.304450Z | work.criterion-stage-marked | criterion=side-effects actor=project:agent stage=implemented
+- 2026-09-09T21:32:20.613234Z | work.criterion-stage-marked | criterion=idempotency actor=project:agent stage=implemented
+- 2026-09-09T21:32:20.917465Z | work.criterion-stage-marked | criterion=atomicity actor=project:agent stage=implemented
+- 2026-09-09T21:32:21.226529Z | work.criterion-stage-marked | criterion=thin-adapters actor=project:agent stage=implemented
+- 2026-09-09T21:32:21.538650Z | work.criterion-stage-marked | criterion=contract-tests actor=project:agent stage=implemented
+- 2026-09-09T21:32:50.198549Z | tool.prepared | run=tool-20260909t21321789000370z tool=repository operation=commit actor=project:agent
+- 2026-09-09T21:32:50.211702Z | tool.running | run=tool-20260909t21321789000370z actor=project:agent
+- 2026-09-09T21:32:50.251226Z | tool.completed | run=tool-20260909t21321789000370z exit-code=0
+- 2026-09-09T21:33:03.330858Z | evidence.added | id=evidence-000001 type=test-suite result=success revision=1 actor=project:agent
+- 2026-09-09T21:33:09.285365Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-09T21:51:15.324808Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-09-09T21:51:31.625281Z | tool.prepared | run=tool-20260909t21511789001491z tool=repository operation=commit actor=project:agent
+- 2026-09-09T21:51:31.633133Z | tool.running | run=tool-20260909t21511789001491z actor=project:agent
+- 2026-09-09T21:51:31.661780Z | tool.completed | run=tool-20260909t21511789001491z exit-code=0
+- 2026-09-09T22:00:27.361821Z | tool.prepared | run=tool-20260909t22001789002027z tool=repository operation=commit actor=project:agent
+- 2026-09-09T22:00:27.370063Z | tool.running | run=tool-20260909t22001789002027z actor=project:agent
+- 2026-09-09T22:00:27.399279Z | tool.completed | run=tool-20260909t22001789002027z exit-code=0
+- 2026-09-09T22:00:36.077207Z | evidence.added | id=evidence-000002 type=review-remediation-tests result=success revision=1 actor=project:agent
+- 2026-09-09T22:00:36.314232Z | work.transitioned | from=implementing to=verifying actor=project:agent

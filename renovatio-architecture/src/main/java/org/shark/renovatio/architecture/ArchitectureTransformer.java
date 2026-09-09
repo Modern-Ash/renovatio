@@ -101,8 +101,8 @@ public final class ArchitectureTransformer {
             components.addAll(transformed.components());
             relations.addAll(transformed.relations());
             diagnostics.addAll(transformed.diagnostics());
-            List<ArchitectureModel.Component> canonicalComponents = baseProjection.architecture().components().stream()
-                    .filter(component -> component.programId().equals(program.programId())).toList();
+            List<ArchitectureModel.Component> canonicalComponents = transformed.components().stream()
+                    .map(ArchitectureTransformer::canonicalComponent).toList();
             List<String> componentIds = canonicalComponents.stream().map(ArchitectureModel.Component::id).toList();
             List<String> codes = transformed.diagnostics().stream().map(ArchitectureResult.Diagnostic::code).toList();
             List<ArtifactManifest.Artifact> programArtifacts = planArtifacts(request, moduleId,
@@ -120,10 +120,25 @@ public final class ArchitectureTransformer {
         }
 
         ArtifactManifest manifest = new ArtifactManifest(manifestArtifacts);
-        CanonicalProjectionService.CanonicalProjection canonical = projectionService.complete(baseProjection, manifest);
+        ArchitectureModel effectiveArchitecture = new ArchitectureModel(ArchitectureModel.SCHEMA_VERSION,
+                request.requestHash(), baseProjection.domain().canonicalHash(), baseProjection.decisions().canonicalHash(),
+                modules.stream().map(value -> new ArchitectureModel.Module(value.id(), value.name(),
+                        value.programIds())).toList(),
+                components.stream().map(ArchitectureTransformer::canonicalComponent).toList(),
+                relations.stream().map(value -> new ArchitectureModel.Relation(value.id(), value.fromComponentId(),
+                        value.toComponentId(), ArchitectureModel.RelationKind.valueOf(value.kind().name()))).toList());
+        CanonicalProjectionService.CanonicalProjection canonical = projectionService.complete(
+                new CanonicalProjectionService.BaseProjection(baseProjection.domain(), baseProjection.decisions(),
+                        effectiveArchitecture), manifest);
         return new ArchitectureResult(ArchitectureResult.SCHEMA_VERSION, request.requestHash(), architected,
                 canonical.domain(), canonical.decisions(), canonical.architecture(),
                 canonical.architecture().legacyGraph(), canonical.manifest(), canonical.manifestHash(), diagnostics);
+    }
+
+    private static ArchitectureModel.Component canonicalComponent(ArchitectureGraph.Component value) {
+        return new ArchitectureModel.Component(value.id(), value.moduleId(), value.programId(),
+                value.semanticNodeId().orElse(null), ArchitectureModel.ComponentKind.valueOf(value.kind().name()),
+                value.name(), List.of());
     }
 
     private List<ArtifactManifest.Artifact> planArtifacts(ArchitectureRequest request, String moduleId,

@@ -128,4 +128,31 @@ class FullJobLifecycleTest {
         assertThat(planRepository.findByPlanId(plan.getPlanId())).isPresent();
         assertThat(runRepository.findByRunId(apply.getRunId())).isPresent();
     }
+
+    @Test
+    void rejectsApplyWhenWorkspaceChangesAfterPlanning() throws Exception {
+        Path source = workspacePath.resolve("routed.cob");
+        Files.writeString(source, COBOL);
+        ProjectEntity project = projectRepository.save(ProjectEntity.builder()
+                .name("Stale plan")
+                .workspacePath(workspacePath.toString())
+                .branch("main")
+                .build());
+        Workspace workspace = new Workspace(project.getId(), workspacePath.toString(), "main");
+        workspace.setMetadata(Map.of("outputDir", workspacePath.resolve("generated").toString()));
+        NqlQuery query = new NqlQuery();
+        query.setType(NqlQuery.QueryType.FIND);
+        query.setTarget("stubs");
+        query.setLanguage("cobol");
+
+        var plan = planService.createPlan(project.getId(), query, new Scope(List.of("**/*.cob")), workspace);
+        assertThat(plan.isSuccess()).as(plan.getMessage()).isTrue();
+        Files.writeString(source, COBOL + "\n*> changed after plan\n");
+
+        var apply = planService.applyPlan(project.getId(), plan.getPlanId(), false, workspace);
+
+        assertThat(apply.isSuccess()).isFalse();
+        assertThat(apply.getMessage()).contains("stale plan rejected");
+        assertThat(runRepository.findAll()).isEmpty();
+    }
 }
