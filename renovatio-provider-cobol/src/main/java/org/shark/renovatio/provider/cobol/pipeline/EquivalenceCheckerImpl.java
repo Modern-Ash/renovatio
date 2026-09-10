@@ -8,6 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * Implementation of EquivalenceChecker for comparing generated and expected output.
@@ -77,40 +80,70 @@ public class EquivalenceCheckerImpl implements EquivalenceChecker {
         List<EquivalenceReport> reports = new ArrayList<>();
         
         try {
-            // Find all Java files in actual directory
-            List<Path> actualFiles = findJavaFiles(actualDir);
-            
-            for (Path actualFile : actualFiles) {
-                // Find corresponding expected file
-                Path relativePath = actualDir.relativize(actualFile);
-                Path expectedFile = expectedDir.resolve(relativePath);
-                
-                if (Files.exists(expectedFile)) {
-                    EquivalenceReport report = check(actualFile, expectedFile, config);
-                    reports.add(report);
+            Map<Path, Path> actualFiles = indexJavaFiles(actualDir);
+            Map<Path, Path> expectedFiles = indexJavaFiles(expectedDir);
+            TreeSet<Path> allPaths = new TreeSet<>();
+            allPaths.addAll(actualFiles.keySet());
+            allPaths.addAll(expectedFiles.keySet());
+
+            for (Path relativePath : allPaths) {
+                Path actualFile = actualFiles.get(relativePath);
+                Path expectedFile = expectedFiles.get(relativePath);
+
+                if (actualFile == null) {
+                    reports.add(fileSetMismatch(
+                        fixtureId, actualDir.resolve(relativePath), expectedFile,
+                        "Generated output is missing expected file", relativePath
+                    ));
+                } else if (expectedFile == null) {
+                    reports.add(fileSetMismatch(
+                        fixtureId, actualFile, expectedDir.resolve(relativePath),
+                        "Generated output contains unexpected file", relativePath
+                    ));
                 } else {
-                    log.warn("No expected file found for: {}", actualFile);
+                    reports.add(check(actualFile, expectedFile, config));
                 }
             }
             
         } catch (IOException e) {
             log.error("Error finding Java files for equivalence check", e);
+            reports.add(fileSetMismatch(
+                fixtureId, actualDir, expectedDir,
+                "Unable to enumerate files for equivalence: " + e.getMessage(), Path.of(".")
+            ));
         }
         
         return reports;
     }
-    
-    private List<Path> findJavaFiles(Path directory) throws IOException {
-        List<Path> javaFiles = new ArrayList<>();
-        
+
+    private Map<Path, Path> indexJavaFiles(Path directory) throws IOException {
+        Map<Path, Path> javaFiles = new TreeMap<>();
         if (Files.exists(directory)) {
             try (var stream = Files.walk(directory)) {
-                stream.filter(path -> path.toString().endsWith(".java"))
-                      .forEach(javaFiles::add);
+                stream.filter(Files::isRegularFile)
+                      .filter(path -> path.toString().endsWith(".java"))
+                      .forEach(path -> javaFiles.put(directory.relativize(path), path));
             }
         }
-        
         return javaFiles;
+    }
+
+    private EquivalenceReport fileSetMismatch(String fixtureId, Path actualPath, Path expectedPath,
+                                              String message, Path relativePath) {
+        return new EquivalenceReport(
+            fixtureId,
+            actualPath,
+            expectedPath,
+            false,
+            List.of(new EquivalenceReport.LineDivergence(
+                0,
+                message,
+                relativePath.toString(),
+                EquivalenceReport.LineDivergence.DivergenceType.CONTENT
+            )),
+            List.of(),
+            EquivalenceReport.GateDecision.FAIL
+        );
     }
     
     private List<EquivalenceReport.LineDivergence> compareLines(String actual, String expected, 

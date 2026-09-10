@@ -158,6 +158,11 @@ public class MavenBuildServiceImpl implements MavenBuildService {
                         <version>3.2.5</version>
                     </dependency>
                     <dependency>
+                        <groupId>org.springframework</groupId>
+                        <artifactId>spring-jdbc</artifactId>
+                        <version>6.1.6</version>
+                    </dependency>
+                    <dependency>
                         <groupId>jakarta.persistence</groupId>
                         <artifactId>jakarta.persistence-api</artifactId>
                         <version>3.1.0</version>

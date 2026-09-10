@@ -33,7 +33,6 @@ jobs:
           python-version: "3.12"
 
       - name: Run sample PoC tests
-        working-directory: renovatio
         run: python3 -m unittest discover -s examples/legacy-modernization-poc/tests -p "test_*.py"
 
   deploy:
@@ -58,7 +57,6 @@ jobs:
           aws-region: ${{ inputs.aws_region }}
 
       - name: Deploy Marketplace PoC stack
-        working-directory: renovatio
         env:
           ENVIRONMENT: ${{ inputs.environment }}
           AWS_REGION: ${{ inputs.aws_region }}

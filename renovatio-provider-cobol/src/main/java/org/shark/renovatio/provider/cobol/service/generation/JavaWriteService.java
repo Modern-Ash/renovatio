@@ -20,6 +20,7 @@ import java.util.Map;
 public class JavaWriteService {
 
     private static final Logger log = LoggerFactory.getLogger(JavaWriteService.class);
+    public static final String OUTPUT_DIRECTORY_METADATA_KEY = "outputDir";
 
     /**
      * Write generated files to disk.
@@ -64,6 +65,12 @@ public class JavaWriteService {
      * @return the resolved output path
      */
     private Path resolveOutputPath(Workspace workspace) {
+        if (workspace != null && workspace.getMetadata() != null) {
+            Object configuredOutput = workspace.getMetadata().get(OUTPUT_DIRECTORY_METADATA_KEY);
+            if (configuredOutput != null && !configuredOutput.toString().isBlank()) {
+                return Paths.get(configuredOutput.toString());
+            }
+        }
         if (workspace != null && workspace.getPath() != null) {
             return Paths.get(workspace.getPath(), "generated-java-stubs");
         }

@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime, timezone
+from decimal import Decimal
 from typing import Any, Dict, List
 
 REGION_RISK_MULTIPLIER = {
@@ -86,7 +87,9 @@ def _persist_quote(item: Dict[str, Any]) -> None:
         Item={
             "policyId": item["policyId"],
             "processedAt": datetime.now(timezone.utc).isoformat(),
-            "premium": item["premium"],
+            # DynamoDB's serializer rejects Python floats. Converting through
+            # str preserves the decimal representation returned by the API.
+            "premium": Decimal(str(item["premium"])),
             "decision": item["decision"],
             "riskBand": item["riskBand"],
             "environment": os.getenv("ENVIRONMENT", "dev"),

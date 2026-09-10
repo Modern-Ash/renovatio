@@ -2,7 +2,11 @@ package org.shark.renovatio.provider.cobol.pipeline;
 
 import org.shark.renovatio.provider.cobol.service.CobolParsingService;
 import org.shark.renovatio.provider.cobol.service.generation.JavaGenerationOrchestrator;
+import org.shark.renovatio.provider.cobol.service.generation.JavaWriteService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
+import org.shark.renovatio.shared.domain.StubResult;
+import org.shark.renovatio.shared.domain.Workspace;
+import org.shark.renovatio.shared.nql.NqlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,7 +16,9 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Orchestrates the complete COBOL-to-Java migration pipeline.
@@ -108,8 +114,25 @@ public class CobolPipelineOrchestrator implements PipelineOrchestrator {
         
         // Stage 6: Emit
         StageResult emit = executeStage("emit", () -> {
-            // Write Java files to disk
-            return "Emitted Java files";
+            StubResult generationResult = generationOrchestrator.generateInterfaceStubs(
+                createGenerationQuery(request), createGenerationWorkspace(request)
+            );
+            if (generationResult == null || !generationResult.isSuccess()) {
+                String message = generationResult == null
+                    ? "Generation returned no result"
+                    : generationResult.getMessage();
+                throw new IllegalStateException("Java emission failed: " + message);
+            }
+
+            Map<String, String> generatedCode = generationResult.getGeneratedCode();
+            if (generatedCode == null || generatedCode.isEmpty()) {
+                throw new IllegalStateException("Java emission produced no source files");
+            }
+            long emittedFiles = countJavaFiles(request.outputDir());
+            if (emittedFiles == 0) {
+                throw new IllegalStateException("Java emission reported success but wrote no source files");
+            }
+            return String.format("Emitted %d Java files", emittedFiles);
         });
         
         if (!emit.success()) {
@@ -145,12 +168,16 @@ public class CobolPipelineOrchestrator implements PipelineOrchestrator {
         // Stage 9: Equivalence (optional)
         EquivalenceReport equivalence = null;
         if (request.verifyEquivalence() && request.expectedDir() != null) {
-            equivalence = equivalenceChecker.checkAll(
+            List<EquivalenceReport> reports = equivalenceChecker.checkAll(
                 request.fixtureId(),
                 request.outputDir(),
                 request.expectedDir(),
                 EquivalenceChecker.EquivalenceConfig.defaults()
-            ).stream().findFirst().orElse(null);
+            );
+            equivalence = reports.stream()
+                .filter(report -> !report.isPassed())
+                .findFirst()
+                .orElseGet(() -> reports.stream().findFirst().orElse(null));
         }
         
         Instant endTime = Instant.now();
@@ -204,6 +231,39 @@ public class CobolPipelineOrchestrator implements PipelineOrchestrator {
         }
         
         return cobolFiles;
+    }
+
+    private NqlQuery createGenerationQuery(PipelineRequest request) {
+        NqlQuery query = new NqlQuery();
+        query.setType(NqlQuery.QueryType.FIND);
+        query.setTarget("stubs");
+        query.setLanguage("cobol");
+        query.setParameters(request.decisions());
+        return query;
+    }
+
+    private Workspace createGenerationWorkspace(PipelineRequest request) {
+        Workspace workspace = new Workspace(
+            request.fixtureId(), request.fixtureDir().toString(), "main"
+        );
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put(JavaWriteService.OUTPUT_DIRECTORY_METADATA_KEY,
+            request.outputDir()
+                .resolve("src/main/java/org/shark/renovatio/generated/cobol")
+                .toString());
+        workspace.setMetadata(metadata);
+        return workspace;
+    }
+
+    private long countJavaFiles(Path directory) throws IOException {
+        if (!Files.exists(directory)) {
+            return 0;
+        }
+        try (var stream = Files.walk(directory)) {
+            return stream.filter(Files::isRegularFile)
+                .filter(path -> path.toString().endsWith(".java"))
+                .count();
+        }
     }
     
     private StageResult executeStage(String stageName, StageOperation operation) {
