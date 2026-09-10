@@ -34,6 +34,10 @@
         </dependency>
         <dependency>
             <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-provider-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-profile</artifactId>
         </dependency>
         <dependency>
