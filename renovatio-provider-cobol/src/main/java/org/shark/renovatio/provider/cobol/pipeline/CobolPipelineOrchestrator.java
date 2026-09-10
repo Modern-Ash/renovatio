@@ -187,7 +187,11 @@ public class CobolPipelineOrchestrator implements PipelineOrchestrator {
                         "Generated source contains TODO or unsupported placeholder behavior",
                         "Resolve the associated manual action before accepting the migration"));
                 }
-                if (entry.getValue() != null && entry.getValue().contains("COBOL not translated")) {
+                if (entry.getValue() != null && entry.getValue().contains("for (...; true;")) {
+                    gaps.recordGap(ActionItem.blocking("UNTRANSLATED_EXECUTABLE_CONTROL_FLOW", entry.getKey(), "",
+                        "Generated source retains explicitly untranslated COBOL statements",
+                        "Implement the executable COBOL construct before accepting migrated behavior"));
+                } else if (entry.getValue() != null && entry.getValue().contains("COBOL not translated")) {
                     gaps.recordGap(ActionItem.warning("UNTRANSLATED_GENERATED_CODE", entry.getKey(), "",
                         "Generated source retains explicitly untranslated COBOL statements",
                         "Review the stable manual-action report before accepting migrated behavior"));
@@ -214,6 +218,15 @@ public class CobolPipelineOrchestrator implements PipelineOrchestrator {
             context.equivalence = context.equivalenceReports.stream()
                 .filter(report -> !report.isPassed()).findFirst()
                 .orElseGet(() -> context.equivalenceReports.stream().findFirst().orElse(null));
+        }
+
+        // The fixture may be edited while the long-running build/equivalence stages execute.
+        // Never publish success for an output associated with a changed source snapshot.
+        String finalSnapshot = SourceSnapshot.capture(request.fixtureDir());
+        if (!finalSnapshot.equals(request.sourceSnapshotHash())) {
+            gaps.recordGap(ActionItem.blocking("STALE_SOURCE", request.fixtureId(), "",
+                "Fixture inputs changed during pipeline execution",
+                "Restart the migration from a fresh source snapshot"));
         }
 
         boolean successful = !gaps.hasBlockingGaps()
