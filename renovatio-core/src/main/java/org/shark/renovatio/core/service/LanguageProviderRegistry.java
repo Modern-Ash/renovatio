@@ -64,6 +64,9 @@ public class LanguageProviderRegistry {
             logger.info("LanguageProviderRegistry initialized with {} providers: {}",
                     providersByLanguage.values().stream().mapToInt(List::size).sum(), providersByLanguage.keySet());
 
+        } catch (IllegalStateException conflict) {
+            logger.error("Provider registration conflict: {}", conflict.getMessage());
+            throw conflict;
         } catch (Exception e) {
             logger.error("Error during LanguageProvider auto-registration: {}", e.getMessage(), e);
         }
@@ -83,6 +86,17 @@ public class LanguageProviderRegistry {
                 logger.debug("Provider instance already registered for language '{}': {}", language, provider.getClass().getSimpleName());
                 return;
             }
+            Set<LanguageProvider.Capabilities> overlap = new LinkedHashSet<>(existing.capabilities());
+            overlap.retainAll(provider.capabilities());
+            Set<String> existingTools = toolNames(existing);
+            Set<String> incomingTools = toolNames(provider);
+            existingTools.retainAll(incomingTools);
+            if (!overlap.isEmpty() || !existingTools.isEmpty()) {
+                throw new IllegalStateException("Conflicting providers for language '" + language
+                        + "': " + existing.getClass().getSimpleName() + " and "
+                        + provider.getClass().getSimpleName() + "; overlapping capabilities=" + overlap
+                        + ", tools=" + existingTools);
+            }
         }
 
         languageProviders.add(provider);
@@ -94,6 +108,15 @@ public class LanguageProviderRegistry {
             logger.info("Registered additional LanguageProvider [{}] for language '{}' via {} ({} providers total)",
                     provider.getClass().getSimpleName(), language, source, languageProviders.size());
         }
+    }
+
+    private Set<String> toolNames(LanguageProvider provider) {
+        List<Tool> tools = provider.getTools();
+        if (tools == null) {
+            return new LinkedHashSet<>();
+        }
+        return tools.stream().filter(Objects::nonNull).map(Tool::getName)
+                .filter(Objects::nonNull).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**

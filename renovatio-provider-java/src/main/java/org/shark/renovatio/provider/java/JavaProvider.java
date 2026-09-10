@@ -158,6 +158,7 @@ public class JavaProvider extends BaseLanguageProvider {
 
     private final Map<String, JavaRecipeExecutionResult> executions = new ConcurrentHashMap<>();
     private final Map<String, String> checkpoints = new ConcurrentHashMap<>();
+    private final Map<String, String> dynamicRecipeTools = new ConcurrentHashMap<>();
 
     public JavaProvider(OpenRewriteRecipeDiscoveryService discoveryService,
                         JavaRefactorPlanner planner,
@@ -329,6 +330,11 @@ public class JavaProvider extends BaseLanguageProvider {
         tools.add(createTool(TOOL_RECIPE_LIST, "List available OpenRewrite recipes", Map.of("type", "object"), recipeListOutputSchema()));
         tools.add(createTool(TOOL_RECIPE_DESCRIBE, "Describe a specific recipe", recipeDescribeSchema(), recipeDescribeOutputSchema()));
         tools.add(createTool(TOOL_PIPELINE, "Execute preset modernization pipeline", pipelineSchema(), pipelineOutputSchema()));
+        discoveryService.listAllRecipes().forEach(recipe -> {
+            String toolName = LANGUAGE_ID + "." + recipe.name();
+            dynamicRecipeTools.put(normalizeCapability(recipe.name()), recipe.name());
+            tools.add(createTool(toolName, recipe.description(), dynamicRecipeSchema(recipe), applyOutputSchema()));
+        });
         return tools;
     }
 
@@ -336,6 +342,13 @@ public class JavaProvider extends BaseLanguageProvider {
     public Map<String, Object> executeExtendedTool(String capability, Map<String, Object> arguments) {
         if (capability == null) {
             return null;
+        }
+        String recipe = dynamicRecipeTools.get(capability.toLowerCase(Locale.ROOT));
+        if (recipe != null) {
+            Map<String, Object> recipeArguments = new LinkedHashMap<>(arguments);
+            recipeArguments.put(KEY_RECIPES, List.of(recipe));
+            recipeArguments.putIfAbsent(KEY_DRY_RUN, true);
+            return handleApply(recipeArguments);
         }
         return switch (capability.toLowerCase(Locale.ROOT)) {
             case CAP_DISCOVER -> handleDiscover(arguments);
@@ -349,6 +362,21 @@ public class JavaProvider extends BaseLanguageProvider {
             case CAP_PIPELINE -> handlePipeline(arguments);
             default -> null;
         };
+    }
+
+    private String normalizeCapability(String recipeName) {
+        return recipeName.replace('.', '_').toLowerCase(Locale.ROOT);
+    }
+
+    private Map<String, Object> dynamicRecipeSchema(RecipeInfo recipe) {
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put(KEY_WORKSPACE_PATH, Map.of("type", "string"));
+        properties.put(KEY_DRY_RUN, Map.of("type", "boolean", "default", true));
+        recipe.options().forEach(option -> properties.put(option.name(),
+                Map.of("type", option.type() == null ? "string" : option.type(),
+                        "description", option.description() == null ? "" : option.description())));
+        return Map.of("type", "object", "properties", properties,
+                "required", List.of(KEY_WORKSPACE_PATH), "additionalProperties", false);
     }
 
     private Map<String, Object> handleDiscover(Map<String, Object> arguments) {
