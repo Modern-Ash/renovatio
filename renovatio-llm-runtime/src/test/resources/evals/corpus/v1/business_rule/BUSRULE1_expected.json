@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "kind": "cobol.business_rule",
+  "proposal": {
+    "rules": [
+      {
+        "name": "AGE_ELIGIBILITY",
+        "description": "Applicant must be between 18 and 65 years old",
+        "condition": "WS-AGE >= 18 AND WS-AGE <= 65",
+        "action": "PROCEED_TO_INCOME_CHECK"
+      },
+      {
+        "name": "INCOME_THRESHOLD",
+        "description": "Minimum annual income of 30,000 required",
+        "condition": "WS-INCOME >= 30000",
+        "action": "PROCEED_TO_CREDIT_CHECK"
+      },
+      {
+        "name": "CREDIT_SCORE_MINIMUM",
+        "description": "Minimum credit score of 650 required",
+        "condition": "WS-CREDIT-SCORE >= 650",
+        "action": "SET_ELIGIBLE_Y"
+      }
+    ],
+    "calculations": [
+      {
+        "name": "CREDIT_LIMIT_CALCULATION",
+        "formula": "WS-INCOME * 0.3",
+        "condition": "WS-ELIGIBLE = 'Y'",
+        "result": "WS-LIMIT"
+      }
+    ]
+  },
+  "confidence": 0.92,
+  "rationale": "Clear nested conditional structure with three eligibility criteria and a credit limit calculation",
+  "schema": "typed-proposal.v1.json",
+  "metadata": {
+    "model": "gemini-2.0-flash",
+    "promptHash": "sha256:eval_prompt_hash",
+    "inputHash": "sha256:BUSRULE1",
+    "outputHash": "sha256:eval_output",
+    "latencyMs": 1500,
+    "tokensUsed": 1200,
+    "cacheStatus": "MISS"
+  }
+}

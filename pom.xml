@@ -59,7 +59,8 @@
         <module>renovatio-persistence</module>
         <module>renovatio-emitter-node</module>
         <module>cobol-openrewrite-recipes</module>
-        <module>renovatio-cobol-annotations</module>
+<module>renovatio-cobol-annotations</module>
+        <module>renovatio-llm-runtime</module>
     </modules>
 
     <dependencyManagement>
