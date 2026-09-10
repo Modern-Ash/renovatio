@@ -3,6 +3,8 @@ package org.shark.renovatio.provider.cobol.service;
 import org.shark.renovatio.shared.domain.MetricsResult;
 import org.shark.renovatio.shared.domain.Scope;
 import org.shark.renovatio.shared.domain.Workspace;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -20,6 +22,8 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 @Service
 public class MetricsService {
+
+    private static final Logger log = LoggerFactory.getLogger(MetricsService.class);
 
     /**
      * Calculates metrics for the given scope
@@ -116,7 +120,7 @@ public class MetricsService {
                         totalComplexity.addAndGet(calculateCyclomaticComplexity(content));
 
                     } catch (IOException e) {
-                        System.err.println("Failed to process file " + cobolFile + ": " + e.getMessage());
+                        log.error("Failed to process file {}: {}", cobolFile, e.getMessage());
                     }
                 });
 

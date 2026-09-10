@@ -16,6 +16,8 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.FSDirectory;
 import org.shark.renovatio.shared.domain.Workspace;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -30,6 +32,8 @@ import java.util.*;
  */
 @Service
 public class IndexingService {
+
+    private static final Logger log = LoggerFactory.getLogger(IndexingService.class);
 
     private final StandardAnalyzer analyzer = new StandardAnalyzer();
     private final Map<String, Path> workspaceIndexes = new HashMap<>();
@@ -124,7 +128,7 @@ public class IndexingService {
                     try {
                         indexCobolFile(writer, cobolFile);
                     } catch (IOException e) {
-                        System.err.println("Failed to index file " + cobolFile + ": " + e.getMessage());
+                        log.error("Failed to index file {}: {}", cobolFile, e.getMessage());
                     }
                 });
     }
