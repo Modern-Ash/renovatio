@@ -1,0 +1,38 @@
+{
+  "fixture": "batch-simple",
+  "version": "1.0",
+  "description": "Batch simple con MOVE, COMPUTE, IF/ELSE, DISPLAY",
+  "sourceLanguage": "COBOL",
+  "targetLanguage": "Java",
+  "package": "org.shark.renovatio.generated.cobol",
+  "className": "Batch001Service",
+  "decisions": {
+    "outputDirectory": "generated-java-stubs",
+    "generateInterface": true,
+    "generateImplementation": true,
+    "useLombok": true,
+    "useSpringAnnotations": true,
+    "mapCompToJava": {
+      "COMP-3": "java.math.BigDecimal",
+      "COMP-5": "long",
+      "PIC S9(4)": "int",
+      "PIC S9(8)": "long",
+      "PIC X": "String"
+    },
+    "controlBreakStrategy": "inline",
+    "errorHandling": "exception",
+    "logging": "slf4j"
+  },
+  "expectedOutput": {
+    "files": [
+      "Batch001Service.java"
+    ],
+    "methods": [
+      "process",
+      "initialize",
+      "processData",
+      "displayResult",
+      "cleanup"
+    ]
+  }
+}

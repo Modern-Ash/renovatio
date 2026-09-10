@@ -1,0 +1,54 @@
+{
+  "fixture": "db2-access",
+  "version": "1.0",
+  "description": "Programa con EXEC SQL SELECT/INSERT y COPYBOOK EMP-REC.cpy",
+  "sourceLanguage": "COBOL",
+  "targetLanguage": "Java",
+  "package": "org.shark.renovatio.generated.cobol",
+  "className": "Db2001Repository",
+  "decisions": {
+    "outputDirectory": "generated-java-stubs",
+    "generateInterface": true,
+    "generateImplementation": true,
+    "useLombok": true,
+    "useSpringAnnotations": true,
+    "mapCompToJava": {
+      "COMP-3": "java.math.BigDecimal",
+      "COMP-5": "long",
+      "PIC S9(4)": "int",
+      "PIC S9(8)": "long",
+      "PIC X": "String"
+    },
+    "controlBreakStrategy": "inline",
+    "errorHandling": "exception",
+    "logging": "slf4j",
+    "sqlMapping": {
+      "EXEC SQL SELECT": "JPA @Query or Repository method",
+      "EXEC SQL INSERT": "Repository.save",
+      "EXEC SQL UPDATE": "Repository.save",
+      "EXEC SQL DELETE": "Repository.delete",
+      "SQLCODE": "Exception handling"
+    }
+  },
+  "copybooks": [
+    {
+      "name": "EMP-REC",
+      "file": "EMP-REC.cpy",
+      "javaClass": "EmpRecEntity"
+    }
+  ],
+  "expectedOutput": {
+    "files": [
+      "Db2001Repository.java",
+      "EmpRecEntity.java"
+    ],
+    "methods": [
+      "processEmployee",
+      "initialize",
+      "fetchEmployee",
+      "updateSalary",
+      "displayResult",
+      "cleanup"
+    ]
+  }
+}
