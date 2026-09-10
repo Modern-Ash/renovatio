@@ -1,0 +1,69 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: ModernAsh legacy modernization PoC sample workload for AWS Marketplace collateral.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    MemorySize: 256
+    Timeout: 10
+    Tracing: Active
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - stage
+      - prod
+
+Resources:
+  PolicyQuotesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: policyId
+          AttributeType: S
+        - AttributeName: processedAt
+          AttributeType: S
+      KeySchema:
+        - AttributeName: policyId
+          KeyType: HASH
+        - AttributeName: processedAt
+          KeyType: RANGE
+      TableName: !Sub "modernash-policy-quotes-${Environment}"
+
+  QuoteCalculatorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "modernash-quote-calculator-${Environment}"
+      CodeUri: src/
+      Handler: app.handler
+      Environment:
+        Variables:
+          QUOTES_TABLE_NAME: !Ref PolicyQuotesTable
+          ENVIRONMENT: !Ref Environment
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PolicyQuotesTable
+      Events:
+        CalculateQuote:
+          Type: HttpApi
+          Properties:
+            Path: /premiums/calculate
+            Method: POST
+
+Outputs:
+  QuoteApiEndpoint:
+    Description: Endpoint URL for the premium calculation API
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com/premiums/calculate"
+
+  QuoteFunctionArn:
+    Description: Quote calculator Lambda ARN
+    Value: !GetAtt QuoteCalculatorFunction.Arn
+
+  QuotesTableName:
+    Description: DynamoDB table used for quote persistence
+    Value: !Ref PolicyQuotesTable

@@ -4,6 +4,18 @@ Este directorio contiene ejemplos de configuración para diferentes escenarios d
 
 ## Archivos de Configuración
 
+### `legacy-modernization-poc/`
+Ejemplo de PoC deployable en AWS (SAM) para la oferta de modernización legacy:
+
+- API de cálculo de primas
+- Validación de paridad con dataset dorado
+- Persistencia de resultados en DynamoDB
+
+**Cuándo usar:**
+- Demo técnica para AWS Marketplace
+- Validar despliegue automatizado del PoC
+- Mostrar evidencia de modernización con pruebas reproducibles
+
 ### `vscode-java-only.json`
 Configuración para proyectos **exclusivamente Java**. Filtra las herramientas COBOL para una experiencia más limpia.
 
@@ -56,6 +68,15 @@ Configuración con **múltiples instancias** del servidor MCP, cada una con un p
 ### Otros Clientes MCP
 
 Adapta la estructura JSON según las especificaciones de tu cliente MCP. Todos siguen el estándar Model Content Protocol.
+
+## Ejecución del ejemplo de PoC
+
+Desde `renovatio/`:
+
+```bash
+python3 -m unittest discover -s examples/legacy-modernization-poc/tests -p "test_*.py"
+ENVIRONMENT=dev AWS_REGION=us-east-1 ./scripts/deploy-marketplace-poc.sh
+```
 
 ## Variables de Entorno
 

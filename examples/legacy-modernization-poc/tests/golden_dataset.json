@@ -1,0 +1,62 @@
+[
+  {
+    "input": {
+      "policyId": "POL-1001",
+      "basePremium": 1200,
+      "riskFactor": 1.15,
+      "loyaltyYears": 6,
+      "claimsLast5Years": 0,
+      "region": "AR"
+    },
+    "expected": {
+      "premium": 1337.22,
+      "decision": "approve",
+      "riskBand": "low"
+    }
+  },
+  {
+    "input": {
+      "policyId": "POL-2002",
+      "basePremium": 1800,
+      "riskFactor": 1.3,
+      "loyaltyYears": 2,
+      "claimsLast5Years": 3,
+      "region": "US"
+    },
+    "expected": {
+      "premium": 2779.92,
+      "decision": "review",
+      "riskBand": "high"
+    }
+  },
+  {
+    "input": {
+      "policyId": "POL-3003",
+      "basePremium": 950,
+      "riskFactor": 1.05,
+      "loyaltyYears": 7,
+      "claimsLast5Years": 1,
+      "region": "EU"
+    },
+    "expected": {
+      "premium": 985.53,
+      "decision": "approve",
+      "riskBand": "low"
+    }
+  },
+  {
+    "input": {
+      "policyId": "POL-4004",
+      "basePremium": 1500,
+      "riskFactor": 0.9,
+      "loyaltyYears": 2,
+      "claimsLast5Years": 5,
+      "region": "BR"
+    },
+    "expected": {
+      "premium": 1485.0,
+      "decision": "approve",
+      "riskBand": "high"
+    }
+  }
+]

@@ -1,0 +1,70 @@
+name: marketplace-poc-sam-deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Deployment environment
+        required: true
+        default: dev
+      aws_region:
+        description: AWS region for deployment
+        required: true
+        default: us-east-1
+      stack_name:
+        description: Optional CloudFormation stack name override
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run sample PoC tests
+        working-directory: renovatio
+        run: python3 -m unittest discover -s examples/legacy-modernization-poc/tests -p "test_*.py"
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up AWS SAM
+        uses: aws-actions/setup-sam@v2
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Deploy Marketplace PoC stack
+        working-directory: renovatio
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          AWS_REGION: ${{ inputs.aws_region }}
+          STACK_NAME: ${{ inputs.stack_name }}
+        run: |
+          if [ -z "$STACK_NAME" ]; then
+            unset STACK_NAME
+          fi
+          ./scripts/deploy-marketplace-poc.sh
