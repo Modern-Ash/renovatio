@@ -1,6 +1,7 @@
 package org.shark.renovatio.provider.cobol;
 
 import org.shark.renovatio.provider.cobol.service.*;
+import org.shark.renovatio.provider.cobol.service.generation.JavaGenerationOrchestrator;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.profile.MigrationProfiles;
@@ -81,6 +82,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
 
     private final CobolParsingService parsingService;
     private final JavaGenerationService javaGenerationService;
+    private final JavaGenerationOrchestrator javaGenerationOrchestrator;
     private final MigrationPlanService migrationPlanService;
     private final MetricsService metricsService;
     private final TemplateCodeGenerationService templateCodeGenerationService;
@@ -97,8 +99,24 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
             TemplateCodeGenerationService templateCodeGenerationService,
             Db2MigrationService db2MigrationService,
             ControlBreakDecompositionService decompositionService) {
+        this(parsingService, javaGenerationService, new JavaGenerationOrchestrator(javaGenerationService),
+                migrationPlanService, indexingService, metricsService, templateCodeGenerationService,
+                db2MigrationService, decompositionService);
+    }
+
+    public CobolLanguageProvider(
+            CobolParsingService parsingService,
+            JavaGenerationService javaGenerationService,
+            JavaGenerationOrchestrator javaGenerationOrchestrator,
+            MigrationPlanService migrationPlanService,
+            IndexingService indexingService,
+            MetricsService metricsService,
+            TemplateCodeGenerationService templateCodeGenerationService,
+            Db2MigrationService db2MigrationService,
+            ControlBreakDecompositionService decompositionService) {
         this.parsingService = parsingService;
         this.javaGenerationService = javaGenerationService;
+        this.javaGenerationOrchestrator = javaGenerationOrchestrator;
         this.migrationPlanService = migrationPlanService;
         this.indexingService = indexingService;
         this.metricsService = metricsService;
@@ -180,7 +198,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         try {
             Object expected = query == null || query.getParameters() == null ? null
                     : query.getParameters().get(KEY_EXPECTED_MANIFEST_HASH);
-            return Optional.of(javaGenerationService.generateInterfaceStubs(query, workspace, effective,
+            return Optional.of(javaGenerationOrchestrator.generateInterfaceStubs(query, workspace, effective,
                     expected == null ? null : expected.toString()));
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;

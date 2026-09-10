@@ -32,13 +32,11 @@ class LanguageProviderRegistryToolsAndRedactionTest {
     }
 
     @Test
-    void generateTools_conflict_path_is_exercised() {
+    void registrationRejectsToolAndCapabilityConflict() {
         LanguageProviderRegistry reg = new LanguageProviderRegistry();
         reg.registerProvider(new ToolsProvider("java"));
-        reg.registerProvider(new ToolsProvider("java"));
-        List<Tool> tools = reg.generateTools();
-        assertEquals(1, tools.size());
-        assertEquals("lang.metrics", tools.get(0).getName());
+        assertThrows(IllegalStateException.class,
+                () -> reg.registerProvider(new ToolsProvider("java")));
     }
 
     @Test

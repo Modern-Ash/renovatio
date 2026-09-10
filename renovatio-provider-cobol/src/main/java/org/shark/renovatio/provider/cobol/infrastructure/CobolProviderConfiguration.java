@@ -6,6 +6,7 @@ import org.shark.renovatio.core.service.TargetEmitterRegistry;
 import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.provider.cobol.service.*;
+import org.shark.renovatio.provider.cobol.service.generation.JavaGenerationOrchestrator;
 import org.shark.renovatio.provider.java.emission.JavaArchitectureLayoutPlanner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.ObjectProvider;
@@ -55,6 +56,11 @@ public class CobolProviderConfiguration {
     }
 
     @Bean
+    public JavaGenerationOrchestrator javaGenerationOrchestrator(JavaGenerationService generationService) {
+        return new JavaGenerationOrchestrator(generationService);
+    }
+
+    @Bean
     public IndexingService indexingService() {
         return new IndexingService();
     }
@@ -93,6 +99,7 @@ public class CobolProviderConfiguration {
     public CobolLanguageProvider cobolLanguageProvider(
             CobolParsingService parsingService,
             JavaGenerationService javaGenerationService,
+            JavaGenerationOrchestrator javaGenerationOrchestrator,
             MigrationPlanService migrationPlanService,
             IndexingService indexingService,
             MetricsService metricsService,
@@ -102,6 +109,7 @@ public class CobolProviderConfiguration {
         return new CobolLanguageProvider(
                 parsingService,
                 javaGenerationService,
+                javaGenerationOrchestrator,
                 migrationPlanService,
                 indexingService,
                 metricsService,
