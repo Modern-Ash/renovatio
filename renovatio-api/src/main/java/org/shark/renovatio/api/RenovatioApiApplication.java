@@ -19,6 +19,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
     "org.shark.renovatio.shared",
     "org.shark.renovatio.provider.java",
     "org.shark.renovatio.provider.cobol",
+    "org.shark.renovatio.llm",
     "org.shark.renovatio.api"
 })
 @EnableAsync
