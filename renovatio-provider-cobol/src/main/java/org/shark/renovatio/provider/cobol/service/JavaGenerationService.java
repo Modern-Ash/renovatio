@@ -8,6 +8,8 @@ import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.lang.model.element.Modifier;
@@ -31,6 +33,8 @@ import java.util.regex.Pattern;
  */
 @Service
 public class JavaGenerationService {
+
+    private static final Logger log = LoggerFactory.getLogger(JavaGenerationService.class);
 
     private final CobolParsingService parsingService;
     private final TemplateCodeGenerationService templateService;
@@ -71,8 +75,8 @@ public class JavaGenerationService {
                 // Clean and sanitize the class base name
                 String classBase = sanitizeClassName(toPascalCase(baseName));
 
-                System.out.println("DEBUG: Processing file: " + fileName + ", baseName: " + baseName);
-                System.out.println("DEBUG: Generated classBase: " + classBase);
+                log.debug("Processing file: {}, baseName: {}", fileName, baseName);
+                log.debug("Generated classBase: {}", classBase);
 
                 try {
                     // Generate DTO class for data structures
@@ -86,7 +90,7 @@ public class JavaGenerationService {
                     String serviceImpl = generateServiceImplementation(classBase, metadata);
                     serviceImpl = semanticTranspiler.enrichServiceImplementation(serviceImpl, model);
                     // DEBUG: print generated service implementation for verification
-                    System.out.println("Generated Service Implementation (" + classBase + "):\n" + serviceImpl);
+                    log.debug("Generated Service Implementation ({}):\n{}", classBase, serviceImpl);
                     generatedFiles.put(classBase + "ServiceImpl.java", serviceImpl);
 
                     @SuppressWarnings("unchecked")
@@ -99,7 +103,7 @@ public class JavaGenerationService {
                         generatedFiles.put(classBase + "CicsController.java", controller);
                     }
                 } catch (Exception e) {
-                    System.out.println("DEBUG: Error generating for classBase '" + classBase + "': " + e.getMessage());
+                    log.error("Error generating for classBase {}: {}", classBase, e.getMessage());
                     throw e;
                 }
             }
@@ -108,8 +112,8 @@ public class JavaGenerationService {
             String outputPath = writeGeneratedFilesToDisk(generatedFiles, workspace);
 
             // Debug: print generated keys
-            System.out.println("Claves generadas: " + generatedFiles.keySet());
-            System.out.println("Archivos escritos en: " + outputPath);
+            log.debug("Generated keys: {}", generatedFiles.keySet());
+            log.debug("Files written to: {}", outputPath);
 
             boolean success = !generatedFiles.isEmpty();
             String message = success ?
@@ -153,13 +157,13 @@ public class JavaGenerationService {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> linkageItems = (List<Map<String, Object>>) programData.get("linkageItems");
             dataItems = linkageItems != null ? linkageItems : new java.util.ArrayList<>();
-            System.out.println("DEBUG: Using linkageItems for DTO generation, count: " + dataItems.size());
+            log.debug("Using linkageItems for DTO generation, count: {}", dataItems.size());
         } else {
             // Use working-storage items for regular programs
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> wsItems = (List<Map<String, Object>>) programData.get("dataItems");
             dataItems = wsItems != null ? wsItems : new java.util.ArrayList<>();
-            System.out.println("DEBUG: Using dataItems for DTO generation, count: " + dataItems.size());
+            log.debug("Using dataItems for DTO generation, count: {}", dataItems.size());
         }
 
         if (dataItems != null) {
@@ -645,7 +649,7 @@ public class JavaGenerationService {
         String[] parts = cleaned.trim().split("\\s+");
         StringBuilder result = new StringBuilder();
 
-        System.out.println("DEBUG: parts array: " + java.util.Arrays.toString(parts));
+        log.debug("parts array: {}", java.util.Arrays.toString(parts));
 
         for (String part : parts) {
             if (part.isEmpty()) continue;
@@ -669,7 +673,7 @@ public class JavaGenerationService {
         // Si el resultado está vacío, usar un nombre por defecto
         String finalResult = result.toString();
         if (finalResult.isEmpty()) {
-            System.out.println("DEBUG: empty result, using default");
+            log.debug("empty result, using default");
             finalResult = "CobolProgram";
         }
 
@@ -803,13 +807,13 @@ public class JavaGenerationService {
                 Path filePath = outputDir.resolve(fileName);
                 java.nio.file.Files.write(filePath, fileContent.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 
-                System.out.println("Archivo escrito: " + filePath.toString());
+                log.debug("File written: {}", filePath.toString());
             }
 
             return outputDir.toAbsolutePath().toString();
 
         } catch (Exception e) {
-            System.err.println("Error escribiendo archivos: " + e.getMessage());
+            log.error("Error writing files: {}", e.getMessage());
             e.printStackTrace();
             return "Error: No se pudieron escribir los archivos - " + e.getMessage();
         }

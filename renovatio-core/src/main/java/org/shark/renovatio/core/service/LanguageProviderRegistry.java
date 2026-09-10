@@ -74,6 +74,15 @@ public class LanguageProviderRegistry {
 
         String language = Optional.ofNullable(provider.language()).orElse("unknown");
         List<LanguageProvider> languageProviders = providersByLanguage.computeIfAbsent(language, key -> new ArrayList<>());
+
+        // Check for duplicate provider instances (same object reference)
+        for (LanguageProvider existing : languageProviders) {
+            if (existing == provider) {
+                logger.debug("Provider instance already registered for language '{}': {}", language, provider.getClass().getSimpleName());
+                return;
+            }
+        }
+
         languageProviders.add(provider);
 
         if (languageProviders.size() == 1) {
