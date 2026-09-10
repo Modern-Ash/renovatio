@@ -1,5 +1,6 @@
 package org.shark.renovatio.shared.emission;
 
+import org.shark.renovatio.profile.DocumentationSettings;
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.shared.spi.TargetEmitter;
 
@@ -11,9 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /** Fail-closed deterministic target-emitter registry. */
 public class TargetEmitterRegistry {
+    private static final Pattern JAVA_HEADER_DECLARATION = Pattern.compile(
+            "(?m)^(?:package|import)\\s+[^\\r\\n]+;\\R?");
     private final Map<MigrationProfile.Language, TargetEmitter> emitters;
 
     public TargetEmitterRegistry(Collection<TargetEmitter> candidates) {
@@ -79,10 +84,31 @@ public class TargetEmitterRegistry {
 
             @Override
             public EmittedArtifacts emit(TargetModel targetModel, MigrationProfile profile) {
-                return renderer.apply(targetModel, profile);
+                EmittedArtifacts emitted = Objects.requireNonNull(
+                        renderer.apply(targetModel, profile), "renderer result");
+                if (!DocumentationSettings.enabled(profile)) return emitted;
+                String documentation = TranslationDocumentation.javadoc(targetModel);
+                return EmittedArtifacts.of(emitted.artifacts().stream()
+                        .map(artifact -> artifact.path().endsWith(".java")
+                                ? EmittedArtifact.utf8(artifact.path(), documentJava(
+                                        artifact.utf8Text(), documentation))
+                                : artifact)
+                        .toList());
             }
         };
         return adapter.emit(model, model.profile());
+    }
+
+    private static String documentJava(String source, String documentation) {
+        Matcher matcher = JAVA_HEADER_DECLARATION.matcher(source);
+        int headerEnd = 0;
+        while (matcher.find()) headerEnd = matcher.end();
+        if (headerEnd == 0) return documentation + source;
+        int declarationStart = headerEnd;
+        while (declarationStart < source.length() && Character.isWhitespace(source.charAt(declarationStart))) {
+            declarationStart++;
+        }
+        return source.substring(0, headerEnd) + "\n" + documentation + source.substring(declarationStart);
     }
 
     public List<MigrationProfile.Language> availableTargets() {
@@ -103,7 +129,7 @@ public class TargetEmitterRegistry {
         private final List<MigrationProfile.Language> availableTargets;
 
         private TargetEmitterUnavailableException(MigrationProfile.Language requestedTarget,
-                                                   Collection<MigrationProfile.Language> availableTargets) {
+                                                     Collection<MigrationProfile.Language> availableTargets) {
             super(CODE + ": requested=" + requestedTarget + ", available=" + ordered(availableTargets));
             this.requestedTarget = requestedTarget;
             this.availableTargets = ordered(availableTargets);

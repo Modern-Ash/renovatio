@@ -471,8 +471,7 @@ public class JavaGenerationService {
                 // Clean and sanitize the class base name
                 String classBase = sanitizeClassName(toPascalCase(baseName));
 
-                log.debug("DEBUG: Processing file: " + fileName + ", baseName: " + baseName);
-                log.debug("DEBUG: Generated classBase: " + classBase);
+                log.debug("Processing COBOL artifact");
 
                 try {
                     CobolIntermediateModel model = resolveIntermediateModel(metadata);
@@ -502,8 +501,7 @@ public class JavaGenerationService {
                     collectUntranslatedStatements(model, sourceReference, actionItems);
                     serviceImpl = translateServiceImplementation(serviceImpl, model,
                             annotatedResolution.context().orElse(null), sourceReference, currentSemantic, actionItems);
-                    // DEBUG: print generated service implementation for verification
-                    log.debug("Generated Service Implementation (" + classBase + "):\n" + serviceImpl);
+                    log.debug("Generated service implementation; characterCount={}", serviceImpl.length());
                     putArtifact(generatedFiles, classBase + "ServiceImpl.java", serviceImpl);
 
                     @SuppressWarnings("unchecked")
@@ -523,7 +521,7 @@ public class JavaGenerationService {
                         putArtifact(generatedFiles, classBase + "CicsController.java", controller);
                     }
                 } catch (Exception e) {
-                    log.debug("DEBUG: Error generating for classBase '" + classBase + "': " + e.getMessage());
+                    log.debug("Artifact generation failed; exceptionType={}", e.getClass().getSimpleName());
                     throw e;
                 }
             }
@@ -538,9 +536,7 @@ public class JavaGenerationService {
             String outputPath = persist ? writeGeneratedFilesToDisk(generatedFiles, workspace)
                     : resolveOutputDir(workspace).toString();
 
-            // Debug: print generated keys
-            log.debug("Claves generadas: " + generatedFiles.keySet());
-            log.debug("Archivos escritos en: " + outputPath);
+            log.debug("Generated artifact count={}", generatedFiles.size());
 
             boolean success = !generatedFiles.isEmpty();
             String message = success ?
@@ -868,7 +864,7 @@ public class JavaGenerationService {
         String sanitizedClassName = sanitizeClassName(cleanClassName);
         String className = sanitizedClassName + "DTO";
 
-        log.debug("DEBUG: generateDataTransferObject - original: '" + cleanClassName + "', sanitized: '" + sanitizedClassName + "', final: '" + className + "'");
+        log.debug("Generating data-transfer object");
 
         TypeSpec.Builder classBuilder = TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC)
@@ -889,13 +885,13 @@ public class JavaGenerationService {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> linkageItems = (List<Map<String, Object>>) programData.get("linkageItems");
             dataItems = linkageItems != null ? linkageItems : new java.util.ArrayList<>();
-            log.debug("DEBUG: Using linkageItems for DTO generation, count: " + dataItems.size());
+            log.debug("Using linkage items for DTO generation; count={}", dataItems.size());
         } else {
             // Use working-storage items for regular programs
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> wsItems = (List<Map<String, Object>>) programData.get("dataItems");
             dataItems = wsItems != null ? wsItems : new java.util.ArrayList<>();
-            log.debug("DEBUG: Using dataItems for DTO generation, count: " + dataItems.size());
+            log.debug("Using working-storage items for DTO generation; count={}", dataItems.size());
         }
 
         if (dataItems != null) {
@@ -926,7 +922,7 @@ public class JavaGenerationService {
         String interfaceName = sanitizedClassName + "Service";
         String dtoName = sanitizedClassName + "DTO";
 
-        log.debug("DEBUG: generateServiceInterface - original: '" + cleanClassName + "', sanitized: '" + sanitizedClassName + "'");
+        log.debug("Generating service interface");
 
         ClassName dtoClass = ClassName.get("org.shark.renovatio.generated.cobol", dtoName);
 
@@ -1008,7 +1004,7 @@ public class JavaGenerationService {
         String interfaceName = sanitizedClassName + "Service";
         String dtoName = sanitizedClassName + "DTO";
 
-        log.debug("DEBUG: generateServiceImplementation - original: '" + cleanClassName + "', sanitized: '" + sanitizedClassName + "'");
+        log.debug("Generating service implementation");
 
         ClassName interfaceClass = ClassName.get("org.shark.renovatio.generated.cobol", interfaceName);
         ClassName dtoClass = ClassName.get("org.shark.renovatio.generated.cobol", dtoName);
@@ -1367,7 +1363,6 @@ public class JavaGenerationService {
     private String toPascalCase(String input) {
         if (input == null || input.isEmpty()) return "CobolProgram";
 
-        log.debug("DEBUG: toPascalCase input: '" + input + "'");
 
         // Limpiar caracteres especiales que no son válidos en nombres de clase Java (incluyendo apostrofes)
         // Primero quitar la extensión del archivo si existe
@@ -1375,13 +1370,11 @@ public class JavaGenerationService {
 
         // Limpiar todos los caracteres especiales incluyendo apostrofes, guiones, espacios, etc.
         String cleaned = withoutExtension.replaceAll("[^a-zA-Z0-9]", " ");
-        log.debug("DEBUG: after cleaning: '" + cleaned + "'");
 
         // Dividir por espacios múltiples y procesar cada parte
         String[] parts = cleaned.trim().split("\\s+");
         StringBuilder result = new StringBuilder();
 
-        log.debug("DEBUG: parts array: " + java.util.Arrays.toString(parts));
 
         for (String part : parts) {
             if (part.isEmpty()) continue;
@@ -1390,11 +1383,9 @@ public class JavaGenerationService {
             if (part.equalsIgnoreCase("cob") || part.equalsIgnoreCase("cobol") ||
                     part.equalsIgnoreCase("cbl") || part.equalsIgnoreCase("cpy") ||
                     part.equalsIgnoreCase("program") || part.equalsIgnoreCase("file")) {
-                log.debug("DEBUG: skipping common word: '" + part + "'");
                 continue;
             }
 
-            log.debug("DEBUG: processing part: '" + part + "'");
             // Capitalizar primera letra y hacer el resto lowercase
             result.append(part.substring(0, 1).toUpperCase());
             if (part.length() > 1) {
@@ -1405,7 +1396,7 @@ public class JavaGenerationService {
         // Si el resultado está vacío, usar un nombre por defecto
         String finalResult = result.toString();
         if (finalResult.isEmpty()) {
-            log.debug("DEBUG: empty result, using default");
+            log.debug("Using the default generated type name");
             finalResult = "CobolProgram";
         }
 
@@ -1421,7 +1412,6 @@ public class JavaGenerationService {
             finalResult = "CobolProgram";
         }
 
-        log.debug("DEBUG: toPascalCase final output: '" + finalResult + "'");
         return finalResult;
     }
 
@@ -1469,7 +1459,6 @@ public class JavaGenerationService {
     private String sanitizeClassName(String className) {
         if (className == null || className.isEmpty()) return "CobolProgram";
 
-        log.debug("DEBUG: sanitizeClassName input: '" + className + "'");
 
         // Limpiar caracteres especiales que no son válidos en nombres de clase Java
         String sanitized = className.replaceAll("[^a-zA-Z0-9_$]", " ");
@@ -1513,7 +1502,6 @@ public class JavaGenerationService {
             finalResult = "CobolProgram";
         }
 
-        log.debug("DEBUG: sanitizeClassName output: '" + finalResult + "'");
         return finalResult;
     }
 
