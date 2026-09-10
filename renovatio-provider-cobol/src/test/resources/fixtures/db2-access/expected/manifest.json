@@ -1,0 +1,140 @@
+{
+  "fixture": "db2-access",
+  "version": "1.0",
+  "generatedAt": "2026-09-10T00:00:00Z",
+  "pipeline": "cobol-to-java",
+  "source": {
+    "language": "COBOL",
+    "files": [
+      "src/cobol/DB2001.cbl"
+    ],
+    "copybooks": [
+      "src/cobol/EMP-REC.cpy"
+    ]
+  },
+  "output": {
+    "language": "Java",
+    "package": "org.shark.renovatio.generated.cobol",
+    "files": [
+      "src/main/java/org/shark/renovatio/generated/cobol/Db2001Repository.java",
+      "src/main/java/org/shark/renovatio/generated/cobol/EmpRecEntity.java"
+    ]
+  },
+  "mappings": {
+    "programId": "DB2001",
+    "className": "Db2001Repository",
+    "paragraphs": [
+      {
+        "cobol": "MAIN-LOGIC",
+        "java": "processEmployee",
+        "type": "entry-point"
+      },
+      {
+        "cobol": "INITIALIZE",
+        "java": "initialize",
+        "type": "method"
+      },
+      {
+        "cobol": "FETCH-EMPLOYEE",
+        "java": "fetchEmployee",
+        "type": "method"
+      },
+      {
+        "cobol": "UPDATE-SALARY",
+        "java": "updateSalary",
+        "type": "method"
+      },
+      {
+        "cobol": "DISPLAY-RESULT",
+        "java": "displayResult",
+        "type": "method"
+      },
+      {
+        "cobol": "CLEANUP",
+        "java": "cleanup",
+        "type": "method"
+      }
+    ],
+    "dataItems": [
+      {
+        "cobol": "WS-EMP-ID",
+        "java": "empId",
+        "type": "int",
+        "comp": "COMP"
+      },
+      {
+        "cobol": "WS-EMP-NAME",
+        "java": "empName",
+        "type": "String",
+        "comp": null
+      },
+      {
+        "cobol": "WS-EMP-DEPT",
+        "java": "empDept",
+        "type": "String",
+        "comp": null
+      },
+      {
+        "cobol": "WS-EMP-SALARY",
+        "java": "empSalary",
+        "type": "BigDecimal",
+        "comp": "COMP-3"
+      },
+      {
+        "cobol": "WS-RESPONSE",
+        "java": "response",
+        "type": "int",
+        "comp": "COMP"
+      },
+      {
+        "cobol": "WS-MESSAGE",
+        "java": "message",
+        "type": "String",
+        "comp": null
+      }
+    ],
+    "copybooks": [
+      {
+        "cobol": "EMP-REC",
+        "java": "EmpRecEntity",
+        "fields": [
+          {
+            "cobol": "EMP-ID",
+            "java": "empId",
+            "type": "int"
+          },
+          {
+            "cobol": "EMP-NAME",
+            "java": "empName",
+            "type": "String"
+          },
+          {
+            "cobol": "EMP-DEPT",
+            "java": "empDept",
+            "type": "String"
+          },
+          {
+            "cobol": "EMP-SALARY",
+            "java": "empSalary",
+            "type": "BigDecimal"
+          },
+          {
+            "cobol": "EMP-HIRE-DATE",
+            "java": "empHireDate",
+            "type": "String"
+          },
+          {
+            "cobol": "EMP-STATUS",
+            "java": "empStatus",
+            "type": "String"
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "determinism": "byte-identical",
+    "idempotency": "verified",
+    "semanticGaps": 0
+  }
+}

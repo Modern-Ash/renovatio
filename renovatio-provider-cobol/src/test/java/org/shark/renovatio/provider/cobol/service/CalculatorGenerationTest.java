@@ -3,6 +3,8 @@ package org.shark.renovatio.provider.cobol.service;
 import org.junit.jupiter.api.Test;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+import org.shark.renovatio.provider.cobol.service.generation.JavaProjectService;
+import org.shark.renovatio.provider.cobol.service.generation.JavaRenderService;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 
@@ -161,5 +163,24 @@ class CalculatorGenerationTest {
                         "CalculatorDTO multiply(CalculatorDTO input)",
                         "CalculatorDTO divide(CalculatorDTO input)"
                 );
+    }
+
+    @Test
+    void entryServiceImplementationAlsoImplementsDefaultProcess() {
+        TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
+        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler();
+        JavaRenderService renderService = new JavaRenderService(templateService, semanticTranspiler);
+        List<Map<String, Object>> entries = List.of(Map.of("name", "add"));
+        List<JavaProjectService.FieldDefinition> fields = List.of(
+            new JavaProjectService.FieldDefinition("result", "BigDecimal", null, null, null, true)
+        );
+
+        String implementation = renderService.renderServiceImpl(
+            "Calculator", entries, fields, null
+        );
+
+        assertThat(implementation)
+            .contains("CalculatorDTO process(CalculatorDTO input)")
+            .contains("return add(input)");
     }
 }

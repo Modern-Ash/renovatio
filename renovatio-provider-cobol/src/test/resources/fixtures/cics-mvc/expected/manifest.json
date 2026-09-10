@@ -1,0 +1,138 @@
+{
+  "fixture": "cics-mvc",
+  "version": "1.0",
+  "generatedAt": "2026-09-10T00:00:00Z",
+  "pipeline": "cobol-to-java",
+  "source": {
+    "language": "COBOL",
+    "files": [
+      "src/cobol/CICS001.cbl"
+    ],
+    "copybooks": [
+      "src/cobol/CUSTOMER.cpy"
+    ]
+  },
+  "output": {
+    "language": "Java",
+    "package": "org.shark.renovatio.generated.cobol",
+    "files": [
+      "src/main/java/org/shark/renovatio/generated/cobol/Cics001Controller.java",
+      "src/main/java/org/shark/renovatio/generated/cobol/CustomerRecord.java"
+    ]
+  },
+  "mappings": {
+    "programId": "CICS001",
+    "className": "Cics001Controller",
+    "paragraphs": [
+      {
+        "cobol": "MAIN-LOGIC",
+        "java": "handleRequest",
+        "type": "entry-point"
+      },
+      {
+        "cobol": "INITIALIZE",
+        "java": "initialize",
+        "type": "method"
+      },
+      {
+        "cobol": "RECEIVE-DATA",
+        "java": "receiveData",
+        "type": "method"
+      },
+      {
+        "cobol": "PROCESS-CUSTOMER",
+        "java": "processCustomer",
+        "type": "method"
+      },
+      {
+        "cobol": "SEND-RESPONSE",
+        "java": "sendResponse",
+        "type": "method"
+      },
+      {
+        "cobol": "SEND-ERROR",
+        "java": "sendError",
+        "type": "method"
+      },
+      {
+        "cobol": "CLEANUP",
+        "java": "cleanup",
+        "type": "method"
+      }
+    ],
+    "dataItems": [
+      {
+        "cobol": "WS-CUSTOMER-ID",
+        "java": "customerId",
+        "type": "String",
+        "comp": null
+      },
+      {
+        "cobol": "WS-CUSTOMER-NAME",
+        "java": "customerName",
+        "type": "String",
+        "comp": null
+      },
+      {
+        "cobol": "WS-RESPONSE",
+        "java": "response",
+        "type": "int",
+        "comp": "COMP"
+      },
+      {
+        "cobol": "WS-MESSAGE",
+        "java": "message",
+        "type": "String",
+        "comp": null
+      }
+    ],
+    "copybooks": [
+      {
+        "cobol": "CUSTOMER",
+        "java": "CustomerRecord",
+        "fields": [
+          {
+            "cobol": "CUST-ID",
+            "java": "custId",
+            "type": "String"
+          },
+          {
+            "cobol": "CUST-NAME",
+            "java": "custName",
+            "type": "String"
+          },
+          {
+            "cobol": "CUST-ADDRESS",
+            "java": "custAddress",
+            "type": "String"
+          },
+          {
+            "cobol": "CUST-PHONE",
+            "java": "custPhone",
+            "type": "String"
+          },
+          {
+            "cobol": "CUST-EMAIL",
+            "java": "custEmail",
+            "type": "String"
+          },
+          {
+            "cobol": "CUST-BALANCE",
+            "java": "custBalance",
+            "type": "BigDecimal"
+          },
+          {
+            "cobol": "CUST-STATUS",
+            "java": "custStatus",
+            "type": "String"
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "determinism": "byte-identical",
+    "idempotency": "verified",
+    "semanticGaps": 0
+  }
+}

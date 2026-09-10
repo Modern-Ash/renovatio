@@ -157,10 +157,14 @@ public class JavaRenderService {
 
         if (entryPoints != null && !entryPoints.isEmpty()) {
             // Generate implementation for each ENTRY point
+            String defaultEntryMethod = null;
             for (Map<String, Object> entry : entryPoints) {
                 String entryName = (String) entry.get("name");
                 if (entryName != null && !entryName.isEmpty()) {
                     String methodName = toCamelCase(entryName);
+                    if (defaultEntryMethod == null) {
+                        defaultEntryMethod = methodName;
+                    }
                     MethodSpec entryMethod = MethodSpec.methodBuilder(methodName)
                             .addModifiers(Modifier.PUBLIC)
                             .addAnnotation(Override.class)
@@ -175,18 +179,9 @@ public class JavaRenderService {
                     classBuilder.addMethod(entryMethod);
                 }
             }
+            classBuilder.addMethod(buildProcessMethod(dtoClass, defaultEntryMethod));
         } else {
-            // Add default process method
-            MethodSpec processMethod = MethodSpec.methodBuilder("process")
-                    .addModifiers(Modifier.PUBLIC)
-                    .addAnnotation(Override.class)
-                    .addParameter(dtoClass, "input")
-                    .returns(dtoClass)
-                    .addStatement("// TODO: Implement COBOL business logic")
-                    .addStatement("$T output = new $T()", dtoClass, dtoClass)
-                    .addStatement("return output")
-                    .build();
-            classBuilder.addMethod(processMethod);
+            classBuilder.addMethod(buildProcessMethod(dtoClass, null));
         }
 
         // Implement validate method
@@ -205,6 +200,22 @@ public class JavaRenderService {
         }
 
         return implementation;
+    }
+
+    private MethodSpec buildProcessMethod(ClassName dtoClass, String defaultEntryMethod) {
+        MethodSpec.Builder processMethod = MethodSpec.methodBuilder("process")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(dtoClass, "input")
+                .returns(dtoClass);
+
+        if (defaultEntryMethod != null) {
+            processMethod.addStatement("return $L(input)", defaultEntryMethod);
+        } else {
+            processMethod.addStatement("$T output = new $T()", dtoClass, dtoClass)
+                    .addStatement("return output");
+        }
+        return processMethod.build();
     }
 
     /**

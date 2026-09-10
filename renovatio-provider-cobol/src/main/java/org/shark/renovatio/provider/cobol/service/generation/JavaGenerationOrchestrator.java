@@ -68,6 +68,10 @@ public class JavaGenerationOrchestrator {
      * @return the stub generation result
      */
     public StubResult generateInterfaceStubs(NqlQuery query, Workspace workspace) {
+        if (generationService != null) {
+            return generationService.generateInterfaceStubs(query, workspace);
+        }
+
         try {
             // Stage 1: Parse
             List<CobolProgram> programs = parseService.parse(query, workspace);

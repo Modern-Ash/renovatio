@@ -1,0 +1,54 @@
+{
+  "fixture": "cics-mvc",
+  "version": "1.0",
+  "description": "Programa CICS con EXEC CICS SEND/RECEIVE y COPYBOOK CUSTOMER.cpy",
+  "sourceLanguage": "COBOL",
+  "targetLanguage": "Java",
+  "package": "org.shark.renovatio.generated.cobol",
+  "className": "Cics001Controller",
+  "decisions": {
+    "outputDirectory": "generated-java-stubs",
+    "generateInterface": true,
+    "generateImplementation": true,
+    "useLombok": true,
+    "useSpringAnnotations": true,
+    "mapCompToJava": {
+      "COMP-3": "java.math.BigDecimal",
+      "COMP-5": "long",
+      "PIC S9(4)": "int",
+      "PIC S9(8)": "long",
+      "PIC X": "String"
+    },
+    "controlBreakStrategy": "inline",
+    "errorHandling": "exception",
+    "logging": "slf4j",
+    "cicsMapping": {
+      "EXEC CICS RECEIVE": "HttpServletRequest.getParameter",
+      "EXEC CICS SEND": "HttpServletResponse.getWriter().write",
+      "EXEC CICS READ": "Repository.findById",
+      "EXEC CICS RETURN": "return"
+    }
+  },
+  "copybooks": [
+    {
+      "name": "CUSTOMER",
+      "file": "CUSTOMER.cpy",
+      "javaClass": "CustomerRecord"
+    }
+  ],
+  "expectedOutput": {
+    "files": [
+      "Cics001Controller.java",
+      "CustomerRecord.java"
+    ],
+    "methods": [
+      "handleRequest",
+      "initialize",
+      "receiveData",
+      "processCustomer",
+      "sendResponse",
+      "sendError",
+      "cleanup"
+    ]
+  }
+}

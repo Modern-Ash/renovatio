@@ -1,0 +1,88 @@
+name: modernization-poc-delivery
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: Trigger AWS delivery pipeline
+        required: true
+        default: "false"
+      aws_region:
+        description: AWS region for deployment trigger
+        required: true
+        default: us-east-1
+      codepipeline_name:
+        description: AWS CodePipeline name to trigger
+        required: true
+        default: modernash-renovatio-dev
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Build and test all modules
+        run: ./mvnw -B -ntp clean install -Djacoco.skip=true -Dexec.skip=true
+
+  package-mcp-server:
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Package server artifact
+        run: ./mvnw -B -ntp -pl renovatio-mcp-server -am package -DskipTests -Djacoco.skip=true -Dexec.skip=true
+
+      - name: Upload server artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: renovatio-mcp-server-jar
+          path: renovatio-mcp-server/target/renovatio-mcp-server-*.jar
+
+  trigger-aws-delivery:
+    runs-on: ubuntu-latest
+    needs: package-mcp-server
+    if: github.event_name == 'workflow_dispatch' && inputs.deploy == 'true'
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Trigger AWS CodePipeline
+        run: |
+          if [ -z "${{ inputs.codepipeline_name }}" ]; then
+            echo "codepipeline_name is required when deploy=true" >&2
+            exit 1
+          fi
+          aws codepipeline start-pipeline-execution --name "${{ inputs.codepipeline_name }}"

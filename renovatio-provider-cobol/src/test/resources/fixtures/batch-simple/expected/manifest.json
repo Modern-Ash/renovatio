@@ -1,0 +1,88 @@
+{
+  "fixture": "batch-simple",
+  "version": "1.0",
+  "generatedAt": "2026-09-10T00:00:00Z",
+  "pipeline": "cobol-to-java",
+  "source": {
+    "language": "COBOL",
+    "files": [
+      "src/cobol/BATCH001.cbl"
+    ],
+    "copybooks": []
+  },
+  "output": {
+    "language": "Java",
+    "package": "org.shark.renovatio.generated.cobol",
+    "files": [
+      "src/main/java/org/shark/renovatio/generated/cobol/Batch001Service.java"
+    ]
+  },
+  "mappings": {
+    "programId": "BATCH001",
+    "className": "Batch001Service",
+    "paragraphs": [
+      {
+        "cobol": "MAIN-LOGIC",
+        "java": "process",
+        "type": "entry-point"
+      },
+      {
+        "cobol": "INITIALIZE",
+        "java": "initialize",
+        "type": "method"
+      },
+      {
+        "cobol": "PROCESS-DATA",
+        "java": "processData",
+        "type": "method"
+      },
+      {
+        "cobol": "DISPLAY-RESULT",
+        "java": "displayResult",
+        "type": "method"
+      },
+      {
+        "cobol": "CLEANUP",
+        "java": "cleanup",
+        "type": "method"
+      }
+    ],
+    "dataItems": [
+      {
+        "cobol": "WS-COUNTER",
+        "java": "counter",
+        "type": "int",
+        "comp": "COMP"
+      },
+      {
+        "cobol": "WS-TOTAL",
+        "java": "total",
+        "type": "long",
+        "comp": "COMP"
+      },
+      {
+        "cobol": "WS-RESULT",
+        "java": "result",
+        "type": "long",
+        "comp": "COMP"
+      },
+      {
+        "cobol": "WS-FLAG",
+        "java": "flag",
+        "type": "String",
+        "comp": null
+      },
+      {
+        "cobol": "WS-OUTPUT",
+        "java": "output",
+        "type": "String",
+        "comp": null
+      }
+    ]
+  },
+  "metadata": {
+    "determinism": "byte-identical",
+    "idempotency": "verified",
+    "semanticGaps": 0
+  }
+}
