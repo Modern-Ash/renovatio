@@ -31,3 +31,10 @@
 - 2026-09-10T01:33:58.494704Z | work.criterion-stage-marked | criterion=emitter-registration actor=project:agent stage=implemented
 - 2026-09-10T01:33:58.739721Z | work.criterion-stage-marked | criterion=logging actor=project:agent stage=implemented
 - 2026-09-10T01:33:58.991072Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-10T01:34:42.880095Z | work.criterion-stage-marked | criterion=single-authority actor=project:agent stage=verified
+- 2026-09-10T01:34:43.118278Z | work.criterion-stage-marked | criterion=provider-cleanup actor=project:agent stage=verified
+- 2026-09-10T01:34:43.355293Z | work.criterion-stage-marked | criterion=dependency-direction actor=project:agent stage=verified
+- 2026-09-10T01:34:43.587404Z | work.criterion-stage-marked | criterion=service-decomposition actor=project:agent stage=verified
+- 2026-09-10T01:34:43.820857Z | work.criterion-stage-marked | criterion=legacy-route actor=project:agent stage=verified
+- 2026-09-10T01:34:44.065328Z | work.criterion-stage-marked | criterion=emitter-registration actor=project:agent stage=verified
+- 2026-09-10T01:34:44.302796Z | work.criterion-stage-marked | criterion=logging actor=project:agent stage=verified
