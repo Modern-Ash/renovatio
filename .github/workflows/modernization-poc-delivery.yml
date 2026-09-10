@@ -34,11 +34,11 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
           cache: maven
 
       - name: Build and test all modules
-        run: mvn -B -ntp clean verify
+        run: ./mvnw -B -ntp clean install -Djacoco.skip=true -Dexec.skip=true
 
   package-mcp-server:
     runs-on: ubuntu-latest
@@ -51,11 +51,11 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: "21"
           cache: maven
 
       - name: Package server artifact
-        run: mvn -B -ntp -pl renovatio-mcp-server -am package -DskipTests
+        run: ./mvnw -B -ntp -pl renovatio-mcp-server -am package -DskipTests -Djacoco.skip=true -Dexec.skip=true
 
       - name: Upload server artifact
         uses: actions/upload-artifact@v4
