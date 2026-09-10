@@ -1,129 +1,90 @@
 package org.shark.renovatio.provider.cobol.pipeline;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
 
-/**
- * Validates that pipeline execution is deterministic.
- * Runs the pipeline multiple times and compares outputs.
- */
+/** Validates determinism from independently generated file trees. */
 public class DeterminismValidator {
-    
-    private final MetadataNormalizer normalizer = new MetadataNormalizer();
-    
-    /**
-     * Validate determinism by running the pipeline multiple times.
-     * 
-     * @param pipeline Pipeline orchestrator to execute
-     * @param request Pipeline request
-     * @param runs Number of runs to compare
-     * @return Determinism report
-     */
+
     public DeterminismReport validate(PipelineOrchestrator pipeline, PipelineRequest request, int runs) {
+        if (runs < 2) {
+            throw new IllegalArgumentException("Determinism validation requires at least two runs");
+        }
         List<PipelineResult> results = new ArrayList<>();
-        
-        // Execute pipeline multiple times
-        for (int i = 0; i < runs; i++) {
-            PipelineResult result = pipeline.execute(request);
-            results.add(result);
-        }
-        
-        // Compare outputs byte-by-byte
+        List<Map<String, String>> snapshots = new ArrayList<>();
         List<Divergence> divergences = new ArrayList<>();
-        for (int i = 1; i < results.size(); i++) {
-            List<Divergence> runDivergences = compareResults(
-                results.get(0), results.get(i), request.outputDir()
-            );
-            divergences.addAll(runDivergences);
-        }
-        
-        return new DeterminismReport(
-            request.fixtureId(),
-            runs,
-            divergences.isEmpty(),
-            divergences,
-            results.get(0)
-        );
-    }
-    
-    private List<Divergence> compareResults(PipelineResult result1, PipelineResult result2, Path outputDir) {
-        List<Divergence> divergences = new ArrayList<>();
-        
-        // Compare stage results
-        divergences.addAll(compareStageResults("discover", result1.discover(), result2.discover()));
-        divergences.addAll(compareStageResults("parse", result1.parse(), result2.parse()));
-        divergences.addAll(compareStageResults("semanticIr", result1.semanticIr(), result2.semanticIr()));
-        divergences.addAll(compareStageResults("decisions", result1.decisions(), result2.decisions()));
-        divergences.addAll(compareStageResults("manifest", result1.manifest(), result2.manifest()));
-        divergences.addAll(compareStageResults("emit", result1.emit(), result2.emit()));
-        divergences.addAll(compareStageResults("openRewrite", result1.openRewrite(), result2.openRewrite()));
-        divergences.addAll(compareStageResults("build", result1.build(), result2.build()));
-        
-        return divergences;
-    }
-    
-    private List<Divergence> compareStageResults(String stageName, StageResult result1, StageResult result2) {
-        List<Divergence> divergences = new ArrayList<>();
-        
-        if (result1.success() != result2.success()) {
-            divergences.add(new Divergence(
-                stageName + ".success",
-                String.valueOf(result1.success()),
-                String.valueOf(result2.success()),
-                Divergence.Type.CONTENT
-            ));
-        }
-        
-        if (result1.output() != null && result2.output() != null) {
-            String normalized1 = normalizer.normalize(result1.output());
-            String normalized2 = normalizer.normalize(result2.output());
-            
-            if (!normalized1.equals(normalized2)) {
-                divergences.add(new Divergence(
-                    stageName + ".output",
-                    normalized1,
-                    normalized2,
-                    Divergence.Type.CONTENT
-                ));
+
+        for (int index = 0; index < runs; index++) {
+            try {
+                Path output = independentOutput(request.outputDir(), index);
+                PipelineResult result = pipeline.execute(request.withOutputDir(output));
+                results.add(result);
+                if (!result.isSuccessful()) {
+                    divergences.add(new Divergence("run-" + index, "successful", "failed",
+                        Divergence.Type.CONTENT));
+                }
+                snapshots.add(GeneratedTreeSnapshot.capture(result.outputDir()));
+            } catch (IOException exception) {
+                divergences.add(new Divergence("run-" + index, "readable generated tree",
+                    exception.getMessage(), Divergence.Type.CONTENT));
+                snapshots.add(Map.of());
             }
         }
-        
-        return divergences;
+
+        for (int index = 1; index < snapshots.size(); index++) {
+            divergences.addAll(compareTrees(snapshots.get(0), snapshots.get(index), index));
+        }
+        if (snapshots.get(0).isEmpty()) {
+            divergences.add(new Divergence("generated-tree", "at least one generated file", "empty",
+                Divergence.Type.CONTENT));
+        }
+        return new DeterminismReport(request.fixtureId(), runs, divergences.isEmpty(),
+            List.copyOf(divergences), results.get(0));
     }
-    
-    /**
-     * Report from determinism validation.
-     */
-    public record DeterminismReport(
-        String fixtureId,
-        int runs,
-        boolean deterministic,
-        List<Divergence> divergences,
-        PipelineResult sampleResult
-    ) {
-        /**
-         * Check if the pipeline is deterministic.
-         */
+
+    private Path independentOutput(Path requested, int index) throws IOException {
+        Path absolute = requested.toAbsolutePath().normalize();
+        Path parent = absolute.getParent();
+        if (parent == null) {
+            parent = Path.of(".").toAbsolutePath().normalize();
+        }
+        Files.createDirectories(parent);
+        return Files.createTempDirectory(parent, absolute.getFileName() + "-run-" + index + "-");
+    }
+
+    private List<Divergence> compareTrees(Map<String, String> baseline, Map<String, String> candidate,
+                                          int run) {
+        List<Divergence> result = new ArrayList<>();
+        TreeSet<String> paths = new TreeSet<>(baseline.keySet());
+        paths.addAll(candidate.keySet());
+        for (String path : paths) {
+            String first = baseline.get(path);
+            String next = candidate.get(path);
+            if (first == null) {
+                result.add(new Divergence(path, "missing", next, Divergence.Type.CONTENT));
+            } else if (next == null) {
+                result.add(new Divergence(path, first, "missing in run " + run,
+                    Divergence.Type.CONTENT));
+            } else if (!first.equals(next)) {
+                result.add(new Divergence(path, first, next, Divergence.Type.CONTENT));
+            }
+        }
+        return result;
+    }
+
+    public record DeterminismReport(String fixtureId, int runs, boolean deterministic,
+                                    List<Divergence> divergences, PipelineResult sampleResult) {
         public boolean isDeterministic() {
             return deterministic;
         }
     }
-    
-    /**
-     * Represents a divergence between two runs.
-     */
-    public record Divergence(
-        String location,
-        String value1,
-        String value2,
-        Type type
-    ) {
-        public enum Type {
-            CONTENT,
-            WHITESPACE,
-            ORDERING,
-            METADATA
-        }
+
+    public record Divergence(String location, String value1, String value2, Type type) {
+        public enum Type { CONTENT, WHITESPACE, ORDERING, METADATA }
     }
 }

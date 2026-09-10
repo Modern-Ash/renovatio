@@ -47,7 +47,8 @@ public final class CobolSemanticProjector {
             Pattern.CASE_INSENSITIVE);
     private static final Set<String> EXPRESSION_KEYWORDS = Set.of(
             "AND", "OR", "NOT", "IS", "EQUAL", "GREATER", "LESS", "THAN", "TO", "ZERO",
-            "ZEROS", "ZEROES", "SPACE", "SPACES", "HIGH-VALUE", "LOW-VALUE", "TRUE", "FALSE");
+            "ZEROS", "ZEROES", "SPACE", "SPACES", "HIGH-VALUE", "LOW-VALUE", "TRUE", "FALSE",
+            "IN", "OF");
     private final CobolIrIdentityProjector identities = new CobolIrIdentityProjector();
 
     public SemanticProgram project(CobolIntermediateModel model, String sourcePath, byte[] sourceBytes,

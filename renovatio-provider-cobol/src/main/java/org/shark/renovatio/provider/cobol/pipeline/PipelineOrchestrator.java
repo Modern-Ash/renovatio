@@ -3,16 +3,17 @@ package org.shark.renovatio.provider.cobol.pipeline;
 /**
  * Orchestrates the complete COBOL-to-Java migration pipeline.
  * 
- * The pipeline consists of 7 stages:
+ * The pipeline consists of 10 capabilities:
  * 1. Discover - Find COBOL files in fixture directory
  * 2. Parse - Parse COBOL source into intermediate model
  * 3. Semantic IR - Transform to semantic intermediate representation
- * 4. Decisions - Apply migration decisions from configuration
- * 5. Manifest - Generate Java code structure
- * 6. Emit - Write Java files to disk
- * 7. OpenRewrite - Apply OpenRewrite recipes for enrichment
- * 8. Build - Compile generated Java code
- * 9. Equivalence - Compare against expected output (optional)
+ * 4. Domain Model - Project target-neutral business concepts
+ * 5. Decisions - Resolve the effective migration profile and decisions
+ * 6. Architecture - Project the canonical architecture model
+ * 7. Manifest - Produce the canonical artifact manifest
+ * 8. Emit - Write target files; the Java emitter owns OpenRewrite enrichment
+ * 9. Build - Compile generated Java code
+ * 10. Equivalence - Compare complete actual and expected file sets (optional)
  */
 public interface PipelineOrchestrator {
     

@@ -55,4 +55,24 @@ class SimpleCobolIrParserTest {
         List<CobolParagraph> paragraphs = model.getParagraphs().values().stream().toList();
         assertEquals(2, paragraphs.size());
     }
+
+    @Test
+    void shouldKeepUsageClauseOutOfPictureWhenValueClauseIsPresent() {
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse("""
+            IDENTIFICATION DIVISION.
+            PROGRAM-ID. TYPES01.
+            DATA DIVISION.
+            WORKING-STORAGE SECTION.
+            01 WS-COUNT PIC S9(4) COMP VALUE 0.
+            01 WS-AMOUNT PIC S9(8)V99 COMP-3 VALUE 0.
+            PROCEDURE DIVISION.
+            MAIN-PARA.
+                GOBACK.
+            """);
+
+        assertEquals("S9(4) COMP", model.getDataItems().get(0).picture());
+        assertEquals("Integer", model.getDataItems().get(0).javaType());
+        assertEquals("S9(8)V99 COMP-3", model.getDataItems().get(1).picture());
+        assertEquals("BigDecimal", model.getDataItems().get(1).javaType());
+    }
 }

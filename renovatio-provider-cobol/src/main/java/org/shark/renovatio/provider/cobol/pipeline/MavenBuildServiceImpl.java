@@ -20,19 +20,20 @@ public class MavenBuildServiceImpl implements MavenBuildService {
     
     @Override
     public BuildResult compile(Path sourceDir, String classpath) {
-        log.info("Compiling Java sources in: {}", sourceDir);
+        Path buildRoot = sourceDir.toAbsolutePath().normalize();
+        log.info("Compiling Java sources in: {}", buildRoot);
         
         try {
             long startTime = System.currentTimeMillis();
             
             // Create a temporary pom.xml for compilation
-            Path pomFile = createTemporaryPom(sourceDir, classpath);
+            Path pomFile = createTemporaryPom(buildRoot, classpath);
             
             // Execute Maven compile
             ProcessBuilder processBuilder = new ProcessBuilder(
                 "mvn", "compile", "-q", "-f", pomFile.toString()
             );
-            processBuilder.directory(sourceDir.toFile());
+            processBuilder.directory(buildRoot.toFile());
             processBuilder.redirectErrorStream(true);
             
             Process process = processBuilder.start();
@@ -62,7 +63,7 @@ public class MavenBuildServiceImpl implements MavenBuildService {
                 return BuildResult.success(output.toString(), compilationTime);
             } else {
                 log.error("Compilation failed with exit code: {}", exitCode);
-                return BuildResult.failure(exitCode, output.toString(), errors.toString());
+                return BuildResult.failure(exitCode, output.toString(), output.toString());
             }
             
         } catch (IOException | InterruptedException e) {
@@ -73,7 +74,8 @@ public class MavenBuildServiceImpl implements MavenBuildService {
     
     @Override
     public BuildResult test(Path testDir, String classpath) {
-        log.info("Running tests in: {}", testDir);
+        Path buildRoot = testDir.toAbsolutePath().normalize();
+        log.info("Running tests in: {}", buildRoot);
         
         try {
             long startTime = System.currentTimeMillis();
@@ -81,7 +83,7 @@ public class MavenBuildServiceImpl implements MavenBuildService {
             ProcessBuilder processBuilder = new ProcessBuilder(
                 "mvn", "test", "-q"
             );
-            processBuilder.directory(testDir.toFile());
+            processBuilder.directory(buildRoot.toFile());
             processBuilder.redirectErrorStream(true);
             
             Process process = processBuilder.start();
@@ -140,8 +142,7 @@ public class MavenBuildServiceImpl implements MavenBuildService {
                 <packaging>jar</packaging>
             
                 <properties>
-                    <maven.compiler.source>17</maven.compiler.source>
-                    <maven.compiler.target>17</maven.compiler.target>
+                    <maven.compiler.release>21</maven.compiler.release>
                     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
                 </properties>
             
@@ -176,8 +177,7 @@ public class MavenBuildServiceImpl implements MavenBuildService {
                             <artifactId>maven-compiler-plugin</artifactId>
                             <version>3.11.0</version>
                             <configuration>
-                                <source>17</source>
-                                <target>17</target>
+                                <release>21</release>
                                 <annotationProcessorPaths>
                                     <path>
                                         <groupId>org.projectlombok</groupId>

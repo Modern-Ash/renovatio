@@ -1,0 +1,62 @@
+# Work events
+
+- 2026-09-10T12:55:40.095148Z | work.created | state=drafting actor=project:owner
+- 2026-09-10T12:57:50.757786Z | artifact.added | kind=spec uri=.agora/swarms/051-issue-228-cobol-java-reference-path/work/cobol-java-reference-path/spec.md actor=project:owner
+- 2026-09-10T12:57:50.995671Z | work.criterion-stage-marked | criterion=fixtures actor=project:owner stage=specified
+- 2026-09-10T12:57:51.230516Z | work.criterion-stage-marked | criterion=end-to-end actor=project:owner stage=specified
+- 2026-09-10T12:57:51.466172Z | work.criterion-stage-marked | criterion=determinism actor=project:owner stage=specified
+- 2026-09-10T12:57:51.690186Z | work.criterion-stage-marked | criterion=idempotency actor=project:owner stage=specified
+- 2026-09-10T12:57:51.910816Z | work.criterion-stage-marked | criterion=semantic-gaps actor=project:owner stage=specified
+- 2026-09-10T12:57:52.125131Z | work.criterion-stage-marked | criterion=equivalence actor=project:owner stage=specified
+- 2026-09-10T12:57:52.346518Z | work.criterion-stage-marked | criterion=surface-proof actor=project:owner stage=specified
+- 2026-09-10T12:57:52.586460Z | work.criterion-stage-marked | criterion=runbook actor=project:owner stage=specified
+- 2026-09-10T13:00:21.095146Z | work.block | from=active to=blocked actor=project:agent change=change-20260910t130021095032z
+- 2026-09-10T13:01:48.509819Z | work.resume | from=blocked to=active actor=project:agent change=change-20260910t130148509668z
+- 2026-09-10T13:01:48.762428Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-10T13:02:39.981372Z | tool.prepared | run=tool-20260910t13021789056159z tool=repository operation=commit actor=project:agent
+- 2026-09-10T13:02:39.990154Z | tool.running | run=tool-20260910t13021789056159z actor=project:agent
+- 2026-09-10T13:02:40.030222Z | tool.completed | run=tool-20260910t13021789056159z exit-code=0
+- 2026-09-10T13:05:15.643979Z | tool.prepared | run=tool-20260910t13051789056315z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-10T13:05:15.651588Z | tool.running | run=tool-20260910t13051789056315z actor=project:agent
+- 2026-09-10T13:05:17.932878Z | tool.completed | run=tool-20260910t13051789056315z exit-code=0
+- 2026-09-10T13:05:55.574972Z | artifact.added | kind=implementation-plan uri=.agora/swarms/051-issue-228-cobol-java-reference-path/work/cobol-java-reference-path/implementation-plan.md actor=project:agent
+- 2026-09-10T13:06:01.799891Z | work.criterion-stage-marked | criterion=fixtures actor=project:owner stage=planned
+- 2026-09-10T13:06:02.104097Z | work.criterion-stage-marked | criterion=end-to-end actor=project:owner stage=planned
+- 2026-09-10T13:06:02.424724Z | work.criterion-stage-marked | criterion=determinism actor=project:owner stage=planned
+- 2026-09-10T13:06:02.745889Z | work.criterion-stage-marked | criterion=idempotency actor=project:owner stage=planned
+- 2026-09-10T13:06:03.074534Z | work.criterion-stage-marked | criterion=semantic-gaps actor=project:owner stage=planned
+- 2026-09-10T13:06:03.394471Z | work.criterion-stage-marked | criterion=equivalence actor=project:owner stage=planned
+- 2026-09-10T13:06:03.717273Z | work.criterion-stage-marked | criterion=surface-proof actor=project:owner stage=planned
+- 2026-09-10T13:06:04.021694Z | work.criterion-stage-marked | criterion=runbook actor=project:owner stage=planned
+- 2026-09-10T13:06:07.660528Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-10T13:06:07.955152Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-10T14:05:52.604012Z | artifact.added | kind=reference-fixtures uri=.agora/swarms/051-issue-228-cobol-java-reference-path/work/cobol-java-reference-path/reference-fixtures.md actor=project:agent
+- 2026-09-10T14:05:52.830706Z | artifact.added | kind=equivalence-report uri=.agora/swarms/051-issue-228-cobol-java-reference-path/work/cobol-java-reference-path/equivalence-report.md actor=project:agent
+- 2026-09-10T14:05:53.070326Z | artifact.added | kind=test-report uri=.agora/swarms/051-issue-228-cobol-java-reference-path/work/cobol-java-reference-path/test-report.md actor=project:agent
+- 2026-09-10T14:05:53.308846Z | artifact.added | kind=demo-runbook uri=docs/RUNBOOK.md actor=project:agent
+- 2026-09-10T14:06:08.847050Z | work.criterion-stage-marked | criterion=fixtures actor=project:agent stage=implemented
+- 2026-09-10T14:06:09.074742Z | work.criterion-stage-marked | criterion=fixtures actor=project:agent stage=verified
+- 2026-09-10T14:06:09.310543Z | work.criterion-stage-marked | criterion=end-to-end actor=project:agent stage=implemented
+- 2026-09-10T14:06:09.544504Z | work.criterion-stage-marked | criterion=end-to-end actor=project:agent stage=verified
+- 2026-09-10T14:06:09.772535Z | work.criterion-stage-marked | criterion=determinism actor=project:agent stage=implemented
+- 2026-09-10T14:06:10.004092Z | work.criterion-stage-marked | criterion=determinism actor=project:agent stage=verified
+- 2026-09-10T14:06:10.238819Z | work.criterion-stage-marked | criterion=idempotency actor=project:agent stage=implemented
+- 2026-09-10T14:06:10.472933Z | work.criterion-stage-marked | criterion=idempotency actor=project:agent stage=verified
+- 2026-09-10T14:06:10.720537Z | work.criterion-stage-marked | criterion=semantic-gaps actor=project:agent stage=implemented
+- 2026-09-10T14:06:10.953053Z | work.criterion-stage-marked | criterion=semantic-gaps actor=project:agent stage=verified
+- 2026-09-10T14:06:11.199204Z | work.criterion-stage-marked | criterion=equivalence actor=project:agent stage=implemented
+- 2026-09-10T14:06:11.441674Z | work.criterion-stage-marked | criterion=equivalence actor=project:agent stage=verified
+- 2026-09-10T14:06:11.684891Z | work.criterion-stage-marked | criterion=surface-proof actor=project:agent stage=implemented
+- 2026-09-10T14:06:11.932329Z | work.criterion-stage-marked | criterion=surface-proof actor=project:agent stage=verified
+- 2026-09-10T14:06:12.177732Z | work.criterion-stage-marked | criterion=runbook actor=project:agent stage=implemented
+- 2026-09-10T14:06:12.427800Z | work.criterion-stage-marked | criterion=runbook actor=project:agent stage=verified
+- 2026-09-10T14:06:12.695977Z | work.criterion-stage-marked | criterion=fixtures actor=project:owner stage=accepted
+- 2026-09-10T14:06:12.968627Z | work.criterion-stage-marked | criterion=end-to-end actor=project:owner stage=accepted
+- 2026-09-10T14:06:13.235843Z | work.criterion-stage-marked | criterion=determinism actor=project:owner stage=accepted
+- 2026-09-10T14:06:13.513514Z | work.criterion-stage-marked | criterion=idempotency actor=project:owner stage=accepted
+- 2026-09-10T14:06:13.747661Z | work.criterion-stage-marked | criterion=semantic-gaps actor=project:owner stage=accepted
+- 2026-09-10T14:06:13.986712Z | work.criterion-stage-marked | criterion=equivalence actor=project:owner stage=accepted
+- 2026-09-10T14:06:14.225006Z | work.criterion-stage-marked | criterion=surface-proof actor=project:owner stage=accepted
+- 2026-09-10T14:06:14.470093Z | work.criterion-stage-marked | criterion=runbook actor=project:owner stage=accepted
+- 2026-09-10T14:06:40.748692Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-10T14:06:45.052335Z | approval.added | role=spec-owner actor=project:owner delegation=none

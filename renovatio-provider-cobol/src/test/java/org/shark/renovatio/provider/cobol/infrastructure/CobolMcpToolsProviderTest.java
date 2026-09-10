@@ -44,5 +44,6 @@ class CobolMcpToolsProviderTest {
         assertTrue(names.contains("cobol.diff"));
         assertTrue(names.contains("cobol.copybook.migrate"));
         assertTrue(names.contains("cobol.db2.migrate"));
+        assertTrue(names.contains("cobol.pipeline.execute"));
     }
 }

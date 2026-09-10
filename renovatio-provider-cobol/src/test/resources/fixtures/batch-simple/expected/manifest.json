@@ -14,12 +14,14 @@
     "language": "Java",
     "package": "org.shark.renovatio.generated.cobol",
     "files": [
-      "src/main/java/org/shark/renovatio/generated/cobol/Batch001Service.java"
+      "src/main/java/org/shark/renovatio/generated/cobol/Batch001DTO.java",
+      "src/main/java/org/shark/renovatio/generated/cobol/Batch001Service.java",
+      "src/main/java/org/shark/renovatio/generated/cobol/Batch001ServiceImpl.java"
     ]
   },
   "mappings": {
     "programId": "BATCH001",
-    "className": "Batch001Service",
+    "className": "Batch001ServiceImpl",
     "paragraphs": [
       {
         "cobol": "MAIN-LOGIC",

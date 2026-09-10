@@ -75,6 +75,7 @@ public class JavaGenerationService {
 
     private static final Logger log = LoggerFactory.getLogger(JavaGenerationService.class);
     private static final String BUSINESS_LOGIC_PLACEHOLDER = "// TODO: Implement COBOL business logic";
+    public static final String ACTION_ITEM_OUTPUT_DIRECTORY_METADATA_KEY = "actionItemOutputDir";
 
     private final CobolParsingService parsingService;
     private final TemplateCodeGenerationService templateService;
@@ -207,9 +208,6 @@ public class JavaGenerationService {
                 }
             }
             String outputPath = resolveOutputDir(workspace).toString();
-            if (effective.profile().target().language() == org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
-                manualActionItemWriter.write(root.resolve(ManualActionItemWriter.DEFAULT_REPORT), actionItems.values());
-            }
             boolean explicitOutput = workspace.getMetadata() != null
                     && workspace.getMetadata().get("outputDir") != null
                     && !workspace.getMetadata().get("outputDir").toString().isBlank();
@@ -217,6 +215,11 @@ public class JavaGenerationService {
                     && (effective.profile().target().language()
                     == org.shark.renovatio.profile.MigrationProfile.Language.JAVA || explicitOutput)) {
                 outputPath = writeGeneratedFilesToDisk(generatedFiles, workspace);
+            }
+            if (effective.profile().target().language() == org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
+                Path actionItemRoot = explicitOutput ? resolveActionItemOutputDir(workspace) : root;
+                manualActionItemWriter.write(actionItemRoot.resolve(ManualActionItemWriter.DEFAULT_REPORT),
+                        actionItems.values());
             }
             StubResult result = new StubResult(!generatedFiles.isEmpty(), generatedFiles.isEmpty()
                     ? "No target files generated"
@@ -228,6 +231,7 @@ public class JavaGenerationService {
             metadata.put("generatedFileCount", generatedFiles.size());
             metadata.put("generatedFiles", generatedFiles.keySet().stream().sorted().toList());
             metadata.put("manifestHash", architecture.manifestHash());
+            metadata.put("manualActionItems", actionItems.values().stream().sorted().toList());
             result.setMetadata(metadata);
             return result;
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
@@ -1554,5 +1558,18 @@ public class JavaGenerationService {
             }
         }
         return workspacePath.resolve("generated-java-stubs").normalize();
+    }
+
+    private Path resolveActionItemOutputDir(Workspace workspace) {
+        if (workspace.getMetadata() != null) {
+            Object configured = workspace.getMetadata().get(ACTION_ITEM_OUTPUT_DIRECTORY_METADATA_KEY);
+            if (configured != null && !configured.toString().isBlank()) {
+                Path requested = Paths.get(configured.toString());
+                return requested.isAbsolute()
+                    ? requested.normalize()
+                    : Paths.get(workspace.getPath()).resolve(requested).normalize();
+            }
+        }
+        return resolveOutputDir(workspace);
     }
 }

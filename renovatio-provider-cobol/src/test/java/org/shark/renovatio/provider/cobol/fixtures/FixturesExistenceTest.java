@@ -89,8 +89,8 @@ class FixturesExistenceTest {
         
         String javaContent = Files.readString(javaFile);
         assertThat(javaContent)
-            .as("Java file should contain class definition")
-            .contains("public class Batch001Service");
+            .as("Java file should contain interface definition")
+            .contains("public interface Batch001Service");
     }
 
     @Test
@@ -142,14 +142,14 @@ class FixturesExistenceTest {
             .contains("\"fixture\": \"cics-mvc\"");
         
         // Check expected Java outputs
-        Path controllerFile = fixturePath.resolve("expected/src/main/java/org/shark/renovatio/generated/cobol/Cics001Controller.java");
+        Path controllerFile = fixturePath.resolve("expected/src/main/java/org/shark/renovatio/generated/cobol/Cics001CicsController.java");
         assertThat(controllerFile)
             .as("CICS MVC expected controller file should exist")
             .exists();
         
-        Path recordFile = fixturePath.resolve("expected/src/main/java/org/shark/renovatio/generated/cobol/CustomerRecord.java");
-        assertThat(recordFile)
-            .as("CICS MVC expected record file should exist")
+        Path dtoFile = fixturePath.resolve("expected/src/main/java/org/shark/renovatio/generated/cobol/Cics001DTO.java");
+        assertThat(dtoFile)
+            .as("CICS MVC expected DTO file should exist")
             .exists();
     }
 
@@ -202,14 +202,14 @@ class FixturesExistenceTest {
             .contains("\"fixture\": \"db2-access\"");
         
         // Check expected Java outputs
-        Path repositoryFile = fixturePath.resolve("expected/src/main/java/org/shark/renovatio/generated/cobol/Db2001Repository.java");
-        assertThat(repositoryFile)
-            .as("DB2 access expected repository file should exist")
+        Path serviceFile = fixturePath.resolve("expected/src/main/java/org/shark/renovatio/generated/cobol/Db2001Service.java");
+        assertThat(serviceFile)
+            .as("DB2 access expected service file should exist")
             .exists();
         
-        Path entityFile = fixturePath.resolve("expected/src/main/java/org/shark/renovatio/generated/cobol/EmpRecEntity.java");
-        assertThat(entityFile)
-            .as("DB2 access expected entity file should exist")
+        Path dtoFile = fixturePath.resolve("expected/src/main/java/org/shark/renovatio/generated/cobol/Db2001DTO.java");
+        assertThat(dtoFile)
+            .as("DB2 access expected DTO file should exist")
             .exists();
     }
 

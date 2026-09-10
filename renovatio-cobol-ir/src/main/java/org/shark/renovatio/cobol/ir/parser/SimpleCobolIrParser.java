@@ -25,7 +25,11 @@ import java.util.regex.Pattern;
 public class SimpleCobolIrParser {
 
     private static final Pattern PROGRAM_ID_PATTERN = Pattern.compile("PROGRAM-ID\\.\\s*([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern DATA_ITEM_PATTERN = Pattern.compile("(?m)^\\s*(0[1-9]|[1-4][0-9])\\s+([A-Z0-9-]+)(?:\\s+REDEFINES\\s+([A-Z0-9-]+))?\\s+PIC\\s+([^.]+)\\.");
+    private static final Pattern DATA_ITEM_PATTERN = Pattern.compile(
+            "(?m)^\\s*(0[1-9]|[1-4][0-9])\\s+([A-Z0-9-]+)"
+                    + "(?:\\s+REDEFINES\\s+([A-Z0-9-]+))?\\s+PIC\\s+"
+                    + "(?:([A-Z0-9()V+\\-]+\\s+(?:COMP(?:-?\\d+)?|BINARY|PACKED-DECIMAL))"
+                    + "(?:\\s+VALUES?\\b[^.]*)?|([^.]+))\\.");
     private static final Pattern LEVEL_88_PATTERN = Pattern.compile(
             "(?m)^\\s*88\\s+([A-Z0-9-]+)\\s+VALUES?(?:\\s+(?:IS|ARE))?\\s+(.+)\\.",
             Pattern.CASE_INSENSITIVE);
@@ -242,12 +246,13 @@ public class SimpleCobolIrParser {
             int level = Integer.parseInt(matcher.group(1));
             String name = matcher.group(2).toUpperCase(Locale.ROOT);
             String redefines = matcher.group(3) != null ? matcher.group(3).toUpperCase(Locale.ROOT) : null;
-            String pic = matcher.group(4).trim();
+            String pic = (matcher.group(4) != null ? matcher.group(4) : matcher.group(5)).trim();
             String javaType = CobolTypeMapper.picToJavaType(pic);
             var picType = CobolTypeMapper.picType(pic);
             if (picType == null) {
+                int pictureStart = matcher.group(4) != null ? matcher.start(4) : matcher.start(5);
                 diagnostics.add(error("COBOL-PIC-001", "DATA_ITEM",
-                        "Unsupported or malformed PIC clause for " + name, source, wsStart + matcher.start(4)));
+                        "Unsupported or malformed PIC clause for " + name, source, wsStart + pictureStart));
             }
             if (!unique.containsKey(name)) {
                 log.debug(Messages.WS_ITEM_FOUND, level, name, pic);

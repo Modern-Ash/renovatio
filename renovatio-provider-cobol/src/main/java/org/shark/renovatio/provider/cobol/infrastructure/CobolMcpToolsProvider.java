@@ -2,8 +2,12 @@ package org.shark.renovatio.provider.cobol.infrastructure;
 
 import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.provider.cobol.domain.CobolMcpTool;
+import org.shark.renovatio.provider.cobol.pipeline.PipelineRequest;
+import org.shark.renovatio.provider.cobol.pipeline.PipelineResult;
+import org.shark.renovatio.provider.cobol.service.CobolReferencePipelineService;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -16,6 +20,7 @@ import java.util.*;
 public class CobolMcpToolsProvider {
 
     private final CobolLanguageProvider cobolProvider;
+    private final CobolReferencePipelineService referencePipeline;
 
     // ---- Constants to avoid duplicated string literals (Sonar S1192) ----
     private static final String LANG_COBOL = "cobol";
@@ -29,6 +34,7 @@ public class CobolMcpToolsProvider {
     private static final String TOOL_DIFF = "cobol.diff";
     private static final String TOOL_COPYBOOK_MIGRATE = "cobol.copybook.migrate";
     private static final String TOOL_DB2_MIGRATE = "cobol.db2.migrate";
+    private static final String TOOL_REFERENCE_PIPELINE = "cobol.pipeline.execute";
 
     // Query targets
     private static final String TARGET_PROGRAMS = "programs";
@@ -44,6 +50,9 @@ public class CobolMcpToolsProvider {
     private static final String ARG_PLAN_ID = "planId";
     private static final String ARG_DRY_RUN = "dryRun";
     private static final String ARG_RUN_ID = "runId";
+    private static final String ARG_OUTPUT_PATH = "outputPath";
+    private static final String ARG_EXPECTED_PATH = "expectedPath";
+    private static final String ARG_VERIFY_EQUIVALENCE = "verifyEquivalence";
 
     // Response keys
     private static final String KEY_SUCCESS = "success";
@@ -86,6 +95,14 @@ public class CobolMcpToolsProvider {
 
     public CobolMcpToolsProvider(CobolLanguageProvider cobolProvider) {
         this.cobolProvider = cobolProvider;
+        this.referencePipeline = null;
+    }
+
+    @Autowired
+    public CobolMcpToolsProvider(CobolLanguageProvider cobolProvider,
+                                 CobolReferencePipelineService referencePipeline) {
+        this.cobolProvider = cobolProvider;
+        this.referencePipeline = referencePipeline;
     }
 
     /**
@@ -102,6 +119,7 @@ public class CobolMcpToolsProvider {
         tools.add(createGenerateDiffTool());
         tools.add(createCopybookMigrationTool());
         tools.add(createDb2MigrationTool());
+        tools.add(createReferencePipelineTool());
 
         return tools;
     }
@@ -119,6 +137,7 @@ public class CobolMcpToolsProvider {
             case TOOL_DIFF -> executeDiffTool(arguments);
             case TOOL_COPYBOOK_MIGRATE -> executeCopybookMigrationTool(arguments);
             case TOOL_DB2_MIGRATE -> executeDb2MigrationTool(arguments);
+            case TOOL_REFERENCE_PIPELINE -> executeReferencePipelineTool(arguments);
             default -> Map.of(KEY_ERROR, "Unknown COBOL tool: " + toolName);
         };
     }
@@ -136,6 +155,26 @@ public class CobolMcpToolsProvider {
         ));
         schema.put(SCHEMA_REQUIRED, List.of(ARG_WORKSPACE_PATH, ARG_PROGRAM));
 
+        tool.setInputSchema(schema);
+        return tool;
+    }
+
+    private CobolMcpTool createReferencePipelineTool() {
+        CobolMcpTool tool = new CobolMcpTool();
+        tool.setName(TOOL_REFERENCE_PIPELINE);
+        tool.setDescription("Execute the complete governed COBOL-to-Java reference pipeline");
+        Map<String, Object> schema = new HashMap<>();
+        schema.put(SCHEMA_TYPE, JSON_OBJECT);
+        schema.put(SCHEMA_PROPERTIES, Map.of(
+            ARG_WORKSPACE_PATH, Map.of(SCHEMA_TYPE, JSON_STRING, SCHEMA_DESCRIPTION, DESC_WORKSPACE),
+            ARG_OUTPUT_PATH, Map.of(SCHEMA_TYPE, JSON_STRING, SCHEMA_DESCRIPTION,
+                "Directory for generated Java output"),
+            ARG_EXPECTED_PATH, Map.of(SCHEMA_TYPE, JSON_STRING, SCHEMA_DESCRIPTION,
+                "Optional expected-output directory for equivalence"),
+            ARG_VERIFY_EQUIVALENCE, Map.of(SCHEMA_TYPE, JSON_BOOLEAN, SCHEMA_DESCRIPTION,
+                "Compare the complete generated tree with expected output")
+        ));
+        schema.put(SCHEMA_REQUIRED, List.of(ARG_WORKSPACE_PATH, ARG_OUTPUT_PATH));
         tool.setInputSchema(schema);
         return tool;
     }
@@ -496,6 +535,52 @@ public class CobolMcpToolsProvider {
             );
         } catch (Exception e) {
             return Map.of(KEY_SUCCESS, false, KEY_ERROR, e.getMessage());
+        }
+    }
+
+    private Object executeReferencePipelineTool(Map<String, Object> arguments) {
+        if (referencePipeline == null) {
+            return Map.of(KEY_SUCCESS, false, KEY_ERROR,
+                "Reference pipeline is not configured for this adapter instance");
+        }
+        try {
+            java.nio.file.Path fixture = java.nio.file.Path.of(
+                Objects.toString(arguments.get(ARG_WORKSPACE_PATH), ""));
+            java.nio.file.Path output = java.nio.file.Path.of(
+                Objects.toString(arguments.get(ARG_OUTPUT_PATH), ""));
+            PipelineRequest base = PipelineRequest.of(fixture, output);
+            Object expectedArgument = arguments.get(ARG_EXPECTED_PATH);
+            boolean verify = Boolean.TRUE.equals(arguments.getOrDefault(ARG_VERIFY_EQUIVALENCE,
+                expectedArgument == null ? Boolean.FALSE : Boolean.TRUE));
+            java.nio.file.Path expected = expectedArgument == null
+                ? base.expectedDir() : java.nio.file.Path.of(expectedArgument.toString());
+            PipelineRequest request = new PipelineRequest(base.fixtureId(), base.fixtureDir(),
+                base.decisions(), base.outputDir(), expected, base.deterministic(), verify,
+                base.sourceSnapshotHash());
+            PipelineResult result = referencePipeline.execute(request);
+            Map<String, Object> response = new LinkedHashMap<>();
+            response.put(KEY_SUCCESS, result.isSuccessful());
+            response.put(KEY_MESSAGE, result.isSuccessful()
+                ? "Reference pipeline completed" : "Reference pipeline failed");
+            response.put("fixtureId", result.fixtureId());
+            response.put("outputPath", result.outputDir().toString());
+            response.put("semanticGaps", result.semanticGaps());
+            response.put("equivalenceReports", result.equivalenceReports());
+            Map<String, Object> stages = new LinkedHashMap<>();
+            stages.put("discover", result.discover());
+            stages.put("parse", result.parse());
+            stages.put("semanticIr", result.semanticIr());
+            stages.put("domainModel", result.domainModel());
+            stages.put("decisions", result.decisions());
+            stages.put("architecture", result.architecture());
+            stages.put("manifest", result.manifest());
+            stages.put("emit", result.emit());
+            stages.put("build", result.build());
+            response.put("stages", stages);
+            return response;
+        } catch (Exception exception) {
+            return Map.of(KEY_SUCCESS, false, KEY_ERROR,
+                exception.getMessage() == null ? exception.getClass().getName() : exception.getMessage());
         }
     }
 }

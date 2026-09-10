@@ -7,6 +7,10 @@ import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.provider.cobol.service.*;
 import org.shark.renovatio.provider.cobol.service.generation.JavaGenerationOrchestrator;
+import org.shark.renovatio.provider.cobol.pipeline.CobolPipelineOrchestrator;
+import org.shark.renovatio.provider.cobol.pipeline.EquivalenceCheckerImpl;
+import org.shark.renovatio.provider.cobol.pipeline.MavenBuildServiceImpl;
+import org.shark.renovatio.provider.cobol.pipeline.PipelineOrchestrator;
 import org.shark.renovatio.architecture.java.JavaArchitectureLayoutPlanner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.ObjectProvider;
@@ -58,6 +62,15 @@ public class CobolProviderConfiguration {
     @Bean
     public JavaGenerationOrchestrator javaGenerationOrchestrator(JavaGenerationService generationService) {
         return new JavaGenerationOrchestrator(generationService);
+    }
+
+    @Bean
+    public PipelineOrchestrator cobolReferencePipeline(
+            CobolParsingService parsingService,
+            JavaGenerationOrchestrator generationOrchestrator,
+            org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler semanticTranspiler) {
+        return new CobolPipelineOrchestrator(parsingService, generationOrchestrator, semanticTranspiler,
+            new MavenBuildServiceImpl(), new EquivalenceCheckerImpl());
     }
 
     @Bean

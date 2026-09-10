@@ -232,7 +232,6 @@ public class TemplateCodeGenerationService {
                 import org.springframework.web.bind.annotation.*;
                 import org.springframework.http.ResponseEntity;
                 import java.util.Map;
-                import org.shark.renovatio.provider.cobol.service.CicsService;
                 
                 /**
                  * Generated controller that forwards REST calls to CICS transactions.
@@ -241,10 +240,15 @@ public class TemplateCodeGenerationService {
                 @RequestMapping("/api/cics")
                 public class ${className} {
                 
-                    private final CicsService cicsService;
-                
-                    public ${className}(CicsService cicsService) {
+                    private final CicsTransactionGateway cicsService;
+
+                    public ${className}(CicsTransactionGateway cicsService) {
                         this.cicsService = cicsService;
+                    }
+
+                    /** Target-side port implemented by the selected CICS adapter. */
+                    public interface CicsTransactionGateway {
+                        String invokeTransaction(String command, Map<String, Object> payload);
                     }
                 
                     <#list transactions as tx>

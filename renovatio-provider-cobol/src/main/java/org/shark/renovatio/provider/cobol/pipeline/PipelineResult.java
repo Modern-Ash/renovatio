@@ -17,29 +17,39 @@ public record PipelineResult(
     StageResult discover,
     StageResult parse,
     StageResult semanticIr,
+    StageResult domainModel,
     StageResult decisions,
+    StageResult architecture,
     StageResult manifest,
     StageResult emit,
-    StageResult openRewrite,
     StageResult build,
     EquivalenceReport equivalence,
+    List<EquivalenceReport> equivalenceReports,
     List<ActionItem> semanticGaps,
     boolean success
 ) {
+    public PipelineResult {
+        equivalenceReports = equivalenceReports == null ? List.of() : List.copyOf(equivalenceReports);
+        semanticGaps = semanticGaps == null ? List.of() : List.copyOf(semanticGaps);
+    }
+
     /**
      * Check if the pipeline completed successfully.
      */
     public boolean isSuccessful() {
-        return success && 
-               discover.success() && 
-               parse.success() && 
-               semanticIr.success() && 
-               decisions.success() && 
-               manifest.success() && 
-               emit.success() && 
-               openRewrite.success() && 
-               build.success() &&
-               (equivalence == null || equivalence.isPassed());
+        return success
+               && stageSucceeded(discover)
+               && stageSucceeded(parse)
+               && stageSucceeded(semanticIr)
+               && stageSucceeded(domainModel)
+               && stageSucceeded(decisions)
+               && stageSucceeded(architecture)
+               && stageSucceeded(manifest)
+               && stageSucceeded(emit)
+               && stageSucceeded(build)
+               && !hasBlockingGaps()
+               && equivalenceReports.stream().allMatch(EquivalenceReport::isPassed)
+               && (equivalence == null || equivalence.isPassed());
     }
 
     /**
@@ -57,5 +67,9 @@ public record PipelineResult(
         return semanticGaps.stream()
             .filter(gap -> gap.severity() == severity)
             .count();
+    }
+
+    private static boolean stageSucceeded(StageResult stage) {
+        return stage != null && stage.success();
     }
 }

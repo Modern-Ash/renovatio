@@ -14,7 +14,6 @@ import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +33,7 @@ class SurfaceProofTest {
 
     private CobolLanguageProvider cobolProvider;
     private CobolMcpToolsProvider mcpToolsProvider;
+    private CobolReferencePipelineService referencePipeline;
 
     @TempDir
     Path tempDir;
@@ -43,10 +43,9 @@ class SurfaceProofTest {
         CobolParsingService parsingService = new CobolParsingService();
         TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
         CobolIntermediateModelService irService = new CobolIntermediateModelService();
+        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler();
         JavaGenerationService javaGenerationService = new JavaGenerationService(
-            parsingService, templateService, irService,
-            new CobolSemanticTranspiler()
-        );
+            parsingService, templateService, irService, semanticTranspiler);
         Db2MigrationService db2Service = new Db2MigrationService(parsingService);
         MigrationPlanService migrationPlanService = new MigrationPlanService(parsingService, javaGenerationService);
         IndexingService indexingService = new IndexingService();
@@ -57,54 +56,42 @@ class SurfaceProofTest {
             parsingService, javaGenerationService, migrationPlanService,
             indexingService, metricsService, templateService, db2Service, decompositionService
         );
-        mcpToolsProvider = new CobolMcpToolsProvider(cobolProvider);
+        CobolPipelineOrchestrator orchestrator = new CobolPipelineOrchestrator(
+            parsingService,
+            new org.shark.renovatio.provider.cobol.service.generation.JavaGenerationOrchestrator(
+                javaGenerationService),
+            semanticTranspiler,
+            new MavenBuildServiceImpl(),
+            new EquivalenceCheckerImpl());
+        referencePipeline = new CobolReferencePipelineService(orchestrator);
+        mcpToolsProvider = new CobolMcpToolsProvider(cobolProvider, referencePipeline);
     }
 
     @Test
-    void shouldProduceSameOutputViaMcpAndDirectService() throws IOException {
-        // Arrange
+    void shouldProduceSameReferencePipelineOutputViaMcpAndDirectService() throws IOException {
         Path fixtureDir = Path.of("src/test/resources/fixtures/batch-simple");
+        Path mcpOutput = tempDir.resolve("mcp-output");
+        Path directOutput = tempDir.resolve("direct-output");
 
-        // Act 1: MCP route - analyze via tool
         Map<String, Object> mcpArgs = new HashMap<>();
         mcpArgs.put("workspacePath", fixtureDir.toAbsolutePath().toString());
-        mcpArgs.put("query", "Analyze COBOL structure");
-        Object mcpResult = mcpToolsProvider.executeCobolTool("cobol.analyze", mcpArgs);
+        mcpArgs.put("outputPath", mcpOutput.toString());
+        mcpArgs.put("verifyEquivalence", false);
 
-        // Act 2: Direct service call - analyze via provider
-        NqlQuery query = new NqlQuery();
-        query.setType(NqlQuery.QueryType.FIND);
-        query.setTarget("programs");
-        query.setLanguage("cobol");
+        Object mcpResult = mcpToolsProvider.executeCobolTool("cobol.pipeline.execute", mcpArgs);
+        PipelineRequest request = new PipelineRequest("batch-simple", fixtureDir,
+            PipelineRequest.of(fixtureDir, directOutput).decisions(), directOutput,
+            fixtureDir.resolve("expected"), false, false);
+        PipelineResult directResult = referencePipeline.execute(request);
 
-        Workspace workspace = new Workspace();
-        workspace.setId("surface-proof-test");
-        workspace.setPath(fixtureDir.toAbsolutePath().toString());
-        workspace.setBranch("main");
-
-        AnalyzeResult directResult = cobolProvider.analyze(query, workspace);
-
-        // Assert: Both routes produce results
-        assertThat(mcpResult).isNotNull();
-        assertThat(directResult).isNotNull();
-
-        // MCP result is a Map with success key
         assertThat(mcpResult).isInstanceOf(Map.class);
-        Map<?, ?> mcpMap = (Map<?, ?>) mcpResult;
-        assertThat(mcpMap.get("success")).isEqualTo(directResult.isSuccess());
-
-        // Both should indicate success (or same failure mode)
-        assertThat(mcpMap.get("success")).isEqualTo(directResult.isSuccess());
-
-        // Both should have same message
-        if (mcpMap.get("message") != null && directResult.getMessage() != null) {
-            String mcpMsg = mcpMap.get("message").toString();
-            String directMsg = directResult.getMessage();
-            // Compare first 50 chars or full message if shorter
-            int compareLen = Math.min(50, Math.min(mcpMsg.length(), directMsg.length()));
-            assertThat(mcpMsg.substring(0, compareLen))
-                .isEqualTo(directMsg.substring(0, compareLen));
-        }
+        assertThat(((Map<?, ?>) mcpResult).get("success")).isEqualTo(directResult.isSuccessful());
+        assertThat(directResult.isSuccessful())
+            .as("direct pipeline build: %s", directResult.build() == null
+                ? directResult : directResult.build().errors())
+            .isTrue();
+        assertThat(GeneratedTreeSnapshot.capture(mcpOutput))
+            .isEqualTo(GeneratedTreeSnapshot.capture(directOutput));
     }
 
     @Test
@@ -194,7 +181,7 @@ class SurfaceProofTest {
 
         // Assert
         assertThat(tools).isNotNull();
-        assertThat(tools).hasSize(8);
+        assertThat(tools).hasSize(9);
 
         var toolNames = tools.stream().map(t -> t.getName()).toList();
         assertThat(toolNames).contains(
@@ -205,7 +192,8 @@ class SurfaceProofTest {
             "cobol.metrics",
             "cobol.diff",
             "cobol.copybook.migrate",
-            "cobol.db2.migrate"
+            "cobol.db2.migrate",
+            "cobol.pipeline.execute"
         );
     }
 }
