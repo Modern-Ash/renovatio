@@ -1,4 +1,4 @@
-package org.shark.renovatio.provider.java.emission;
+package org.shark.renovatio.architecture.java;
 
 import java.nio.file.Path;
 import java.util.ArrayList;

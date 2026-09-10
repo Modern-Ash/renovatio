@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -72,7 +71,7 @@ class ArithmeticMigrationTest {
         CobolParsingService parsingService = new CobolParsingService();
         TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
         CobolIntermediateModelService intermediateModelService = new CobolIntermediateModelService();
-        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler(new OpenRewriteRunner());
+        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler();
         JavaGenerationService javaGenerationService = new JavaGenerationService(
             parsingService, templateService, intermediateModelService, semanticTranspiler
         );
@@ -125,7 +124,7 @@ class ArithmeticMigrationTest {
     void testArithmeticLogicIsCorrect() throws Exception {
         // Given: COBOL program with ADD operation
         CobolIntermediateModelService intermediateModelService = new CobolIntermediateModelService();
-        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler(new OpenRewriteRunner());
+        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler();
         
         String simpleJavaStub = """
             package sample;

@@ -5,4 +5,5 @@ module org.shark.renovatio.architecture {
     requires org.shark.renovatio.shared;
 
     exports org.shark.renovatio.architecture;
+    exports org.shark.renovatio.architecture.java;
 }

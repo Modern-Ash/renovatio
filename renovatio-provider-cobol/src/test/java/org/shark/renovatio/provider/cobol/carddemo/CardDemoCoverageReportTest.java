@@ -13,7 +13,6 @@ import org.shark.renovatio.provider.cobol.service.JavaGenerationService;
 import org.shark.renovatio.provider.cobol.service.TemplateCodeGenerationService;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
@@ -171,7 +170,7 @@ class CardDemoCoverageReportTest {
                 try {
                     JavaGenerationService generator = new JavaGenerationService(parsing,
                             new TemplateCodeGenerationService(), new CobolIntermediateModelService(),
-                            new CobolSemanticTranspiler(new OpenRewriteRunner()),
+                            new CobolSemanticTranspiler(),
                             new ObjectMapper().findAndRegisterModules(), true);
                     StubResult result = generator.generateInterfaceStubs(new NqlQuery(), ws);
                     row.emit = result.isSuccess() && result.getGeneratedCode() != null

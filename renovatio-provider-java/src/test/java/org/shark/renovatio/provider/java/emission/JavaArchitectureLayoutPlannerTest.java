@@ -1,5 +1,7 @@
 package org.shark.renovatio.provider.java.emission;
 
+import org.shark.renovatio.architecture.java.JavaArchitectureLayoutPlanner;
+
 import org.junit.jupiter.api.Test;
 import org.shark.renovatio.architecture.ArchitectureGraph;
 import org.shark.renovatio.architecture.ArchitectureLayoutOverrides;

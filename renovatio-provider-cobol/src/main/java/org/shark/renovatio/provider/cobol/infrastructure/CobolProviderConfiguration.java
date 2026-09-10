@@ -2,12 +2,12 @@ package org.shark.renovatio.provider.cobol.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
-import org.shark.renovatio.core.service.TargetEmitterRegistry;
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
 import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.provider.cobol.service.*;
 import org.shark.renovatio.provider.cobol.service.generation.JavaGenerationOrchestrator;
-import org.shark.renovatio.provider.java.emission.JavaArchitectureLayoutPlanner;
+import org.shark.renovatio.architecture.java.JavaArchitectureLayoutPlanner;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -3,13 +3,12 @@ package org.shark.renovatio.provider.cobol.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.shark.renovatio.core.service.TargetEmitterRegistry;
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
 import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.emission.EmittedArtifact;
@@ -402,7 +401,7 @@ class JavaGenerationRegistryRoutingTest {
         CobolParsingService parsing = new CobolParsingService(CobolParsingService.Dialect.IBM);
         TemplateCodeGenerationService templates = new TemplateCodeGenerationService();
         CobolIntermediateModelService models = new CobolIntermediateModelService();
-        CobolSemanticTranspiler transpiler = new CobolSemanticTranspiler(new OpenRewriteRunner());
+        CobolSemanticTranspiler transpiler = new CobolSemanticTranspiler();
         return new Dependencies(parsing, templates, models, transpiler,
                 new ObjectMapper().findAndRegisterModules());
     }

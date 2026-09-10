@@ -18,7 +18,6 @@ import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionItemWriter;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
@@ -56,7 +55,7 @@ class JavaGenerationServiceAnnotatedTest {
         JavaGenerationService service = new JavaGenerationService(
                 new CobolParsingService(CobolParsingService.Dialect.IBM),
                 new TemplateCodeGenerationService(), modelService,
-                new CobolSemanticTranspiler(new OpenRewriteRunner()), mapper);
+                new CobolSemanticTranspiler(), mapper);
         Workspace workspace = new Workspace("annotated", workspacePath.toString(), "main");
 
         StubResult result = service.generateInterfaceStubs(new NqlQuery(), workspace);
@@ -89,7 +88,7 @@ class JavaGenerationServiceAnnotatedTest {
         JavaGenerationService service = new JavaGenerationService(
                 new CobolParsingService(CobolParsingService.Dialect.IBM),
                 new TemplateCodeGenerationService(), modelService,
-                new CobolSemanticTranspiler(new OpenRewriteRunner()), mapper);
+                new CobolSemanticTranspiler(), mapper);
         Workspace workspace = new Workspace("annotated", workspacePath.toString(), "main");
 
         StubResult result = service.generateInterfaceStubs(new NqlQuery(), workspace);
@@ -116,7 +115,7 @@ class JavaGenerationServiceAnnotatedTest {
         JavaGenerationService service = new JavaGenerationService(
                 new CobolParsingService(CobolParsingService.Dialect.IBM),
                 new TemplateCodeGenerationService(), modelService,
-                new CobolSemanticTranspiler(new OpenRewriteRunner()), mapper);
+                new CobolSemanticTranspiler(), mapper);
         Workspace workspace = new Workspace("annotated", workspacePath.toString(), "main");
 
         StubResult result = service.generateInterfaceStubs(new NqlQuery(), workspace);

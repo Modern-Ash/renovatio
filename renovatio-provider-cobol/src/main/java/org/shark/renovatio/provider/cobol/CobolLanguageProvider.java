@@ -5,7 +5,7 @@ import org.shark.renovatio.provider.cobol.service.generation.JavaGenerationOrche
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.profile.MigrationProfiles;
-import org.shark.renovatio.core.service.TargetEmitterRegistry;
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
 import org.shark.renovatio.shared.spi.BaseLanguageProvider;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 

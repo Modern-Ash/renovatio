@@ -19,7 +19,7 @@ import org.shark.renovatio.cobol.ir.model.PerformStatement;
 import org.shark.renovatio.cobol.ir.model.SetConditionStatement;
 import org.shark.renovatio.cobol.ir.model.SimpleStatement;
 import org.shark.renovatio.cobol.recipes.CobolDataVerbValueResolver;
-import org.shark.renovatio.core.service.TargetEmitterRegistry;
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
 import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticProjector;
@@ -35,10 +35,11 @@ import org.shark.renovatio.shared.emission.TargetModel;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.profile.MigrationProfiles;
-import org.shark.renovatio.provider.java.emission.JavaArchitectureLayoutPlanner;
-import org.shark.renovatio.provider.java.emission.JavaArchitectureSourceLayout;
-import org.shark.renovatio.provider.java.emission.JavaEmitter;
+import org.shark.renovatio.architecture.java.JavaArchitectureLayoutPlanner;
+import org.shark.renovatio.architecture.java.JavaArchitectureSourceLayout;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.lang.model.element.Modifier;
@@ -72,6 +73,7 @@ import java.util.function.Function;
 @Service
 public class JavaGenerationService {
 
+    private static final Logger log = LoggerFactory.getLogger(JavaGenerationService.class);
     private static final String BUSINESS_LOGIC_PLACEHOLDER = "// TODO: Implement COBOL business logic";
 
     private final CobolParsingService parsingService;
@@ -82,7 +84,6 @@ public class JavaGenerationService {
     private final AnnotationActionItemFactory annotationActionItemFactory;
     private final ManualActionItemWriter manualActionItemWriter;
     private final GeneratedArtifactTreeWriter artifactTreeWriter = new GeneratedArtifactTreeWriter();
-    private final boolean registryRouting;
     private final TargetEmitterRegistry emitterRegistry;
     private final EffectiveProfileResolver effectiveProfileResolver;
     private final CobolSemanticProjector semanticProjector = new CobolSemanticProjector();
@@ -111,9 +112,9 @@ public class JavaGenerationService {
                                  CobolIntermediateModelService intermediateModelService,
                                  CobolSemanticTranspiler semanticTranspiler,
                                  ObjectMapper objectMapper,
-                                 boolean registryRouting) {
+                                 boolean useEmitterRegistry) {
         this(parsingService, templateService, intermediateModelService, semanticTranspiler, objectMapper,
-                registryRouting, new TargetEmitterRegistry(List.of()), null);
+                useEmitterRegistry, new TargetEmitterRegistry(List.of()), null);
     }
 
     public JavaGenerationService(CobolParsingService parsingService,
@@ -121,11 +122,11 @@ public class JavaGenerationService {
                                  CobolIntermediateModelService intermediateModelService,
                                  CobolSemanticTranspiler semanticTranspiler,
                                  ObjectMapper objectMapper,
-                                 boolean registryRouting,
+                                 boolean useEmitterRegistry,
                                  TargetEmitterRegistry emitterRegistry,
                                  EffectiveProfileResolver effectiveProfileResolver) {
         this(parsingService, templateService, intermediateModelService, semanticTranspiler, objectMapper,
-                registryRouting, emitterRegistry, effectiveProfileResolver,
+                useEmitterRegistry, emitterRegistry, effectiveProfileResolver,
                 List.of(new JavaArchitectureLayoutPlanner()));
     }
 
@@ -134,7 +135,7 @@ public class JavaGenerationService {
                                  CobolIntermediateModelService intermediateModelService,
                                  CobolSemanticTranspiler semanticTranspiler,
                                  ObjectMapper objectMapper,
-                                 boolean registryRouting,
+                                 boolean useEmitterRegistry,
                                  TargetEmitterRegistry emitterRegistry,
                                  EffectiveProfileResolver effectiveProfileResolver,
                                  List<ArtifactLayoutPlanner> layoutPlanners) {
@@ -145,7 +146,6 @@ public class JavaGenerationService {
         this.annotatedContextResolver = new AnnotatedContextResolver(objectMapper);
         this.annotationActionItemFactory = new AnnotationActionItemFactory();
         this.manualActionItemWriter = new ManualActionItemWriter(objectMapper);
-        this.registryRouting = registryRouting;
         this.emitterRegistry = Objects.requireNonNull(emitterRegistry, "emitterRegistry");
         this.effectiveProfileResolver = effectiveProfileResolver == null
                 ? ignored -> defaultEffectiveProfile() : effectiveProfileResolver;
@@ -157,9 +157,6 @@ public class JavaGenerationService {
      * Generates Java interface stubs for COBOL programs
      */
     public StubResult generateInterfaceStubs(NqlQuery query, Workspace workspace) {
-        if (!registryRouting) {
-            return generateInterfaceStubsLegacy(query, workspace);
-        }
         return generateInterfaceStubs(query, workspace, effectiveProfile(workspace));
     }
 
@@ -203,7 +200,7 @@ public class JavaGenerationService {
             for (ArchitectureResult.ArchitectedProgram architected : architecture.programs()) {
                 Path source = preparation.sourceByProgram().get(architected.programId());
                 StubResult emitted = emitProjected(architected.targetModel(),
-                        semantic -> generateInterfaceStubsLegacy(query, workspace, semantic, source, false, actionItems));
+                        semantic -> renderInterfaceStubs(query, workspace, semantic, source, false, actionItems));
                 if (!emitted.isSuccess()) return emitted;
                 if (emitted.getGeneratedCode() != null) {
                     emitted.getGeneratedCode().forEach((path, content) -> putArtifact(generatedFiles, path, content));
@@ -236,7 +233,9 @@ public class JavaGenerationService {
         } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
             throw unavailable;
         } catch (Exception exception) {
-            return new StubResult(false, "Stub generation failed: " + exception.getMessage());
+            StubResult failure = new StubResult(false, "Stub generation failed: " + exception.getMessage());
+            failure.setGeneratedCode(Map.of());
+            return failure;
         }
     }
 
@@ -358,7 +357,7 @@ public class JavaGenerationService {
     private StubResult emitProjected(TargetModel targetModel, Function<SemanticProgram, StubResult> generation) {
         SemanticProgram semantic = targetModel.semanticProgram();
         AtomicReference<StubResult> resultReference = new AtomicReference<>();
-        JavaEmitter javaEmitter = new JavaEmitter((ignoredModel, ignoredProfile) -> {
+        EmittedArtifacts emitted = emitterRegistry.emit(targetModel, (ignoredModel, ignoredProfile) -> {
             StubResult result = generation.apply(semantic);
             resultReference.set(result);
             EmittedArtifacts raw = result.isSuccess() && result.getGeneratedCode() != null
@@ -366,7 +365,6 @@ public class JavaGenerationService {
                     : new EmittedArtifacts(List.of());
             return raw;
         });
-        EmittedArtifacts emitted = emitterRegistry.emit(targetModel, javaEmitter);
         if (targetModel.targetLanguage() == org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
             emitted = applyManifest(targetModel, emitted);
         }
@@ -386,14 +384,15 @@ public class JavaGenerationService {
         Map<String, String> expectedByFileName = new LinkedHashMap<>();
         for (String path : expected) {
             String fileName = Path.of(path).getFileName().toString();
-            if (expectedByFileName.putIfAbsent(fileName, path) != null) {
+            String key = fileName.toLowerCase(Locale.ROOT);
+            if (expectedByFileName.putIfAbsent(key, path) != null) {
                 throw new TargetManifestMismatchException("manifest contains duplicate Java file name " + fileName);
             }
         }
         Map<String, String> rebased = new LinkedHashMap<>();
         emitted.artifacts().forEach(artifact -> {
             String fileName = Path.of(artifact.path()).getFileName().toString();
-            String planned = expectedByFileName.remove(fileName);
+            String planned = expectedByFileName.remove(fileName.toLowerCase(Locale.ROOT));
             if (planned == null) throw new TargetManifestMismatchException(
                     "unexpected emitted path " + artifact.path());
             rebased.put(planned, artifact.utf8Text());
@@ -435,16 +434,16 @@ public class JavaGenerationService {
         return new DecisionResolver().resolve(MigrationProfiles.emptyOverlay(), List.of());
     }
 
-    private StubResult generateInterfaceStubsLegacy(NqlQuery query, Workspace workspace) {
-        return generateInterfaceStubsLegacy(query, workspace, null, null, true, null);
+    private StubResult renderInterfaceStubs(NqlQuery query, Workspace workspace) {
+        return renderInterfaceStubs(query, workspace, null, null, true, null);
     }
 
-    private StubResult generateInterfaceStubsLegacy(NqlQuery query, Workspace workspace,
+    private StubResult renderInterfaceStubs(NqlQuery query, Workspace workspace,
                                                      SemanticProgram semanticProgram) {
-        return generateInterfaceStubsLegacy(query, workspace, semanticProgram, null, true, null);
+        return renderInterfaceStubs(query, workspace, semanticProgram, null, true, null);
     }
 
-    private StubResult generateInterfaceStubsLegacy(NqlQuery query, Workspace workspace,
+    private StubResult renderInterfaceStubs(NqlQuery query, Workspace workspace,
                                                      SemanticProgram semanticProgram, Path selectedSource,
                                                      boolean persist,
                                                      Map<String, ManualActionItem> collectedActionItems) {
@@ -472,8 +471,8 @@ public class JavaGenerationService {
                 // Clean and sanitize the class base name
                 String classBase = sanitizeClassName(toPascalCase(baseName));
 
-                System.out.println("DEBUG: Processing file: " + fileName + ", baseName: " + baseName);
-                System.out.println("DEBUG: Generated classBase: " + classBase);
+                log.debug("DEBUG: Processing file: " + fileName + ", baseName: " + baseName);
+                log.debug("DEBUG: Generated classBase: " + classBase);
 
                 try {
                     CobolIntermediateModel model = resolveIntermediateModel(metadata);
@@ -504,7 +503,7 @@ public class JavaGenerationService {
                     serviceImpl = translateServiceImplementation(serviceImpl, model,
                             annotatedResolution.context().orElse(null), sourceReference, currentSemantic, actionItems);
                     // DEBUG: print generated service implementation for verification
-                    System.out.println("Generated Service Implementation (" + classBase + "):\n" + serviceImpl);
+                    log.debug("Generated Service Implementation (" + classBase + "):\n" + serviceImpl);
                     putArtifact(generatedFiles, classBase + "ServiceImpl.java", serviceImpl);
 
                     @SuppressWarnings("unchecked")
@@ -524,7 +523,7 @@ public class JavaGenerationService {
                         putArtifact(generatedFiles, classBase + "CicsController.java", controller);
                     }
                 } catch (Exception e) {
-                    System.out.println("DEBUG: Error generating for classBase '" + classBase + "': " + e.getMessage());
+                    log.debug("DEBUG: Error generating for classBase '" + classBase + "': " + e.getMessage());
                     throw e;
                 }
             }
@@ -540,8 +539,8 @@ public class JavaGenerationService {
                     : resolveOutputDir(workspace).toString();
 
             // Debug: print generated keys
-            System.out.println("Claves generadas: " + generatedFiles.keySet());
-            System.out.println("Archivos escritos en: " + outputPath);
+            log.debug("Claves generadas: " + generatedFiles.keySet());
+            log.debug("Archivos escritos en: " + outputPath);
 
             boolean success = !generatedFiles.isEmpty();
             String message = success ?
@@ -869,7 +868,7 @@ public class JavaGenerationService {
         String sanitizedClassName = sanitizeClassName(cleanClassName);
         String className = sanitizedClassName + "DTO";
 
-        System.out.println("DEBUG: generateDataTransferObject - original: '" + cleanClassName + "', sanitized: '" + sanitizedClassName + "', final: '" + className + "'");
+        log.debug("DEBUG: generateDataTransferObject - original: '" + cleanClassName + "', sanitized: '" + sanitizedClassName + "', final: '" + className + "'");
 
         TypeSpec.Builder classBuilder = TypeSpec.classBuilder(className)
                 .addModifiers(Modifier.PUBLIC)
@@ -890,13 +889,13 @@ public class JavaGenerationService {
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> linkageItems = (List<Map<String, Object>>) programData.get("linkageItems");
             dataItems = linkageItems != null ? linkageItems : new java.util.ArrayList<>();
-            System.out.println("DEBUG: Using linkageItems for DTO generation, count: " + dataItems.size());
+            log.debug("DEBUG: Using linkageItems for DTO generation, count: " + dataItems.size());
         } else {
             // Use working-storage items for regular programs
             @SuppressWarnings("unchecked")
             List<Map<String, Object>> wsItems = (List<Map<String, Object>>) programData.get("dataItems");
             dataItems = wsItems != null ? wsItems : new java.util.ArrayList<>();
-            System.out.println("DEBUG: Using dataItems for DTO generation, count: " + dataItems.size());
+            log.debug("DEBUG: Using dataItems for DTO generation, count: " + dataItems.size());
         }
 
         if (dataItems != null) {
@@ -927,7 +926,7 @@ public class JavaGenerationService {
         String interfaceName = sanitizedClassName + "Service";
         String dtoName = sanitizedClassName + "DTO";
 
-        System.out.println("DEBUG: generateServiceInterface - original: '" + cleanClassName + "', sanitized: '" + sanitizedClassName + "'");
+        log.debug("DEBUG: generateServiceInterface - original: '" + cleanClassName + "', sanitized: '" + sanitizedClassName + "'");
 
         ClassName dtoClass = ClassName.get("org.shark.renovatio.generated.cobol", dtoName);
 
@@ -1009,7 +1008,7 @@ public class JavaGenerationService {
         String interfaceName = sanitizedClassName + "Service";
         String dtoName = sanitizedClassName + "DTO";
 
-        System.out.println("DEBUG: generateServiceImplementation - original: '" + cleanClassName + "', sanitized: '" + sanitizedClassName + "'");
+        log.debug("DEBUG: generateServiceImplementation - original: '" + cleanClassName + "', sanitized: '" + sanitizedClassName + "'");
 
         ClassName interfaceClass = ClassName.get("org.shark.renovatio.generated.cobol", interfaceName);
         ClassName dtoClass = ClassName.get("org.shark.renovatio.generated.cobol", dtoName);
@@ -1368,7 +1367,7 @@ public class JavaGenerationService {
     private String toPascalCase(String input) {
         if (input == null || input.isEmpty()) return "CobolProgram";
 
-        System.out.println("DEBUG: toPascalCase input: '" + input + "'");
+        log.debug("DEBUG: toPascalCase input: '" + input + "'");
 
         // Limpiar caracteres especiales que no son válidos en nombres de clase Java (incluyendo apostrofes)
         // Primero quitar la extensión del archivo si existe
@@ -1376,13 +1375,13 @@ public class JavaGenerationService {
 
         // Limpiar todos los caracteres especiales incluyendo apostrofes, guiones, espacios, etc.
         String cleaned = withoutExtension.replaceAll("[^a-zA-Z0-9]", " ");
-        System.out.println("DEBUG: after cleaning: '" + cleaned + "'");
+        log.debug("DEBUG: after cleaning: '" + cleaned + "'");
 
         // Dividir por espacios múltiples y procesar cada parte
         String[] parts = cleaned.trim().split("\\s+");
         StringBuilder result = new StringBuilder();
 
-        System.out.println("DEBUG: parts array: " + java.util.Arrays.toString(parts));
+        log.debug("DEBUG: parts array: " + java.util.Arrays.toString(parts));
 
         for (String part : parts) {
             if (part.isEmpty()) continue;
@@ -1391,11 +1390,11 @@ public class JavaGenerationService {
             if (part.equalsIgnoreCase("cob") || part.equalsIgnoreCase("cobol") ||
                     part.equalsIgnoreCase("cbl") || part.equalsIgnoreCase("cpy") ||
                     part.equalsIgnoreCase("program") || part.equalsIgnoreCase("file")) {
-                System.out.println("DEBUG: skipping common word: '" + part + "'");
+                log.debug("DEBUG: skipping common word: '" + part + "'");
                 continue;
             }
 
-            System.out.println("DEBUG: processing part: '" + part + "'");
+            log.debug("DEBUG: processing part: '" + part + "'");
             // Capitalizar primera letra y hacer el resto lowercase
             result.append(part.substring(0, 1).toUpperCase());
             if (part.length() > 1) {
@@ -1406,7 +1405,7 @@ public class JavaGenerationService {
         // Si el resultado está vacío, usar un nombre por defecto
         String finalResult = result.toString();
         if (finalResult.isEmpty()) {
-            System.out.println("DEBUG: empty result, using default");
+            log.debug("DEBUG: empty result, using default");
             finalResult = "CobolProgram";
         }
 
@@ -1422,7 +1421,7 @@ public class JavaGenerationService {
             finalResult = "CobolProgram";
         }
 
-        System.out.println("DEBUG: toPascalCase final output: '" + finalResult + "'");
+        log.debug("DEBUG: toPascalCase final output: '" + finalResult + "'");
         return finalResult;
     }
 
@@ -1470,7 +1469,7 @@ public class JavaGenerationService {
     private String sanitizeClassName(String className) {
         if (className == null || className.isEmpty()) return "CobolProgram";
 
-        System.out.println("DEBUG: sanitizeClassName input: '" + className + "'");
+        log.debug("DEBUG: sanitizeClassName input: '" + className + "'");
 
         // Limpiar caracteres especiales que no son válidos en nombres de clase Java
         String sanitized = className.replaceAll("[^a-zA-Z0-9_$]", " ");
@@ -1514,7 +1513,7 @@ public class JavaGenerationService {
             finalResult = "CobolProgram";
         }
 
-        System.out.println("DEBUG: sanitizeClassName output: '" + finalResult + "'");
+        log.debug("DEBUG: sanitizeClassName output: '" + finalResult + "'");
         return finalResult;
     }
 

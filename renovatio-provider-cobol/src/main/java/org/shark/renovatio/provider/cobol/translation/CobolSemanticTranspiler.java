@@ -14,8 +14,6 @@ import org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipe;
 import org.shark.renovatio.cobol.recipes.annotate.AnnotationOutcomeKey;
 import org.shark.renovatio.cobol.recipes.annotate.DroppedAnnotation;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;
-import org.shark.renovatio.provider.java.OpenRewriteRunResult;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.semantic.ir.SemanticProgram;
 import org.springframework.stereotype.Component;
 
@@ -27,10 +25,16 @@ import java.util.stream.Collectors;
 @Component
 public class CobolSemanticTranspiler {
 
-    private final OpenRewriteRunner runner;
+    private final RecipeRunner runner;
     private final AnnotationActionItemFactory actionItemFactory = new AnnotationActionItemFactory();
 
-    public CobolSemanticTranspiler(OpenRewriteRunner runner) {
+    public CobolSemanticTranspiler() {
+        this((recipe, context, sources) -> recipe
+                .run(new org.openrewrite.internal.InMemoryLargeSourceSet(sources), context)
+                .getChangeset().getAllResults());
+    }
+
+    public CobolSemanticTranspiler(RecipeRunner runner) {
         this.runner = runner;
     }
 
@@ -101,12 +105,12 @@ public class CobolSemanticTranspiler {
                 .build();
         List<SourceFile> sources = javaParser.parse(ctx, javaSource).collect(java.util.stream.Collectors.toList());
 
-        OpenRewriteRunResult runResult = runner.runRecipe(new PopulateCobolProcessRecipe(), ctx, sources);
+        List<Result> results = runner.run(new PopulateCobolProcessRecipe(), ctx, sources);
         drainAnnotationOutcomes(ctx, model, sourceFile, effectiveSink);
-        if (!runResult.getValidationErrors().isEmpty() || runResult.getResults().isEmpty()) {
+        if (results.isEmpty()) {
             return javaSource;
         }
-        Result first = runResult.getResults().get(0);
+        Result first = results.get(0);
         return first.getAfter() != null ? first.getAfter().printAll() : javaSource;
     }
 
@@ -134,5 +138,10 @@ public class CobolSemanticTranspiler {
                         CobolIrIdentityProjector.ProjectedNode::nodeKind));
         return new AnnotatedCobolValidator().validate(
                 context.sidecar(), projector.baseIrHash(context.baseModel()), nodes).isEmpty();
+    }
+
+    @FunctionalInterface
+    public interface RecipeRunner {
+        List<Result> run(org.openrewrite.Recipe recipe, ExecutionContext context, List<SourceFile> sources);
     }
 }
