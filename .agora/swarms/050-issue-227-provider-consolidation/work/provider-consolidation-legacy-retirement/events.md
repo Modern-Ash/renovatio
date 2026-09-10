@@ -38,3 +38,5 @@
 - 2026-09-10T01:34:43.820857Z | work.criterion-stage-marked | criterion=legacy-route actor=project:agent stage=verified
 - 2026-09-10T01:34:44.065328Z | work.criterion-stage-marked | criterion=emitter-registration actor=project:agent stage=verified
 - 2026-09-10T01:34:44.302796Z | work.criterion-stage-marked | criterion=logging actor=project:agent stage=verified
+- 2026-09-10T01:34:57.946120Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-10T01:34:58.175470Z | evidence.added | id=evidence-000002 type=static-analysis result=success revision=1 actor=project:agent
