@@ -16,13 +16,14 @@
     "language": "Java",
     "package": "org.shark.renovatio.generated.cobol",
     "files": [
-      "src/main/java/org/shark/renovatio/generated/cobol/Db2001Repository.java",
-      "src/main/java/org/shark/renovatio/generated/cobol/EmpRecEntity.java"
+      "src/main/java/org/shark/renovatio/generated/cobol/Db2001DTO.java",
+      "src/main/java/org/shark/renovatio/generated/cobol/Db2001Service.java",
+      "src/main/java/org/shark/renovatio/generated/cobol/Db2001ServiceImpl.java"
     ]
   },
   "mappings": {
     "programId": "DB2001",
-    "className": "Db2001Repository",
+    "className": "Db2001ServiceImpl",
     "paragraphs": [
       {
         "cobol": "MAIN-LOGIC",
@@ -135,6 +136,6 @@
   "metadata": {
     "determinism": "byte-identical",
     "idempotency": "verified",
-    "semanticGaps": 0
+    "semanticGaps": "tracked-as-stable-action-items"
   }
 }

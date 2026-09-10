@@ -356,7 +356,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
                                                   Set<String> visitedParagraphs,
                                                   @Nullable String varName) {
             if (statement instanceof MoveStatement move) {
-                return List.of(renderMove(move, varName));
+                return List.of(renderMove(move, model, varName));
             }
             if (statement instanceof ComputeStatement compute) {
                 return List.of(renderCompute(compute, varName));
@@ -459,10 +459,17 @@ public class PopulateCobolProcessRecipe extends Recipe {
             }
         }
 
-        private String renderMove(MoveStatement move, @Nullable String varName) {
+        private String renderMove(MoveStatement move, CobolIntermediateModel model,
+                                  @Nullable String varName) {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            String expression = toJavaExpression(move.source());
+            Optional<CobolDataItem> target = findDataItem(model, stripSubscripts(move.target()));
+            if (target.map(CobolDataItem::javaType).filter("BigDecimal"::equals).isPresent()
+                    && move.source().trim().matches("[+-]?[0-9]+(?:\\.[0-9]+)?")) {
+                expression = "new java.math.BigDecimal(\"" + move.source().trim() + "\")";
+            }
             return String.format(Locale.ROOT, "%s.%s(%s);",
-                    targetVar, toSetter(move.target()), toJavaExpression(move.source()));
+                    targetVar, toSetter(move.target()), expression);
         }
 
         private String renderCompute(ComputeStatement compute, @Nullable String varName) {
@@ -1303,7 +1310,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         private String toSetter(String cobolName) {
-            return "set" + toPascal(stripSubscripts(cobolName));
+            String pascal = toPascal(stripSubscripts(cobolName));
+            if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)) {
+                return UNRESOLVED_MARKER + cobolName;
+            }
+            return "set" + pascal;
         }
 
         private String toJavaExpression(String value) {

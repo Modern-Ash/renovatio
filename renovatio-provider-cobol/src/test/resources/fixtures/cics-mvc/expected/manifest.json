@@ -16,13 +16,15 @@
     "language": "Java",
     "package": "org.shark.renovatio.generated.cobol",
     "files": [
-      "src/main/java/org/shark/renovatio/generated/cobol/Cics001Controller.java",
-      "src/main/java/org/shark/renovatio/generated/cobol/CustomerRecord.java"
+      "src/main/java/org/shark/renovatio/generated/cobol/Cics001CicsController.java",
+      "src/main/java/org/shark/renovatio/generated/cobol/Cics001DTO.java",
+      "src/main/java/org/shark/renovatio/generated/cobol/Cics001Service.java",
+      "src/main/java/org/shark/renovatio/generated/cobol/Cics001ServiceImpl.java"
     ]
   },
   "mappings": {
     "programId": "CICS001",
-    "className": "Cics001Controller",
+    "className": "Cics001ServiceImpl",
     "paragraphs": [
       {
         "cobol": "MAIN-LOGIC",
@@ -133,6 +135,6 @@
   "metadata": {
     "determinism": "byte-identical",
     "idempotency": "verified",
-    "semanticGaps": 0
+    "semanticGaps": "tracked-as-stable-action-items"
   }
 }

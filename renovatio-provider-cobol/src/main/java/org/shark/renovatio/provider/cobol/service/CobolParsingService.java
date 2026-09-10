@@ -65,10 +65,10 @@ public class CobolParsingService {
     // --- Constants: regex patterns (precompiled) ---
     private static final Pattern EXEC_SQL_PATTERN = Pattern.compile("EXEC\\s+SQL(.*?)END-EXEC", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
     private static final Pattern WS_SECTION_PATTERN = Pattern.compile("WORKING-STORAGE SECTION\\.(.*)(PROCEDURE DIVISION\\.|\\Z)", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
-    private static final Pattern WS_FIELD_PATTERN = Pattern.compile("^\\s*\\d+\\s+([A-Z0-9-]+)\\s+PIC\\s+([A-Z0-9()]+)(?:\\s+COMP-?\\d+)?(?:\\s+SIGNED)?\\.", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+    private static final Pattern WS_FIELD_PATTERN = Pattern.compile("^\\s*\\d+\\s+([A-Z0-9-]+)\\s+PIC\\s+([A-Z0-9()]+)(?:\\s+COMP(?:-?\\d+)?)?(?:\\s+SIGNED)?(?:\\s+VALUE\\s+[^.]+)?\\.", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
     private static final Pattern LINKAGE_SECTION_PATTERN = Pattern.compile("LINKAGE SECTION\\.(.*)(PROCEDURE DIVISION\\.|\\Z)", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
     private static final Pattern LINKAGE_GROUP_PATTERN = Pattern.compile("^\\s*01\\s+([A-Z0-9-]+)\\s*\\.", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
-    private static final Pattern LINKAGE_FIELD_PATTERN = Pattern.compile("^\\s*05\\s+([A-Z0-9-]+)\\s+PIC\\s+([A-Z0-9()]+)(?:\\s+COMP-?\\d+)?(?:\\s+SIGNED)?\\.", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
+    private static final Pattern LINKAGE_FIELD_PATTERN = Pattern.compile("^\\s*05\\s+([A-Z0-9-]+)\\s+PIC\\s+([A-Z0-9()]+)(?:\\s+COMP(?:-?\\d+)?)?(?:\\s+SIGNED)?(?:\\s+VALUE\\s+[^.]+)?\\.", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE);
     private static final Pattern ENTRY_PATTERN = Pattern.compile("ENTRY\\s+\"([A-Z0-9_-]+)\"\\s+USING\\s+([A-Z0-9-]+)\\.", Pattern.CASE_INSENSITIVE);
     private static final Pattern PROGRAM_ID_PATTERN = Pattern.compile("PROGRAM-ID\\.\\s*([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern CICS_COMMAND_PATTERN = Pattern.compile("EXEC\\s+CICS\\s+([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);

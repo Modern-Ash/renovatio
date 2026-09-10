@@ -5,13 +5,13 @@ swarm: "issue-228-cobol-java-reference-path"
 work: "cobol-java-reference-path"
 pass: "post-merge-ac07-audit"
 severity: "high"
-status: "open"
+status: "resolved"
 policy: "runbook"
 location: "docs/RUNBOOK.md"
 created-at: "2026-09-10T12:59:58.183123Z"
-decided-by: null
-decided-at: null
-decision-reason: null
+decided-by: "project:agent"
+decided-at: "2026-09-10T14:06:30.899684Z"
+decision-reason: "Runbook now documents JDK 21, current stages, commands, artifact sets, and measured evidence."
 ---
 
 # Review finding issue228-runbook-stale
