@@ -20,6 +20,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class TargetEmitterRegistryTest {
     @Test
+    void preservesFormerNestedExceptionBinaryNames() throws ClassNotFoundException {
+        assertEquals(TargetEmitterRegistry.TargetEmitterUnavailableException.class,
+                Class.forName(TargetEmitterRegistry.class.getName() + "$TargetEmitterUnavailableException"));
+        assertEquals(TargetEmitterRegistry.DuplicateTargetEmitterException.class,
+                Class.forName(TargetEmitterRegistry.class.getName() + "$DuplicateTargetEmitterException"));
+    }
+
+    @Test
     void resolvesAndInvokesExactlyOneJavaEmitter() {
         AtomicInteger calls = new AtomicInteger();
         TargetEmitter java = emitter(MigrationProfile.Language.JAVA, calls);

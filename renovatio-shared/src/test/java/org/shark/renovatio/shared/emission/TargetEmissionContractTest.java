@@ -130,6 +130,23 @@ class TargetEmissionContractTest {
         assertTrue(TranslationDocumentation.tsdoc(model).contains("DecisionPoint references:"));
     }
 
+    @Test
+    void registryJavaFallbackPreservesTranslationDocumentation() {
+        MigrationProfile overlay = new MigrationProfile("1", Map.of("documentation.enabled", true),
+                null, null, null, null, null, null);
+        TargetModel model = TargetModel.from(program(), MigrationProfiles.effective(
+                overlay, Map.of(), Map.of(), List.of()));
+
+        EmittedArtifacts emitted = new TargetEmitterRegistry(List.of()).emit(model,
+                (ignoredModel, ignoredProfile) -> EmittedArtifacts.of(List.of(
+                        EmittedArtifact.utf8("Test.java", "package sample;\n\npublic class Test {}\n"))));
+
+        String source = emitted.artifacts().get(0).utf8Text();
+        assertTrue(source.contains("COBOL program TEST"), source);
+        assertTrue(source.indexOf("package sample;") < source.indexOf("COBOL program TEST"), source);
+        assertTrue(source.indexOf("COBOL program TEST") < source.indexOf("public class Test"), source);
+    }
+
     private static SemanticProgram program() {
         SourceSpan span = new SourceSpan("src/program.cob", 1, 1, 1, 9);
         SourceProvenance provenance = new SourceProvenance("src/program.cob", "0".repeat(64),

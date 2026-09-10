@@ -1,6 +1,6 @@
 package org.shark.renovatio.provider.cobol.service;
 
-import org.shark.renovatio.core.service.TargetEmitterRegistry;
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.shared.util.BenchmarkUtils;

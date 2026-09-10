@@ -1,5 +1,7 @@
 package org.shark.renovatio.provider.java.emission;
 
+import org.shark.renovatio.architecture.java.JavaArchitectureSourceLayout;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;

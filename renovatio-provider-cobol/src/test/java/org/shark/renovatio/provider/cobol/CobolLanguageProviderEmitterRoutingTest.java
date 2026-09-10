@@ -3,13 +3,12 @@ package org.shark.renovatio.provider.cobol;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.shark.renovatio.core.service.TargetEmitterRegistry;
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
 import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.profile.MigrationProfile;
 import org.shark.renovatio.provider.cobol.service.*;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.shared.domain.Scope;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
@@ -65,7 +64,7 @@ class CobolLanguageProviderEmitterRoutingTest {
         CobolIntermediateModelService models = new CobolIntermediateModelService();
         AtomicInteger resolutions = new AtomicInteger();
         JavaGenerationService generation = new JavaGenerationService(parsing, templates, models,
-                new CobolSemanticTranspiler(new OpenRewriteRunner()),
+                new CobolSemanticTranspiler(),
                 new ObjectMapper().findAndRegisterModules(), true, new TargetEmitterRegistry(List.of()), projectId -> {
                     assertEquals("project-42", projectId);
                     resolutions.incrementAndGet();
@@ -87,7 +86,7 @@ class CobolLanguageProviderEmitterRoutingTest {
         TemplateCodeGenerationService templates = new TemplateCodeGenerationService();
         CobolIntermediateModelService models = new CobolIntermediateModelService();
         JavaGenerationService generation = new JavaGenerationService(parsing, templates, models,
-                new CobolSemanticTranspiler(new OpenRewriteRunner()),
+                new CobolSemanticTranspiler(),
                 new ObjectMapper().findAndRegisterModules(), true, new TargetEmitterRegistry(List.of()),
                 ignored -> nodeProfile());
         CobolLanguageProvider provider = new CobolLanguageProvider(parsing, generation,
@@ -117,7 +116,7 @@ class CobolLanguageProviderEmitterRoutingTest {
             }
         };
         JavaGenerationService generation = new JavaGenerationService(parsing, templates, models,
-                new CobolSemanticTranspiler(new OpenRewriteRunner()),
+                new CobolSemanticTranspiler(),
                 new ObjectMapper().findAndRegisterModules(), true,
                 new TargetEmitterRegistry(List.of(failingEmitter)), ignored -> nodeProfile());
         CobolLanguageProvider provider = new CobolLanguageProvider(parsing, generation,
@@ -246,7 +245,7 @@ class CobolLanguageProviderEmitterRoutingTest {
             }
         };
         JavaGenerationService generation = new JavaGenerationService(parsing, templates, models,
-                new CobolSemanticTranspiler(new OpenRewriteRunner()),
+                new CobolSemanticTranspiler(),
                 new ObjectMapper().findAndRegisterModules(), true,
                 new TargetEmitterRegistry(List.of(nodeEmitter)), ignored -> nodeProfile());
         return new CobolLanguageProvider(parsing, generation, new MigrationPlanService(parsing, generation),
@@ -261,7 +260,7 @@ class CobolLanguageProviderEmitterRoutingTest {
         Db2MigrationService db2 = new Db2MigrationService(parsing);
         ControlBreakDecompositionService decomposition = new ControlBreakDecompositionService(models, parsing);
         JavaGenerationService generation = new JavaGenerationService(parsing, templates,
-                models, new CobolSemanticTranspiler(new OpenRewriteRunner()),
+                models, new CobolSemanticTranspiler(),
                 new ObjectMapper().findAndRegisterModules(), true);
         return new Dependencies(parsing, generation, templates, db2, decomposition);
     }

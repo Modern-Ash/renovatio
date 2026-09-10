@@ -3,6 +3,7 @@ package org.shark.renovatio.provider.cobol.translation;
 import org.junit.jupiter.api.Test;
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.Recipe;
+import org.openrewrite.Result;
 import org.openrewrite.SourceFile;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
@@ -16,8 +17,6 @@ import org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
 import org.shark.renovatio.cobol.ir.annotated.DomainNamingPayload;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipe;
-import org.shark.renovatio.provider.java.OpenRewriteRunResult;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;
 
 import java.time.Instant;
@@ -62,7 +61,7 @@ class CobolSemanticTranspilerTest {
     void shouldEnrichServiceImplementation() {
         CobolIntermediateModelService modelService = new CobolIntermediateModelService();
         CobolIntermediateModel model = modelService.parse(COBOL_SAMPLE);
-        CobolSemanticTranspiler transpiler = new CobolSemanticTranspiler(new OpenRewriteRunner());
+        CobolSemanticTranspiler transpiler = new CobolSemanticTranspiler();
 
         String enriched = transpiler.enrichServiceImplementation(JAVA_STUB, model);
         assertThat(enriched).contains("output.setCustomerName(\"JOHN\");");
@@ -125,7 +124,7 @@ class CobolSemanticTranspilerTest {
                         List.of(rejected)));
         List<ManualActionItem> captured = new ArrayList<>();
 
-        new CobolSemanticTranspiler(new OpenRewriteRunner())
+        new CobolSemanticTranspiler()
                 .enrichServiceImplementation(JAVA_STUB, annotated,
                         "/workspace/jobs/customer-input.cbl", captured::addAll);
 
@@ -135,13 +134,14 @@ class CobolSemanticTranspilerTest {
                 assertThat(item.sourceFile()).isEqualTo("/workspace/jobs/customer-input.cbl"));
     }
 
-    private static final class CapturingRunner extends OpenRewriteRunner {
+    private static final class CapturingRunner implements CobolSemanticTranspiler.RecipeRunner {
         private ExecutionContext context;
 
         @Override
-        public OpenRewriteRunResult runRecipe(Recipe recipe, ExecutionContext ctx, List<SourceFile> sourceFiles) {
+        public List<Result> run(Recipe recipe, ExecutionContext ctx, List<SourceFile> sourceFiles) {
             context = ctx;
-            return super.runRecipe(recipe, ctx, sourceFiles);
+            return recipe.run(new org.openrewrite.internal.InMemoryLargeSourceSet(sourceFiles), ctx)
+                    .getChangeset().getAllResults();
         }
     }
 }

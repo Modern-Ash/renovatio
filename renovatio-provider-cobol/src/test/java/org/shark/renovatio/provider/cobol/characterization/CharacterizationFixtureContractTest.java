@@ -12,11 +12,9 @@ import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelServ
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticProjector;
 import org.shark.renovatio.provider.cobol.translation.AnnotatedContextResolver;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.decisions.DecisionResolver;
 import org.shark.renovatio.profile.MigrationProfiles;
-import org.shark.renovatio.core.service.TargetEmitterRegistry;
-import org.shark.renovatio.provider.java.emission.JavaEmitter;
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
 import org.shark.renovatio.shared.emission.EmittedArtifact;
 import org.shark.renovatio.shared.emission.EmittedArtifacts;
 import org.shark.renovatio.shared.emission.TargetModel;
@@ -54,7 +52,7 @@ class CharacterizationFixtureContractTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final CobolIntermediateModelService modelService = new CobolIntermediateModelService();
-    private final CobolSemanticTranspiler transpiler = new CobolSemanticTranspiler(new OpenRewriteRunner());
+    private final CobolSemanticTranspiler transpiler = new CobolSemanticTranspiler();
 
     @Test
     void corpusExercisesProductionTranslationAndResidualContracts(@TempDir Path compilationOutput) throws Exception {
@@ -159,10 +157,9 @@ class CharacterizationFixtureContractTest {
         var semantic = new CobolSemanticProjector().project(model, "input.cob", sourceBytes,
                 Optional.empty(), resolution.context());
         TargetModel target = TargetModel.from(semantic, effective);
-        JavaEmitter emitter = new JavaEmitter((ignoredModel, ignoredProfile) -> EmittedArtifacts.of(
+        EmittedArtifacts emitted = new TargetEmitterRegistry(List.of()).emit(target, (ignoredModel, ignoredProfile) -> EmittedArtifacts.of(
                 generated.entrySet().stream().map(entry -> new EmittedArtifact(entry.getKey(), entry.getValue()))
                         .toList()));
-        EmittedArtifacts emitted = new TargetEmitterRegistry(List.of(emitter)).emit(target);
         Map<String, byte[]> routed = new TreeMap<>();
         emitted.artifacts().forEach(artifact -> routed.put(artifact.path(), artifact.content()));
         return routed;

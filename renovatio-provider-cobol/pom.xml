@@ -37,14 +37,6 @@
             <artifactId>cobol-openrewrite-recipes</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.shark.renovatio</groupId>
-            <artifactId>renovatio-provider-java</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.shark.renovatio</groupId>
-            <artifactId>renovatio-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <exclusions>
@@ -106,6 +98,11 @@
         <dependency>
             <groupId>org.openrewrite</groupId>
             <artifactId>rewrite-java</artifactId>
+            <version>${openrewrite.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openrewrite</groupId>
+            <artifactId>rewrite-java-21</artifactId>
             <version>${openrewrite.version}</version>
         </dependency>
 
