@@ -1,0 +1,1244 @@
+.renovatio-workbench-widget {
+    --renovatio-ink: #eef8f5;
+    --renovatio-muted: #92aaa4;
+    --renovatio-grid: rgba(45, 225, 194, 0.13);
+    --renovatio-accent: #2de1c2;
+    --renovatio-hazard: #ffb400;
+    --renovatio-panel: rgba(9, 21, 23, 0.9);
+    background:
+        linear-gradient(135deg, rgba(45, 225, 194, 0.05), transparent 42%),
+        repeating-linear-gradient(135deg, transparent 0 14px, var(--renovatio-grid) 15px 16px),
+        #071012;
+    color: var(--renovatio-ink);
+    font-family: Barlow, "Segoe UI", sans-serif;
+    overflow: auto;
+}
+
+.renovatio-workbench-widget:focus-visible {
+    outline: 2px solid var(--renovatio-hazard);
+    outline-offset: -3px;
+}
+
+.renovatio-surface {
+    min-height: 100%;
+    padding: clamp(20px, 4vw, 48px);
+    box-sizing: border-box;
+}
+
+.renovatio-header {
+    border-left: 5px solid var(--renovatio-hazard);
+    padding: 8px 0 12px 20px;
+    margin-bottom: 28px;
+}
+
+.renovatio-kicker,
+.renovatio-coordinate {
+    color: var(--renovatio-accent);
+    font: 600 11px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.14em;
+}
+
+.renovatio-header h1 {
+    font: 800 clamp(28px, 5vw, 58px)/0.95 "Arial Narrow", "Roboto Condensed", sans-serif;
+    letter-spacing: -0.035em;
+    margin: 10px 0;
+}
+
+.renovatio-header p {
+    color: var(--renovatio-muted);
+    font-size: 15px;
+    margin: 0;
+    max-width: 56ch;
+}
+
+.renovatio-status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.renovatio-panel,
+.renovatio-flow {
+    background: var(--renovatio-panel);
+    border: 1px solid rgba(238, 248, 245, 0.22);
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.04);
+    padding: 18px;
+    position: relative;
+}
+
+.renovatio-panel::after,
+.renovatio-flow::after {
+    border-right: 8px solid var(--renovatio-accent);
+    border-top: 8px solid transparent;
+    bottom: 4px;
+    content: "";
+    position: absolute;
+    right: 4px;
+}
+
+.renovatio-panel-primary {
+    border-top: 3px solid var(--renovatio-hazard);
+}
+
+.renovatio-panel h2,
+.renovatio-flow h2 {
+    font-size: 15px;
+    letter-spacing: 0.03em;
+    margin: 14px 0;
+}
+
+.renovatio-signal-row {
+    align-items: center;
+    display: flex;
+    gap: 9px;
+    min-height: 34px;
+}
+
+.renovatio-signal {
+    background: var(--renovatio-accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 5px rgba(45, 225, 194, 0.12);
+    height: 9px;
+    width: 9px;
+}
+
+.renovatio-panel dl,
+.renovatio-panel dd {
+    margin: 0;
+}
+
+.renovatio-panel dl > div {
+    border-top: 1px solid rgba(238, 248, 245, 0.13);
+    display: grid;
+    gap: 8px;
+    grid-template-columns: 90px minmax(0, 1fr);
+    padding: 8px 0;
+}
+
+.renovatio-panel dt {
+    color: var(--renovatio-muted);
+}
+
+.renovatio-panel dd {
+    font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-flow {
+    align-items: center;
+    display: grid;
+    gap: 28px;
+    grid-template-columns: minmax(160px, 0.65fr) 2fr;
+    margin-top: 12px;
+}
+
+.renovatio-flow ol {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(3, 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-flow li {
+    border-left: 2px solid var(--renovatio-accent);
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 7px 10px;
+}
+
+.renovatio-flow li span {
+    color: var(--renovatio-muted);
+    font-size: 12px;
+}
+
+@media (max-width: 860px) {
+    .renovatio-status-grid,
+    .renovatio-flow,
+    .renovatio-flow ol {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .renovatio-panel,
+    .renovatio-flow {
+        animation: renovatio-enter 280ms linear both;
+    }
+
+    .renovatio-panel:nth-child(2) { animation-delay: 60ms; }
+    .renovatio-panel:nth-child(3) { animation-delay: 120ms; }
+}
+
+@keyframes renovatio-enter {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.renovatio-shell-header {
+    display: grid;
+    gap: 8px;
+}
+
+.renovatio-dashboard-link {
+    align-self: start;
+    border: 1px solid var(--renovatio-accent);
+    color: var(--renovatio-ink);
+    font: 600 12px/1.1 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.06em;
+    padding: 10px 12px;
+    text-decoration: none;
+}
+
+.renovatio-dashboard-link:hover,
+.renovatio-dashboard-link:focus-visible {
+    background: var(--renovatio-accent);
+    color: #071012;
+    outline: 2px solid var(--renovatio-hazard);
+    outline-offset: 3px;
+}
+
+.renovatio-shell-grid {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: minmax(140px, 0.42fr) minmax(220px, 0.8fr) minmax(280px, 1.7fr);
+}
+
+.renovatio-activity-rail,
+.renovatio-project-explorer,
+.renovatio-area-content,
+.renovatio-bottom-panel {
+    background: var(--renovatio-panel);
+    border: 1px solid rgba(238, 248, 245, 0.22);
+}
+
+.renovatio-activity-rail {
+    display: grid;
+    align-content: start;
+    gap: 6px;
+    padding: 8px;
+}
+
+.renovatio-activity-rail button,
+.renovatio-project-switcher button,
+.renovatio-asset-group button {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--renovatio-ink);
+    cursor: pointer;
+    font: 600 12px/1.2 Barlow, "Segoe UI", sans-serif;
+    text-align: left;
+}
+
+.renovatio-activity-rail button {
+    display: grid;
+    gap: 6px;
+    min-height: 54px;
+    padding: 10px;
+}
+
+.renovatio-activity-rail button span,
+.renovatio-bottom-panel span,
+.renovatio-asset-preview span,
+.renovatio-selection {
+    color: var(--renovatio-muted);
+    font: 600 10px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.1em;
+}
+
+.renovatio-activity-rail button.is-active,
+.renovatio-activity-rail button:hover,
+.renovatio-activity-rail button:focus-visible,
+.renovatio-project-switcher button[aria-pressed='true'],
+.renovatio-asset-group button[aria-current='page'] {
+    background: rgba(45, 225, 194, 0.12);
+    border-color: var(--renovatio-accent);
+    outline: 0;
+}
+
+.renovatio-project-explorer,
+.renovatio-area-content {
+    min-width: 0;
+    padding: 18px;
+}
+
+.renovatio-panel-heading h2,
+.renovatio-area-content h2 {
+    margin: 8px 0 14px;
+}
+
+.renovatio-project-switcher {
+    display: flex;
+    gap: 6px;
+}
+
+.renovatio-project-switcher button {
+    border-color: rgba(238, 248, 245, 0.25);
+    padding: 8px;
+}
+
+.renovatio-asset-group {
+    border-top: 1px solid rgba(238, 248, 245, 0.12);
+    margin-top: 10px;
+    padding-top: 8px;
+}
+
+.renovatio-asset-group h3 {
+    color: var(--renovatio-muted);
+    font-size: 12px;
+    margin: 0 0 4px;
+}
+
+.renovatio-asset-group ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-asset-group button {
+    padding: 5px 7px;
+    width: 100%;
+}
+
+.renovatio-asset-preview {
+    border-left: 3px solid var(--renovatio-hazard);
+    margin-top: 28px;
+    padding: 16px;
+    background: rgba(255, 180, 0, 0.05);
+}
+
+.renovatio-asset-preview strong {
+    display: block;
+    font: 700 16px/1.25 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    margin: 8px 0;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-asset-editor {
+    border-top: 1px solid rgba(238, 248, 245, 0.18);
+    margin-top: 18px;
+    padding-top: 14px;
+}
+
+.renovatio-asset-editor > div {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.renovatio-asset-editor span,
+.renovatio-asset-editor p {
+    color: var(--renovatio-muted);
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.07em;
+}
+
+.renovatio-asset-editor button {
+    background: rgba(45, 225, 194, 0.1);
+    border: 1px solid var(--renovatio-accent);
+    color: var(--renovatio-ink);
+    cursor: pointer;
+    font: 600 11px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    padding: 7px 9px;
+}
+
+.renovatio-asset-editor button:disabled { cursor: wait; opacity: 0.6; }
+
+.renovatio-asset-editor textarea {
+    background: #071012;
+    border: 1px solid rgba(238, 248, 245, 0.24);
+    box-sizing: border-box;
+    color: var(--renovatio-ink);
+    font: 12px/1.5 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    min-height: 190px;
+    padding: 10px;
+    resize: vertical;
+    width: 100%;
+}
+
+.renovatio-asset-editor textarea:focus-visible { outline: 2px solid var(--renovatio-hazard); outline-offset: 2px; }
+
+.renovatio-bottom-panel {
+    display: grid;
+    gap: 12px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 12px;
+    padding: 12px 18px;
+}
+
+.renovatio-bottom-panel div {
+    display: grid;
+    gap: 5px;
+    min-width: 0;
+}
+
+.renovatio-bottom-panel strong {
+    font: 600 12px/1.3 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 980px) {
+    .renovatio-shell-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .renovatio-activity-rail {
+        grid-template-columns: repeat(6, minmax(112px, 1fr));
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .renovatio-bottom-panel {
+        grid-template-columns: 1fr;
+    }
+}
+
+.renovatio-source-explorer {
+    margin-top: 18px;
+    border: 1px solid var(--renovatio-grid);
+    padding: 14px 16px;
+    background: var(--renovatio-panel);
+}
+
+.renovatio-source-grid {
+    display: grid;
+    grid-template-columns: minmax(200px, 280px) 1fr;
+    gap: 16px;
+    align-items: start;
+}
+
+.renovatio-source-grid nav ul,
+.renovatio-outline,
+.renovatio-symbol-results,
+.renovatio-problems ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+}
+
+.renovatio-source-grid nav li {
+    display: grid;
+    gap: 2px;
+}
+
+.renovatio-file-meta,
+.renovatio-symbol-pos,
+.renovatio-symbol-ir {
+    font: 500 11px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    color: var(--renovatio-muted);
+    overflow-wrap: anywhere;
+}
+
+.renovatio-symbol-kind {
+    color: var(--renovatio-accent);
+    margin-right: 6px;
+}
+
+.renovatio-source-explorer button:focus-visible,
+.renovatio-source-explorer input:focus-visible {
+    outline: 2px solid var(--renovatio-hazard);
+    outline-offset: 2px;
+}
+
+.renovatio-source-explorer button[aria-current='true'] {
+    border-left: 3px solid var(--renovatio-accent);
+    padding-left: 6px;
+}
+
+.renovatio-source-detail label {
+    display: grid;
+    gap: 4px;
+    margin-bottom: 10px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .renovatio-source-explorer button {
+        transition: border-color 120ms ease;
+    }
+}
+
+@media (max-width: 980px) {
+    .renovatio-source-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.renovatio-domain-editor {
+    border-top: 2px solid var(--renovatio-accent);
+    margin-top: 18px;
+    padding-top: 12px;
+}
+
+.renovatio-domain-toolbar,
+.renovatio-domain-section-heading,
+.renovatio-domain-properties > div,
+.renovatio-domain-actions,
+.renovatio-domain-add,
+.renovatio-domain-inspector li > div {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.renovatio-domain-toolbar > div:first-child {
+    display: grid;
+    gap: 5px;
+}
+
+.renovatio-domain-toolbar strong,
+.renovatio-domain-state,
+.renovatio-domain-catalog small,
+.renovatio-domain-inspector span,
+.renovatio-domain-inspector small {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.renovatio-domain-editor button {
+    background: transparent;
+    border: 1px solid rgba(238, 248, 245, 0.28);
+    color: var(--renovatio-ink);
+    cursor: pointer;
+    font: 600 10px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    padding: 7px 9px;
+}
+
+.renovatio-domain-editor button:hover,
+.renovatio-domain-editor button:focus-visible,
+.renovatio-domain-editor input:focus-visible,
+.renovatio-domain-editor select:focus-visible,
+.renovatio-domain-editor textarea:focus-visible {
+    border-color: var(--renovatio-accent);
+    outline: 2px solid var(--renovatio-hazard);
+    outline-offset: 2px;
+}
+
+.renovatio-domain-editor button.is-primary {
+    background: var(--renovatio-accent);
+    color: #071012;
+}
+
+.renovatio-domain-editor button.is-danger {
+    border-color: #ff6b5f;
+    color: #ff9a91;
+}
+
+.renovatio-domain-editor button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.renovatio-domain-state {
+    border-left: 3px solid var(--renovatio-accent);
+    color: var(--renovatio-muted);
+    margin: 12px 0;
+    padding: 8px 10px;
+}
+
+.renovatio-domain-state.state-conflict,
+.renovatio-domain-state.state-error {
+    border-left-color: #ff6b5f;
+    color: #ffb1aa;
+}
+
+.renovatio-domain-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(190px, 0.78fr) minmax(280px, 1.45fr) minmax(220px, 0.9fr);
+    min-height: 560px;
+}
+
+.renovatio-domain-catalog,
+.renovatio-domain-form,
+.renovatio-domain-inspector {
+    background: rgba(4, 13, 15, 0.7);
+    border: 1px solid rgba(238, 248, 245, 0.18);
+    min-width: 0;
+    padding: 12px;
+}
+
+.renovatio-domain-catalog label,
+.renovatio-domain-fields label,
+.renovatio-domain-properties label,
+.renovatio-domain-compare label {
+    color: var(--renovatio-muted);
+    display: grid;
+    font-size: 11px;
+    gap: 5px;
+}
+
+.renovatio-domain-editor input,
+.renovatio-domain-editor select,
+.renovatio-domain-editor textarea {
+    background: #071012;
+    border: 1px solid rgba(238, 248, 245, 0.24);
+    border-radius: 0;
+    box-sizing: border-box;
+    color: var(--renovatio-ink);
+    font: 11px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    min-width: 0;
+    padding: 8px;
+    width: 100%;
+}
+
+.renovatio-domain-editor input[readonly] {
+    color: var(--renovatio-muted);
+}
+
+.renovatio-domain-catalog > section,
+.renovatio-domain-inspector > section {
+    border-top: 1px solid rgba(238, 248, 245, 0.14);
+    margin-top: 12px;
+    padding-top: 10px;
+}
+
+.renovatio-domain-catalog h3,
+.renovatio-domain-inspector h3,
+.renovatio-domain-form h3 {
+    font-size: 12px;
+    margin: 5px 0 8px;
+}
+
+.renovatio-domain-catalog h3 span {
+    color: var(--renovatio-accent);
+    float: right;
+}
+
+.renovatio-domain-catalog ul,
+.renovatio-domain-inspector ul,
+.renovatio-domain-properties ol,
+.renovatio-domain-links ul {
+    display: grid;
+    gap: 5px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-domain-catalog li > button {
+    display: grid;
+    gap: 3px;
+    overflow-wrap: anywhere;
+    text-align: left;
+    width: 100%;
+}
+
+.renovatio-domain-catalog li > button span {
+    color: var(--renovatio-accent);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+}
+
+.renovatio-domain-catalog li > button small {
+    color: var(--renovatio-muted);
+}
+
+.renovatio-domain-catalog li > button[aria-current='true'] {
+    background: rgba(45, 225, 194, 0.12);
+    border-color: var(--renovatio-accent);
+}
+
+.renovatio-domain-add {
+    margin-top: 8px;
+}
+
+.renovatio-domain-add button {
+    flex: 1;
+    padding-inline: 4px;
+}
+
+.renovatio-domain-fields {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 14px;
+}
+
+.renovatio-domain-fields .is-wide {
+    grid-column: 1 / -1;
+}
+
+.renovatio-domain-fields textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.renovatio-domain-properties {
+    border-top: 1px solid rgba(238, 248, 245, 0.14);
+    margin-top: 18px;
+    padding-top: 10px;
+}
+
+.renovatio-domain-properties h4 {
+    margin: 0;
+}
+
+.renovatio-domain-properties li {
+    align-items: end;
+    display: grid;
+    gap: 6px;
+    grid-template-columns: minmax(90px, 1fr) minmax(80px, 0.8fr) auto auto;
+}
+
+.renovatio-domain-properties .renovatio-checkbox {
+    align-items: center;
+    display: flex;
+    min-height: 32px;
+}
+
+.renovatio-domain-properties .renovatio-checkbox input {
+    accent-color: var(--renovatio-accent);
+    width: auto;
+}
+
+.renovatio-domain-properties .renovatio-property-evidence {
+    align-items: center;
+    color: var(--renovatio-muted);
+    display: flex;
+    font: 600 9px/1.3 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    gap: 5px;
+    grid-column: 1 / -1;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-domain-properties .renovatio-property-evidence button {
+    padding: 4px 6px;
+}
+
+.renovatio-domain-placeholder {
+    border: 1px dashed rgba(238, 248, 245, 0.24);
+    color: var(--renovatio-muted);
+    margin-top: 18px;
+    padding: 24px;
+}
+
+.renovatio-domain-inspector {
+    max-height: 680px;
+    overflow: auto;
+}
+
+.renovatio-domain-inspector li {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid rgba(238, 248, 245, 0.22);
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+}
+
+.renovatio-domain-inspector li.severity-warning {
+    border-left-color: var(--renovatio-hazard);
+}
+
+.renovatio-domain-inspector li.severity-error {
+    border-left-color: #ff6b5f;
+}
+
+.renovatio-domain-inspector li p {
+    color: var(--renovatio-muted);
+    font-size: 11px;
+    margin: 2px 0;
+}
+
+.renovatio-domain-inspector li > button:first-child {
+    color: var(--renovatio-accent);
+    overflow-wrap: anywhere;
+    text-align: left;
+}
+
+.renovatio-domain-compare {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 10px;
+}
+
+.renovatio-domain-compare button {
+    grid-column: 1 / -1;
+}
+
+.renovatio-domain-diff,
+.renovatio-domain-empty {
+    color: var(--renovatio-muted);
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.renovatio-domain-links {
+    border-top: 1px solid rgba(238, 248, 245, 0.14);
+    margin-top: 12px;
+    padding-top: 8px;
+}
+
+.renovatio-architecture-canvas {
+    border-top: 2px solid var(--renovatio-hazard);
+    margin-top: 18px;
+    padding-top: 12px;
+}
+
+.renovatio-architecture-toolbar,
+.renovatio-architecture-actions,
+.renovatio-architecture-palette li > button,
+.renovatio-architecture-manifest li,
+.renovatio-architecture-inspector li {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.renovatio-architecture-toolbar strong,
+.renovatio-architecture-canvas small,
+.renovatio-architecture-manifest code,
+.renovatio-architecture-manifest span {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-architecture-canvas button {
+    background: transparent;
+    border: 1px solid rgba(238, 248, 245, 0.28);
+    color: var(--renovatio-ink);
+    cursor: pointer;
+    font: 600 10px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    min-height: 34px;
+    padding: 7px 9px;
+}
+
+.renovatio-architecture-canvas button:hover,
+.renovatio-architecture-canvas button:focus-visible,
+.renovatio-architecture-canvas input:focus-visible,
+.renovatio-architecture-canvas select:focus-visible {
+    border-color: var(--renovatio-accent);
+    outline: 2px solid var(--renovatio-hazard);
+    outline-offset: 2px;
+}
+
+.renovatio-architecture-canvas button.is-primary {
+    background: var(--renovatio-hazard);
+    color: #071012;
+}
+
+.renovatio-architecture-canvas button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.renovatio-architecture-grid {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: minmax(210px, 0.8fr) minmax(320px, 1.45fr) minmax(240px, 0.95fr);
+    min-height: 560px;
+}
+
+.renovatio-architecture-palette,
+.renovatio-architecture-stage,
+.renovatio-architecture-inspector {
+    background: rgba(4, 13, 15, 0.72);
+    border: 1px solid rgba(238, 248, 245, 0.18);
+    min-width: 0;
+    padding: 12px;
+}
+
+.renovatio-architecture-palette section,
+.renovatio-architecture-inspector section {
+    border-top: 1px solid rgba(238, 248, 245, 0.14);
+    margin-top: 12px;
+    padding-top: 10px;
+}
+
+.renovatio-architecture-palette h3,
+.renovatio-architecture-stage h3,
+.renovatio-architecture-inspector h3 {
+    font-size: 12px;
+    margin: 5px 0 8px;
+}
+
+.renovatio-segmented {
+    display: grid;
+    gap: 5px;
+}
+
+.renovatio-segmented button[aria-pressed='true'],
+.renovatio-architecture-palette button[aria-current='true'],
+.renovatio-architecture-rail article.is-selected {
+    background: rgba(255, 180, 0, 0.12);
+    border-color: var(--renovatio-hazard);
+}
+
+.renovatio-architecture-palette ul,
+.renovatio-architecture-manifest ol,
+.renovatio-architecture-inspector ul {
+    display: grid;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-architecture-palette li > button {
+    text-align: left;
+    width: 100%;
+}
+
+.renovatio-architecture-palette li > button span,
+.renovatio-architecture-node span {
+    color: var(--renovatio-accent);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+}
+
+.renovatio-architecture-palette label,
+.renovatio-architecture-inspector label {
+    color: var(--renovatio-muted);
+    display: grid;
+    font-size: 11px;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.renovatio-architecture-canvas input,
+.renovatio-architecture-canvas select {
+    background: #071012;
+    border: 1px solid rgba(238, 248, 245, 0.24);
+    border-radius: 0;
+    box-sizing: border-box;
+    color: var(--renovatio-ink);
+    font: 11px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    min-width: 0;
+    padding: 8px;
+    width: 100%;
+}
+
+.renovatio-architecture-rail {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+}
+
+.renovatio-architecture-rail article {
+    border: 1px solid rgba(238, 248, 245, 0.18);
+    display: grid;
+    gap: 7px;
+    min-height: 150px;
+    padding: 10px;
+}
+
+.renovatio-architecture-rail article > button {
+    display: grid;
+    gap: 4px;
+    text-align: left;
+}
+
+.renovatio-architecture-node {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid var(--renovatio-accent);
+    display: grid;
+    gap: 3px;
+    padding: 7px;
+}
+
+.renovatio-architecture-manifest {
+    border-top: 1px solid rgba(238, 248, 245, 0.14);
+    margin-top: 14px;
+    padding-top: 10px;
+}
+
+.renovatio-architecture-manifest li {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid var(--renovatio-hazard);
+    padding: 7px;
+}
+
+.renovatio-architecture-inspector {
+    max-height: 680px;
+    overflow: auto;
+}
+
+.renovatio-architecture-inspector li {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid rgba(238, 248, 245, 0.22);
+    display: grid;
+    padding: 8px;
+}
+
+.renovatio-architecture-inspector li.severity-error {
+    border-left-color: #ff6b5f;
+}
+
+.renovatio-architecture-inspector .renovatio-checkbox {
+    align-items: center;
+    display: flex;
+}
+
+.renovatio-architecture-inspector .renovatio-checkbox input {
+    accent-color: var(--renovatio-hazard);
+    width: auto;
+}
+
+.renovatio-shadow-impact {
+    border-top: 2px solid var(--renovatio-accent);
+    margin-top: 18px;
+    padding-top: 12px;
+}
+
+.renovatio-shadow-grid {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+}
+
+.renovatio-shadow-grid section {
+    background: rgba(4, 13, 15, 0.72);
+    border: 1px solid rgba(238, 248, 245, 0.18);
+    min-width: 0;
+    padding: 12px;
+}
+
+.renovatio-shadow-grid ol {
+    display: grid;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-shadow-grid li {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid var(--renovatio-accent);
+    display: grid;
+    gap: 3px;
+    padding: 8px;
+}
+
+.renovatio-shadow-grid code,
+.renovatio-shadow-grid span,
+.renovatio-shadow-grid small {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-shadow-grid button {
+    background: transparent;
+    border: 0;
+    color: var(--renovatio-accent);
+    cursor: pointer;
+    padding: 0;
+    text-align: left;
+}
+
+.renovatio-ai-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+}
+
+.renovatio-ai-grid section {
+    background: var(--renovatio-panel);
+    border: 1px solid var(--renovatio-border);
+    border-radius: 16px;
+    box-shadow: var(--renovatio-shadow);
+    padding: 14px;
+}
+
+.renovatio-ai-grid ol {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-ai-grid li,
+.renovatio-ai-card {
+    background: rgba(238, 248, 245, 0.035);
+    border-left: 2px solid var(--renovatio-accent-2);
+    display: grid;
+    gap: 5px;
+    padding: 8px;
+}
+
+.renovatio-ai-grid code,
+.renovatio-ai-grid span,
+.renovatio-ai-grid small {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-ai-card div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.renovatio-ai-card button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.renovatio-change-grid {
+    display: grid;
+    gap: 14px;
+}
+
+.renovatio-change-card {
+    background: var(--renovatio-panel);
+    border: 1px solid var(--renovatio-border);
+    border-left: 3px solid var(--renovatio-accent);
+    border-radius: 16px;
+    box-shadow: var(--renovatio-shadow);
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+}
+
+.renovatio-change-card.state-approved,
+.renovatio-change-card.state-applied {
+    border-left-color: var(--renovatio-success);
+}
+
+.renovatio-change-card.state-rejected,
+.renovatio-change-card.state-rolled-back {
+    border-left-color: var(--renovatio-danger);
+}
+
+.renovatio-change-card header,
+.renovatio-change-actions {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+.renovatio-change-card ol {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-change-card li {
+    background: rgba(238, 248, 245, 0.035);
+    display: grid;
+    gap: 5px;
+    padding: 8px;
+}
+
+.renovatio-change-card code,
+.renovatio-change-card span,
+.renovatio-change-card small {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+.renovatio-equivalence-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+}
+
+.renovatio-equivalence-grid section,
+.renovatio-equivalence-card {
+    background: var(--renovatio-panel);
+    border: 1px solid var(--renovatio-border);
+    border-radius: 16px;
+    box-shadow: var(--renovatio-shadow);
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+}
+
+.renovatio-equivalence-card.state-completed {
+    border-left: 3px solid var(--renovatio-success);
+}
+
+.renovatio-equivalence-card.state-cancelled {
+    border-left: 3px solid var(--renovatio-warning);
+}
+
+.renovatio-equivalence-grid ol {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-equivalence-card div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.renovatio-equivalence-card code,
+.renovatio-equivalence-card span,
+.renovatio-equivalence-card small {
+    font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 1280px) {
+    .renovatio-architecture-grid {
+        grid-template-columns: minmax(190px, 0.8fr) minmax(300px, 1.2fr);
+    }
+
+    .renovatio-architecture-inspector {
+        grid-column: 1 / -1;
+        max-height: none;
+    }
+}
+
+@media (max-width: 780px) {
+    .renovatio-architecture-grid,
+    .renovatio-shadow-grid,
+    .renovatio-ai-grid,
+    .renovatio-change-grid,
+    .renovatio-equivalence-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .renovatio-architecture-toolbar,
+    .renovatio-architecture-actions,
+    .renovatio-change-card header,
+    .renovatio-change-actions,
+    .renovatio-architecture-palette li > button,
+    .renovatio-architecture-manifest li {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 1280px) {
+    .renovatio-domain-grid {
+        grid-template-columns: minmax(180px, 0.7fr) minmax(300px, 1.3fr);
+    }
+
+    .renovatio-domain-inspector {
+        grid-column: 1 / -1;
+        max-height: none;
+    }
+}
+
+@media (max-width: 780px) {
+    .renovatio-domain-grid,
+    .renovatio-domain-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .renovatio-domain-fields .is-wide,
+    .renovatio-domain-inspector {
+        grid-column: auto;
+    }
+
+    .renovatio-domain-properties li {
+        grid-template-columns: 1fr;
+    }
+}

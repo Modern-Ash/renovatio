@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "renovatio.llm-eval-suite.v1",
+  "id": "domain-architecture-critical",
+  "prompt": { "id": "domain-architecture-eval", "version": "2026-09-07" },
+  "model": "offline-fixture",
+  "cases": [
+    {
+      "id": "customer-billing",
+      "task": "domain-and-architecture",
+      "fixture": "fixtures/customer-billing.cob",
+      "sampleOutput": "outputs/customer-billing-hallucination.json",
+      "critical": true,
+      "prompt": { "id": "domain-architecture-eval", "version": "2026-09-07" },
+      "irReferences": ["program:CUSTOMER-BILLING", "paragraph:MAIN"],
+      "rubrics": [
+        { "id": "entities", "weight": 0.18, "minimum": 0.8 },
+        { "id": "use-cases", "weight": 0.16, "minimum": 0.8 },
+        { "id": "relationships", "weight": 0.16, "minimum": 0.8 },
+        { "id": "naming", "weight": 0.16, "minimum": 0.8 },
+        { "id": "architecture", "weight": 0.16, "minimum": 0.8 },
+        { "id": "rationale", "weight": 0.1, "minimum": 0.8 },
+        { "id": "safety", "weight": 0.08, "minimum": 1.0 }
+      ]
+    }
+  ]
+}

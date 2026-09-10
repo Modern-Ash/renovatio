@@ -1,12 +1,21 @@
 package org.shark.renovatio.provider.cobol.infrastructure;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.shark.renovatio.architecture.ArtifactLayoutPlanner;
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
+import org.shark.renovatio.profile.EffectiveProfileResolver;
 import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.provider.cobol.service.*;
+import org.shark.renovatio.provider.cobol.service.generation.JavaGenerationOrchestrator;
+import org.shark.renovatio.architecture.java.JavaArchitectureLayoutPlanner;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.ArrayList;
 
 /**
  * Spring configuration for COBOL provider
@@ -26,8 +35,17 @@ public class CobolProviderConfiguration {
             CobolParsingService parsingService,
             TemplateCodeGenerationService templateCodeGenerationService,
             org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService intermediateModelService,
-            org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler semanticTranspiler) {
-        return new JavaGenerationService(parsingService, templateCodeGenerationService, intermediateModelService, semanticTranspiler);
+            org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler semanticTranspiler,
+            ObjectMapper objectMapper,
+            TargetEmitterRegistry targetEmitterRegistry,
+            ObjectProvider<EffectiveProfileResolver> effectiveProfiles,
+            ObjectProvider<ArtifactLayoutPlanner> externalLayoutPlanners) {
+        var layoutPlanners = new ArrayList<ArtifactLayoutPlanner>();
+        layoutPlanners.add(new JavaArchitectureLayoutPlanner());
+        externalLayoutPlanners.orderedStream().forEach(layoutPlanners::add);
+        return new JavaGenerationService(parsingService, templateCodeGenerationService,
+                intermediateModelService, semanticTranspiler, objectMapper, true,
+                targetEmitterRegistry, effectiveProfiles.getIfAvailable(), layoutPlanners);
     }
 
     @Bean
@@ -35,6 +53,11 @@ public class CobolProviderConfiguration {
             CobolParsingService parsingService,
             JavaGenerationService javaGenerationService) {
         return new MigrationPlanService(parsingService, javaGenerationService);
+    }
+
+    @Bean
+    public JavaGenerationOrchestrator javaGenerationOrchestrator(JavaGenerationService generationService) {
+        return new JavaGenerationOrchestrator(generationService);
     }
 
     @Bean
@@ -76,6 +99,7 @@ public class CobolProviderConfiguration {
     public CobolLanguageProvider cobolLanguageProvider(
             CobolParsingService parsingService,
             JavaGenerationService javaGenerationService,
+            JavaGenerationOrchestrator javaGenerationOrchestrator,
             MigrationPlanService migrationPlanService,
             IndexingService indexingService,
             MetricsService metricsService,
@@ -85,6 +109,7 @@ public class CobolProviderConfiguration {
         return new CobolLanguageProvider(
                 parsingService,
                 javaGenerationService,
+                javaGenerationOrchestrator,
                 migrationPlanService,
                 indexingService,
                 metricsService,

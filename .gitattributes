@@ -1,0 +1,7 @@
+
+# Vendored third-party corpus (issue #217) — keep verbatim, exclude from language stats
+renovatio-provider-cobol/src/test/resources/corpus/** linguist-vendored
+renovatio-provider-cobol/src/test/resources/corpus/** -text
+
+# Immutable revision-1 evidence preserves the original Markdown hard breaks.
+.agora/swarms/048-architecture-convergence-2026/work/baseline-reconciliation/revisions/0001/snapshot/artifacts/issue-222-baseline-test-report.md whitespace=-blank-at-eol

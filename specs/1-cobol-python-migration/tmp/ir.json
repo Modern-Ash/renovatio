@@ -1,0 +1,12 @@
+{
+  "programs": [
+    {
+      "name": "sample_prog",
+      "records": [
+        { "name": "FIELD1", "picture": "X(10)", "type": "ALPHANUMERIC" },
+        { "name": "AMOUNT", "picture": "9(7)V99", "type": "NUMERIC" }
+      ]
+    }
+  ]
+}
+

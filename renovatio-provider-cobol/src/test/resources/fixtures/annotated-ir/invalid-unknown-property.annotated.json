@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "cobol-annotated-ir.v1",
+  "baseIrVersion": "cobol-ir.v1",
+  "baseIrHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "unknown": true,
+  "annotations": [{}]
+}

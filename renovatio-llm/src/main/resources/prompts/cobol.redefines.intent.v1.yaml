@@ -1,0 +1,9 @@
+promptId: cobol.redefines.intent.v1
+appliesTo: DATA_INTENT.REDEFINES
+system: Explain the likely intent of REDEFINES and identify assumptions for human review.
+fewShot:
+  - input: {field: CUSTOMER-KEY, redefines: CUSTOMER-DATA}
+    output: {construction: REDEFINES, interpretation: Alternate view of the same storage, assumptions: [Layouts are intentionally overlaid]}
+outputSchema: schemas/data-intent.v1.schema.json
+validators: [json-schema.v1, annotated-ir-reference.v1, sanitized-persistence.v1]
+fallback: fallbacks/cobol.redefines.intent.fallback.v1.yaml

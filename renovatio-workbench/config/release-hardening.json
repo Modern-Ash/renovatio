@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "runtime": {
+    "node": "24.20.0",
+    "npmMajor": 11,
+    "theia": "1.75.0",
+    "openVsxRuntimeEnabled": false
+  },
+  "distribution": {
+    "dockerBaseImage": "node:24.20.0-bookworm-slim",
+    "runtimeUser": "node",
+    "runtimePort": 3000,
+    "workspaceRoot": "/workspace-data"
+  },
+  "performanceBudgets": {
+    "openP95Ms": 5000,
+    "smokeStartupMs": 90000,
+    "rssMb": 768,
+    "frontendBundleKb": 32768
+  },
+  "security": {
+    "telemetryDefault": "off",
+    "telemetryEnvDefault": "false",
+    "workspaceTrust": true,
+    "trashEnabled": false,
+    "allowedCommands": [
+      "renovatio.workbench.open",
+      "renovatio.shell.project",
+      "renovatio.shell.analysis",
+      "renovatio.shell.domain",
+      "renovatio.shell.architecture",
+      "renovatio.shell.shadow",
+      "renovatio.shell.ai",
+      "renovatio.shell.changes",
+      "renovatio.shell.equivalence"
+    ],
+    "mcpServers": [],
+    "csp": {
+      "default-src": ["'self'"],
+      "connect-src": ["'self'", "RENOVATIO_BACKEND_URL", "RENOVATIO_DASHBOARD_URL"],
+      "img-src": ["'self'", "data:"],
+      "style-src": ["'self'", "'unsafe-inline'"],
+      "script-src": ["'self'"],
+      "frame-ancestors": ["'none'"]
+    }
+  },
+  "pilot": {
+    "name": "COBOL demo programs p1",
+    "fixtures": [
+      {
+        "path": "../specs/1-cobol-python-migration/examples/p1/prog1.cob",
+        "sha256": "1cc739b102524f372aa08194e2e74b138c2442b2e5504d4e175e7efea4bcc96f"
+      },
+      {
+        "path": "../specs/1-cobol-python-migration/examples/p1/prog2.cob",
+        "sha256": "4950d0fd78ddc1c54c59ef13783a84577263971834725826187f8dbe9483710f"
+      },
+      {
+        "path": "../specs/1-cobol-python-migration/examples/p1/prog3.cob",
+        "sha256": "f65ac7bf06552f0d5d799e1009528d9a6d8cef438bfc5ecaa55a7dc2d05de500"
+      },
+      {
+        "path": "../specs/1-cobol-python-migration/examples/p1/ir_prog1.json",
+        "sha256": "6f9ded7582b5b2467220ccde76bbecedfe2b0eae3bb6e956e5046462bb91228d"
+      },
+      {
+        "path": "../specs/1-cobol-python-migration/examples/p1/ir_prog2.json",
+        "sha256": "8367503e044463a80f5e106df30cde51f0d11be11cd8c2c93d59d9c6ad3909ca"
+      },
+      {
+        "path": "../specs/1-cobol-python-migration/examples/p1/ir_prog3.json",
+        "sha256": "44908c7be3063f670f5c3c5694b92c757e1f3c4fd0520c8ab84aedc34a2f3b8c"
+      },
+      {
+        "path": "../renovatio-provider-cobol/src/test/resources/equivalence/equivalence-balance/input.cob",
+        "sha256": "0d961c2b7892f96ce0b93f6f17ed03ecdc59f5e783fce851287a97b3fbd77015"
+      }
+    ]
+  }
+}

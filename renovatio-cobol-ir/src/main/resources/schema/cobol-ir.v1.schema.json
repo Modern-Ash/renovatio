@@ -1,0 +1,208 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renovatio.dev/schema/cobol-ir.v1.schema.json",
+  "title": "Renovatio COBOL Intermediate Representation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "programId", "paragraphs", "dataItems", "diagnostics"],
+  "properties": {
+    "schemaVersion": { "const": "cobol-ir.v1" },
+    "programId": { "$ref": "#/$defs/name" },
+    "paragraphs": { "type": "object", "additionalProperties": { "$ref": "#/$defs/paragraph" } },
+    "dataItems": { "type": "array", "items": { "$ref": "#/$defs/dataItem" } },
+    "controlFlowGraph": { "$ref": "#/$defs/controlFlowGraph" },
+    "executionContext": { "$ref": "#/$defs/executionContext" },
+    "controlBreakPatterns": { "type": "array", "items": { "type": "object" } },
+    "decomposedLogic": { "type": ["object", "null"] },
+    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } }
+  },
+  "$defs": {
+    "name": { "type": "string", "minLength": 1 },
+    "nullableName": { "type": ["string", "null"], "minLength": 1 },
+    "stringList": { "type": "array", "items": { "type": "string" } },
+    "paragraph": {
+      "type": "object", "additionalProperties": false, "required": ["name", "statements"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "statements": { "type": "array", "items": { "$ref": "#/$defs/statement" } }
+      }
+    },
+    "dataItem": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "picture", "level", "occurs", "redefines", "javaType", "picType", "level88Conditions"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "picture": { "type": ["string", "null"] },
+        "level": { "type": "integer", "minimum": 1, "maximum": 88 },
+        "occurs": { "type": ["integer", "null"], "minimum": 1 },
+        "redefines": { "$ref": "#/$defs/nullableName" },
+        "javaType": { "$ref": "#/$defs/name" },
+        "picType": { "oneOf": [{ "$ref": "#/$defs/picType" }, { "type": "null" }] },
+        "level88Conditions": { "type": "array", "items": { "$ref": "#/$defs/level88Condition" } }
+      }
+    },
+    "picType": {
+      "type": "object", "additionalProperties": false,
+      "required": ["category", "digits", "scale", "signed", "usage"],
+      "properties": {
+        "category": { "enum": ["NUMERIC", "ALPHANUMERIC", "ALPHABETIC"] },
+        "digits": { "type": "integer", "minimum": 0 },
+        "scale": { "type": "integer", "minimum": 0 },
+        "signed": { "type": "boolean" },
+        "usage": { "enum": ["DISPLAY", "COMP", "COMP_3", "COMP_5"] }
+      }
+    },
+    "level88Condition": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "parentDataName", "values"],
+      "properties": {
+        "name": { "$ref": "#/$defs/name" },
+        "parentDataName": { "$ref": "#/$defs/name" },
+        "values": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/level88Value" } }
+      }
+    },
+    "level88Value": {
+      "type": "object", "additionalProperties": false,
+      "required": ["value", "through"],
+      "properties": {
+        "value": { "type": "string" },
+        "through": { "type": ["string", "null"] }
+      }
+    },
+    "diagnostic": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "severity", "constructionFamily", "message", "sourceSpan"],
+      "properties": {
+        "code": { "$ref": "#/$defs/name" },
+        "severity": { "enum": ["WARNING", "ERROR"] },
+        "constructionFamily": { "$ref": "#/$defs/name" },
+        "message": { "$ref": "#/$defs/name" },
+        "sourceSpan": { "$ref": "#/$defs/sourceSpan" }
+      }
+    },
+    "sourceSpan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "startLine", "startColumn", "endLine", "endColumn"],
+      "properties": {
+        "source": { "$ref": "#/$defs/name" },
+        "startLine": { "type": "integer", "minimum": 1 },
+        "startColumn": { "type": "integer", "minimum": 1 },
+        "endLine": { "type": "integer", "minimum": 1 },
+        "endColumn": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "statement": {
+      "oneOf": [
+        { "$ref": "#/$defs/moveStatement" }, { "$ref": "#/$defs/computeStatement" },
+        { "$ref": "#/$defs/ifStatement" }, { "$ref": "#/$defs/evaluateStatement" },
+        { "$ref": "#/$defs/performStatement" }, { "$ref": "#/$defs/callStatement" },
+        { "$ref": "#/$defs/db2Statement" }, { "$ref": "#/$defs/fileOperationStatement" },
+        { "$ref": "#/$defs/initializeStatement" }, { "$ref": "#/$defs/setConditionStatement" }
+      ]
+    },
+    "moveStatement": {
+      "type": "object", "additionalProperties": false, "required": ["source", "target"],
+      "properties": { "source": { "type": "string" }, "target": { "$ref": "#/$defs/name" } }
+    },
+    "computeStatement": {
+      "type": "object", "additionalProperties": false, "required": ["target", "expression"],
+      "properties": { "target": { "$ref": "#/$defs/name" }, "expression": { "type": "string" } }
+    },
+    "ifStatement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["condition", "thenStatements", "elseStatements"],
+      "properties": {
+        "condition": { "type": "string" },
+        "thenStatements": { "type": "array", "items": { "$ref": "#/$defs/statement" } },
+        "elseStatements": { "type": "array", "items": { "$ref": "#/$defs/statement" } }
+      }
+    },
+    "evaluateStatement": {
+      "type": "object", "additionalProperties": false, "required": ["expression", "branches"],
+      "properties": {
+        "expression": { "type": "string" },
+        "branches": { "type": "array", "items": { "$ref": "#/$defs/evaluateBranch" } }
+      }
+    },
+    "evaluateBranch": {
+      "type": "object", "additionalProperties": false, "required": ["condition", "statements"],
+      "properties": {
+        "condition": { "type": "string" },
+        "statements": { "type": "array", "items": { "$ref": "#/$defs/statement" } }
+      }
+    },
+    "performStatement": {
+      "type": "object", "additionalProperties": false, "required": ["paragraph", "throughParagraph", "testAfter"],
+      "properties": {
+        "paragraph": { "$ref": "#/$defs/nullableName" },
+        "throughParagraph": { "$ref": "#/$defs/nullableName" },
+        "varyingVariable": { "$ref": "#/$defs/nullableName" },
+        "varyingFrom": { "type": ["string", "null"] },
+        "varyingBy": { "type": ["string", "null"] },
+        "untilCondition": { "type": ["string", "null"] },
+        "timesCount": { "type": ["integer", "null"] },
+        "testAfter": { "type": "boolean" },
+        "inlineBody": { "type": "array", "items": { "$ref": "#/$defs/statement" } },
+        "varyingAfter": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["variable", "from"],
+            "properties": {
+              "variable": { "$ref": "#/$defs/name" },
+              "from": { "type": "string" },
+              "by": { "type": ["string", "null"] },
+              "until": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "callStatement": {
+      "type": "object", "additionalProperties": false, "required": ["target", "arguments"],
+      "properties": { "target": { "$ref": "#/$defs/name" }, "arguments": { "$ref": "#/$defs/stringList" } }
+    },
+    "db2Statement": {
+      "type": "object", "additionalProperties": false, "required": ["sql"],
+      "properties": { "sql": { "type": "string" } }
+    },
+    "fileOperationStatement": {
+      "type": "object", "additionalProperties": false, "required": ["operationType", "fileName"],
+      "properties": {
+        "operationType": { "enum": ["READ", "WRITE", "REWRITE", "DELETE", "OPEN", "CLOSE"] },
+        "fileName": { "$ref": "#/$defs/name" }
+      }
+    },
+    "initializeStatement": {
+      "type": "object", "additionalProperties": false, "required": ["targets", "sourceText"],
+      "properties": {
+        "targets": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/name" } },
+        "sourceText": { "$ref": "#/$defs/name" }
+      }
+    },
+    "setConditionStatement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["conditionNames", "value", "sourceText"],
+      "properties": {
+        "conditionNames": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/name" } },
+        "value": { "type": "boolean" },
+        "sourceText": { "$ref": "#/$defs/name" }
+      }
+    },
+    "controlFlowGraph": {
+      "type": "object", "additionalProperties": false, "required": ["adjacency"],
+      "properties": {
+        "adjacency": { "type": "object", "additionalProperties": {
+          "type": "array", "items": { "$ref": "#/$defs/name" }, "uniqueItems": true
+        } }
+      }
+    },
+    "executionContext": {
+      "type": "object", "additionalProperties": false, "required": ["variableScopes", "attributes"],
+      "properties": {
+        "variableScopes": { "type": "object", "additionalProperties": { "type": "string" } },
+        "attributes": { "type": "object" }
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "manifestVersion" : "verified-cache-promotion.v1",
+  "indexHash" : "ba500fb4278024233910fa119989360006285d9d972de5e313822ffd66ce77ad",
+  "entries" : {
+    "f13b4bf91f60efadf4c87977b54d162cb5a370384ec2d9f86c93cf43e3eeffc5" : {
+      "repositoryPath" : "f1/f13b4bf91f60efadf4c87977b54d162cb5a370384ec2d9f86c93cf43e3eeffc5.json",
+      "envelopeHash" : "d53b955e9cacb5e8dbca9519ede14453fd97e8b0acf317a68b13a66dda94ca94",
+      "contentHash" : "e7dd8b4dd2e01f353675254f16ed835c40ab76adf980371aa761a01273db82b2",
+      "commitA" : "f94af741604c0d2190f689ef6d3de91b03c27584",
+      "commitB" : "4f242190e447e438882ac7a305a19f5bf8d501e9",
+      "commitC" : "488d62db8660c5c143e749b6e3d322279cef03e1",
+      "approvalEvidenceRef" : "repo://.agora/swarms/002-ai-modernization/work/llm-runtime-catalog-cache/evidence/evidence-000011/EVIDENCE.md"
+    }
+  }
+}

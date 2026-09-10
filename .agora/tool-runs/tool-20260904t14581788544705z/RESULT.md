@@ -1,0 +1,17 @@
+---
+schema: "agora/tool-result/v1"
+run: "tool-20260904t14581788544705z"
+status: "completed"
+exit-code: 0
+result-kind: "code-review"
+---
+
+# Tool result tool-20260904t14581788544705z
+
+## Standard output
+
+    {"author":{"id":"MDQ6VXNlcjg5NzYwMzY=","is_bot":false,"login":"fabianaguero","name":"FabianAG"},"baseRefName":"main","body":"## Summary\n- preserve active locally confirmed and overridden decisions during policy reuse\n- retain exact legacy hashes for projects without reusable bindings\n- make CLI profile bindings and durable decisions part of normal analyze/plan/apply workflows\n- surface removed or renamed policy options as stale reviewable matches\n\n## Verification\n- complete Maven reactor: 579 tests\n- focused API: 12 tests\n- COBOL characterization: 2 tests\n- UI: 28 tests and production build\n- git diff --check\n\n## Agora\nWork decision-engine-f8-review-fixes/f8-review-fixes is fully implemented and verified; final Spec Owner acceptance remains human-gated.\n\nFollow-up to #167. Related to #154 and #152.","headRefName":"fix/f8-review-findings","isDraft":false,"mergeable":"MERGEABLE","number":168,"reviewDecision":"","reviews":[{"id":"PRR_kwDOPowW0s8AAAABMM1Qog","author":{"login":"chatgpt-codex-connector"},"authorAssociation":"NONE","body":"\n### 💡 Codex Review\n\nHere are some automated review suggestions for this pull request.\n\n**Reviewed commit:** `d8bd682f47`\n    \n\n<details> <summary>ℹ️ About Codex in GitHub</summary>\n<br/>\n\n[Your team has set up Codex to review pull requests in this repo](https://chatgpt.com/codex/cloud/settings/general). Reviews are triggered when you\n- Open a pull request for review\n- Mark a draft as ready\n- Comment \"@codex review\".\n\nIf Codex has suggestions, it will comment; otherwise it will react with 👍.\n\n\n\n\nCodex can also answer questions or update the PR. Try commenting \"@codex address that feedback\".\n            \n</details>","submittedAt":"2026-09-04T13:46:42Z","includesCreatedEdit":false,"reactionGroups":[],"state":"COMMENTED","commit":{"oid":"d8bd682f47d6cf735a5e4d7d5c7ecfb2ec958bb6"}}],"state":"OPEN","statusCheckRollup":[{"__typename":"CheckRun","completedAt":"2026-09-04T14:57:40Z","conclusion":"SUCCESS","detailsUrl":"https://github.com/Modern-Ash/renovatio/actions/runs/33886479241/job/101067385898","name":"characterization-offline","startedAt":"2026-09-04T14:55:00Z","status":"COMPLETED","workflowName":"Characterization guardrails (offline)"},{"__typename":"CheckRun","completedAt":"2026-09-04T14:57:56Z","conclusion":"SUCCESS","detailsUrl":"https://github.com/Modern-Ash/renovatio/actions/runs/33886472934/job/101067364856","name":"characterization-offline","startedAt":"2026-09-04T14:54:56Z","status":"COMPLETED","workflowName":"Characterization guardrails (offline)"},{"__typename":"CheckRun","completedAt":"2026-09-04T14:55:20Z","conclusion":"SUCCESS","detailsUrl":"https://github.com/Modern-Ash/renovatio/actions/runs/33886479242/job/101067385993","name":"build","startedAt":"2026-09-04T14:55:00Z","status":"COMPLETED","workflowName":"Python COBOL→Python CI"},{"__typename":"CheckRun","completedAt":"2026-09-04T14:55:21Z","conclusion":"SUCCESS","detailsUrl":"https://github.com/Modern-Ash/renovatio/actions/runs/33886472925/job/101067365099","name":"build","startedAt":"2026-09-04T14:54:56Z","status":"COMPLETED","workflowName":"Python COBOL→Python CI"}],"title":"fix(decisions): address F8 post-merge review findings","url":"https://github.com/Modern-Ash/renovatio/pull/168"}
+
+## Standard error
+
+    (empty)

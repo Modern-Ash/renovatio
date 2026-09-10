@@ -6,6 +6,7 @@ import org.shark.renovatio.mcp.server.model.McpResource;
 import org.shark.renovatio.mcp.server.model.McpTool;
 import org.shark.renovatio.mcp.server.model.ToolCallResult;
 import org.shark.renovatio.core.service.LanguageProviderRegistry;
+import org.shark.renovatio.application.spi.ApplicationCommandBus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.context.event.EventListener;
@@ -35,17 +36,21 @@ public class McpToolingService {
     private static final int MAX_STRING_LOG = 120; // limit any logged string length
     private final String spec;
     private final LanguageProviderRegistry providerRegistry;
+    private final ApplicationCommandBus application;
     private final McpToolAdapter toolAdapter;
     private final List<McpPrompt> prompts;
     private final List<McpResource> resources;
 
     @Autowired
-    public McpToolingService(LanguageProviderRegistry providerRegistry, McpToolAdapter toolAdapter) {
-        this(providerRegistry, toolAdapter, DEFAULT_SPEC);
+    public McpToolingService(LanguageProviderRegistry providerRegistry, ApplicationCommandBus application,
+                             McpToolAdapter toolAdapter) {
+        this(providerRegistry, application, toolAdapter, DEFAULT_SPEC);
     }
 
-    McpToolingService(LanguageProviderRegistry providerRegistry, McpToolAdapter toolAdapter, String protocolSpec) {
+    McpToolingService(LanguageProviderRegistry providerRegistry, ApplicationCommandBus application,
+                      McpToolAdapter toolAdapter, String protocolSpec) {
         this.providerRegistry = providerRegistry;
+        this.application = application;
         this.toolAdapter = toolAdapter;
         this.spec = protocolSpec;
         this.prompts = createPrompts();
@@ -112,7 +117,7 @@ public class McpToolingService {
 
             // --- Primero intenta delegar al providerRegistry (ejecución real) ---
             logger.debug("Routing tool call to provider: {} with args: {}", internalToolName, redactForLog(normalizedArguments, 0));
-            var result = providerRegistry.routeToolCall(internalToolName, normalizedArguments);
+            var result = application.execute(internalToolName, normalizedArguments);
             if (result != null && (!result.isEmpty() && Boolean.TRUE.equals(result.get("success")))) {
                 logger.debug("Tool execution successful for: {}", internalToolName);
                 return result;

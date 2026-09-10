@@ -1,0 +1,4 @@
+fallbackVersion: renovatio-llm-fallback.v1
+type: MANUAL_ACTION
+diagnosticCode: LLM_MANUAL_UNSUPPORTED_CONSTRUCTION_REQUIRED
+manualAction: Retain a deterministic action item and require manual migration design.

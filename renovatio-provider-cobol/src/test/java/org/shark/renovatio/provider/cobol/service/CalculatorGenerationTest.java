@@ -3,11 +3,10 @@ package org.shark.renovatio.provider.cobol.service;
 import org.junit.jupiter.api.Test;
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
-import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
-import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 import org.shark.renovatio.provider.cobol.service.generation.JavaProjectService;
 import org.shark.renovatio.provider.cobol.service.generation.JavaRenderService;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
+import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
+import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -121,7 +120,7 @@ class CalculatorGenerationTest {
         CobolParsingService parsingService = new CobolParsingService();
         TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
         CobolIntermediateModelService intermediateModelService = new CobolIntermediateModelService();
-        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler(new OpenRewriteRunner());
+        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler();
         JavaGenerationService javaGenerationService = new JavaGenerationService(
             parsingService, templateService, intermediateModelService, semanticTranspiler
         );
@@ -169,7 +168,7 @@ class CalculatorGenerationTest {
     @Test
     void entryServiceImplementationAlsoImplementsDefaultProcess() {
         TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
-        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler(new OpenRewriteRunner());
+        CobolSemanticTranspiler semanticTranspiler = new CobolSemanticTranspiler();
         JavaRenderService renderService = new JavaRenderService(templateService, semanticTranspiler);
         List<Map<String, Object>> entries = List.of(Map.of("name", "add"));
         List<JavaProjectService.FieldDefinition> fields = List.of(

@@ -1,0 +1,44 @@
+# Work events
+
+- 2026-09-07T13:14:09.401353Z | work.created | state=drafting actor=project:owner
+- 2026-09-07T13:15:16.017639Z | artifact.added | kind=spec uri=.agora/swarms/034-renovatio-workbench-architecture-canvas/work/architecture-canvas/spec.md actor=project:owner
+- 2026-09-07T13:15:16.073284Z | artifact.added | kind=implementation-plan uri=.agora/swarms/034-renovatio-workbench-architecture-canvas/work/architecture-canvas/implementation-plan.md actor=project:agent
+- 2026-09-07T13:15:23.480413Z | work.criterion-stage-marked | criterion=domain-model-immutable actor=project:owner stage=specified
+- 2026-09-07T13:15:28.012355Z | work.criterion-stage-marked | criterion=mvc-defaults actor=project:owner stage=specified
+- 2026-09-07T13:15:33.602959Z | work.criterion-stage-marked | criterion=custom-naming-shadow actor=project:owner stage=specified
+- 2026-09-07T13:15:39.848894Z | work.criterion-stage-marked | criterion=illegal-dependencies-visible actor=project:owner stage=specified
+- 2026-09-07T13:15:46.217685Z | work.criterion-stage-marked | criterion=profile-versioned-hash actor=project:owner stage=specified
+- 2026-09-07T13:15:53.187968Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-07T13:15:58.864885Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-07T13:16:04.824175Z | work.criterion-stage-marked | criterion=domain-model-immutable actor=project:owner stage=planned
+- 2026-09-07T13:16:11.090452Z | work.criterion-stage-marked | criterion=mvc-defaults actor=project:owner stage=planned
+- 2026-09-07T13:16:16.672820Z | work.criterion-stage-marked | criterion=custom-naming-shadow actor=project:owner stage=planned
+- 2026-09-07T13:16:22.612641Z | work.criterion-stage-marked | criterion=illegal-dependencies-visible actor=project:owner stage=planned
+- 2026-09-07T13:16:29.235331Z | work.criterion-stage-marked | criterion=profile-versioned-hash actor=project:owner stage=planned
+- 2026-09-07T13:16:34.606767Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-07T13:35:33.756266Z | artifact.added | kind=implementation uri=.agora/swarms/034-renovatio-workbench-architecture-canvas/work/architecture-canvas/implementation.md actor=project:agent
+- 2026-09-07T13:35:39.737184Z | artifact.added | kind=verification uri=.agora/swarms/034-renovatio-workbench-architecture-canvas/work/architecture-canvas/verification.md actor=project:agent
+- 2026-09-07T13:35:57.638581Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T13:35:57.691788Z | evidence.added | id=evidence-000002 type=build result=success revision=1 actor=project:agent
+- 2026-09-07T13:36:09.907145Z | evidence.added | id=evidence-000003 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T13:36:15.419663Z | evidence.added | id=evidence-000004 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T13:36:21.502372Z | work.criterion-stage-marked | criterion=domain-model-immutable actor=project:agent stage=implemented
+- 2026-09-07T13:36:21.721539Z | work.criterion-stage-marked | criterion=domain-model-immutable actor=project:agent stage=verified
+- 2026-09-07T13:36:21.935206Z | work.criterion-stage-marked | criterion=mvc-defaults actor=project:agent stage=implemented
+- 2026-09-07T13:36:22.152193Z | work.criterion-stage-marked | criterion=mvc-defaults actor=project:agent stage=verified
+- 2026-09-07T13:36:22.366512Z | work.criterion-stage-marked | criterion=custom-naming-shadow actor=project:agent stage=implemented
+- 2026-09-07T13:36:22.588390Z | work.criterion-stage-marked | criterion=custom-naming-shadow actor=project:agent stage=verified
+- 2026-09-07T13:36:22.812605Z | work.criterion-stage-marked | criterion=illegal-dependencies-visible actor=project:agent stage=implemented
+- 2026-09-07T13:36:23.038049Z | work.criterion-stage-marked | criterion=illegal-dependencies-visible actor=project:agent stage=verified
+- 2026-09-07T13:36:23.261201Z | work.criterion-stage-marked | criterion=profile-versioned-hash actor=project:agent stage=implemented
+- 2026-09-07T13:36:23.489089Z | work.criterion-stage-marked | criterion=profile-versioned-hash actor=project:agent stage=verified
+- 2026-09-07T13:36:26.938297Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-07T13:41:07.036985Z | evidence.added | id=evidence-000005 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T13:41:14.566664Z | evidence.added | id=evidence-000006 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T21:40:32.339713Z | work.criterion-satisfied | criterion=domain-model-immutable actor=project:owner
+- 2026-09-07T21:40:32.560733Z | work.criterion-satisfied | criterion=mvc-defaults actor=project:owner
+- 2026-09-07T21:40:32.790028Z | work.criterion-satisfied | criterion=custom-naming-shadow actor=project:owner
+- 2026-09-07T21:40:33.015514Z | work.criterion-satisfied | criterion=illegal-dependencies-visible actor=project:owner
+- 2026-09-07T21:40:33.233219Z | work.criterion-satisfied | criterion=profile-versioned-hash actor=project:owner
+- 2026-09-07T21:40:33.685037Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T21:40:34.152669Z | work.transitioned | from=verifying to=completed actor=project:owner

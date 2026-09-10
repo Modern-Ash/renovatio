@@ -1,0 +1,42 @@
+# Work events
+
+- 2026-09-10T01:23:04.624610Z | work.created | state=drafting actor=project:owner
+- 2026-09-10T01:33:30.359923Z | artifact.added | kind=spec uri=.agora/swarms/050-issue-227-provider-consolidation/work/provider-consolidation-legacy-retirement/spec.md actor=project:owner
+- 2026-09-10T01:33:30.696736Z | artifact.added | kind=implementation-plan uri=.agora/swarms/050-issue-227-provider-consolidation/work/provider-consolidation-legacy-retirement/implementation-plan.md actor=project:owner
+- 2026-09-10T01:33:30.986787Z | artifact.added | kind=deprecation-plan uri=.agora/swarms/050-issue-227-provider-consolidation/work/provider-consolidation-legacy-retirement/deprecation-plan.md actor=project:owner
+- 2026-09-10T01:33:31.259970Z | artifact.added | kind=architecture-report uri=.agora/swarms/050-issue-227-provider-consolidation/work/provider-consolidation-legacy-retirement/architecture-report.md actor=project:agent
+- 2026-09-10T01:33:31.527966Z | artifact.added | kind=test-report uri=.agora/swarms/050-issue-227-provider-consolidation/work/provider-consolidation-legacy-retirement/test-report.md actor=project:agent
+- 2026-09-10T01:33:31.790338Z | work.criterion-stage-marked | criterion=single-authority actor=project:owner stage=specified
+- 2026-09-10T01:33:32.039841Z | work.criterion-stage-marked | criterion=provider-cleanup actor=project:owner stage=specified
+- 2026-09-10T01:33:32.277871Z | work.criterion-stage-marked | criterion=dependency-direction actor=project:owner stage=specified
+- 2026-09-10T01:33:32.530496Z | work.criterion-stage-marked | criterion=service-decomposition actor=project:owner stage=specified
+- 2026-09-10T01:33:32.774654Z | work.criterion-stage-marked | criterion=legacy-route actor=project:owner stage=specified
+- 2026-09-10T01:33:33.021722Z | work.criterion-stage-marked | criterion=emitter-registration actor=project:owner stage=specified
+- 2026-09-10T01:33:33.265652Z | work.criterion-stage-marked | criterion=logging actor=project:owner stage=specified
+- 2026-09-10T01:33:33.505372Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-10T01:33:33.764840Z | work.criterion-stage-marked | criterion=single-authority actor=project:owner stage=planned
+- 2026-09-10T01:33:34.013724Z | work.criterion-stage-marked | criterion=provider-cleanup actor=project:owner stage=planned
+- 2026-09-10T01:33:34.250454Z | work.criterion-stage-marked | criterion=dependency-direction actor=project:owner stage=planned
+- 2026-09-10T01:33:34.515775Z | work.criterion-stage-marked | criterion=service-decomposition actor=project:owner stage=planned
+- 2026-09-10T01:33:34.782870Z | work.criterion-stage-marked | criterion=legacy-route actor=project:owner stage=planned
+- 2026-09-10T01:33:35.109943Z | work.criterion-stage-marked | criterion=emitter-registration actor=project:owner stage=planned
+- 2026-09-10T01:33:35.421889Z | work.criterion-stage-marked | criterion=logging actor=project:owner stage=planned
+- 2026-09-10T01:33:39.593362Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-10T01:33:39.883267Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-10T01:33:57.276785Z | work.criterion-stage-marked | criterion=single-authority actor=project:agent stage=implemented
+- 2026-09-10T01:33:57.528337Z | work.criterion-stage-marked | criterion=provider-cleanup actor=project:agent stage=implemented
+- 2026-09-10T01:33:57.775981Z | work.criterion-stage-marked | criterion=dependency-direction actor=project:agent stage=implemented
+- 2026-09-10T01:33:58.019451Z | work.criterion-stage-marked | criterion=service-decomposition actor=project:agent stage=implemented
+- 2026-09-10T01:33:58.252861Z | work.criterion-stage-marked | criterion=legacy-route actor=project:agent stage=implemented
+- 2026-09-10T01:33:58.494704Z | work.criterion-stage-marked | criterion=emitter-registration actor=project:agent stage=implemented
+- 2026-09-10T01:33:58.739721Z | work.criterion-stage-marked | criterion=logging actor=project:agent stage=implemented
+- 2026-09-10T01:33:58.991072Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-10T01:34:42.880095Z | work.criterion-stage-marked | criterion=single-authority actor=project:agent stage=verified
+- 2026-09-10T01:34:43.118278Z | work.criterion-stage-marked | criterion=provider-cleanup actor=project:agent stage=verified
+- 2026-09-10T01:34:43.355293Z | work.criterion-stage-marked | criterion=dependency-direction actor=project:agent stage=verified
+- 2026-09-10T01:34:43.587404Z | work.criterion-stage-marked | criterion=service-decomposition actor=project:agent stage=verified
+- 2026-09-10T01:34:43.820857Z | work.criterion-stage-marked | criterion=legacy-route actor=project:agent stage=verified
+- 2026-09-10T01:34:44.065328Z | work.criterion-stage-marked | criterion=emitter-registration actor=project:agent stage=verified
+- 2026-09-10T01:34:44.302796Z | work.criterion-stage-marked | criterion=logging actor=project:agent stage=verified
+- 2026-09-10T01:34:57.946120Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-10T01:34:58.175470Z | evidence.added | id=evidence-000002 type=static-analysis result=success revision=1 actor=project:agent

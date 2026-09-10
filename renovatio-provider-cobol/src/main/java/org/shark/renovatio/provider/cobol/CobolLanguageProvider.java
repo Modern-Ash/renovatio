@@ -1,9 +1,13 @@
 package org.shark.renovatio.provider.cobol;
 
 import org.shark.renovatio.provider.cobol.service.*;
+import org.shark.renovatio.provider.cobol.service.generation.JavaGenerationOrchestrator;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
+import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
 import org.shark.renovatio.shared.spi.BaseLanguageProvider;
+import org.shark.renovatio.semantic.ir.SemanticProgram;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,6 +28,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     private static final String TOOL_PLAN = "cobol.plan";
     private static final String TOOL_APPLY = "cobol.apply";
     private static final String TOOL_DIFF = "cobol.diff";
+    private static final String TOOL_STUBS = "cobol.stubs";
     private static final String TOOL_MIGRATE_COPYBOOK = "cobol.migrate_copybook";
     private static final String TOOL_MIGRATE_DB2 = "cobol.migrate_db2";
     private static final String TOOL_DECOMPOSE = "cobol.decompose";
@@ -55,6 +60,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     private static final String KEY_MESSAGE = "message";
     private static final String KEY_DATA = "data";
     private static final String KEY_GENERATED = "generated";
+    private static final String KEY_EXPECTED_MANIFEST_HASH = "expectedManifestHash";
 
     // Common values
     private static final String TYPE_OBJECT = "object";
@@ -76,6 +82,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
 
     private final CobolParsingService parsingService;
     private final JavaGenerationService javaGenerationService;
+    private final JavaGenerationOrchestrator javaGenerationOrchestrator;
     private final MigrationPlanService migrationPlanService;
     private final MetricsService metricsService;
     private final TemplateCodeGenerationService templateCodeGenerationService;
@@ -92,8 +99,24 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
             TemplateCodeGenerationService templateCodeGenerationService,
             Db2MigrationService db2MigrationService,
             ControlBreakDecompositionService decompositionService) {
+        this(parsingService, javaGenerationService, new JavaGenerationOrchestrator(javaGenerationService),
+                migrationPlanService, indexingService, metricsService, templateCodeGenerationService,
+                db2MigrationService, decompositionService);
+    }
+
+    public CobolLanguageProvider(
+            CobolParsingService parsingService,
+            JavaGenerationService javaGenerationService,
+            JavaGenerationOrchestrator javaGenerationOrchestrator,
+            MigrationPlanService migrationPlanService,
+            IndexingService indexingService,
+            MetricsService metricsService,
+            TemplateCodeGenerationService templateCodeGenerationService,
+            Db2MigrationService db2MigrationService,
+            ControlBreakDecompositionService decompositionService) {
         this.parsingService = parsingService;
         this.javaGenerationService = javaGenerationService;
+        this.javaGenerationOrchestrator = javaGenerationOrchestrator;
         this.migrationPlanService = migrationPlanService;
         this.indexingService = indexingService;
         this.metricsService = metricsService;
@@ -145,6 +168,8 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
     public ApplyResult apply(String planId, boolean dryRun, Workspace workspace) {
         try {
             return migrationPlanService.applyMigrationPlan(planId, dryRun, workspace);
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
         } catch (Exception e) {
             return new ApplyResult(false, MSG_APPLY_FAILED + e.getMessage());
         }
@@ -161,8 +186,22 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
 
     @Override
     public Optional<StubResult> generateStubs(NqlQuery query, Workspace workspace) {
+        return generateStubs(query, workspace, javaGenerationService.effectiveProfile(workspace));
+    }
+
+    public List<SemanticProgram> semanticPrograms(NqlQuery query, Workspace workspace) throws Exception {
+        return javaGenerationService.semanticPrograms(query, workspace);
+    }
+
+    public Optional<StubResult> generateStubs(NqlQuery query, Workspace workspace,
+                                              MigrationProfiles.EffectiveProfile effective) {
         try {
-            return Optional.of(javaGenerationService.generateInterfaceStubs(query, workspace));
+            Object expected = query == null || query.getParameters() == null ? null
+                    : query.getParameters().get(KEY_EXPECTED_MANIFEST_HASH);
+            return Optional.of(javaGenerationOrchestrator.generateInterfaceStubs(query, workspace, effective,
+                    expected == null ? null : expected.toString()));
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
         } catch (Exception e) {
             StubResult result = new StubResult(false, "Stub generation failed: " + e.getMessage());
             return Optional.of(result);
@@ -182,6 +221,11 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
      * Migrate a specific COBOL copybook to Java artifacts using templates.
      */
     public StubResult migrateCopybook(NqlQuery query, Workspace workspace) {
+        return migrateCopybook(query, workspace, javaGenerationService.effectiveProfile(workspace));
+    }
+
+    StubResult migrateCopybook(NqlQuery query, Workspace workspace,
+                               MigrationProfiles.EffectiveProfile effective) {
         try {
             String copybookName = null;
             if (query.getParameters() != null) {
@@ -203,19 +247,31 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                 return new StubResult(false, MSG_COPYBOOK_NOT_FOUND + copybookName);
             }
 
-            Map<String, Object> metadata = parsingService.parseCopybook(copybookPath.get(), parsingService.getDefaultDialect());
-            metadata.put("filePath", copybookPath.get().toString());
+            Path source = copybookPath.orElseThrow();
+            String selectedName = copybookName;
+            return javaGenerationService.emitCopybookThroughRegistry(source, query, workspace, effective,
+                    ignored -> generateCopybook(selectedName, source));
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception e) {
+            return new StubResult(false, "Copybook migration failed: " + e.getMessage());
+        }
+    }
 
+    private StubResult generateCopybook(String copybookName, Path copybookPath) {
+        try {
+            Map<String, Object> metadata = parsingService.parseCopybook(copybookPath,
+                    parsingService.getDefaultDialect());
+            metadata.put("filePath", copybookPath.toString());
             Map<String, String> generated = templateCodeGenerationService.generateFromCopybook(
                     copybookName.replaceFirst("\\.[^.]+$", ""), metadata);
-
             boolean success = !generated.isEmpty();
             StubResult result = new StubResult(success,
                     success ? "Generated " + generated.size() + " artifacts" : "No artifacts generated");
             result.setGeneratedCode(generated);
             return result;
-        } catch (Exception e) {
-            return new StubResult(false, "Copybook migration failed: " + e.getMessage());
+        } catch (Exception exception) {
+            return new StubResult(false, "Copybook migration failed: " + exception.getMessage());
         }
     }
 
@@ -223,6 +279,11 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
      * Generate JPA artifacts from embedded DB2 EXEC SQL statements.
      */
     public StubResult migrateDb2(NqlQuery query, Workspace workspace) {
+        return migrateDb2(query, workspace, javaGenerationService.effectiveProfile(workspace));
+    }
+
+    StubResult migrateDb2(NqlQuery query, Workspace workspace,
+                          MigrationProfiles.EffectiveProfile effective) {
         try {
             String programName = null;
             if (query.getParameters() != null) {
@@ -236,7 +297,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
             }
             final String finalProgramName = programName;
             Path root = Paths.get(workspace.getPath());
-            java.util.List<Path> cobolFiles = parsingService.findCobolFiles(root);
+            java.util.List<Path> cobolFiles = parsingService.findCobolSourceFiles(root);
             Optional<Path> programPath = cobolFiles.stream()
                     .filter(p -> p.getFileName().toString().equalsIgnoreCase(finalProgramName))
                     .findFirst();
@@ -244,14 +305,26 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                 return new StubResult(false, MSG_PROGRAM_NOT_FOUND + programName);
             }
 
-            Map<String, String> generated = db2MigrationService.migrateCobolFile(programPath.get());
+            Path source = programPath.orElseThrow();
+            return javaGenerationService.emitThroughRegistry(source, query, workspace, effective,
+                    ignored -> generateDb2(source));
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception e) {
+            return new StubResult(false, "DB2 migration failed: " + e.getMessage());
+        }
+    }
+
+    private StubResult generateDb2(Path programPath) {
+        try {
+            Map<String, String> generated = db2MigrationService.migrateCobolFile(programPath);
             boolean success = !generated.isEmpty();
             StubResult result = new StubResult(success,
                     success ? "Generated " + generated.size() + " artifacts" : "No SQL statements found");
             result.setGeneratedCode(generated);
             return result;
-        } catch (Exception e) {
-            return new StubResult(false, "DB2 migration failed: " + e.getMessage());
+        } catch (Exception exception) {
+            return new StubResult(false, "DB2 migration failed: " + exception.getMessage());
         }
     }
 
@@ -275,35 +348,59 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
      * @return StubResult containing decomposed components
      */
     public StubResult decomposeControlBreaks(Workspace workspace) {
+        return decomposeControlBreaks(workspace, javaGenerationService.effectiveProfile(workspace));
+    }
+
+    StubResult decomposeControlBreaks(Workspace workspace,
+                                      MigrationProfiles.EffectiveProfile effective) {
         try {
-            var analysisResult = decompositionService.analyzeAndDecompose(workspace);
-            
-            if (!analysisResult.hasResults()) {
-                return new StubResult(false, 
-                        "No control break patterns detected. Programs may not use ISAM/sequential file processing with grouping.");
+            Path root = Paths.get(workspace.getPath());
+            List<Path> sources = parsingService.findCobolSourceFiles(root).stream().sorted().toList();
+            if (sources.isEmpty()) {
+                return new StubResult(false, "No COBOL programs found for control break decomposition");
             }
-            
-            // Generate code for each decomposed program
-            Map<String, String> allGenerated = new LinkedHashMap<>();
-            for (var decomposition : analysisResult.getDecompositions()) {
-                StubResult genResult = decompositionService.generateDecomposedCode(decomposition, workspace);
-                if (genResult.isSuccess() && genResult.getGeneratedCode() != null) {
-                    allGenerated.putAll(genResult.getGeneratedCode());
+            Map<String, String> generated = new LinkedHashMap<>();
+            for (Path source : sources) {
+                StubResult emitted = javaGenerationService.emitThroughRegistry(source, null, workspace, effective,
+                        ignored -> decomposeControlBreakLegacy(source));
+                if (!emitted.isSuccess()) {
+                    return emitted;
+                }
+                if (emitted.getGeneratedCode() != null) {
+                    emitted.getGeneratedCode().forEach((path, content) -> {
+                        if (generated.putIfAbsent(path, content) != null) {
+                            throw new IllegalArgumentException("duplicate artifact path: " + path);
+                        }
+                    });
                 }
             }
-            
-            StringBuilder message = new StringBuilder();
-            message.append("Decomposed ").append(analysisResult.getDecompositions().size()).append(" program(s) ");
-            message.append("with ").append(analysisResult.getTotalControlBreakPatterns()).append(" control break pattern(s). ");
-            message.append("Generated ").append(allGenerated.size()).append(" reusable component(s).");
-            
-            if (!analysisResult.getErrors().isEmpty()) {
-                message.append(" Errors: ").append(analysisResult.getErrors().size());
+            if (!generated.isEmpty()
+                    && effective.profile().target().language()
+                    == org.shark.renovatio.profile.MigrationProfile.Language.JAVA) {
+                decompositionService.persistGeneratedCode(generated, workspace);
             }
-            
-            StubResult result = new StubResult(true, message.toString());
-            result.setGeneratedCode(allGenerated);
+            StubResult result = new StubResult(!generated.isEmpty(), generated.isEmpty()
+                    ? "No control break patterns detected"
+                    : "Generated " + generated.size() + " decomposed target artifact(s)");
+            result.setGeneratedCode(generated);
+            result.setTargetLanguage(effective.profile().target().language().name());
             return result;
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
+        } catch (Exception exception) {
+            return new StubResult(false, "Control break decomposition failed: " + exception.getMessage());
+        }
+    }
+
+    private StubResult decomposeControlBreakLegacy(Path source) {
+        try {
+            var decomposition = decompositionService.decomposeProgram(source);
+            if (decomposition == null) {
+                StubResult result = new StubResult(true, "No control break patterns detected in " + source.getFileName());
+                result.setGeneratedCode(Map.of());
+                return result;
+            }
+            return decompositionService.generateDecomposedCode(decomposition);
         } catch (Exception e) {
             return new StubResult(false, "Control break decomposition failed: " + e.getMessage());
         }
@@ -318,6 +415,7 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
         tools.add(new BasicTool(TOOL_PLAN, "Create migration plan from COBOL to Java", planSchema()));
         tools.add(new BasicTool(TOOL_APPLY, "Apply migration plan (code generation, transforms)", applySchema()));
         tools.add(new BasicTool(TOOL_DIFF, "Generate diff for last migration run", diffSchema()));
+        tools.add(new BasicTool(TOOL_STUBS, "Generate target artifacts from COBOL sources", stubsSchema()));
         // Extended provider-specific tools
         tools.add(new BasicTool(TOOL_MIGRATE_COPYBOOK, "Generate Java artifacts from a COBOL copybook (templates)", migrateCopybookSchema()));
         tools.add(new BasicTool(TOOL_MIGRATE_DB2, "Generate JPA code from embedded DB2 EXEC SQL in COBOL program", migrateDb2Schema()));
@@ -447,6 +545,17 @@ public class CobolLanguageProvider extends BaseLanguageProvider {
                 KEY_TYPE, KEY_ARRAY,
                 KEY_DESCRIPTION, "High-level migration goals (e.g., db2, jpa, rest)",
                 KEY_ITEMS, Map.of(KEY_TYPE, KEY_STRING)
+        ));
+        return schema;
+    }
+
+    private Map<String, Object> stubsSchema() {
+        Map<String, Object> schema = baseSchema();
+        @SuppressWarnings("unchecked")
+        Map<String, Object> props = (Map<String, Object>) schema.get(KEY_PROPERTIES);
+        props.put("outputDir", Map.of(
+                KEY_TYPE, KEY_STRING,
+                KEY_DESCRIPTION, "Output directory for generated target artifacts"
         ));
         return schema;
     }

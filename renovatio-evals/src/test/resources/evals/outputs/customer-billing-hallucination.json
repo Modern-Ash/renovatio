@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "renovatio.llm-eval-output.v1",
+  "prompt": "domain-architecture-eval@2026-09-07",
+  "model": "offline-fixture",
+  "fallback": false,
+  "decisions": [
+    {
+      "id": "decision-invented-ledger",
+      "type": "entity",
+      "irRef": "table:LEDGER_TRANSACTION",
+      "proposal": "LedgerTransaction",
+      "rationale": "Invented external table not present in the fixture IR.",
+      "reviewState": "PROPOSED"
+    }
+  ],
+  "rubricScores": {
+    "entities": 0.3,
+    "use-cases": 0.3,
+    "relationships": 0.2,
+    "naming": 0.2,
+    "architecture": 0.2,
+    "rationale": 0.2,
+    "safety": 0.5
+  },
+  "metrics": {
+    "acceptanceRate": 0.0,
+    "fallbackRate": 1.0,
+    "costUsd": 0.011,
+    "latencyMs": 900,
+    "cacheHit": false
+  }
+}

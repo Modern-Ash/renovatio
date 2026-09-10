@@ -88,6 +88,12 @@ class LanguageProviderRegistryFullPathsTest {
         assertEquals("default", p.lastWorkspace.getId());
         assertEquals(".", p.lastWorkspace.getPath());
 
+        Map<String, Object> projectArgs = new LinkedHashMap<>(args);
+        projectArgs.put("projectId", "/projects/bank");
+        registry.routeToolCall("java.analyze", projectArgs);
+        assertEquals("/projects/bank", p.lastWorkspace.getId());
+        assertFalse(p.lastQuery.getParameters().containsKey("projectId"));
+
         Map<String, Object> m2 = registry.routeToolCall("java.metrics", new LinkedHashMap<>(args));
         assertEquals(true, m2.get("success"));
         assertEquals("metrics", m2.get("type"));

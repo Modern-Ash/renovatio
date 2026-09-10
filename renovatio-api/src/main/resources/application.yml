@@ -1,0 +1,37 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:sqlite:./data/renovatio.db
+    driver-class-name: org.sqlite.JDBC
+    username:
+    password:
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 200MB
+  jpa:
+    hibernate:
+      # SQLite is provisioned through H2ToSqliteMigrator; the runtime must not
+      # mutate (or infer a differently-cased view of) that imported schema.
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.community.dialect.SQLiteDialect
+
+renovatio:
+  workbench:
+    # Development-only adapter. Production must use the approved identity gateway.
+    dev-no-auth-enabled: false
+    dev-write-enabled: false
+    allowed-origin: http://127.0.0.1:3000
+  reusable-assets:
+    root: ${user.home}/.renovatio
+  api:
+    async:
+      core-pool-size: 4
+      max-pool-size: 8
+      queue-capacity: 100

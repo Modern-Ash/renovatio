@@ -19,23 +19,15 @@ class DependencyDirectionTest {
 
     @Test
     void cobolProviderShouldNotDependOnJavaProvider() {
-        // NOTE: This test currently FAILS because CobolSemanticTranspiler uses OpenRewriteRunner
-        // from renovatio-provider-java. This is a known dependency that should be refactored
-        // to use interfaces/ports instead of direct dependencies.
-        //
-        // The test is included to document this dependency and track its elimination.
-        // Once refactored, this test should PASS.
-
         var importedClasses = new ClassFileImporter()
-                .importPackages("org.shark.renovatio");
+                .importPackages(COBOL_PROVIDER_PACKAGE);
 
         ArchRule rule = noClasses()
                 .that().resideInAPackage(COBOL_PROVIDER_PACKAGE)
                 .should().dependOnClassesThat()
                 .resideInAPackage(JAVA_PROVIDER_PACKAGE);
 
-        // For now, we check but allow the dependency with a comment
-        // rule.check(importedClasses);
+        rule.check(importedClasses);
     }
 
     @Test
@@ -43,22 +35,9 @@ class DependencyDirectionTest {
         var importedClasses = new ClassFileImporter()
                 .importPackages("org.shark.renovatio");
 
-        // NOTE: This test documents the ideal architecture.
-        // Currently, there are violations because COBOL provider depends on Java provider
-        // through CobolSemanticTranspiler. This dependency should be refactored to use
-        // interfaces/ports instead of direct dependencies.
-        //
-        // The test is commented out but kept as documentation of the target architecture.
-        //
-        // layeredArchitecture()
-        //         .consideringAllDependencies()
-        //         .layer("Shared").definedBy("org.shark.renovatio.shared..")
-        //         .layer("CobolIr").definedBy("org.shark.renovatio.cobol.ir..")
-        //         .layer("CobolProvider").definedBy("org.shark.renovatio.provider.cobol..")
-        //         .whereLayer("CobolProvider").mayNotBeAccessedByAnyLayer()
-        //         .whereLayer("Shared").mayOnlyBeAccessedByLayers("CobolProvider", "CobolIr")
-        //         .whereLayer("CobolIr").mayOnlyBeAccessedByLayers("CobolProvider")
-        //         .because("COBOL provider should only depend on shared interfaces and COBOL IR")
-        //         .check(importedClasses);
+        noClasses().that().resideInAPackage(COBOL_PROVIDER_PACKAGE)
+                .should().dependOnClassesThat().resideInAnyPackage(
+                        "org.shark.renovatio.core..", "org.shark.renovatio.web..")
+                .check(importedClasses);
     }
 }

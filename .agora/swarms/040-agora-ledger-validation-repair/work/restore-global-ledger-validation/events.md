@@ -1,0 +1,43 @@
+# Work events
+
+- 2026-09-07T21:54:00.730826Z | work.created | state=drafting actor=project:owner
+- 2026-09-07T21:54:01.564429Z | artifact.added | kind=repair-report uri=repo://docs/reports/agora-ledger-validation-repair-20260907.md actor=project:agent
+- 2026-09-07T21:54:01.784772Z | evidence.added | id=evidence-000001 type=validation result=success revision=1 actor=project:agent
+- 2026-09-07T21:54:11.069130Z | artifact.added | kind=spec uri=repo://docs/reports/agora-ledger-validation-repair-20260907.md actor=project:owner
+- 2026-09-07T21:54:11.278992Z | work.criterion-stage-marked | criterion=validate-clean actor=project:owner stage=specified
+- 2026-09-07T21:54:11.488051Z | work.criterion-stage-marked | criterion=stale-disposition actor=project:owner stage=specified
+- 2026-09-07T21:54:11.701458Z | work.criterion-stage-marked | criterion=history-preserved actor=project:owner stage=specified
+- 2026-09-07T21:54:11.911435Z | work.criterion-stage-marked | criterion=terminal-work-preserved actor=project:owner stage=specified
+- 2026-09-07T21:54:12.132374Z | work.criterion-stage-marked | criterion=governance-only actor=project:owner stage=specified
+- 2026-09-07T21:54:12.345458Z | work.criterion-stage-marked | criterion=final-report actor=project:owner stage=specified
+- 2026-09-07T21:54:12.551675Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-07T21:54:14.071262Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-07T21:54:25.309849Z | artifact.added | kind=implementation-plan uri=repo://docs/reports/agora-ledger-validation-repair-20260907.md actor=project:agent
+- 2026-09-07T21:54:25.513691Z | work.criterion-stage-marked | criterion=validate-clean actor=project:owner stage=planned
+- 2026-09-07T21:54:25.742653Z | work.criterion-stage-marked | criterion=stale-disposition actor=project:owner stage=planned
+- 2026-09-07T21:54:25.965849Z | work.criterion-stage-marked | criterion=history-preserved actor=project:owner stage=planned
+- 2026-09-07T21:54:26.184984Z | work.criterion-stage-marked | criterion=terminal-work-preserved actor=project:owner stage=planned
+- 2026-09-07T21:54:26.400883Z | work.criterion-stage-marked | criterion=governance-only actor=project:owner stage=planned
+- 2026-09-07T21:54:26.612645Z | work.criterion-stage-marked | criterion=final-report actor=project:owner stage=planned
+- 2026-09-07T21:54:26.825663Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-07T21:54:27.038482Z | work.criterion-stage-marked | criterion=validate-clean actor=project:agent stage=implemented
+- 2026-09-07T21:54:27.247905Z | work.criterion-stage-marked | criterion=stale-disposition actor=project:agent stage=implemented
+- 2026-09-07T21:54:27.460923Z | work.criterion-stage-marked | criterion=history-preserved actor=project:agent stage=implemented
+- 2026-09-07T21:54:27.673118Z | work.criterion-stage-marked | criterion=terminal-work-preserved actor=project:agent stage=implemented
+- 2026-09-07T21:54:27.887476Z | work.criterion-stage-marked | criterion=governance-only actor=project:agent stage=implemented
+- 2026-09-07T21:54:28.105772Z | work.criterion-stage-marked | criterion=final-report actor=project:agent stage=implemented
+- 2026-09-07T21:54:28.326304Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-07T21:54:28.556368Z | work.criterion-stage-marked | criterion=validate-clean actor=project:agent stage=verified
+- 2026-09-07T21:54:28.780517Z | work.criterion-stage-marked | criterion=stale-disposition actor=project:agent stage=verified
+- 2026-09-07T21:54:29.002584Z | work.criterion-stage-marked | criterion=history-preserved actor=project:agent stage=verified
+- 2026-09-07T21:54:29.233665Z | work.criterion-stage-marked | criterion=terminal-work-preserved actor=project:agent stage=verified
+- 2026-09-07T21:54:29.460152Z | work.criterion-stage-marked | criterion=governance-only actor=project:agent stage=verified
+- 2026-09-07T21:54:29.697242Z | work.criterion-stage-marked | criterion=final-report actor=project:agent stage=verified
+- 2026-09-07T22:28:34.193500Z | work.criterion-satisfied | criterion=validate-clean actor=project:owner
+- 2026-09-07T22:28:34.415530Z | work.criterion-satisfied | criterion=stale-disposition actor=project:owner
+- 2026-09-07T22:28:34.646006Z | work.criterion-satisfied | criterion=history-preserved actor=project:owner
+- 2026-09-07T22:28:34.868170Z | work.criterion-satisfied | criterion=terminal-work-preserved actor=project:owner
+- 2026-09-07T22:28:35.102049Z | work.criterion-satisfied | criterion=governance-only actor=project:owner
+- 2026-09-07T22:28:35.320553Z | work.criterion-satisfied | criterion=final-report actor=project:owner
+- 2026-09-07T22:28:35.540957Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T22:28:35.757904Z | work.transitioned | from=verifying to=completed actor=project:owner

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.shark.renovatio</groupId>
+        <artifactId>renovatio-parent</artifactId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>renovatio-api</artifactId>
+    <name>Renovatio - REST API</name>
+    <description>REST API + async jobs + persistence for Renovatio (issue #130 phase 2)</description>
+
+    <dependencies>
+        <!-- Internal modules -->
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-shared</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-domain-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-provider-cobol</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-provider-java</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-profile</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-architecture</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-decisions</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-llm</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-persistence</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.shark.renovatio</groupId>
+            <artifactId>renovatio-emitter-node</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Web -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Data JPA -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- SQLite Database (embedded) -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <!-- Kept only to read the legacy source during the one-way migrator and
+             for the isolated historical test profile; the application datasource is SQLite. -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-community-dialects</artifactId>
+        </dependency>
+
+        <!-- Spring Boot Validation -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Jackson for JSON -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <finalName>renovatio-api</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>npm-build</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>npm</executable>
+                            <workingDirectory>${project.basedir}/../renovatio-ui</workingDirectory>
+                            <arguments>
+                                <argument>run</argument>
+                                <argument>build</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>org.shark.renovatio.api.RenovatioApiApplication</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

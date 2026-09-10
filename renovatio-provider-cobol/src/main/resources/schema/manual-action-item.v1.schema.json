@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renovatio.dev/schema/manual-action-item.v1.schema.json",
+  "title": "Renovatio Manual Action Item Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "items"],
+  "properties": {
+    "schemaVersion": { "const": "manual-action-item.v1" },
+    "items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/actionItem" }
+    }
+  },
+  "$defs": {
+    "actionItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "sourceFile", "program", "constructionFamily", "reason",
+        "failedGate", "diagnosticReference", "fallback", "requiredHumanAction",
+        "acceptanceCondition", "severity", "reviewStatus"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^mai-[a-f0-9]{24}$" },
+        "sourceFile": { "type": "string", "minLength": 1 },
+        "program": { "type": "string", "minLength": 1 },
+        "division": { "type": ["string", "null"] },
+        "section": { "type": ["string", "null"] },
+        "paragraph": { "type": ["string", "null"] },
+        "sourceSpan": { "type": ["string", "null"] },
+        "irNodeId": { "type": ["string", "null"] },
+        "sourceContentHash": { "type": ["string", "null"] },
+        "constructionFamily": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "failedGate": { "enum": ["schema", "compilation", "characterization", "review-eligibility"] },
+        "diagnosticReference": { "type": "string", "minLength": 1 },
+        "fallback": { "type": "string", "minLength": 1 },
+        "requiredHumanAction": { "type": "string", "minLength": 1 },
+        "acceptanceCondition": { "type": "string", "minLength": 1 },
+        "severity": { "enum": ["warning", "error", "critical"] },
+        "reviewStatus": { "enum": ["pending", "accepted", "rejected", "resolved"] },
+        "schemaHash": { "type": ["string", "null"] },
+        "promptHash": { "type": ["string", "null"] },
+        "modelId": { "type": ["string", "null"] },
+        "cacheHash": { "type": ["string", "null"] },
+        "outputHash": { "type": ["string", "null"] },
+        "agoraToolRun": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

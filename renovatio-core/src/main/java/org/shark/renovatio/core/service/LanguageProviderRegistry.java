@@ -24,10 +24,12 @@ public class LanguageProviderRegistry {
     private static final Logger logger = LoggerFactory.getLogger(LanguageProviderRegistry.class);
     private static final Set<String> RESERVED_ARGUMENT_KEYS = Set.of(
             "workspacePath",
+            "projectId",
             "scope",
             "planId",
             "runId",
             "dryRun",
+            "outputDir",
             "language",
             "nql"
     );
@@ -62,6 +64,9 @@ public class LanguageProviderRegistry {
             logger.info("LanguageProviderRegistry initialized with {} providers: {}",
                     providersByLanguage.values().stream().mapToInt(List::size).sum(), providersByLanguage.keySet());
 
+        } catch (IllegalStateException conflict) {
+            logger.error("Provider registration conflict: {}", conflict.getMessage());
+            throw conflict;
         } catch (Exception e) {
             logger.error("Error during LanguageProvider auto-registration: {}", e.getMessage(), e);
         }
@@ -81,6 +86,17 @@ public class LanguageProviderRegistry {
                 logger.debug("Provider instance already registered for language '{}': {}", language, provider.getClass().getSimpleName());
                 return;
             }
+            Set<LanguageProvider.Capabilities> overlap = new LinkedHashSet<>(existing.capabilities());
+            overlap.retainAll(provider.capabilities());
+            Set<String> existingTools = toolNames(existing);
+            Set<String> incomingTools = toolNames(provider);
+            existingTools.retainAll(incomingTools);
+            if (!overlap.isEmpty() || !existingTools.isEmpty()) {
+                throw new IllegalStateException("Conflicting providers for language '" + language
+                        + "': " + existing.getClass().getSimpleName() + " and "
+                        + provider.getClass().getSimpleName() + "; overlapping capabilities=" + overlap
+                        + ", tools=" + existingTools);
+            }
         }
 
         languageProviders.add(provider);
@@ -92,6 +108,15 @@ public class LanguageProviderRegistry {
             logger.info("Registered additional LanguageProvider [{}] for language '{}' via {} ({} providers total)",
                     provider.getClass().getSimpleName(), language, source, languageProviders.size());
         }
+    }
+
+    private Set<String> toolNames(LanguageProvider provider) {
+        List<Tool> tools = provider.getTools();
+        if (tools == null) {
+            return new LinkedHashSet<>();
+        }
+        return tools.stream().filter(Objects::nonNull).map(Tool::getName)
+                .filter(Objects::nonNull).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
@@ -284,10 +309,28 @@ public class LanguageProviderRegistry {
                             diffResult.isSuccess(), diffResult.getMessage());
                     return convertToMap(diffResult);
 
+                case "stubs":
+                    logger.debug("Calling provider.generateStubs()...");
+                    Optional<StubResult> stubResult = provider.generateStubs(query, workspace);
+                    if (stubResult.isEmpty()) {
+                        return createErrorResult("Provider returned no stub generation result");
+                    }
+                    StubResult generatedStubs = stubResult.orElseThrow();
+                    logger.debug("Provider.generateStubs() returned: success={}, message={}",
+                            generatedStubs.isSuccess(), generatedStubs.getMessage());
+                    return convertToMap(generatedStubs);
+
                 default:
                     return createErrorResult("Unsupported capability: " + capability);
             }
 
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            logger.warn("Target emitter unavailable: {}", unavailable.getMessage());
+            Map<String, Object> result = createErrorResult(unavailable.getMessage());
+            result.put("code", unavailable.code());
+            result.put("requestedTarget", unavailable.requestedTarget().name());
+            result.put("availableTargets", unavailable.availableTargets().stream().map(Enum::name).toList());
+            return result;
         } catch (Exception e) {
             logger.error("Error routing tool call: {}", e.getMessage(), e);
             logger.error("Stack trace:", e);
@@ -352,9 +395,15 @@ public class LanguageProviderRegistry {
 
     private Workspace createWorkspace(Map<String, Object> arguments) {
         Workspace workspace = new Workspace();
-        workspace.setId("default");
+        workspace.setId((String) arguments.getOrDefault("projectId", "default"));
         workspace.setPath((String) arguments.get("workspacePath"));
         workspace.setBranch("main");
+        Object outputDir = arguments.get("outputDir");
+        if (outputDir != null && !outputDir.toString().isBlank()) {
+            Map<String, Object> metadata = new LinkedHashMap<>();
+            metadata.put("outputDir", outputDir.toString());
+            workspace.setMetadata(metadata);
+        }
         return workspace;
     }
 
@@ -481,9 +530,11 @@ public class LanguageProviderRegistry {
             logger.debug("Converting ApplyResult: success={}, message={}", ar.isSuccess(), ar.getMessage());
             map.put("success", ar.isSuccess());
             map.put("message", ar.getMessage());
+            map.put("runId", ar.getRunId());
             map.put("dryRun", ar.isDryRun());
             map.put("diff", ar.getDiff());
             map.put("changes", ar.getChanges());
+            map.put("modifiedFiles", ar.getModifiedFiles());
             map.put("type", "apply");
 
         } else if (result instanceof DiffResult) {
@@ -495,6 +546,15 @@ public class LanguageProviderRegistry {
             map.put("semanticDiff", dr.getSemanticDiff());
             map.put("hunks", dr.getHunks());
             map.put("type", "diff");
+        } else if (result instanceof StubResult stubResult) {
+            map.put("targetLanguage", stubResult.getTargetLanguage());
+            map.put("generatedFiles", stubResult.getGeneratedFiles());
+            map.put("generatedCode", stubResult.getGeneratedCode());
+            map.put("stubTemplate", stubResult.getStubTemplate());
+            Map<String, String> artifacts = stubResult.getGeneratedCode() != null
+                    ? stubResult.getGeneratedCode() : stubResult.getGeneratedFiles();
+            map.put("artifactCount", artifacts == null ? 0 : artifacts.size());
+            map.put("type", "stubs");
         } else {
             logger.warn("Unknown result type: {}", result != null ? result.getClass().getName() : "null");
             map.put("success", false);

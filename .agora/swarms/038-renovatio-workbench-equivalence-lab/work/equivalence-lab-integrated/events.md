@@ -1,0 +1,26 @@
+# Work events
+
+- 2026-09-07T20:42:30.966014Z | work.created | state=drafting actor=project:owner
+- 2026-09-07T20:43:32.358269Z | artifact.added | kind=spec uri=.agora/swarms/038-renovatio-workbench-equivalence-lab/work/equivalence-lab-integrated/SPEC.md actor=project:owner
+- 2026-09-07T20:43:37.842467Z | artifact.added | kind=implementation-plan uri=.agora/swarms/038-renovatio-workbench-equivalence-lab/work/equivalence-lab-integrated/IMPLEMENTATION_PLAN.md actor=project:agent
+- 2026-09-07T20:43:43.129755Z | artifact.added | kind=implementation uri=.agora/swarms/038-renovatio-workbench-equivalence-lab/work/equivalence-lab-integrated/IMPLEMENTATION.md actor=project:agent
+- 2026-09-07T20:43:48.141006Z | artifact.added | kind=verification uri=.agora/swarms/038-renovatio-workbench-equivalence-lab/work/equivalence-lab-integrated/VERIFICATION.md actor=project:agent
+- 2026-09-07T20:43:54.099836Z | artifact.added | kind=review-report uri=.agora/swarms/038-renovatio-workbench-equivalence-lab/work/equivalence-lab-integrated/REVIEW.md actor=project:owner
+- 2026-09-07T20:44:04.564794Z | work.criterion-satisfied | criterion=fixture-selector actor=project:owner
+- 2026-09-07T20:44:10.257520Z | work.criterion-satisfied | criterion=execution-repeatability actor=project:owner
+- 2026-09-07T20:44:10.500627Z | work.criterion-satisfied | criterion=async-control actor=project:owner
+- 2026-09-07T20:44:10.759291Z | work.criterion-satisfied | criterion=divergence-triage actor=project:owner
+- 2026-09-07T20:44:11.051626Z | work.criterion-satisfied | criterion=promotion-gate actor=project:owner
+- 2026-09-07T20:44:11.337054Z | work.criterion-satisfied | criterion=audited-export actor=project:owner
+- 2026-09-07T20:44:11.612253Z | work.criterion-satisfied | criterion=verification actor=project:owner
+- 2026-09-07T20:44:17.970405Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T20:44:24.938601Z | evidence.added | id=evidence-000002 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T20:44:33.827889Z | evidence.added | id=evidence-000003 type=build result=success revision=1 actor=project:agent
+- 2026-09-07T20:44:40.316912Z | evidence.added | id=evidence-000004 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T20:44:45.537933Z | evidence.added | id=evidence-000005 type=static-check result=success revision=1 actor=project:agent
+- 2026-09-07T20:44:56.851263Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-07T20:45:06.036937Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-07T20:45:16.058911Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-07T20:45:26.732274Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-07T20:45:46.761894Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T20:45:56.458859Z | work.transitioned | from=verifying to=completed actor=project:owner

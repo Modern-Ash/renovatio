@@ -8,7 +8,6 @@ import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.provider.cobol.service.*;
 import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
 import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
-import org.shark.renovatio.provider.java.OpenRewriteRunner;
 import org.shark.renovatio.shared.domain.AnalyzeResult;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
@@ -46,7 +45,7 @@ class SurfaceProofTest {
         CobolIntermediateModelService irService = new CobolIntermediateModelService();
         JavaGenerationService javaGenerationService = new JavaGenerationService(
             parsingService, templateService, irService,
-            new CobolSemanticTranspiler(new OpenRewriteRunner())
+            new CobolSemanticTranspiler()
         );
         Db2MigrationService db2Service = new Db2MigrationService(parsingService);
         MigrationPlanService migrationPlanService = new MigrationPlanService(parsingService, javaGenerationService);

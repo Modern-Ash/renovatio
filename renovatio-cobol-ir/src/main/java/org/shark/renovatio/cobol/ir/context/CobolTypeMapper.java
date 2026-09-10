@@ -1,45 +1,59 @@
 package org.shark.renovatio.cobol.ir.context;
 
-import java.math.BigDecimal;
-import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import org.shark.renovatio.cobol.runtime.PicClause;
+import org.shark.renovatio.cobol.runtime.PicType;
 
 public final class CobolTypeMapper {
 
     private CobolTypeMapper() {
     }
 
-    public static String picToJavaType(String pic) {
+    /**
+     * Parses a COBOL PICTURE clause into a rich {@link PicType} descriptor
+     * (digits, scale, sign, usage). Returns {@code null} when the clause is
+     * blank or cannot be interpreted as a picture.
+     */
+    public static PicType picType(String pic) {
         if (pic == null || pic.isBlank()) {
+            return null;
+        }
+        try {
+            PicType type = PicClause.parse(pic);
+            if (type.category() == PicType.Category.NUMERIC && type.digits() == 0) {
+                return null;
+            }
+            return type;
+        } catch (RuntimeException ex) {
+            return null;
+        }
+    }
+
+    /**
+     * Legacy mapping to a target Java type name. Kept for backward
+     * compatibility; now derived from {@link #picType(String)}.
+     */
+    public static String picToJavaType(String pic) {
+        PicType type = picType(pic);
+        if (type == null) {
             return String.class.getSimpleName();
         }
-        String normalized = pic.trim().toUpperCase(Locale.ROOT);
-        if (normalized.startsWith("PIC")) {
-            normalized = normalized.substring(3).trim();
+        switch (type.category()) {
+            case ALPHANUMERIC:
+            case ALPHABETIC:
+                return String.class.getSimpleName();
+            default:
+                break;
         }
-        // Integer/Long/BigDecimal based on number of digits in 9(n)
-        Matcher intMatcher = Pattern.compile("9\\((\\d+)\\)").matcher(normalized);
-        if (intMatcher.matches()) {
-            int digits = Integer.parseInt(intMatcher.group(1));
-            if (digits <= 9) {
-                return Integer.class.getSimpleName();
-            }
-            if (digits <= 18) {
-                return Long.class.getSimpleName();
-            }
-            return BigDecimal.class.getSimpleName();
+        if (type.scale() > 0) {
+            return "BigDecimal";
         }
-        // Decimal types e.g., 9(n)V9+
-        if (normalized.matches("9\\(\\d+\\)V9+")) {
-            return BigDecimal.class.getSimpleName();
-        }
-        if (normalized.startsWith("X") || normalized.startsWith("A")) {
-            return String.class.getSimpleName();
-        }
-        if (normalized.contains("COMP")) {
+        int digits = type.digits();
+        if (digits <= 9) {
             return Integer.class.getSimpleName();
         }
-        return String.class.getSimpleName();
+        if (digits <= 18) {
+            return Long.class.getSimpleName();
+        }
+        return "BigDecimal";
     }
 }

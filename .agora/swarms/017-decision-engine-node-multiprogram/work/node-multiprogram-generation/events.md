@@ -1,0 +1,78 @@
+# Work events
+
+- 2026-09-04T14:41:36.208028Z | work.created | state=drafting actor=project:owner
+- 2026-09-04T14:43:00.968389Z | artifact.added | kind=spec uri=docs/specs/node-multiprogram-generation.md actor=project:owner
+- 2026-09-04T14:43:01.233362Z | work.criterion-stage-marked | criterion=program-artifacts actor=project:owner stage=specified
+- 2026-09-04T14:43:01.495323Z | work.criterion-stage-marked | criterion=shared-artifacts actor=project:owner stage=specified
+- 2026-09-04T14:43:01.759685Z | work.criterion-stage-marked | criterion=collision-safety actor=project:owner stage=specified
+- 2026-09-04T14:43:02.034636Z | work.criterion-stage-marked | criterion=cli-end-to-end actor=project:owner stage=specified
+- 2026-09-04T14:43:02.309427Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=specified
+- 2026-09-04T14:43:02.581653Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=specified
+- 2026-09-04T14:43:02.852787Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-04T14:43:03.136016Z | artifact.added | kind=implementation-plan uri=docs/specs/node-multiprogram-generation-plan.md actor=project:agent
+- 2026-09-04T14:43:03.419863Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-04T14:43:03.701415Z | work.criterion-stage-marked | criterion=program-artifacts actor=project:owner stage=planned
+- 2026-09-04T14:43:03.969542Z | work.criterion-stage-marked | criterion=shared-artifacts actor=project:owner stage=planned
+- 2026-09-04T14:43:04.225623Z | work.criterion-stage-marked | criterion=collision-safety actor=project:owner stage=planned
+- 2026-09-04T14:43:04.481824Z | work.criterion-stage-marked | criterion=cli-end-to-end actor=project:owner stage=planned
+- 2026-09-04T14:43:04.734494Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=planned
+- 2026-09-04T14:43:04.990583Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=planned
+- 2026-09-04T14:43:05.248225Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-04T14:52:15.625630Z | artifact.added | kind=verification-report uri=docs/reports/node-multiprogram-generation-verification.md actor=project:agent
+- 2026-09-04T14:52:15.836672Z | artifact.added | kind=review-report uri=docs/reports/node-multiprogram-generation-review.md actor=project:agent
+- 2026-09-04T14:52:22.470969Z | work.criterion-stage-marked | criterion=program-artifacts actor=project:agent stage=implemented
+- 2026-09-04T14:52:22.731853Z | work.criterion-stage-marked | criterion=shared-artifacts actor=project:agent stage=implemented
+- 2026-09-04T14:52:22.990510Z | work.criterion-stage-marked | criterion=collision-safety actor=project:agent stage=implemented
+- 2026-09-04T14:52:23.248430Z | work.criterion-stage-marked | criterion=cli-end-to-end actor=project:agent stage=implemented
+- 2026-09-04T14:52:23.522002Z | work.criterion-stage-marked | criterion=compatibility actor=project:agent stage=implemented
+- 2026-09-04T14:52:23.791977Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=implemented
+- 2026-09-04T14:52:24.055188Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-04T14:52:36.338579Z | evidence.added | id=evidence-000001 type=tdd result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:36.601016Z | evidence.added | id=evidence-000002 type=focused-test result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:36.866435Z | evidence.added | id=evidence-000003 type=reactor-test result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:37.122195Z | evidence.added | id=evidence-000004 type=build result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:37.390444Z | evidence.added | id=evidence-000005 type=whitespace result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:37.645145Z | evidence.added | id=evidence-000006 type=review result=success revision=1 actor=project:agent
+- 2026-09-04T14:52:42.464345Z | work.criterion-stage-marked | criterion=program-artifacts actor=project:agent stage=verified
+- 2026-09-04T14:52:42.730785Z | work.criterion-stage-marked | criterion=shared-artifacts actor=project:agent stage=verified
+- 2026-09-04T14:52:42.998127Z | work.criterion-stage-marked | criterion=collision-safety actor=project:agent stage=verified
+- 2026-09-04T14:52:43.263689Z | work.criterion-stage-marked | criterion=cli-end-to-end actor=project:agent stage=verified
+- 2026-09-04T14:52:43.526075Z | work.criterion-stage-marked | criterion=compatibility actor=project:agent stage=verified
+- 2026-09-04T14:52:43.792325Z | work.criterion-stage-marked | criterion=regression-quality actor=project:agent stage=verified
+- 2026-09-04T14:53:29.946233Z | tool.prepared | run=tool-20260904t14531788544409z tool=repository operation=commit actor=project:agent
+- 2026-09-04T14:53:29.949402Z | tool.running | run=tool-20260904t14531788544409z actor=project:agent
+- 2026-09-04T14:53:29.964529Z | tool.failed | run=tool-20260904t14531788544409z exit-code=128
+- 2026-09-04T14:53:54.326932Z | tool.prepared | run=tool-20260904t14531788544434z tool=repository operation=commit actor=project:agent
+- 2026-09-04T14:53:54.330185Z | tool.running | run=tool-20260904t14531788544434z actor=project:agent
+- 2026-09-04T14:53:54.355110Z | tool.failed | run=tool-20260904t14531788544434z exit-code=1
+- 2026-09-04T14:54:13.273677Z | tool.prepared | run=tool-20260904t14541788544453z tool=repository operation=commit actor=project:agent
+- 2026-09-04T14:54:13.277323Z | tool.running | run=tool-20260904t14541788544453z actor=project:agent
+- 2026-09-04T14:54:13.312344Z | tool.completed | run=tool-20260904t14541788544453z exit-code=0
+- 2026-09-04T14:54:22.322333Z | evidence.added | id=evidence-000007 type=tested-revision result=success revision=1 actor=project:agent
+- 2026-09-04T14:54:36.224865Z | tool.prepared | run=tool-20260904t14541788544476z tool=repository operation=commit actor=project:agent
+- 2026-09-04T14:54:36.227854Z | tool.running | run=tool-20260904t14541788544476z actor=project:agent
+- 2026-09-04T14:54:36.252840Z | tool.completed | run=tool-20260904t14541788544476z exit-code=0
+- 2026-09-04T14:54:49.300488Z | tool.prepared | run=tool-20260904t14541788544489z tool=repository operation=publish-branch actor=project:agent
+- 2026-09-04T14:54:49.303682Z | tool.running | run=tool-20260904t14541788544489z actor=project:agent
+- 2026-09-04T14:54:51.948105Z | tool.completed | run=tool-20260904t14541788544489z exit-code=0
+- 2026-09-04T14:55:05.894896Z | tool.prepared | run=tool-20260904t14551788544505z tool=github-pull-requests operation=comment actor=project:agent
+- 2026-09-04T14:55:05.897777Z | tool.running | run=tool-20260904t14551788544505z actor=project:agent
+- 2026-09-04T14:55:07.337728Z | tool.completed | run=tool-20260904t14551788544505z exit-code=0
+- 2026-09-04T14:55:15.070820Z | tool.prepared | run=tool-20260904t14551788544515z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:55:15.073798Z | tool.running | run=tool-20260904t14551788544515z actor=project:agent
+- 2026-09-04T14:55:16.201652Z | tool.completed | run=tool-20260904t14551788544515z exit-code=0
+- 2026-09-04T14:55:57.785437Z | tool.prepared | run=tool-20260904t14551788544557z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:55:57.788532Z | tool.running | run=tool-20260904t14551788544557z actor=project:agent
+- 2026-09-04T14:55:58.983039Z | tool.completed | run=tool-20260904t14551788544557z exit-code=0
+- 2026-09-04T14:56:44.596881Z | tool.prepared | run=tool-20260904t14561788544604z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:56:44.601787Z | tool.running | run=tool-20260904t14561788544604z actor=project:agent
+- 2026-09-04T14:56:45.892530Z | tool.completed | run=tool-20260904t14561788544604z exit-code=0
+- 2026-09-04T14:57:25.526197Z | tool.prepared | run=tool-20260904t14571788544645z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:57:25.529649Z | tool.running | run=tool-20260904t14571788544645z actor=project:agent
+- 2026-09-04T14:57:26.697578Z | tool.completed | run=tool-20260904t14571788544645z exit-code=0
+- 2026-09-04T14:58:06.746324Z | tool.prepared | run=tool-20260904t14581788544686z tool=github-pull-requests operation=checks actor=project:agent
+- 2026-09-04T14:58:06.749348Z | tool.running | run=tool-20260904t14581788544686z actor=project:agent
+- 2026-09-04T14:58:08.324591Z | tool.completed | run=tool-20260904t14581788544686z exit-code=0
+- 2026-09-04T14:58:25.770901Z | tool.prepared | run=tool-20260904t14581788544705z tool=github-pull-requests operation=view actor=project:agent
+- 2026-09-04T14:58:25.774387Z | tool.running | run=tool-20260904t14581788544705z actor=project:agent
+- 2026-09-04T14:58:26.911109Z | tool.completed | run=tool-20260904t14581788544705z exit-code=0

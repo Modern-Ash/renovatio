@@ -37,6 +37,8 @@ public final class CobolIntermediateModel {
     private final CobolExecutionContext executionContext;
     private final List<ControlBreakPattern> controlBreakPatterns;
     private final DecomposedBusinessLogic decomposedLogic;
+    private final List<CobolDiagnostic> diagnostics;
+    private final Map<String, ParagraphLineRange> paragraphLineRanges;
 
     private CobolIntermediateModel(Builder builder) {
         this.programId = builder.programId;
@@ -46,6 +48,8 @@ public final class CobolIntermediateModel {
         this.executionContext = builder.executionContext;
         this.controlBreakPatterns = List.copyOf(builder.controlBreakPatterns);
         this.decomposedLogic = builder.decomposedLogic;
+        this.diagnostics = builder.diagnostics.stream().sorted().toList();
+        this.paragraphLineRanges = Collections.unmodifiableMap(new LinkedHashMap<>(builder.paragraphLineRanges));
     }
 
     /**
@@ -76,6 +80,17 @@ public final class CobolIntermediateModel {
         return paragraphs.values().iterator().next();
     }
 
+    /**
+     * Returns the {@link ParagraphLineRange} for a named paragraph, if the parser
+     * could determine its lexical span within the source file.
+     */
+    public Optional<ParagraphLineRange> findParagraphLineRange(String name) {
+        if (name == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(paragraphLineRanges.get(name.toUpperCase()));
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -88,6 +103,8 @@ public final class CobolIntermediateModel {
         private CobolExecutionContext executionContext = CobolExecutionContext.empty();
         private List<ControlBreakPattern> controlBreakPatterns = new ArrayList<>();
         private DecomposedBusinessLogic decomposedLogic;
+        private List<CobolDiagnostic> diagnostics = new ArrayList<>();
+        private final Map<String, ParagraphLineRange> paragraphLineRanges = new LinkedHashMap<>();
 
         private Builder() {
         }
@@ -132,6 +149,32 @@ public final class CobolIntermediateModel {
 
         public Builder decomposedLogic(DecomposedBusinessLogic decomposedLogic) {
             this.decomposedLogic = decomposedLogic;
+            return this;
+        }
+
+        public Builder diagnostics(List<CobolDiagnostic> diagnostics) {
+            this.diagnostics = diagnostics == null ? new ArrayList<>() : new ArrayList<>(diagnostics);
+            return this;
+        }
+
+        public Builder addDiagnostic(CobolDiagnostic diagnostic) {
+            if (diagnostic != null) {
+                this.diagnostics.add(diagnostic);
+            }
+            return this;
+        }
+
+        public Builder putParagraphLineRange(String paragraph, ParagraphLineRange range) {
+            if (paragraph != null && range != null) {
+                this.paragraphLineRanges.put(paragraph.toUpperCase(), range);
+            }
+            return this;
+        }
+
+        public Builder paragraphLineRanges(Map<String, ParagraphLineRange> ranges) {
+            if (ranges != null) {
+                ranges.forEach(this::putParagraphLineRange);
+            }
             return this;
         }
 

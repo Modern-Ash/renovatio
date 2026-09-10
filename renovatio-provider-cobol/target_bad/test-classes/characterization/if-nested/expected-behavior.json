@@ -1,0 +1,1 @@
+{"fixtureId":"if-nested","status":"supported","observations":[{"input":"Y/Y","result":"A"},{"input":"Y/N","result":"B"},{"input":"N/N","result":"C"}]}

@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://renovatio.dev/schema/idiomatic-polish-proposal.v1.schema.json",
+  "title": "Review-only idiomatic polish proposal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "proposalId",
+    "family",
+    "reviewState",
+    "disposition",
+    "repositoryCommit",
+    "baselineRef",
+    "characterizationSelectors",
+    "characterizationCommand",
+    "javaVersion",
+    "mavenVersion",
+    "generatedInputHashes",
+    "semanticInputHashes",
+    "expectedBehaviorHashes",
+    "pathSelectors",
+    "nodeSelectors",
+    "outputHashes",
+    "generatedTreeHash",
+    "changedPaths",
+    "patchHash",
+    "provenance",
+    "publicSignatureChanges",
+    "executedGates",
+    "diagnosticReference",
+    "familyPayload"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "idiomatic-polish-proposal.v1" },
+    "proposalId": { "type": "string", "pattern": "^polish-[a-f0-9]{24}$" },
+    "family": {
+      "enum": [
+        "DOMAIN_NAMING_REFINEMENT",
+        "PORT_EXTRACTION",
+        "STRATEGY_EXTRACTION",
+        "FLAG_COLLAPSE"
+      ]
+    },
+    "reviewState": { "const": "PROPOSED" },
+    "disposition": { "const": "ELIGIBLE_FOR_REVIEW" },
+    "repositoryCommit": { "$ref": "#/$defs/nonBlank" },
+    "baselineRef": { "$ref": "#/$defs/nonBlank" },
+    "characterizationSelectors": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/nonBlank" }
+    },
+    "characterizationCommand": { "$ref": "#/$defs/nonBlank" },
+    "javaVersion": { "$ref": "#/$defs/nonBlank" },
+    "mavenVersion": { "$ref": "#/$defs/nonBlank" },
+    "generatedInputHashes": { "$ref": "#/$defs/hashes" },
+    "semanticInputHashes": { "$ref": "#/$defs/hashes" },
+    "expectedBehaviorHashes": { "$ref": "#/$defs/hashes" },
+    "pathSelectors": { "$ref": "#/$defs/selectors" },
+    "nodeSelectors": { "$ref": "#/$defs/selectors" },
+    "outputHashes": { "$ref": "#/$defs/hashes" },
+    "generatedTreeHash": { "$ref": "#/$defs/hash" },
+    "changedPaths": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/javaPath" }
+    },
+    "patchHash": { "$ref": "#/$defs/hash" },
+    "provenance": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/nonBlank" }
+    },
+    "publicSignatureChanges": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/nonBlank" }
+    },
+    "executedGates": {
+      "const": ["schema", "compilation", "characterization", "review-eligibility"]
+    },
+    "diagnosticReference": { "const": "all-gates-passed" },
+    "familyPayload": { "$ref": "#/$defs/familyPayload" }
+  },
+  "$defs": {
+    "nonBlank": { "type": "string", "minLength": 1, "pattern": ".*\\S.*" },
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "javaPath": {
+      "type": "string",
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))[^\\s]+\\.java$"
+    },
+    "hashes": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/hash" }
+    },
+    "selectors": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/nonBlank" }
+    },
+    "javaPaths": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/javaPath" }
+    },
+    "strings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/nonBlank" }
+    },
+    "familyPayload": {
+      "oneOf": [
+        { "$ref": "#/$defs/domainNaming" },
+        { "$ref": "#/$defs/portExtraction" },
+        { "$ref": "#/$defs/strategyExtraction" },
+        { "$ref": "#/$defs/flagCollapse" }
+      ]
+    },
+    "domainNaming": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "nodeId", "currentSymbol", "proposedSymbol", "referencePaths",
+        "collisionFree", "publicSignature", "ownerApproved"
+      ],
+      "properties": {
+        "nodeId": { "$ref": "#/$defs/nonBlank" },
+        "currentSymbol": { "$ref": "#/$defs/nonBlank" },
+        "proposedSymbol": { "$ref": "#/$defs/nonBlank" },
+        "referencePaths": { "$ref": "#/$defs/javaPaths" },
+        "collisionFree": { "const": true },
+        "publicSignature": { "type": "boolean" },
+        "ownerApproved": { "type": "boolean" }
+      }
+    },
+    "portExtraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dependencyBoundary", "interfaceName", "callSites",
+        "contractPreserved", "addsDependencyOrConfiguration"
+      ],
+      "properties": {
+        "dependencyBoundary": { "$ref": "#/$defs/nonBlank" },
+        "interfaceName": { "$ref": "#/$defs/nonBlank" },
+        "callSites": { "$ref": "#/$defs/javaPaths" },
+        "contractPreserved": { "const": true },
+        "addsDependencyOrConfiguration": { "const": false }
+      }
+    },
+    "strategyExtraction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["conditionalRegion", "branches", "exhaustive", "behaviorPreserved"],
+      "properties": {
+        "conditionalRegion": { "$ref": "#/$defs/nonBlank" },
+        "branches": { "$ref": "#/$defs/strings" },
+        "exhaustive": { "const": true },
+        "behaviorPreserved": { "const": true }
+      }
+    },
+    "flagCollapse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fields", "observedCombinations", "stateMapping", "mutuallyExclusive", "exhaustive"
+      ],
+      "properties": {
+        "fields": { "$ref": "#/$defs/strings" },
+        "observedCombinations": { "$ref": "#/$defs/strings" },
+        "stateMapping": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "$ref": "#/$defs/nonBlank" }
+        },
+        "mutuallyExclusive": { "const": true },
+        "exhaustive": { "const": true }
+      }
+    }
+  }
+}

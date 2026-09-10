@@ -1,0 +1,32 @@
+# Work events
+
+- 2026-09-06T12:24:39.847762Z | work.created | state=drafting actor=project:owner
+- 2026-09-06T12:31:01.155044Z | artifact.added | kind=spec uri=repo://.agora/swarms/023-renovatio-workbench-project-adapter/work/live-project-adapter/spec.md actor=project:owner
+- 2026-09-06T12:31:01.424450Z | work.criterion-stage-marked | criterion=adapter-boundary actor=project:owner stage=specified
+- 2026-09-06T12:31:01.693333Z | work.criterion-stage-marked | criterion=authorization-boundary actor=project:owner stage=specified
+- 2026-09-06T12:31:01.964643Z | work.criterion-stage-marked | criterion=resilient-states actor=project:owner stage=specified
+- 2026-09-06T12:31:02.235213Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=specified
+- 2026-09-06T12:31:02.510775Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=specified
+- 2026-09-06T12:31:10.571451Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-06T12:31:17.795338Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-06T12:31:59.314616Z | artifact.added | kind=adapter-contract uri=repo://.agora/swarms/023-renovatio-workbench-project-adapter/work/live-project-adapter/adapter-contract.md actor=project:agent
+- 2026-09-06T12:31:59.647793Z | artifact.added | kind=authorization-model uri=repo://.agora/swarms/023-renovatio-workbench-project-adapter/work/live-project-adapter/authorization-model.md actor=project:agent
+- 2026-09-06T12:31:59.923254Z | artifact.added | kind=implementation-plan uri=repo://.agora/swarms/023-renovatio-workbench-project-adapter/work/live-project-adapter/implementation-plan.md actor=project:agent
+- 2026-09-06T12:32:06.885246Z | work.criterion-stage-marked | criterion=adapter-boundary actor=project:owner stage=planned
+- 2026-09-06T12:32:07.152653Z | work.criterion-stage-marked | criterion=authorization-boundary actor=project:owner stage=planned
+- 2026-09-06T12:32:07.434032Z | work.criterion-stage-marked | criterion=resilient-states actor=project:owner stage=planned
+- 2026-09-06T12:32:07.715713Z | work.criterion-stage-marked | criterion=dashboard-continuity actor=project:owner stage=planned
+- 2026-09-06T12:32:07.994598Z | work.criterion-stage-marked | criterion=verification-evidence actor=project:owner stage=planned
+- 2026-09-06T12:32:13.478927Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-06T15:32:36.649157Z | artifact.added | kind=verification-report uri=.agora/swarms/023-renovatio-workbench-project-adapter/work/live-project-adapter/verification-report.md actor=project:agent
+- 2026-09-06T15:32:36.883885Z | evidence.added | id=evidence-000001 type=integration result=success revision=1 actor=project:agent
+- 2026-09-06T15:55:04.976546Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-06T15:55:05.210045Z | evidence.added | id=evidence-000002 type=manual-browser result=success revision=1 actor=project:agent
+- 2026-09-06T15:55:54.570957Z | artifact.added | kind=review-report uri=.agora/swarms/023-renovatio-workbench-project-adapter/work/live-project-adapter/review-report.md actor=project:agent
+- 2026-09-06T15:58:55.551043Z | work.criterion-satisfied | criterion=adapter-boundary actor=project:owner
+- 2026-09-06T15:58:55.783728Z | work.criterion-satisfied | criterion=authorization-boundary actor=project:owner
+- 2026-09-06T15:58:56.005738Z | work.criterion-satisfied | criterion=resilient-states actor=project:owner
+- 2026-09-06T15:58:56.226749Z | work.criterion-satisfied | criterion=dashboard-continuity actor=project:owner
+- 2026-09-06T15:58:56.448098Z | work.criterion-satisfied | criterion=verification-evidence actor=project:owner
+- 2026-09-06T15:58:56.671150Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-06T15:59:05.360098Z | work.transitioned | from=verifying to=completed actor=project:owner

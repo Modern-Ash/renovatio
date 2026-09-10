@@ -1,0 +1,42 @@
+{
+  "name": "@renovatio/workbench",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "engines": {
+    "node": "24.20.0",
+    "npm": ">=11"
+  },
+  "packageManager": "npm@11.19.0",
+  "allowScripts": {
+    "@parcel/watcher": true,
+    "@theia/ffmpeg": false,
+    "drivelist": true,
+    "esbuild": true,
+    "keytar": true,
+    "msgpackr-extract": true,
+    "node-pty": true,
+    "puppeteer": false
+  },
+  "workspaces": [
+    "extensions/*",
+    "applications/*"
+  ],
+  "scripts": {
+    "clean": "npm run clean --workspaces --if-present",
+    "build:extension": "npm run build --workspace @renovatio/core-ui",
+    "build:application": "npm run build --workspace @renovatio/workbench-browser",
+    "build": "npm run build:extension && npm run build:application",
+    "test": "npm run test --workspace @renovatio/core-ui",
+    "start": "npm run start --workspace @renovatio/workbench-browser",
+    "e2e": "playwright test",
+    "e2e:install": "playwright install --with-deps chromium",
+    "smoke": "node scripts/http-smoke.mjs",
+    "hardening:audit": "node scripts/release-hardening-audit.mjs",
+    "performance:budget": "node scripts/performance-budget.mjs",
+    "pilot:demo": "node scripts/demo-pilot.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.57.0"
+  }
+}

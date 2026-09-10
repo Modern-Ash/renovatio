@@ -1,0 +1,67 @@
+# Work events
+
+- 2026-08-30T14:33:30.680512Z | work.created | state=drafting actor=project:owner
+- 2026-08-30T14:33:30.680919Z | work.decomposition-linked | parent=ai-modernization/three-pass-modernization actor=project:owner
+- 2026-08-30T16:19:00.104185Z | tool.prepared | run=tool-20260830t16191788117540z tool=repository operation=create-branch actor=project:agent
+- 2026-08-30T16:19:00.106042Z | tool.running | run=tool-20260830t16191788117540z actor=project:agent
+- 2026-08-30T16:19:00.118866Z | tool.completed | run=tool-20260830t16191788117540z exit-code=0
+- 2026-08-30T16:20:08.085586Z | artifact.added | kind=spec uri=repo://docs/specs/deterministic-semantic-core.md actor=project:agent
+- 2026-08-30T16:35:07.142813Z | work.clarified-advisory | questions=4 actor=project:owner
+- 2026-08-30T16:36:59.114524Z | artifact.added | kind=spec uri=repo://docs/specs/deterministic-semantic-core.md actor=project:owner
+- 2026-08-30T16:37:15.558604Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T16:41:39.594082Z | artifact.added | kind=spec uri=repo://docs/specs/deterministic-semantic-core.md actor=project:owner
+- 2026-08-30T16:41:48.105342Z | work.clarified-advisory | questions=0 actor=project:owner
+- 2026-08-30T16:41:54.714314Z | work.criterion-stage-marked | criterion=statements actor=project:owner stage=specified
+- 2026-08-30T16:41:55.027371Z | work.criterion-stage-marked | criterion=data-model actor=project:owner stage=specified
+- 2026-08-30T16:41:55.335958Z | work.criterion-stage-marked | criterion=pure-recipes actor=project:owner stage=specified
+- 2026-08-30T16:41:55.636013Z | work.criterion-stage-marked | criterion=characterized actor=project:owner stage=specified
+- 2026-08-30T16:41:59.081528Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T16:42:16.405453Z | tool.prepared | run=tool-20260830t16421788118936z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:42:16.407960Z | tool.running | run=tool-20260830t16421788118936z actor=project:agent
+- 2026-08-30T16:42:16.431992Z | tool.completed | run=tool-20260830t16421788118936z exit-code=0
+- 2026-08-30T16:42:52.578937Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/deterministic-semantic-core.md actor=project:agent
+- 2026-08-30T16:43:27.596693Z | work.criterion-stage-marked | criterion=statements actor=project:owner stage=planned
+- 2026-08-30T16:43:27.920528Z | work.criterion-stage-marked | criterion=data-model actor=project:owner stage=planned
+- 2026-08-30T16:43:28.236381Z | work.criterion-stage-marked | criterion=pure-recipes actor=project:owner stage=planned
+- 2026-08-30T16:43:28.539064Z | work.criterion-stage-marked | criterion=characterized actor=project:owner stage=planned
+- 2026-08-30T16:43:28.848159Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-30T16:44:38.432419Z | tool.prepared | run=tool-20260830t16441788119078z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:44:38.434225Z | tool.running | run=tool-20260830t16441788119078z actor=project:agent
+- 2026-08-30T16:44:38.457925Z | tool.completed | run=tool-20260830t16441788119078z exit-code=0
+- 2026-08-30T16:44:43.080120Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-30T16:46:08.383514Z | tool.prepared | run=tool-20260830t16461788119168z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:46:08.385576Z | tool.running | run=tool-20260830t16461788119168z actor=project:agent
+- 2026-08-30T16:46:08.408762Z | tool.completed | run=tool-20260830t16461788119168z exit-code=0
+- 2026-08-30T16:49:42.768008Z | tool.prepared | run=tool-20260830t16491788119382z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:49:42.769654Z | tool.running | run=tool-20260830t16491788119382z actor=project:agent
+- 2026-08-30T16:49:42.792496Z | tool.completed | run=tool-20260830t16491788119382z exit-code=0
+- 2026-08-30T16:50:50.426751Z | tool.prepared | run=tool-20260830t16501788119450z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:50:50.428497Z | tool.running | run=tool-20260830t16501788119450z actor=project:agent
+- 2026-08-30T16:50:50.451524Z | tool.completed | run=tool-20260830t16501788119450z exit-code=0
+- 2026-08-30T16:51:53.532237Z | tool.prepared | run=tool-20260830t16511788119513z tool=repository operation=commit actor=project:agent
+- 2026-08-30T16:51:53.534141Z | tool.running | run=tool-20260830t16511788119513z actor=project:agent
+- 2026-08-30T16:51:53.557441Z | tool.completed | run=tool-20260830t16511788119513z exit-code=0
+- 2026-08-30T17:02:28.923967Z | tool.prepared | run=tool-20260830t17021788120148z tool=repository operation=create-branch actor=project:agent
+- 2026-08-30T17:02:28.925521Z | tool.running | run=tool-20260830t17021788120148z actor=project:agent
+- 2026-08-30T17:02:28.938664Z | tool.completed | run=tool-20260830t17021788120148z exit-code=0
+- 2026-08-31T01:12:18.543285Z | artifact.added | kind=test-report uri=repo://docs/reports/deterministic-semantic-core-revalidation-20260831.md actor=project:agent
+- 2026-08-31T01:12:37.660206Z | evidence.added | id=evidence-000001 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T01:18:47.053479Z | artifact.added | kind=test-report uri=repo://docs/reports/deterministic-semantic-core-recipe-boundary-20260831.md actor=project:agent
+- 2026-08-31T01:18:53.487780Z | evidence.added | id=evidence-000002 type=unit-tests result=success revision=1 actor=project:agent
+- 2026-08-31T01:19:06.816028Z | work.block | from=active to=blocked actor=project:agent change=change-20260831t011906815880z
+- 2026-08-31T01:19:58.121557Z | work.resume | from=blocked to=active actor=project:agent change=change-20260831t011958121404z
+- 2026-08-31T01:22:27.933791Z | tool.prepared | run=tool-20260831t01221788150147z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:22:27.935990Z | tool.running | run=tool-20260831t01221788150147z actor=project:agent
+- 2026-08-31T01:22:27.959511Z | tool.completed | run=tool-20260831t01221788150147z exit-code=0
+- 2026-08-31T01:30:42.749677Z | artifact.added | kind=test-report uri=repo://docs/reports/deterministic-semantic-core-recipe-boundary-review-20260831.md actor=project:agent
+- 2026-08-31T01:30:48.038594Z | evidence.added | id=evidence-000003 type=review-revalidation result=success revision=1 actor=project:agent
+- 2026-08-31T01:31:05.475214Z | tool.prepared | run=tool-20260831t01311788150665z tool=repository operation=commit actor=project:agent
+- 2026-08-31T01:31:05.477774Z | tool.running | run=tool-20260831t01311788150665z actor=project:agent
+- 2026-08-31T01:31:05.501266Z | tool.completed | run=tool-20260831t01311788150665z exit-code=0
+- 2026-08-31T10:23:06.554491Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-31T10:23:08.542788Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-31T10:23:14.829107Z | work.criterion-satisfied | criterion=statements actor=project:owner
+- 2026-08-31T10:23:15.083769Z | work.criterion-satisfied | criterion=data-model actor=project:owner
+- 2026-08-31T10:23:15.301425Z | work.criterion-satisfied | criterion=pure-recipes actor=project:owner
+- 2026-08-31T10:23:15.529061Z | work.criterion-satisfied | criterion=characterized actor=project:owner
+- 2026-08-31T10:23:43.731506Z | work.transitioned | from=verifying to=completed actor=project:owner

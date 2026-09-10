@@ -1,0 +1,8 @@
+node_modules/
+lib/
+src-gen/
+*.log
+*.tsbuildinfo
+applications/browser/*esbuild*.mjs
+.theia-smoke-metrics.json
+.theia/

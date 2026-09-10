@@ -1,0 +1,23 @@
+{
+  "envelopeVersion" : "renovatio-llm-cache.v1",
+  "cacheKey" : "f13b4bf91f60efadf4c87977b54d162cb5a370384ec2d9f86c93cf43e3eeffc5",
+  "resultDisposition" : "MODEL_SUCCESS",
+  "promotionDisposition" : "COMMITTED",
+  "promptId" : "cobol.domain.naming.v1",
+  "provider" : "offline-fake",
+  "model" : "fixture-v1",
+  "outputSchemaId" : "schemas/domain-naming.v1.schema.json",
+  "outputSchemaHash" : "c3c0d42ae78fb3dea7b3d20ccc622f37d22caa6f5206cf958b095c7d2f1f7a54",
+  "validators" : [ "json-schema.v1", "annotated-ir-reference.v1", "sanitized-persistence.v1" ],
+  "runtimeContractVersion" : "renovatio-llm.v1",
+  "inputHash" : "91d438f6ae0d184c2af8854723c580317e878d7905fcbfb4f18c44e9d75a4c47",
+  "outputHash" : "147626167c383c21abbcd7c585af65f41251d9f586096119cf4f5dd6e6eb2a4a",
+  "governedRunReference" : "tool-20260830t19141788128053z",
+  "artifactUri" : "repo://renovatio-llm/src/main/resources/llm-cache/f1/f13b4bf91f60efadf4c87977b54d162cb5a370384ec2d9f86c93cf43e3eeffc5.json",
+  "failureCategory" : null,
+  "sanitizedResult" : {
+    "suggestedName" : "calculateInterest",
+    "rationale" : "Describes the paragraph action"
+  },
+  "envelopeHash" : "d53b955e9cacb5e8dbca9519ede14453fd97e8b0acf317a68b13a66dda94ca94"
+}

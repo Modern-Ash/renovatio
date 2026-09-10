@@ -1,0 +1,1 @@
+{"schemaVersion":"cobol-ir.v1","programId":"IF-NESTED","paragraphs":{"MAIN":{"name":"MAIN","statements":[{"condition":"FLAG-A = 'Y'","thenStatements":[],"elseStatements":[]}]}},"dataItems":[],"diagnostics":[]}

@@ -1,0 +1,113 @@
+# Work events
+
+- 2026-08-30T14:33:30.944334Z | work.created | state=drafting actor=project:owner
+- 2026-08-30T14:33:30.944793Z | work.decomposition-linked | parent=ai-modernization/three-pass-modernization actor=project:owner
+- 2026-08-30T16:58:40.230556Z | tool.prepared | run=tool-20260830t16581788119920z tool=repository operation=create-branch actor=project:agent
+- 2026-08-30T16:58:40.232265Z | tool.running | run=tool-20260830t16581788119920z actor=project:agent
+- 2026-08-30T16:58:40.245049Z | tool.completed | run=tool-20260830t16581788119920z exit-code=0
+- 2026-08-30T17:01:21.914021Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:08:29.837826Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-ir-contract.md actor=project:owner
+- 2026-08-30T17:08:30.043773Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=specified
+- 2026-08-30T17:08:30.260718Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=specified
+- 2026-08-30T17:08:30.480345Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=specified
+- 2026-08-30T17:08:30.690212Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=specified
+- 2026-08-30T17:08:49.268427Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:10:50.436613Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:11:48.447659Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:12:51.798911Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:14:29.461896Z | tool.prepared | run=tool-20260830t17141788120869z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:14:29.463489Z | tool.running | run=tool-20260830t17141788120869z actor=project:agent
+- 2026-08-30T17:14:29.475828Z | tool.completed | run=tool-20260830t17141788120869z exit-code=0
+- 2026-08-30T17:14:53.752241Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:15:46.865043Z | tool.prepared | run=tool-20260830t17151788120946z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:15:46.866553Z | tool.running | run=tool-20260830t17151788120946z actor=project:agent
+- 2026-08-30T17:15:46.879444Z | tool.completed | run=tool-20260830t17151788120946z exit-code=0
+- 2026-08-30T17:16:13.672481Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:17:18.364730Z | tool.prepared | run=tool-20260830t17171788121038z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:17:18.366552Z | tool.running | run=tool-20260830t17171788121038z actor=project:agent
+- 2026-08-30T17:17:18.390032Z | tool.completed | run=tool-20260830t17171788121038z exit-code=0
+- 2026-08-30T17:18:02.815744Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-08-30T17:19:13.709285Z | tool.prepared | run=tool-20260830t17191788121153z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:19:13.711051Z | tool.running | run=tool-20260830t17191788121153z actor=project:agent
+- 2026-08-30T17:19:13.723796Z | tool.completed | run=tool-20260830t17191788121153z exit-code=0
+- 2026-08-30T17:19:25.080060Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-08-30T17:19:50.718870Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/annotated-ir-contract.md actor=project:agent
+- 2026-08-30T17:19:50.939594Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=planned
+- 2026-08-30T17:19:51.170405Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=planned
+- 2026-08-30T17:19:51.382059Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=planned
+- 2026-08-30T17:19:51.608948Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=planned
+- 2026-08-30T17:19:55.651877Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-08-30T17:20:11.371096Z | tool.prepared | run=tool-20260830t17201788121211z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:20:11.372895Z | tool.running | run=tool-20260830t17201788121211z actor=project:agent
+- 2026-08-30T17:20:11.395855Z | tool.completed | run=tool-20260830t17201788121211z exit-code=0
+- 2026-08-30T17:20:14.838780Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-08-30T17:21:38.172512Z | tool.prepared | run=tool-20260830t17211788121298z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:21:38.174197Z | tool.running | run=tool-20260830t17211788121298z actor=project:agent
+- 2026-08-30T17:21:38.197814Z | tool.completed | run=tool-20260830t17211788121298z exit-code=0
+- 2026-08-30T17:22:32.283061Z | tool.prepared | run=tool-20260830t17221788121352z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:22:32.284701Z | tool.running | run=tool-20260830t17221788121352z actor=project:agent
+- 2026-08-30T17:22:32.297511Z | tool.completed | run=tool-20260830t17221788121352z exit-code=0
+- 2026-08-30T17:27:32.922118Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-ir-contract.md actor=project:owner
+- 2026-08-30T17:27:59.258908Z | tool.prepared | run=tool-20260830t17271788121679z tool=repository operation=commit actor=project:agent
+- 2026-08-30T17:27:59.260451Z | tool.running | run=tool-20260830t17271788121679z actor=project:agent
+- 2026-08-30T17:27:59.272871Z | tool.completed | run=tool-20260830t17271788121679z exit-code=0
+- 2026-08-30T17:32:22.089708Z | artifact.added | kind=json-schema uri=repo://renovatio-cobol-ir/src/main/resources/schema/cobol-annotated-ir.v1.schema.json actor=project:agent
+- 2026-08-30T17:35:31.838287Z | evidence.added | id=evidence-000001 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-30T17:38:03.727385Z | evidence.added | id=evidence-000002 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-30T17:38:24.681830Z | artifact.added | kind=architecture-decision-record uri=repo://docs/adr/0001-annotated-cobol-ir-sidecar.md actor=project:agent
+- 2026-08-30T17:40:26.458748Z | evidence.added | id=evidence-000003 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-30T17:48:37.532487Z | evidence.added | id=evidence-000004 type=test-report result=success revision=1 actor=project:agent
+- 2026-08-30T17:48:37.769141Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-30T17:51:44.006942Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-08-30T17:58:19.659656Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-30T17:58:25.264032Z | evidence.added | id=evidence-000005 type=test result=success revision=1 actor=project:agent
+- 2026-08-30T17:58:46.505415Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-08-30T18:00:46.841382Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-30T18:00:53.646040Z | evidence.added | id=evidence-000006 type=test result=success revision=1 actor=project:agent
+- 2026-08-30T18:01:33.787017Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-30T18:02:01.726297Z | work.criterion-stage-marked | criterion=model actor=project:agent stage=implemented
+- 2026-08-30T18:02:01.947374Z | work.criterion-stage-marked | criterion=model actor=project:agent stage=verified
+- 2026-08-30T18:02:02.162511Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:agent stage=implemented
+- 2026-08-30T18:02:02.377020Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:agent stage=verified
+- 2026-08-30T18:02:02.593188Z | work.criterion-stage-marked | criterion=content-identity actor=project:agent stage=implemented
+- 2026-08-30T18:02:02.807655Z | work.criterion-stage-marked | criterion=content-identity actor=project:agent stage=verified
+- 2026-08-30T18:02:03.025243Z | work.criterion-stage-marked | criterion=context-seam actor=project:agent stage=implemented
+- 2026-08-30T18:02:03.239412Z | work.criterion-stage-marked | criterion=context-seam actor=project:agent stage=verified
+- 2026-08-30T18:02:03.452652Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=accepted
+- 2026-08-30T18:02:03.664382Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=accepted
+- 2026-08-30T18:02:03.879092Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=accepted
+- 2026-08-30T18:02:04.099864Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=accepted
+- 2026-08-30T18:02:09.289594Z | work.transitioned | from=verifying to=completed actor=project:owner
+- 2026-08-30T18:09:16.051237Z | work.reopened | revision=2 source=github-pull-request-review actor=project:owner change=change-20260830t180916051126z
+- 2026-08-30T18:09:23.727519Z | work.transitioned | from=verifying to=implementing actor=project:agent
+- 2026-08-30T18:11:45.860384Z | artifact.added | kind=spec uri=repo://docs/specs/annotated-ir-contract.md actor=project:owner
+- 2026-08-30T18:11:46.069603Z | artifact.added | kind=implementation-plan uri=repo://docs/plans/annotated-ir-contract.md actor=project:agent
+- 2026-08-30T18:11:46.278598Z | artifact.added | kind=json-schema uri=repo://renovatio-cobol-ir/src/main/resources/schema/cobol-annotated-ir.v1.schema.json actor=project:agent
+- 2026-08-30T18:11:46.488557Z | artifact.added | kind=architecture-decision-record uri=repo://docs/adr/0001-annotated-cobol-ir-sidecar.md actor=project:agent
+- 2026-08-30T18:11:46.713678Z | evidence.added | id=evidence-000007 type=test result=success revision=2 actor=project:agent
+- 2026-08-30T18:11:58.670068Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=specified
+- 2026-08-30T18:11:58.900130Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=planned
+- 2026-08-30T18:11:59.132704Z | work.criterion-stage-marked | criterion=model actor=project:agent stage=implemented
+- 2026-08-30T18:11:59.366949Z | work.criterion-stage-marked | criterion=model actor=project:agent stage=verified
+- 2026-08-30T18:11:59.598539Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=specified
+- 2026-08-30T18:11:59.826338Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=planned
+- 2026-08-30T18:12:00.063920Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:agent stage=implemented
+- 2026-08-30T18:12:00.290032Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:agent stage=verified
+- 2026-08-30T18:12:00.513401Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=specified
+- 2026-08-30T18:12:00.736881Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=planned
+- 2026-08-30T18:12:00.959055Z | work.criterion-stage-marked | criterion=content-identity actor=project:agent stage=implemented
+- 2026-08-30T18:12:01.180899Z | work.criterion-stage-marked | criterion=content-identity actor=project:agent stage=verified
+- 2026-08-30T18:12:01.400816Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=specified
+- 2026-08-30T18:12:01.627647Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=planned
+- 2026-08-30T18:12:01.854572Z | work.criterion-stage-marked | criterion=context-seam actor=project:agent stage=implemented
+- 2026-08-30T18:12:02.070671Z | work.criterion-stage-marked | criterion=context-seam actor=project:agent stage=verified
+- 2026-08-30T18:12:02.289274Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-08-30T18:12:16.071796Z | tool.prepared | run=tool-20260830t18121788124336z tool=repository operation=commit actor=project:agent
+- 2026-08-30T18:12:16.073805Z | tool.running | run=tool-20260830t18121788124336z actor=project:agent
+- 2026-08-30T18:12:16.096956Z | tool.completed | run=tool-20260830t18121788124336z exit-code=0
+- 2026-08-30T18:14:54.358283Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-08-30T18:14:54.580099Z | work.criterion-stage-marked | criterion=model actor=project:owner stage=accepted
+- 2026-08-30T18:14:54.793675Z | work.criterion-stage-marked | criterion=sidecar-schema actor=project:owner stage=accepted
+- 2026-08-30T18:14:55.008499Z | work.criterion-stage-marked | criterion=content-identity actor=project:owner stage=accepted
+- 2026-08-30T18:14:55.229412Z | work.criterion-stage-marked | criterion=context-seam actor=project:owner stage=accepted
+- 2026-08-30T18:14:55.440265Z | work.transitioned | from=verifying to=completed actor=project:owner

@@ -1,0 +1,29 @@
+# Work events
+
+- 2026-09-07T21:07:41.927561Z | work.created | state=drafting actor=project:owner
+- 2026-09-07T21:08:13.920614Z | artifact.added | kind=spec uri=.agora/swarms/039-renovatio-workbench-hardening-adoption/work/hardening-distribution-adoption/SPEC.md actor=project:agent
+- 2026-09-07T21:08:14.189633Z | artifact.added | kind=implementation-plan uri=.agora/swarms/039-renovatio-workbench-hardening-adoption/work/hardening-distribution-adoption/IMPLEMENTATION_PLAN.md actor=project:agent
+- 2026-09-07T21:08:14.451169Z | artifact.added | kind=implementation uri=.agora/swarms/039-renovatio-workbench-hardening-adoption/work/hardening-distribution-adoption/IMPLEMENTATION.md actor=project:agent
+- 2026-09-07T21:08:14.714182Z | artifact.added | kind=verification uri=.agora/swarms/039-renovatio-workbench-hardening-adoption/work/hardening-distribution-adoption/VERIFICATION.md actor=project:agent
+- 2026-09-07T21:08:14.959977Z | artifact.added | kind=review-report uri=.agora/swarms/039-renovatio-workbench-hardening-adoption/work/hardening-distribution-adoption/REVIEW.md actor=project:agent
+- 2026-09-07T21:08:15.180823Z | work.criterion-satisfied | criterion=installation-doc actor=project:owner
+- 2026-09-07T21:08:15.415814Z | work.criterion-satisfied | criterion=ci-gates actor=project:owner
+- 2026-09-07T21:08:15.636732Z | work.criterion-satisfied | criterion=dashboard-continuity actor=project:owner
+- 2026-09-07T21:08:15.871077Z | work.criterion-satisfied | criterion=performance-logs actor=project:owner
+- 2026-09-07T21:08:16.098250Z | work.criterion-satisfied | criterion=security-audit actor=project:owner
+- 2026-09-07T21:08:16.332891Z | work.criterion-satisfied | criterion=compatibility-distribution actor=project:owner
+- 2026-09-07T21:08:16.568042Z | work.criterion-satisfied | criterion=llm-handoff-pilot actor=project:owner
+- 2026-09-07T21:08:29.775816Z | evidence.added | id=evidence-000001 type=build result=success revision=1 actor=project:agent
+- 2026-09-07T21:08:30.003608Z | evidence.added | id=evidence-000002 type=security-audit result=success revision=1 actor=project:agent
+- 2026-09-07T21:08:30.221791Z | evidence.added | id=evidence-000003 type=performance result=success revision=1 actor=project:agent
+- 2026-09-07T21:08:30.443931Z | evidence.added | id=evidence-000004 type=pilot result=success revision=1 actor=project:agent
+- 2026-09-07T21:08:30.672521Z | evidence.added | id=evidence-000005 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T21:08:30.898686Z | evidence.added | id=evidence-000006 type=test result=success revision=1 actor=project:agent
+- 2026-09-07T21:08:31.118299Z | evidence.added | id=evidence-000007 type=security-audit result=success revision=1 actor=project:agent
+- 2026-09-07T21:08:31.340050Z | evidence.added | id=evidence-000008 type=static-check result=success revision=1 actor=project:agent
+- 2026-09-07T21:08:36.995520Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-07T21:08:37.221103Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-07T21:08:37.443694Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-07T21:08:37.665228Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-07T21:08:43.307319Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-07T21:08:43.553079Z | work.transitioned | from=verifying to=completed actor=project:owner

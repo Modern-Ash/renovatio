@@ -3,10 +3,13 @@ package org.shark.renovatio.core.service;
 import org.junit.jupiter.api.Test;
 import org.shark.renovatio.shared.domain.ApplyResult;
 import org.shark.renovatio.shared.domain.MetricsResult;
+import org.shark.renovatio.shared.domain.StubResult;
+import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.spi.LanguageProvider;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -89,5 +92,31 @@ class LanguageProviderRegistryTest {
         assertEquals(true, response.get("success"));
 
         verify(metricsProvider).metrics(any(), any());
+    }
+
+    @Test
+    void routeToolCallSupportsStubGenerationAndOutputMetadata() {
+        LanguageProviderRegistry registry = new LanguageProviderRegistry();
+        LanguageProvider provider = mock(LanguageProvider.class);
+        when(provider.language()).thenReturn("cobol");
+        when(provider.capabilities()).thenReturn(Set.of(LanguageProvider.Capabilities.STUBS));
+        StubResult stubs = new StubResult(true, "generated");
+        stubs.setTargetLanguage("NODE");
+        stubs.setGeneratedCode(Map.of("src/main.ts", "export {}"));
+        when(provider.generateStubs(any(), any())).thenReturn(Optional.of(stubs));
+        registry.registerProvider(provider);
+
+        Map<String, Object> response = registry.routeToolCall("cobol.stubs", new HashMap<>(Map.of(
+                "workspacePath", "/tmp/workspace",
+                "projectId", "project-42",
+                "outputDir", "generated-node"
+        )));
+
+        assertEquals(true, response.get("success"));
+        assertEquals("NODE", response.get("targetLanguage"));
+        assertEquals(1, response.get("artifactCount"));
+        verify(provider).generateStubs(any(), argThat((Workspace workspace) ->
+                "project-42".equals(workspace.getId())
+                        && "generated-node".equals(workspace.getMetadata().get("outputDir"))));
     }
 }

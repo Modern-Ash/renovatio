@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests to verify that duplicate providers are detected at startup.
@@ -20,35 +21,27 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DuplicateProviderDetectionTest {
 
     @Test
-    void shouldAllowMultipleProviderInstancesForSameLanguage() {
+    void shouldRejectProvidersWithOverlappingCapabilitiesForSameLanguage() {
         LanguageProviderRegistry registry = new LanguageProviderRegistry();
 
         // Create two providers for the same language
         LanguageProvider provider1 = new TestLanguageProvider("java");
         LanguageProvider provider2 = new TestLanguageProvider("java");
 
-        // Register both providers - should succeed (different instances)
         registry.registerProvider(provider1);
-        registry.registerProvider(provider2);
-
-        // Verify both are registered
-        assertEquals(2, registry.getAllProviders().size());
+        assertThrows(IllegalStateException.class, () -> registry.registerProvider(provider2));
     }
 
     @Test
-    void shouldAllowDifferentProviderTypesForSameLanguage() {
+    void shouldRejectDifferentProviderTypesWithOverlappingCapabilities() {
         LanguageProviderRegistry registry = new LanguageProviderRegistry();
 
         // Create two different provider types for the same language
         LanguageProvider provider1 = new TestLanguageProvider("java");
         LanguageProvider provider2 = new AnotherTestLanguageProvider("java");
 
-        // Register both - should succeed since they are different types
         registry.registerProvider(provider1);
-        registry.registerProvider(provider2);
-
-        // Verify both are registered
-        assertEquals(2, registry.getAllProviders().size());
+        assertThrows(IllegalStateException.class, () -> registry.registerProvider(provider2));
     }
 
     @Test

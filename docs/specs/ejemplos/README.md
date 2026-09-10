@@ -19,6 +19,38 @@ Ejemplo completo de migración de programa COBOL a Java con Spring Boot, sin com
 - `cobol.apply`
 - `cobol.diff`
 
+**Complejidad**: Básica
+
+---
+
+### 2. [migracion-cobol-jira.md](./migracion-cobol-jira.md) 🆕
+Ejemplo completo de migración COBOL con DB2 embebido a Java Spring Boot + JPA, **incluyendo integración completa con Jira**.
+
+**Casos de uso:**
+- Migración COBOL → Java con SQL embebido
+- Programas con EXEC SQL (DB2)
+- Planning y tracking con Jira
+- Workflows enterprise con múltiples equipos
+- Sincronización Jira-GitHub automatizada
+
+**Herramientas MCP utilizadas:**
+- `cobol.analyze`
+- `cobol.metrics`
+- `cobol.migrate_db2`
+- `cobol.plan`
+- `cobol.apply`
+
+**Integración Jira:**
+- Epic, Stories y Tasks en Jira
+- Smart commits para automatización
+- Tabla de tareas con links a Jira
+- Sincronización bidireccional
+- Sprint planning y tracking
+
+**Complejidad**: Alta
+
+**⭐ Recomendado para**: Proyectos que necesitan integrar Jira en el workflow de spec-driven development.
+
 ---
 
 ## 🎯 Cómo usar estos ejemplos
@@ -114,10 +146,10 @@ renovatio:
 
 ## 🔗 Próximos ejemplos planificados
 
-- **migracion-db2-jpa.md** - Migración COBOL con SQL embebido a JPA
 - **modernizacion-java17.md** - Upgrade de Java 8 a Java 17
 - **batch-to-spring-batch.md** - JCL a Spring Batch
 - **openrewrite-custom-recipe.md** - Crear receta OpenRewrite personalizada
+- **cics-to-microservices.md** - CICS programs a microservicios Spring Boot
 
 ---
 
@@ -132,6 +164,7 @@ renovatio:
 
 ## 📚 Recursos adicionales
 
+- **[JIRA-GITHUB-INTEGRATION.md](../../JIRA-GITHUB-INTEGRATION.md)** 🆕 - Guía completa de integración Jira
 - [Guía de integración Spec Kit](../../spec-kit-integracion.md)
 - [Explicación completa de Spec Kit](../../EXPLICACION-SPEC-KIT.md)
 - [Plantilla base](../renovatio-spec-template.md)

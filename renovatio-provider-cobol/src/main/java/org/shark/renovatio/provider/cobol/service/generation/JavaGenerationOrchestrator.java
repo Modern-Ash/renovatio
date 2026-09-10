@@ -2,12 +2,13 @@ package org.shark.renovatio.provider.cobol.service.generation;
 
 import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.shark.renovatio.provider.cobol.domain.CobolProgram;
+import org.shark.renovatio.provider.cobol.service.JavaGenerationService;
+import org.shark.renovatio.profile.MigrationProfiles;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -19,7 +20,6 @@ import java.util.Set;
  * Orchestrator service that coordinates the 5-stage generation pipeline.
  * This replaces the monolithic JavaGenerationService.
  */
-@Service
 public class JavaGenerationOrchestrator {
 
     private static final Logger log = LoggerFactory.getLogger(JavaGenerationOrchestrator.class);
@@ -29,6 +29,7 @@ public class JavaGenerationOrchestrator {
     private final JavaPlanService planService;
     private final JavaRenderService renderService;
     private final JavaWriteService writeService;
+    private final JavaGenerationService generationService;
 
     public JavaGenerationOrchestrator(JavaParseService parseService,
                                       JavaProjectService projectService,
@@ -40,6 +41,23 @@ public class JavaGenerationOrchestrator {
         this.planService = planService;
         this.renderService = renderService;
         this.writeService = writeService;
+        this.generationService = null;
+    }
+
+    /** Compatibility bridge for the production path while the stages absorb the advanced emitters. */
+    public JavaGenerationOrchestrator(JavaGenerationService generationService) {
+        this.parseService = null;
+        this.projectService = null;
+        this.planService = null;
+        this.renderService = null;
+        this.writeService = null;
+        this.generationService = generationService;
+    }
+
+    public StubResult generateInterfaceStubs(NqlQuery query, Workspace workspace,
+                                             MigrationProfiles.EffectiveProfile effective,
+                                             String expectedManifestHash) {
+        return generationService.generateInterfaceStubs(query, workspace, effective, expectedManifestHash);
     }
 
     /**
@@ -50,6 +68,10 @@ public class JavaGenerationOrchestrator {
      * @return the stub generation result
      */
     public StubResult generateInterfaceStubs(NqlQuery query, Workspace workspace) {
+        if (generationService != null) {
+            return generationService.generateInterfaceStubs(query, workspace);
+        }
+
         try {
             // Stage 1: Parse
             List<CobolProgram> programs = parseService.parse(query, workspace);

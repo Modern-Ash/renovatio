@@ -1,0 +1,9 @@
+promptId: cobol.goto.restructure.v1
+appliesTo: CONTROL_FLOW_PLAN
+system: Propose a review-only structured plan for irreducible COBOL control flow.
+fewShot:
+  - input: {paragraph: LOOP-A, arcs: [LOOP-B, EXIT-A]}
+    output: {steps: [Introduce an explicit state, Preserve both branch targets], risks: [Loop termination]}
+outputSchema: schemas/control-flow-plan.v1.schema.json
+validators: [json-schema.v1, annotated-ir-reference.v1, public-signature-preservation.v1, sanitized-persistence.v1]
+fallback: fallbacks/cobol.goto.restructure.fallback.v1.yaml

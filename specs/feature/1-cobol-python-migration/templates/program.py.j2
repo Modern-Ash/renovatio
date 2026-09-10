@@ -1,0 +1,20 @@
+# Generated from COBOL program: {{ program.name }}
+from decimal import Decimal
+
+
+def run_{{ program.name }}(input_record):
+    """Simple generated function for program {{ program.name }}
+    Expects input_record as a dict with keys matching field names.
+    """
+    # Example mapping from COBOL fields to Python variables
+    result = {}
+{% for field in program.records | default([]) %}
+    # field: {{ field.name }} (picture: {{ field.picture | default('') }})
+    result['{{ field.name }}'] = input_record.get('{{ field.name }}')
+{% endfor %}
+    return result
+
+
+if __name__ == '__main__':
+    sample = { {% for field in program.records | default([]) %}'{{ field.name }}': None{% if not loop.last %}, {% endif %}{% endfor %} }
+    print(run_{{ program.name }}(sample))

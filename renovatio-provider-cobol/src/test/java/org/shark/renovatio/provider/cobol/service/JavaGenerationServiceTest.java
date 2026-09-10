@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.shark.renovatio.shared.domain.StubResult;
 import org.shark.renovatio.shared.domain.Workspace;
 import org.shark.renovatio.shared.nql.NqlQuery;
+import org.shark.renovatio.provider.cobol.guardrail.ManualActionItemWriter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,7 +29,7 @@ class JavaGenerationServiceTest {
         tempDir = Files.createTempDirectory("cobol-ws-");
         CobolParsingService parsing = new CobolParsingService(CobolParsingService.Dialect.IBM);
         TemplateCodeGenerationService tmpl = new TemplateCodeGenerationService();
-        javaGenerationService = new JavaGenerationService(parsing, tmpl, new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService(), new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
+        javaGenerationService = new JavaGenerationService(parsing, tmpl, new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService(), new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler());
         workspace = new Workspace("test", tempDir.toString(), "main");
     }
 
@@ -94,6 +95,144 @@ class JavaGenerationServiceTest {
         assertTrue(dtoCode.contains("String wsName"));
         assertTrue(dtoCode.contains("Integer wsAge"));
         assertTrue(dtoCode.contains("BigDecimal wsSalary"));
+        String implementation = result.getGeneratedCode().entrySet().stream()
+                .filter(entry -> entry.getKey().endsWith("ServiceImpl.java"))
+                .map(Map.Entry::getValue).findFirst().orElseThrow();
+        assertTrue(implementation.contains("System.out.println"));
+        assertFalse(implementation.contains("// TODO: Implement COBOL business logic"));
+        assertEquals(tempDir.resolve("generated-java-stubs").toString(),
+                result.getMetadata().get("outputPath"));
+    }
+
+    @Test
+    void untranslatedStatementsProduceOneStableManualActionItem() throws Exception {
+        Files.writeString(tempDir.resolve("unsupported.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. UNSUPPORTED.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 INPUT-VALUE PIC X(10).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    DISPLAY INPUT-VALUE.
+                    STOP 'PAUSE'.
+                    GOBACK.
+                """);
+
+        StubResult first = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(first.isSuccess(), first.getMessage());
+        Path report = tempDir.resolve(ManualActionItemWriter.DEFAULT_REPORT);
+        String firstReport = Files.readString(report);
+
+        StubResult second = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(second.isSuccess(), second.getMessage());
+        assertEquals(firstReport, Files.readString(report));
+        assertTrue(firstReport.contains("manual-action-item.v1"));
+        assertTrue(firstReport.contains("COBOL-STATEMENT-UNTRANSLATED"));
+        assertTrue(firstReport.contains("STOP 'PAUSE'"));
+        assertEquals(1, firstReport.split("COBOL-STATEMENT-UNTRANSLATED", -1).length - 1);
+    }
+
+    @Test
+    void unresolvedInitializeAndSetProduceStableManualActionItems() throws Exception {
+        Files.writeString(tempDir.resolve("data-verbs.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. DATA-VERBS.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 CUSTOMER-STATUS PIC X.
+                   88 CUSTOMER-READY VALUE 'Y'.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    INITIALIZE MISSING-GROUP.
+                    SET MISSING-CONDITION TO TRUE.
+                    GOBACK.
+                """);
+
+        StubResult first = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(first.isSuccess(), first.getMessage());
+        Path report = tempDir.resolve(ManualActionItemWriter.DEFAULT_REPORT);
+        String firstReport = Files.readString(report);
+
+        StubResult second = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(second.isSuccess(), second.getMessage());
+        assertEquals(firstReport, Files.readString(report));
+        assertTrue(firstReport.contains("INITIALIZE MISSING-GROUP"));
+        assertTrue(firstReport.contains("SET MISSING-CONDITION TO TRUE"));
+        assertEquals(2, firstReport.split("COBOL-STATEMENT-UNTRANSLATED", -1).length - 1);
+    }
+
+    @Test
+    void recursivePerformCyclesProduceStableErrorActionItem() throws Exception {
+        Files.writeString(tempDir.resolve("recursive-perform.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. RECURSIVE-PERFORM.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-COUNTER PIC 9(3).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    PERFORM A-PARA.
+                    GOBACK.
+                A-PARA.
+                    PERFORM B-PARA.
+                B-PARA.
+                    PERFORM A-PARA.
+                """);
+
+        StubResult first = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(first.isSuccess(), first.getMessage());
+        Path report = tempDir.resolve(ManualActionItemWriter.DEFAULT_REPORT);
+        String firstReport = Files.readString(report);
+
+        StubResult second = javaGenerationService.generateInterfaceStubs(new NqlQuery(), workspace);
+        assertTrue(second.isSuccess(), second.getMessage());
+        assertEquals(firstReport, Files.readString(report));
+        assertTrue(firstReport.contains("COBOL-PERFORM-CYCLE"));
+        assertTrue(firstReport.contains("Recursive PERFORM cycle detected: A-PARA -> B-PARA"), firstReport);
+        assertTrue(firstReport.contains("\"severity\" : \"error\""), firstReport);
+        assertEquals(1, firstReport.split("\"constructionFamily\" : \"COBOL-PERFORM-CYCLE\"", -1).length - 1);
+        assertEquals(firstReport.split("COBOL-PERFORM-CYCLE", -1).length - 2,
+                firstReport.split("\"diagnosticReference\" : \"COBOL-PERFORM-CYCLE\"", -1).length - 1);
+    }
+
+    @Test
+    void testGenerateInterfaceStubsUsesCustomOutputDir() throws IOException {
+        Path outputDir = tempDir.resolve("custom-stubs");
+        workspace.setMetadata(Map.of("outputDir", outputDir.toString()));
+
+        String cobolContent = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SAMPLE-PROGRAM.
+
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01  WS-NAME       PIC X(30).
+
+                PROCEDURE DIVISION.
+                STOP RUN.
+                """;
+
+        Path cobolFile = tempDir.resolve("sample.cob");
+        Files.writeString(cobolFile, cobolContent);
+
+        NqlQuery query = new NqlQuery();
+        query.setType(NqlQuery.QueryType.FIND);
+        query.setTarget("stubs");
+        query.setLanguage("cobol");
+
+        var result = javaGenerationService.generateInterfaceStubs(query, workspace);
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess(), result.getMessage());
+        assertTrue(Files.exists(outputDir.resolve("SampleProgramDTO.java"))
+                || Files.exists(outputDir.resolve("SampleDTO.java")));
+        assertTrue(Files.exists(outputDir.resolve("SampleProgramService.java"))
+                || Files.exists(outputDir.resolve("SampleService.java")));
+        assertTrue(Files.exists(outputDir.resolve("SampleProgramServiceImpl.java"))
+                || Files.exists(outputDir.resolve("SampleServiceImpl.java")));
+        assertFalse(Files.exists(tempDir.resolve("generated-java-stubs")),
+                "default workspace output dir should not be used when outputDir metadata is present");
     }
 
     @Test
@@ -109,6 +248,34 @@ class JavaGenerationServiceTest {
         assertNotNull(result.getGeneratedCode());
         // Should be empty but not null for empty workspace
         assertTrue(result.getGeneratedCode().isEmpty());
+    }
+
+    @Test
+    void generationEnforcesPreviewManifestPrecondition() throws Exception {
+        Files.writeString(tempDir.resolve("manifest.cob"), """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. MANIFEST.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 VALUE-A PIC X(10).
+                PROCEDURE DIVISION.
+                    DISPLAY VALUE-A.
+                    STOP RUN.
+                """);
+        NqlQuery query = new NqlQuery();
+        var effective = javaGenerationService.effectiveProfile(workspace);
+        String manifestHash = javaGenerationService.previewArchitecture(query, workspace, effective).manifestHash();
+
+        StubResult accepted = javaGenerationService.generateInterfaceStubs(
+                query, workspace, effective, manifestHash);
+        assertTrue(accepted.isSuccess(), accepted.getMessage());
+        assertEquals(manifestHash, accepted.getMetadata().get("manifestHash"));
+
+        StubResult rejected = javaGenerationService.generateInterfaceStubs(
+                query, workspace, effective, "0".repeat(64));
+        assertFalse(rejected.isSuccess());
+        assertTrue(rejected.getMessage().contains(JavaGenerationService.ManifestChangedException.CODE));
+        assertTrue(rejected.getMessage().contains("run preview again"));
     }
 
     @Test

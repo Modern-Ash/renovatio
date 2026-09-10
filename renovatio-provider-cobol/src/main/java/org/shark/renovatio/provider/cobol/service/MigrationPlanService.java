@@ -1,5 +1,6 @@
 package org.shark.renovatio.provider.cobol.service;
 
+import org.shark.renovatio.shared.emission.TargetEmitterRegistry;
 import org.shark.renovatio.shared.domain.*;
 import org.shark.renovatio.shared.nql.NqlQuery;
 import org.shark.renovatio.shared.util.BenchmarkUtils;
@@ -87,6 +88,8 @@ public class MigrationPlanService {
 
             List<String> executedSteps = new ArrayList<>();
             Map<String, String> generatedFiles = new HashMap<>();
+            String generatedOutputPath = null;
+            List<String> generatedFilesByPath = new ArrayList<>();
 
             AnalyzeResult baseline = parsingService.analyzeCOBOL(plan.getQuery(), workspace);
 
@@ -96,13 +99,34 @@ public class MigrationPlanService {
                     if (step.getType() == StepType.GENERATE_JAVA_STUBS) {
                         // Generate Java stubs
                         StubResult stubResult = javaGenerationService.generateInterfaceStubs(plan.getQuery(), workspace);
-                        if (stubResult.isSuccess() && stubResult.getGeneratedCode() != null) {
+                        if (!stubResult.isSuccess()) {
+                            run.setError("Failed to execute step: " + step.getDescription()
+                                    + " - " + stubResult.getMessage());
+                            break;
+                        }
+                        if (stubResult.getGeneratedCode() != null) {
                             generatedFiles.putAll(stubResult.getGeneratedCode());
+                        }
+                        if (stubResult.getMetadata() != null) {
+                            Object outputPath = stubResult.getMetadata().get("outputPath");
+                            if (outputPath instanceof String pathValue) {
+                                generatedOutputPath = pathValue;
+                            }
+                            Object generatedPaths = stubResult.getMetadata().get("generatedFiles");
+                            if (generatedPaths instanceof java.util.Collection<?> fileNames) {
+                                generatedFilesByPath = fileNames.stream()
+                                        .filter(String.class::isInstance)
+                                        .map(Object::toString)
+                                        .sorted()
+                                        .toList();
+                            }
                         }
                     }
 
                     executedSteps.add(step.getDescription());
 
+                } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+                    throw unavailable;
                 } catch (Exception e) {
                     run.setError("Failed to execute step: " + step.getDescription() + " - " + e.getMessage());
                     break;
@@ -117,6 +141,13 @@ public class MigrationPlanService {
             run.setGeneratedFiles(generatedFiles);
             completedRuns.put(runId, run);
 
+            if (run.getError() != null) {
+                ApplyResult failed = new ApplyResult(false, run.getError());
+                failed.setRunId(runId);
+                failed.setModifiedFiles(new ArrayList<>(generatedFiles.keySet()));
+                return failed;
+            }
+
             ApplyResult result = new ApplyResult(true, "Migration plan applied successfully");
             result.setRunId(runId);
             result.setModifiedFiles(new ArrayList<>(generatedFiles.keySet()));
@@ -126,10 +157,18 @@ public class MigrationPlanService {
             changes.put("executedSteps", executedSteps.size());
             changes.put("dryRun", dryRun);
             changes.put("performance", BenchmarkUtils.compare(baseline, migrated));
+            changes.put("javaOutputDirectory", generatedOutputPath != null ? generatedOutputPath : "");
+            changes.put("javaGeneratedFiles", generatedFilesByPath);
             result.setChanges(changes);
+            DiffResult diffResult = generateDiff(runId, workspace);
+            if (diffResult.isSuccess()) {
+                result.setDiff(diffResult.getUnifiedDiff());
+            }
 
             return result;
 
+        } catch (TargetEmitterRegistry.TargetEmitterUnavailableException unavailable) {
+            throw unavailable;
         } catch (Exception e) {
             return new ApplyResult(false, "Migration application failed: " + e.getMessage());
         }

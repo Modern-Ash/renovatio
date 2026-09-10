@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -71,6 +72,9 @@ public class CobolParsingService {
     private static final Pattern ENTRY_PATTERN = Pattern.compile("ENTRY\\s+\"([A-Z0-9_-]+)\"\\s+USING\\s+([A-Z0-9-]+)\\.", Pattern.CASE_INSENSITIVE);
     private static final Pattern PROGRAM_ID_PATTERN = Pattern.compile("PROGRAM-ID\\.\\s*([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern CICS_COMMAND_PATTERN = Pattern.compile("EXEC\\s+CICS\\s+([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern COPYBOOK_PATTERN = Pattern.compile(
+            "\\bCOPY\\s+(?:\"([^\"]+)\"|'([^']+)'|([A-Z0-9][A-Z0-9_.-]*))",
+            Pattern.CASE_INSENSITIVE);
     private static final Pattern DIGITS_PATTERN = Pattern.compile("9\\((\\d+)\\)");
 
     private final Dialect defaultDialect;
@@ -86,7 +90,7 @@ public class CobolParsingService {
     /**
      * Locate COBOL source files inside a workspace.
      */
-    public List<Path> findCobolFiles(Path workspacePath) throws IOException {
+    public List<Path> findCobolSourceFiles(Path workspacePath) throws IOException {
         List<Path> cobolFiles = new ArrayList<>();
         try (Stream<Path> walkStream = Files.walk(workspacePath)) {
             walkStream
@@ -95,12 +99,18 @@ public class CobolParsingService {
                         String name = path.getFileName().toString().toLowerCase(Locale.ROOT);
                         return name.endsWith(EXT_COB) ||
                                 name.endsWith(EXT_COBOL) ||
-                                name.endsWith(EXT_CBL) ||
-                                name.endsWith(EXT_CPY);
+                                name.endsWith(EXT_CBL);
                     })
                     .forEach(cobolFiles::add);
         }
         return cobolFiles;
+    }
+
+    /**
+     * Backwards-compatible alias for source COBOL files.
+     */
+    public List<Path> findCobolFiles(Path workspacePath) throws IOException {
+        return findCobolSourceFiles(workspacePath);
     }
 
     public List<Path> findCopybooks(Path workspacePath) throws IOException {
@@ -137,6 +147,25 @@ public class CobolParsingService {
         return statements;
     }
 
+    /** Extract normalized copybook names referenced by COBOL COPY statements. */
+    public List<String> extractCopybookReferences(Path cobolFile) throws IOException {
+        return extractCopybookReferences(Files.readString(cobolFile));
+    }
+
+    /** Extract normalized copybook names referenced by COBOL COPY statements. */
+    public List<String> extractCopybookReferences(String cobolSource) {
+        SortedSet<String> copybooks = new TreeSet<>();
+        Matcher matcher = COPYBOOK_PATTERN.matcher(Objects.requireNonNull(cobolSource, "cobolSource"));
+        while (matcher.find()) {
+            String raw = matcher.group(1) != null ? matcher.group(1)
+                    : matcher.group(2) != null ? matcher.group(2) : matcher.group(3);
+            String fileName = Path.of(raw).getFileName().toString()
+                    .replaceFirst("\\.$", "").replaceFirst("(?i)\\.cpy$", "");
+            copybooks.add(fileName.toUpperCase(Locale.ROOT));
+        }
+        return List.copyOf(copybooks);
+    }
+
     /**
      * Analyze all COBOL files in the given workspace. The dialect can be
      * provided via query parameters ("dialect") or workspace metadata. When
@@ -147,10 +176,11 @@ public class CobolParsingService {
 
         Dialect dialect = resolveDialect(query, workspace);
         Path root = Paths.get(workspace.getPath());
-        List<Path> cobolFiles = findCobolFiles(root);
+        List<Path> sourceFiles = findCobolSourceFiles(root);
+        List<Path> copybooks = findCopybooks(root);
 
         List<CobolProgram> programs = new ArrayList<>();
-        for (Path cobolFile : cobolFiles) {
+        for (Path cobolFile : sourceFiles) {
             Map<String, Object> metadata = parseCobolFile(cobolFile, dialect);
             metadata.put(KEY_FILE_PATH, cobolFile.toString());
             CobolProgram program = new CobolProgram();
@@ -161,9 +191,20 @@ public class CobolParsingService {
         }
 
         Map<String, Object> data = new HashMap<>();
+        data.put("sourceFiles", toRelativePaths(root, sourceFiles));
+        data.put("copybooks", toRelativePaths(root, copybooks));
         data.put(KEY_PROGRAMS, programs);
+        data.put("summary", Map.of(
+                "sourceFiles", sourceFiles.size(),
+                "copybooks", copybooks.size(),
+                "programs", programs.size()
+        ));
 
-        AnalyzeResult result = new AnalyzeResult(true, String.format("Parsed %d COBOL files", programs.size()));
+        AnalyzeResult result = new AnalyzeResult(true, String.format(
+                "Parsed %d COBOL source file(s) and %d copybook(s)",
+                sourceFiles.size(),
+                copybooks.size()
+        ));
         result.setData(data);
 
         long elapsed = System.nanoTime() - start;
@@ -189,6 +230,18 @@ public class CobolParsingService {
         return Dialect.fromString(dialectStr);
     }
 
+    private List<String> toRelativePaths(Path root, List<Path> paths) {
+        List<String> relativePaths = new ArrayList<>();
+        for (Path path : paths) {
+            try {
+                relativePaths.add(root.relativize(path).toString());
+            } catch (Exception e) {
+                relativePaths.add(path.toString());
+            }
+        }
+        return relativePaths;
+    }
+
     /**
      * Parse a COBOL file using the service's default dialect.
      */
@@ -200,7 +253,7 @@ public class CobolParsingService {
      * Parse a COBOL file and return a small metadata map using the given
      * dialect. The returned map contains the program id, a list of detected
      * CICS commands and the dialect name. Additional fields required by other
-     * services (calls, copies, dataItems) are returned as empty collections.
+     * services (calls and dataItems) are returned as empty collections.
      */
     public Map<String, Object> parseCobolFile(Path cobolFile, Dialect dialect) throws IOException {
         String source = Files.readString(cobolFile);
@@ -213,7 +266,7 @@ public class CobolParsingService {
         ast.put(KEY_PROGRAM_ID, programId);
         ast.put(KEY_CICS_COMMANDS, extractCicsCommands(source));
         ast.put(KEY_CALLS, new HashSet<String>());
-        ast.put(KEY_COPIES, new HashSet<String>());
+        ast.put(KEY_COPIES, new LinkedHashSet<>(extractCopybookReferences(source)));
         // Working-Storage data items
         ast.put(KEY_DATA_ITEMS, extractDataItems(source));
         // Linkage Section items (used by ENTRY ... USING ...)
@@ -370,7 +423,10 @@ public class CobolParsingService {
 
     private Set<String> extractCicsCommands(String source) {
         Set<String> cmds = new HashSet<>();
-        Matcher m = CICS_COMMAND_PATTERN.matcher(source);
+        String normalized = source.lines()
+                .map(line -> line.replaceFirst("^\\s{0,6}\\d{6}", "").replaceFirst("\\s+\\d{6,8}\\s*$", ""))
+                .collect(Collectors.joining("\n"));
+        Matcher m = CICS_COMMAND_PATTERN.matcher(normalized);
         while (m.find()) {
             cmds.add(m.group(1).toUpperCase(Locale.ROOT));
         }

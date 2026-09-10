@@ -29,7 +29,7 @@ class CobolLanguageProviderTest {
         CobolParsingService parsingService = new CobolParsingService();
         TemplateCodeGenerationService templateService = new TemplateCodeGenerationService();
         org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService();
-        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
+        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler());
         Db2MigrationService db2Service = new Db2MigrationService(parsingService);
         MigrationPlanService migrationPlanService = new MigrationPlanService(parsingService, javaGenerationService);
         IndexingService indexingService = new IndexingService();
@@ -90,6 +90,7 @@ class CobolLanguageProviderTest {
         assertTrue(capabilities.contains(LanguageProvider.Capabilities.DIFF));
         assertTrue(capabilities.contains(LanguageProvider.Capabilities.STUBS));
         assertTrue(capabilities.contains(LanguageProvider.Capabilities.METRICS));
+        assertTrue(provider.getTools().stream().anyMatch(tool -> "cobol.stubs".equals(tool.getName())));
     }
 
     @Test

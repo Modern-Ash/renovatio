@@ -1,0 +1,24 @@
+---
+schema: "agora/evidence-entry/v3"
+id: "evidence-000001"
+type: "build"
+phase: null
+result: "success"
+revision: 1
+artifact-references: ["repo://renovatio-workbench/extensions/renovatio-core-ui/src/browser/renovatio-shell-widget.tsx"]
+artifact-content-sha256: {"repo://renovatio-workbench/extensions/renovatio-core-ui/src/browser/renovatio-shell-widget.tsx":"31334bd4ce9936fadd11bff51b07dccca80a7f75b49526187789cc6e6837b392"}
+produced-by: "project:agent"
+timestamp: "2026-09-06T02:30:56.906571Z"
+tested-commit: null
+command: ["docker","build","--target","build"]
+exit-code: 0
+tests-total: null
+tests-passed: null
+tests-failed: null
+environment: null
+dedupe-key: "issue177-build"
+---
+
+# Evidence evidence-000001
+
+This append-only record captures a governed verification fact. Provider output and credentials are intentionally excluded.

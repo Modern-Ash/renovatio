@@ -1,0 +1,19 @@
+* Sample COBOL program 3 - file IO
+       IDENTIFICATION DIVISION.
+       PROGRAM-ID. SAMPLE3.
+       ENVIRONMENT DIVISION.
+       INPUT-OUTPUT SECTION.
+       FILE-CONTROL.
+           SELECT IN-FILE ASSIGN TO 'INPUT.DAT'.
+       DATA DIVISION.
+       FILE SECTION.
+       FD IN-FILE.
+       01 IN-REC.
+          05 NAME PIC X(20).
+          05 VALUE PIC 9(5).
+       PROCEDURE DIVISION.
+       OPEN INPUT IN-FILE.
+       READ IN-FILE INTO IN-REC.
+       CLOSE IN-FILE.
+       STOP RUN.
+

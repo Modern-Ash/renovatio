@@ -1,0 +1,439 @@
+package org.shark.renovatio.jcl;
+
+import org.junit.jupiter.api.Test;
+import org.shark.renovatio.jcl.characterization.BatchCharacterizationHarness;
+import org.shark.renovatio.jcl.emit.SpringBatchBatchEmitter;
+import org.shark.renovatio.jcl.emit.util.SortUtility;
+import org.shark.renovatio.jcl.ir.BatchJobProjection;
+import org.shark.renovatio.jcl.parse.JclJob;
+import org.shark.renovatio.jcl.parse.JclParser;
+import org.shark.renovatio.profile.MigrationProfiles;
+import org.shark.renovatio.semantic.ir.BatchDataset;
+import org.shark.renovatio.semantic.ir.BatchJob;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class ReviewRegressionTest {
+    @Test
+    void reusesTemporaryIdentityAndPreservesInlineAndConcatenatedResources() {
+        BatchJob job = project("""
+                //DATAJOB JOB
+                //WRITE EXEC PGM=SORT
+                //SYSIN DD *
+                 SORT FIELDS=(1,3,CH,A)
+                 INCLUDE COND=(4,1,CH,EQ,C'Y')
+                /*
+                //OUT DD DSN=&&TEMP,DISP=(NEW,PASS)
+                //READ EXEC PGM=IEBGENER
+                //IN DD DSN=&&TEMP,DISP=(OLD,PASS)
+                //FILES DD DSN=FIRST.DATA,DISP=SHR
+                // DD DSN=SECOND.DATA,DISP=SHR
+                """);
+
+        BatchDataset sysin = job.datasets().stream().filter(dataset -> dataset.ddName().equals("SYSIN"))
+                .findFirst().orElseThrow();
+        assertEquals(List.of(" SORT FIELDS=(1,3,CH,A)", " INCLUDE COND=(4,1,CH,EQ,C'Y')"),
+                sysin.inlineRecords());
+        BatchDataset files = job.datasets().stream().filter(dataset -> dataset.ddName().equals("FILES"))
+                .findFirst().orElseThrow();
+        assertEquals("SECOND.DATA", files.concatenations().get(0).resourceReference().orElseThrow());
+
+        String source = emit(job);
+        // Producer and consumer share one key within the job; the job id namespaces it.
+        assertEquals(2, occurrences(source, "memory:DATAJOB/&&TEMP"));
+        assertEquals(0, occurrences(source, "\"memory:&&TEMP\""));
+        String encoded = Base64.getEncoder().encodeToString(String.join("\n", sysin.inlineRecords())
+                .getBytes(StandardCharsets.UTF_8));
+        assertTrue(source.contains("inline-base64:" + encoded));
+        assertTrue(source.contains("java.util.List.of(\"FIRST.DATA\", \"SECOND.DATA\")"));
+    }
+
+    @Test
+    void emittedTaskletsPersistReturnCodesForFollowingGuards() {
+        String source = emit(project("""
+                //RCJOB JOB
+                //ONE EXEC PGM=IEBGENER
+                //TWO EXEC PGM=SORT,COND=(0,NE,ONE)
+                """));
+
+        assertTrue(source.contains("int returnCode = runtime.utility"));
+        assertTrue(source.contains("putInt(\"ONE.RC\", returnCode)"));
+        assertTrue(source.contains("new ExitStatus(\"RC=\" + returnCode)"));
+        assertTrue(source.contains("int run(String program"));
+        assertTrue(source.contains("int utility(String utility"));
+    }
+
+    @Test
+    void characterizationEvaluatesThenAndElseGuards() throws Exception {
+        BatchJob job = project("""
+                //IFJOB JOB
+                //BASE EXEC PGM=BASE
+                // IF (BASE.RC = 0) THEN
+                //YES EXEC PGM=YES
+                // ELSE
+                //NO EXEC PGM=NO
+                // ENDIF
+                """);
+
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job, Map.of(),
+                (step, datasets) -> 0);
+
+        assertEquals(List.of("BASE", "YES"), result.executedSteps());
+    }
+
+    @Test
+    void compoundCondUsesEveryReferencedStepAtRuntime() throws Exception {
+        BatchJob job = project("""
+                //CONDJOB JOB
+                //S1 EXEC PGM=P1
+                //S2 EXEC PGM=P2
+                //S3 EXEC PGM=P3,COND=((0,NE,S1),(4,LT,S2))
+                """);
+
+        assertEquals(2, job.conditionGraph().guards().size());
+        assertEquals(2, job.conditionGraph().guards().stream()
+                .map(guard -> guard.referencedStepId().orElseThrow()).distinct().count());
+        Map<String, Integer> codes = Map.of("S1", 0, "S2", 0);
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job,
+                new LinkedHashMap<>(), (step, datasets) -> codes.getOrDefault(step.stepName(), 0));
+
+        assertEquals(List.of("S1", "S2"), result.executedSteps());
+    }
+
+    @Test
+    void flushesPendingStepBeforeStartingAnotherJob() {
+        List<JclJob> jobs = new JclParser().parseAll(List.of(new org.shark.renovatio.jcl.parse.JclSource(
+                "batch/jobs.jcl", "//ONE JOB\n//A EXEC PGM=A\n//TWO JOB\n//B EXEC PGM=B\n")));
+        assertEquals(List.of("A"), jobs.get(0).steps().stream().map(step -> step.stepName()).toList());
+        assertEquals(List.of("B"), jobs.get(1).steps().stream().map(step -> step.stepName()).toList());
+    }
+
+    @Test
+    void namespacesProcedureLocalCondAndIfReferences() {
+        JclJob parsed = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/main.jcl",
+                        "//MAINJOB JOB\n//CALL EXEC PROC=FLOW\n"),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/flow.jcl", """
+                        //FLOW PROC
+                        //EARLIER EXEC PGM=A
+                        //LATER EXEC PGM=B,COND=(0,NE,EARLIER)
+                        // IF EARLIER.RC = 0 THEN
+                        //FINAL EXEC PGM=C
+                        // ENDIF
+                        // PEND
+                        """))).stream().filter(job -> job.jobName().equals("MAINJOB")).findFirst().orElseThrow();
+        assertEquals("CALL_EARLIER", parsed.steps().get(1).condition().orElseThrow()
+                .predicates().get(0).referencedStep().orElseThrow());
+        assertEquals("CALL_EARLIER.RC = 0", parsed.steps().get(2).ifExpression().orElseThrow());
+        assertDoesNotThrow(() -> new BatchJobProjection().project(parsed, List.of(), "d".repeat(64)));
+    }
+
+    @Test
+    void characterizationHonorsOnlyAfterNormalCompletion() throws Exception {
+        BatchJob job = project("//ONLYJOB JOB\n//ONE EXEC PGM=A\n//TWO EXEC PGM=B,COND=ONLY\n");
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job, Map.of(),
+                (step, datasets) -> 0);
+        assertEquals(List.of("ONE"), result.executedSteps());
+    }
+
+    @Test
+    void rejectsUnsupportedSortTransformations() {
+        SortUtility sort = new SortUtility();
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.execute(List.of("001", "001"), "SORT FIELDS=(1,3,CH,A) SUM FIELDS=NONE"));
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.parse("SORT FIELDS=(1,3,CH,A) OUTREC FIELDS=(1,3)"));
+    }
+
+    @Test
+    void rejectsCompoundSortFilterInsteadOfPartiallyMatchingIt() {
+        SortUtility sort = new SortUtility();
+        assertThrows(UnsupportedOperationException.class, () -> sort.parse(
+                "SORT FIELDS=(1,3,CH,A) INCLUDE COND=(1,1,CH,EQ,C'A',AND,2,1,CH,EQ,C'B')"));
+        SortUtility.SortSpec simple = sort.parse("SORT FIELDS=(1,3,CH,A) INCLUDE COND=(4,1,CH,EQ,C'Y')");
+        assertTrue(simple.filter().isPresent());
+    }
+
+    @Test
+    void characterizationDoesNotSkipWhenAGuardReferencesABypassedStep() throws Exception {
+        BatchJob job = project("""
+                //CHAINJOB JOB
+                //S0 EXEC PGM=P0
+                // IF (S0.RC > 0) THEN
+                //S1 EXEC PGM=P1
+                // ENDIF
+                //S2 EXEC PGM=P2,COND=(0,NE,S1)
+                """);
+
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job,
+                new LinkedHashMap<>(), (step, datasets) -> 0);
+
+        assertEquals(List.of("S0", "S2"), result.executedSteps());
+    }
+
+    @Test
+    void rejectsBinaryAndPackedSortKeysAsUnsupported() {
+        SortUtility sort = new SortUtility();
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.parse("SORT FIELDS=(1,4,BI,A)"));
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.parse("SORT FIELDS=(1,3,CH,A) INCLUDE COND=(5,2,PD,GT,10)"));
+    }
+
+    @Test
+    void substitutesExactSymbolicNamesWhenOnePrefixesAnother() {
+        JclJob job = new JclParser().parse("batch/sym.jcl",
+                "//SYMJOB JOB\n// SET A=X,AB=YY\n//S EXEC PGM=&AB\n");
+        assertEquals("YY", job.steps().get(0).executable());
+    }
+
+    @Test
+    void keepsCataloguedOldPassDatasetFileBacked() {
+        BatchJob job = project("""
+                //CATJOB JOB
+                //RUN EXEC PGM=IEBGENER
+                //IN DD DSN=PROD.INPUT,DISP=(OLD,PASS)
+                """);
+        BatchDataset in = job.datasets().stream().filter(d -> d.ddName().equals("IN"))
+                .findFirst().orElseThrow();
+        assertNotEquals(BatchDataset.AccessKind.TEMP, in.access());
+    }
+
+    @Test
+    void propagatesProcInvocationCondToExpandedSteps() {
+        JclJob job = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/m.jcl",
+                        "//MJOB JOB\n//PRE EXEC PGM=PRE\n//CALL EXEC PROC=FLOW,COND=(0,NE,PRE)\n"),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/flow.jcl",
+                        "//FLOW PROC\n//INNER EXEC PGM=INNER\n// PEND\n")))
+                .stream().filter(j -> j.jobName().equals("MJOB")).findFirst().orElseThrow();
+        var inner = job.steps().get(1).condition().orElseThrow();
+        assertEquals("PRE", inner.predicates().get(0).referencedStep().orElseThrow());
+    }
+
+    @Test
+    void nestedIfScopesKeepTheOuterGuardActive() throws Exception {
+        BatchJob job = project("""
+                //NESTJOB JOB
+                //A EXEC PGM=A
+                // IF (A.RC = 0) THEN
+                //B EXEC PGM=B
+                // IF (B.RC = 0) THEN
+                //C EXEC PGM=C
+                // ENDIF
+                //D EXEC PGM=D
+                // ENDIF
+                //E EXEC PGM=E
+                """);
+
+        // A fails: the outer IF is false, so B, C and D are all bypassed; E always runs.
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job,
+                new LinkedHashMap<>(), (step, datasets) -> step.stepName().equals("A") ? 8 : 0);
+
+        assertEquals(List.of("A", "E"), result.executedSteps());
+    }
+
+    @Test
+    void procInternalIfKeepsTheInvocationGuardActive() {
+        JclJob job = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/m.jcl",
+                        "//MJOB JOB\n//PRE EXEC PGM=PRE\n// IF (PRE.RC = 0) THEN\n//CALL EXEC PROC=FLOW\n// ENDIF\n"),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/flow.jcl", """
+                        //FLOW PROC
+                        //A EXEC PGM=A
+                        // IF A.RC = 0 THEN
+                        //B EXEC PGM=B
+                        // ENDIF
+                        // PEND
+                        """)))
+                .stream().filter(j -> j.jobName().equals("MJOB")).findFirst().orElseThrow();
+        String bGuard = job.steps().get(2).ifExpression().orElseThrow();
+        assertTrue(bGuard.contains("PRE.RC"), bGuard);
+        assertTrue(bGuard.contains("CALL_A.RC"), bGuard);
+    }
+
+    @Test
+    void sortStepWithUnsupportedControlCardClassifiesAsResidue() {
+        BatchJob job = project("""
+                //SRTJOB JOB
+                //S EXEC PGM=SORT
+                //SYSIN DD *
+                 SORT FIELDS=(1,3,CH,A)
+                 SUM FIELDS=NONE
+                /*
+                """);
+        assertEquals(org.shark.renovatio.semantic.ir.BatchStep.Kind.RESIDUE, job.steps().get(0).kind());
+    }
+
+    @Test
+    void temporaryKeysAreNamespacedPerJob() {
+        String a = emit(project("//JOBA JOB\n//W EXEC PGM=SORT\n//O DD DSN=&&T,DISP=(NEW,PASS)\n//R EXEC PGM=IEBGENER\n//I DD DSN=&&T,DISP=(OLD,PASS)\n"));
+        String b = emit(project("//JOBB JOB\n//W EXEC PGM=SORT\n//O DD DSN=&&T,DISP=(NEW,PASS)\n//R EXEC PGM=IEBGENER\n//I DD DSN=&&T,DISP=(OLD,PASS)\n"));
+        assertTrue(a.contains("memory:JOBA/&&T"));
+        assertTrue(b.contains("memory:JOBB/&&T"));
+        assertEquals(0, occurrences(a, "memory:JOBB/"));
+    }
+
+    @Test
+    void appliesProcInvocationDdOverridesToExpandedSteps() {
+        JclJob job = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/m.jcl", """
+                        //MJOB JOB
+                        //COPY EXEC PROC=GEN
+                        //COPY.SYSUT1 DD DSN=OVERRIDE.INPUT,DISP=SHR
+                        """),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/gen.jcl", """
+                        //GEN PROC
+                        //G EXEC PGM=IEBGENER
+                        //SYSUT1 DD DSN=PROC.DEFAULT,DISP=SHR
+                        //SYSUT2 DD DSN=OUT.DATA,DISP=(NEW,CATLG)
+                        // PEND
+                        """)))
+                .stream().filter(j -> j.jobName().equals("MJOB")).findFirst().orElseThrow();
+        var sysut1 = job.steps().get(0).ddStatements().stream()
+                .filter(dd -> dd.ddName().equals("SYSUT1")).findFirst().orElseThrow();
+        assertEquals("OVERRIDE.INPUT", sysut1.dsn().orElseThrow());
+        assertTrue(job.steps().get(0).ddStatements().stream().anyMatch(dd -> dd.ddName().equals("SYSUT2")));
+    }
+
+    @Test
+    void characterizationEvaluatesEvenAndOnlyGuardsAfterAnAbend() throws Exception {
+        BatchJob job = project("""
+                //ABJOB JOB
+                //A EXEC PGM=A
+                //B EXEC PGM=B
+                //C EXEC PGM=C,COND=ONLY
+                //D EXEC PGM=D,COND=EVEN
+                """);
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job,
+                new LinkedHashMap<>(), (step, datasets) -> {
+                    if (step.stepName().equals("A")) throw new RuntimeException("S0C7");
+                    return 0;
+                });
+        assertEquals(List.of("A"), result.abendedSteps());
+        assertEquals(List.of("A", "C", "D"), result.executedSteps());
+    }
+
+    @Test
+    void sortOrdersNegativeZonedDecimalKeysWithOverpunchSign() {
+        SortUtility sort = new SortUtility();
+        assertEquals(List.of("01J", "005", "01A"),
+                sort.execute(List.of("005", "01A", "01J"), "SORT FIELDS=(1,3,ZD,A)"));
+    }
+
+    @Test
+    void emitsVsamResourcesWithAPersistencePrefix() {
+        String source = emit(project("//VJOB JOB\n//R EXEC PGM=IEBGENER\n//V DD DSN=CUST.KSDS,AMP=('AMORG'),DISP=SHR\n"));
+        assertTrue(source.contains("vsam:CUST.KSDS"), source);
+    }
+
+    @Test
+    void generatesCollisionFreeStepMethodNames() {
+        String source = emit(project("//NJOB JOB\n//A#B EXEC PGM=P1\n//A@B EXEC PGM=P2\n"));
+        assertTrue(source.contains("a_b0Step") && source.contains("a_b1Step"), source);
+    }
+
+    @Test
+    void idcamsWithAnUnsupportedTrailingCommandIsResidue() {
+        BatchJob job = project("""
+                //ICJOB JOB
+                //C EXEC PGM=IDCAMS
+                //SYSIN DD *
+                 REPRO INFILE(A) OUTFILE(B)
+                 LISTCAT ENT(X)
+                /*
+                """);
+        assertEquals(org.shark.renovatio.semantic.ir.BatchStep.Kind.RESIDUE, job.steps().get(0).kind());
+    }
+
+    @Test
+    void doesNotTreatCondSubstringOfAnotherParameterAsAStepCondition() {
+        JclJob job = new JclParser().parse("batch/p.jcl",
+                "//PJOB JOB\n//S EXEC PGM=P,PARM='COND=ABC'\n");
+        assertTrue(job.steps().get(0).condition().isEmpty());
+    }
+
+    @Test
+    void doesNotConsumeDataclasParameterAsInStreamData() {
+        JclJob job = new JclParser().parse("batch/d.jcl", """
+                //DJOB JOB
+                //S1 EXEC PGM=P1
+                //OUT DD DATACLAS=STD,DISP=(NEW,CATLG)
+                //S2 EXEC PGM=P2
+                """);
+        assertEquals(List.of("S1", "S2"), job.steps().stream().map(s -> s.stepName()).toList());
+    }
+
+    @Test
+    void execProcOverrideBeatsProcedureSetValue() {
+        JclJob job = new JclParser().parseAll(List.of(
+                new org.shark.renovatio.jcl.parse.JclSource("batch/m.jcl",
+                        "//MJOB JOB\n//C EXEC PROC=GEN,PGMNAME=CALLER\n"),
+                new org.shark.renovatio.jcl.parse.JclSource("batch/gen.jcl", """
+                        //GEN PROC PGMNAME=DEFAULT
+                        // SET PGMNAME=SETVALUE
+                        //G EXEC PGM=&PGMNAME
+                        // PEND
+                        """)))
+                .stream().filter(j -> j.jobName().equals("MJOB")).findFirst().orElseThrow();
+        assertEquals("CALLER", job.steps().get(0).executable());
+    }
+
+    @Test
+    void onlyStaysAbendBasedEvenAfterASuccessfulEvenStep() throws Exception {
+        BatchJob job = project("""
+                //ABJOB JOB
+                //A EXEC PGM=A
+                //E EXEC PGM=E,COND=EVEN
+                //O EXEC PGM=O,COND=ONLY
+                """);
+        BatchCharacterizationHarness.RunResult result = new BatchCharacterizationHarness().run(job,
+                new LinkedHashMap<>(), (step, datasets) -> {
+                    if (step.stepName().equals("A")) throw new RuntimeException("abend");
+                    return 0;
+                });
+        assertEquals(List.of("A", "E", "O"), result.executedSteps());
+    }
+
+    @Test
+    void rejectsSortControlClausesOutsideTheSubgrammar() {
+        SortUtility sort = new SortUtility();
+        assertThrows(UnsupportedOperationException.class,
+                () -> sort.parse("SORT FIELDS=(1,3,CH,A) SKIPREC=1"));
+    }
+
+    @Test
+    void classifiesUnsupportedIdcamsControlAsResidue() {
+        BatchJob job = project("""
+                //IDCJOB JOB
+                //CAT EXEC PGM=IDCAMS
+                //SYSIN DD *
+                 LISTCAT ENT(TEST.DATA)
+                /*
+                """);
+        assertEquals(org.shark.renovatio.semantic.ir.BatchStep.Kind.RESIDUE, job.steps().get(0).kind());
+        assertTrue(job.steps().get(0).residueReason().orElseThrow().contains("unsupported IDCAMS"));
+    }
+
+    private static BatchJob project(String jcl) {
+        return new BatchJobProjection().project(new JclParser().parse("batch/review.jcl", jcl),
+                List.of(), "c".repeat(64));
+    }
+
+    private static String emit(BatchJob job) {
+        return new SpringBatchBatchEmitter().emit(job, MigrationProfiles.defaults())
+                .files().values().iterator().next();
+    }
+
+    private static int occurrences(String text, String value) {
+        int count = 0;
+        for (int index = 0; (index = text.indexOf(value, index)) >= 0; index += value.length()) count++;
+        return count;
+    }
+}

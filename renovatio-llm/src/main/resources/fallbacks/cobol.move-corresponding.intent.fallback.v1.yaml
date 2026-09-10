@@ -1,0 +1,4 @@
+fallbackVersion: renovatio-llm-fallback.v1
+type: MANUAL_ACTION
+diagnosticCode: LLM_MANUAL_MOVE_CORRESPONDING_REVIEW_REQUIRED
+manualAction: Use deterministic field-by-field copy; mark for manual review of field mappings.
