@@ -37,3 +37,17 @@
 - 2026-09-11T20:14:18.853767Z | evidence.added | id=evidence-000005 type=release-verification result=success revision=1 actor=project:agent
 - 2026-09-11T20:14:22.135790Z | evidence.added | id=evidence-000006 type=supply-chain-scan result=success revision=1 actor=project:agent
 - 2026-09-11T20:14:26.392036Z | work.block | from=active to=blocked actor=project:agent change=change-20260911t201426391862z
+- 2026-09-11T21:26:07.650698Z | work.resume | from=blocked to=active actor=project:agent change=change-20260911t212607650564z
+- 2026-09-11T21:26:21.596737Z | evidence.added | id=evidence-000007 type=github-merge result=success revision=1 actor=project:agent
+- 2026-09-11T21:26:21.626880Z | evidence.added | id=evidence-000008 type=ci result=success revision=1 actor=project:agent
+- 2026-09-11T21:26:31.540567Z | work.criterion-satisfied | criterion=release-scope actor=project:owner
+- 2026-09-11T21:26:31.769002Z | work.criterion-satisfied | criterion=quickstart actor=project:owner
+- 2026-09-11T21:26:31.990844Z | work.criterion-satisfied | criterion=docs actor=project:owner
+- 2026-09-11T21:26:32.206913Z | work.criterion-satisfied | criterion=versioning actor=project:owner
+- 2026-09-11T21:26:32.430881Z | work.criterion-satisfied | criterion=supply-chain actor=project:owner
+- 2026-09-11T21:26:32.658696Z | work.criterion-satisfied | criterion=quality-gates actor=project:owner
+- 2026-09-11T21:26:32.891660Z | work.criterion-satisfied | criterion=clean-repository actor=project:owner
+- 2026-09-11T21:26:33.121376Z | work.criterion-satisfied | criterion=approval actor=project:owner
+- 2026-09-11T21:26:36.245669Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-11T21:26:46.315901Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T21:26:49.280965Z | work.transitioned | from=verifying to=completed actor=project:owner
