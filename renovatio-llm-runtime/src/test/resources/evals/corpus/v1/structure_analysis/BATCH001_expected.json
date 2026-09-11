@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "kind": "cobol.structure_analysis",
+  "proposal": {
+    "programName": "BATCH001",
+    "paragraphs": ["INITIALIZE-SECTION", "PROCESS-SECTION", "FINALIZE-SECTION"],
+    "dataItems": [
+      {"name": "WS-COUNTER", "type": "PIC 9(5)", "usage": "COUNTER"},
+      {"name": "WS-TOTAL", "type": "PIC 9(7)", "usage": "ACCUMULATOR"},
+      {"name": "WS-RECORD", "type": "PIC X(80)", "usage": "INPUT_BUFFER"}
+    ],
+    "controlFlow": ["SEQUENTIAL", "PERFORM_UNTIL", "READ_AT_END"]
+  },
+  "confidence": 0.95,
+  "rationale": "Standard batch program with clear paragraph structure, three data items, and standard perform-until loop with at-end handling",
+  "schema": "typed-proposal.v1.json",
+  "metadata": {
+    "model": "gemini-2.0-flash",
+    "promptHash": "sha256:eval_prompt_hash",
+    "inputHash": "sha256:BATCH001",
+    "outputHash": "sha256:eval_output",
+    "latencyMs": 1200,
+    "tokensUsed": 850,
+    "cacheStatus": "MISS"
+  }
+}

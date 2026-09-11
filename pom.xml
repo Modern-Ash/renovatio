@@ -60,6 +60,7 @@
         <module>renovatio-emitter-node</module>
         <module>cobol-openrewrite-recipes</module>
         <module>renovatio-cobol-annotations</module>
+        <module>renovatio-llm-runtime</module>
     </modules>
 
     <dependencyManagement>
@@ -143,6 +144,11 @@
             <dependency>
                 <groupId>org.shark.renovatio</groupId>
                 <artifactId>renovatio-llm</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.shark.renovatio</groupId>
+                <artifactId>renovatio-llm-runtime</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
