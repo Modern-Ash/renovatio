@@ -57,3 +57,19 @@
 - 2026-09-09T22:00:27.399279Z | tool.completed | run=tool-20260909t22001789002027z exit-code=0
 - 2026-09-09T22:00:36.077207Z | evidence.added | id=evidence-000002 type=review-remediation-tests result=success revision=1 actor=project:agent
 - 2026-09-09T22:00:36.314232Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-11T13:51:34.618814Z | work.criterion-stage-marked | criterion=use-cases actor=project:owner stage=verified
+- 2026-09-11T13:51:34.847236Z | work.criterion-stage-marked | criterion=ports actor=project:owner stage=verified
+- 2026-09-11T13:51:35.060722Z | work.criterion-stage-marked | criterion=side-effects actor=project:owner stage=verified
+- 2026-09-11T13:51:35.290179Z | work.criterion-stage-marked | criterion=idempotency actor=project:owner stage=verified
+- 2026-09-11T13:51:35.515352Z | work.criterion-stage-marked | criterion=atomicity actor=project:owner stage=verified
+- 2026-09-11T13:51:35.756043Z | work.criterion-stage-marked | criterion=thin-adapters actor=project:owner stage=verified
+- 2026-09-11T13:51:36.019785Z | work.criterion-stage-marked | criterion=contract-tests actor=project:owner stage=verified
+- 2026-09-11T13:51:36.267911Z | work.criterion-stage-marked | criterion=use-cases actor=project:owner stage=accepted
+- 2026-09-11T13:51:36.511898Z | work.criterion-stage-marked | criterion=ports actor=project:owner stage=accepted
+- 2026-09-11T13:51:36.756702Z | work.criterion-stage-marked | criterion=side-effects actor=project:owner stage=accepted
+- 2026-09-11T13:51:36.998048Z | work.criterion-stage-marked | criterion=idempotency actor=project:owner stage=accepted
+- 2026-09-11T13:51:37.236570Z | work.criterion-stage-marked | criterion=atomicity actor=project:owner stage=accepted
+- 2026-09-11T13:51:37.460398Z | work.criterion-stage-marked | criterion=thin-adapters actor=project:owner stage=accepted
+- 2026-09-11T13:51:37.676849Z | work.criterion-stage-marked | criterion=contract-tests actor=project:owner stage=accepted
+- 2026-09-11T13:51:41.835577Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T13:51:49.475419Z | work.transitioned | from=verifying to=completed actor=project:owner

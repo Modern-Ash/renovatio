@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "issue-226-application-pipeline"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "feature/ac-05-application-pipeline"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
