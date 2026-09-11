@@ -1,1 +1,0 @@
-{"fixtureId":"perform-simple-nested","status":"supported","observations":[{"callOrder":["MAIN","OUTER-PARA","INNER-PARA"]}]}

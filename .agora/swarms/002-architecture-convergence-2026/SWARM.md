@@ -2,8 +2,8 @@
 schema: "agora/swarm/v1"
 id: "architecture-convergence-2026"
 method: "spec-driven"
-status: "completed"
-branch: "issue-234-python-provider-disposition"
+status: "running"
+branch: "issue-224-repo-community-governance"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
 ---
