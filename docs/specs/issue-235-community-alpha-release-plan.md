@@ -52,4 +52,3 @@ status: blocked-by-dependencies
 
 This plan is prepared but implementation is blocked by dependencies, especially
 AC-03 / issue #224 license approval.
-

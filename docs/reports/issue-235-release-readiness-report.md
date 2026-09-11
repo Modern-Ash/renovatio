@@ -31,4 +31,3 @@ depends on the current `main` state, not prior branch assumptions.
 
 Do not tag or publish. Continue only after dependency and license gates are
 closed.
-
