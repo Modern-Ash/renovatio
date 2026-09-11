@@ -180,6 +180,17 @@ cd renovatio
 
 This builds everything (Java reactor, renovatio-ui, renovatio-workbench, Python) and runs all tests from a clean clone. Use `--skip-tests` for build-only.
 
+### Epic #221 end-to-end verification
+
+```bash
+./scripts/verify-epic-221-e2e.sh
+```
+
+This is the full architecture-convergence release harness: repository bootstrap, COBOL to Java
+provider/CLI/API reference path, alpha release-readiness verification, and Workbench smoke/product
+e2e. Use `--quick` for the fast provider/API/CLI plus release metadata lane, or
+`--skip-workbench-e2e` when Chromium installation is not available.
+
 ### What `bootstrap.sh` does
 
 1. Verifies toolchain versions (Java 21, Node 24, Python 3.10+)
