@@ -39,3 +39,6 @@
 - 2026-09-11T14:59:29.555024Z | work.criterion-satisfied | criterion=legacy-ui actor=project:owner
 - 2026-09-11T14:59:29.781654Z | work.criterion-satisfied | criterion=contract-suite actor=project:owner
 - 2026-09-11T14:59:30.001895Z | work.criterion-satisfied | criterion=truthful-docs actor=project:owner
+- 2026-09-11T15:00:58.926185Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-11T15:01:15.534455Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T15:01:18.501348Z | work.transitioned | from=verifying to=completed actor=project:owner

@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "issue-230-surface-contracts"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "issue-228-close-cycle"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
