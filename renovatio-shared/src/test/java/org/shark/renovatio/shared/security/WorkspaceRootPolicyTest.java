@@ -16,9 +16,11 @@ class WorkspaceRootPolicyTest {
     void blocksTraversalAndAbsolutePathsOutsideAllowedRoots() {
         Path root = temp.resolve("allowed");
         WorkspaceRootPolicy policy = WorkspaceRootPolicy.under(root);
+        Path outside = temp.resolve("outside").resolve("new-project");
 
         assertThrows(SecurityException.class, () -> policy.prepareWorkspace("../escape"));
-        assertThrows(SecurityException.class, () -> policy.prepareWorkspace(temp.resolve("outside").toString()));
+        assertThrows(SecurityException.class, () -> policy.prepareWorkspace(outside.toString()));
+        assertTrue(Files.notExists(outside.getParent()));
         assertThrows(SecurityException.class, () -> policy.resolveExisting(root, "/etc/passwd"));
     }
 
@@ -48,5 +50,25 @@ class WorkspaceRootPolicyTest {
         WorkspaceRootPolicy policy = WorkspaceRootPolicy.under(root);
 
         assertThrows(SecurityException.class, () -> policy.prepareWorkspace("linked"));
+    }
+
+    @Test
+    void rejectsIntermediateSymlinkEscapes() throws Exception {
+        Path root = temp.resolve("allowed");
+        Path workspace = root.resolve("project");
+        Files.createDirectories(workspace);
+        Path outside = temp.resolve("outside");
+        Files.createDirectories(outside.resolve("sub"));
+        Files.writeString(outside.resolve("sub").resolve("secret.txt"), "secret");
+        Path link = workspace.resolve("link");
+        try {
+            Files.createSymbolicLink(link, outside);
+        } catch (UnsupportedOperationException exception) {
+            return;
+        }
+        WorkspaceRootPolicy policy = WorkspaceRootPolicy.under(root);
+
+        assertThrows(SecurityException.class, () -> policy.resolveExisting(workspace, "link/sub/secret.txt"));
+        assertThrows(SecurityException.class, () -> policy.resolveForWrite(workspace, "link/sub/new.txt"));
     }
 }

@@ -34,6 +34,8 @@ public final class WorkspaceRootPolicy {
         Path absolute = requested.isAbsolute()
                 ? requested.normalize()
                 : allowedRoots.get(0).resolve(requested).normalize();
+        ensureUnderAllowedRoot(absolute);
+        rejectExistingSymlinkComponents(absolute);
         Path parent = absolute.getParent();
         if (parent == null) {
             throw new SecurityException("workspace path has no parent");
@@ -54,9 +56,8 @@ public final class WorkspaceRootPolicy {
         Path workspace = canonicalDirectory(root);
         ensureUnderAllowedRoot(workspace);
         Path candidate = resolveInside(workspace, relativePath);
-        rejectSymlink(candidate);
         try {
-            Path real = candidate.toRealPath(LinkOption.NOFOLLOW_LINKS);
+            Path real = candidate.toRealPath();
             ensureUnderAllowedRoot(real);
             return real;
         } catch (IOException exception) {
@@ -75,6 +76,7 @@ public final class WorkspaceRootPolicy {
         if (parent == null) {
             throw new SecurityException("path has no parent");
         }
+        rejectExistingSymlinkComponents(parent);
         rejectSymlink(parent);
         Path canonicalParent = canonicalDirectory(parent);
         ensureUnderAllowedRoot(canonicalParent);
@@ -111,6 +113,17 @@ public final class WorkspaceRootPolicy {
     private static void rejectSymlink(Path path) {
         if (Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path)) {
             throw new SecurityException("symbolic links are not accepted at workspace boundary");
+        }
+    }
+
+    private static void rejectExistingSymlinkComponents(Path path) {
+        Path absolute = path.toAbsolutePath().normalize();
+        Path current = absolute.getRoot();
+        for (Path component : absolute) {
+            current = current == null ? component : current.resolve(component);
+            if (Files.exists(current, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(current)) {
+                throw new SecurityException("symbolic links are not accepted inside workspace paths");
+            }
         }
     }
 

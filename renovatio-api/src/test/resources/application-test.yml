@@ -12,6 +12,8 @@ spring:
     console:
       enabled: false
 renovatio:
+  security:
+    workspace-roots: ${java.io.tmpdir}
   reusable-assets:
     root: ${java.io.tmpdir}/renovatio-api-tests-${random.uuid}
 debug: false
