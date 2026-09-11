@@ -16,3 +16,19 @@
 - 2026-09-11T18:08:50.832287Z | work.criterion-stage-marked | criterion=repo-size actor=project:owner stage=specified
 - 2026-09-11T18:08:51.052100Z | work.transitioned | from=drafting to=clarified actor=project:owner
 - 2026-09-11T18:08:52.831516Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-11T18:09:13.221582Z | evidence.added | id=issue-224-hygiene-checks type=repository-hygiene result=success revision=1 actor=project:agent
+- 2026-09-11T18:09:13.449167Z | work.criterion-stage-marked | criterion=license actor=project:owner stage=planned
+- 2026-09-11T18:09:13.669473Z | work.criterion-stage-marked | criterion=community-files actor=project:owner stage=planned
+- 2026-09-11T18:09:13.888234Z | work.criterion-stage-marked | criterion=tracked-artifacts actor=project:owner stage=planned
+- 2026-09-11T18:09:14.115234Z | work.criterion-stage-marked | criterion=agora-retention actor=project:owner stage=planned
+- 2026-09-11T18:09:14.378286Z | work.criterion-stage-marked | criterion=history-scan actor=project:owner stage=planned
+- 2026-09-11T18:09:14.646666Z | work.criterion-stage-marked | criterion=dependency-license-scan actor=project:owner stage=planned
+- 2026-09-11T18:09:14.901631Z | work.criterion-stage-marked | criterion=repo-size actor=project:owner stage=planned
+- 2026-09-11T18:09:15.130824Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-11T18:09:15.358201Z | work.criterion-stage-marked | criterion=community-files actor=project:agent stage=implemented
+- 2026-09-11T18:09:15.581460Z | work.criterion-stage-marked | criterion=tracked-artifacts actor=project:agent stage=implemented
+- 2026-09-11T18:09:15.803050Z | work.criterion-stage-marked | criterion=agora-retention actor=project:agent stage=implemented
+- 2026-09-11T18:09:16.027616Z | work.criterion-stage-marked | criterion=history-scan actor=project:agent stage=implemented
+- 2026-09-11T18:09:16.253429Z | work.criterion-stage-marked | criterion=dependency-license-scan actor=project:agent stage=implemented
+- 2026-09-11T18:09:16.485575Z | work.criterion-stage-marked | criterion=repo-size actor=project:agent stage=implemented
+- 2026-09-11T18:09:16.737435Z | work.block | from=active to=blocked actor=project:agent change=change-20260911t180916737251z
