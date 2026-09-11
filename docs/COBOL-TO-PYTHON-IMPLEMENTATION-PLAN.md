@@ -1,3 +1,9 @@
+# Current Status Notice
+
+As of issue #234, this plan is historical research. The repository keeps
+`renovatio-provider-python` as an unsupported lab package; it is not a supported
+or planned target emitter.
+
 # COBOL to Python Translation Implementation Plan
 
 ## Executive Summary

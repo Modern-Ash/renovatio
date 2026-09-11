@@ -5,7 +5,7 @@ Issue #230 unifies API, CLI, MCP and Workbench-facing capability discovery under
 ## Contract
 
 - Contract id: `renovatio.surface-capabilities`
-- Version: `2026-09-11.ac09`
+- Version: `2026-09-11.ac13`
 - Owner: `renovatio-application`
 - Surfaces: `api`, `cli`, `mcp`, `workbench`
 
@@ -22,7 +22,8 @@ The contract is implemented by `SurfaceCapabilityRegistry` in `renovatio-applica
 - `stable`: implemented and supported on the listed surface.
 - `experimental`: available for preview usage, not guaranteed as a stable workflow.
 - `planned`: intentionally not advertised as runnable.
+- `unsupported`: preserved or documented for compatibility/research only, not a runnable product capability.
 
-The registry currently marks the COBOL-to-Java path and reference pipeline as stable, Node/JCL work as experimental or planned, and Python target generation as planned.
+The registry currently marks the COBOL-to-Java path and reference pipeline as stable, Node/JCL work as experimental or planned, and the Python lab package as unsupported research rather than target generation.
 
 Each capability also declares authorization, API job lifecycle states (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`), error codes, manifest hash fields, and runtime support for LLM, persistence and equivalence. Surface support is declared per capability and adapter; stable capabilities may still be `planned` on surfaces that do not expose a runnable command or endpoint yet.

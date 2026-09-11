@@ -30,7 +30,7 @@ class McpToolingServiceCapabilityTest {
 
         List<McpTool> tools = service.getMcpTools();
         assertEquals("renovatio_capabilities", tools.get(0).getName());
-        assertEquals("2026-09-11.ac09", tools.get(0).getMetadata().get("capabilityContractVersion"));
+        assertEquals("2026-09-11.ac13", tools.get(0).getMetadata().get("capabilityContractVersion"));
         assertEquals("renovatio_capabilities", service.getTool("renovatio_capabilities").getName());
         assertEquals("renovatio_capabilities", service.getTool("renovatio.capabilities").getName());
 

@@ -27,8 +27,9 @@ class SurfaceCapabilityRegistryTest {
                         && "supported".equals(((Map<?, ?>) capability.get("surfaces")).get("mcp"))));
         assertTrue(((List<?>) document.get("capabilities")).stream()
                 .map(Map.class::cast)
-                .anyMatch(capability -> "python.target".equals(capability.get("id"))
-                        && "planned".equals(capability.get("maturity"))));
+                .anyMatch(capability -> "python.lab".equals(capability.get("id"))
+                        && "unsupported".equals(capability.get("maturity"))
+                        && "unsupported".equals(((Map<?, ?>) capability.get("surfaces")).get("api"))));
         assertTrue(((List<?>) document.get("capabilities")).stream()
                 .map(Map.class::cast)
                 .anyMatch(capability -> "node.target".equals(capability.get("id"))

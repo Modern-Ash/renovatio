@@ -1,6 +1,6 @@
 {
   "id": "renovatio.surface-capabilities",
-  "version": "2026-09-11.ac09",
+  "version": "2026-09-11.ac13",
   "owner": "application",
   "surfaces": ["api", "cli", "mcp", "workbench"],
   "capabilities": [
@@ -45,12 +45,12 @@
       "runtime": { "llm": "planned", "persistence": "supported", "equivalence": "supported" }
     },
     {
-      "id": "python.target",
-      "operation": "apply",
+      "id": "python.lab",
+      "operation": "research",
       "sourceLanguage": "cobol",
       "targetLanguage": "python",
-      "maturity": "planned",
-      "surfaces": { "api": "planned", "cli": "planned", "mcp": "planned", "workbench": "planned" },
+      "maturity": "unsupported",
+      "surfaces": { "api": "unsupported", "cli": "unsupported", "mcp": "unsupported", "workbench": "unsupported" },
       "states": ["PENDING", "RUNNING", "COMPLETED", "FAILED"],
       "runtime": { "llm": "planned", "persistence": "planned", "equivalence": "planned" }
     }

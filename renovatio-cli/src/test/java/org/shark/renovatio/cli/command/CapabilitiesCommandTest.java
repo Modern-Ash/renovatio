@@ -32,7 +32,8 @@ class CapabilitiesCommandTest {
                 .contains("\"cobol.analyze\"")
                 .contains("\"node.target\"")
                 .contains("\"maturity\" : \"experimental\"")
-                .contains("\"python.target\"")
+                .contains("\"python.lab\"")
+                .contains("\"maturity\" : \"unsupported\"")
                 .contains("\"authorization\" : \"project-member\"")
                 .contains("\"VALIDATION_FAILED\"")
                 .contains("\"equivalence\" : \"supported\"");
