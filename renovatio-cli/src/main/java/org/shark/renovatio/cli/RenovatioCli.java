@@ -16,6 +16,7 @@ import org.shark.renovatio.cli.command.ProfileCommand;
 import org.shark.renovatio.cli.command.PolicyCommand;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.IVersionProvider;
 
 /**
  * Root command for the Renovatio CLI.
@@ -26,7 +27,7 @@ import picocli.CommandLine.Command;
 @Command(
         name = "renovatio",
         mixinStandardHelpOptions = true,
-        version = "renovatio-cli 0.0.1-SNAPSHOT",
+        versionProvider = RenovatioCli.VersionProvider.class,
         description = "Command-line adapter over the in-process Renovatio core",
         subcommands = {
                 AnalyzeCommand.class,
@@ -54,5 +55,16 @@ public final class RenovatioCli implements Runnable {
     @Override
     public void run() {
         // Picocli prints usage when users ask for help.
+    }
+
+    static final class VersionProvider implements IVersionProvider {
+        @Override
+        public String[] getVersion() {
+            String version = RenovatioCli.class.getPackage().getImplementationVersion();
+            if (version == null || version.isBlank()) {
+                version = "0.3.0-alpha.1";
+            }
+            return new String[]{"renovatio-cli " + version};
+        }
     }
 }

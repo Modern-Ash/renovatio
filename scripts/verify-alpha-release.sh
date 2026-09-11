@@ -38,6 +38,7 @@ require_file "docs/release/${VERSION}-capability-matrix.md"
 require_file "docs/release/${VERSION}-release-notes.md"
 require_file "docs/release/${VERSION}-sbom.md"
 require_file "docs/release/${VERSION}-provenance.md"
+require_file "docs/release/${VERSION}-troubleshooting.md"
 require_file "docs/release/${VERSION}-checksums.txt"
 require_file "docs/reports/issue-235-release-readiness-report.md"
 
@@ -73,6 +74,7 @@ sha256sum \
   "docs/release/${VERSION}-release-notes.md" \
   "docs/release/${VERSION}-release-plan.md" \
   "docs/release/${VERSION}-sbom.md" \
+  "docs/release/${VERSION}-troubleshooting.md" \
   "docs/reports/issue-235-release-readiness-report.md" \
   | diff -u - "docs/release/${VERSION}-checksums.txt"
 

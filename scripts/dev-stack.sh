@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 API_JAR="$ROOT_DIR/renovatio-api/target/renovatio-api.jar"
-MCP_JAR="$ROOT_DIR/renovatio-mcp-server/target/renovatio-mcp-server-0.0.1-SNAPSHOT.jar"
+MCP_JAR=""
 API_PORT=8080
 MCP_PORT=8082
 API_PID_FILE="/tmp/renovatio-api.pid"
@@ -60,6 +60,13 @@ build() {
   mvn -q -pl renovatio-api,renovatio-mcp-server -am package -DskipTests -Djacoco.skip=true
 }
 
+resolve_mcp_jar() {
+  local jar
+  jar="$(find "$ROOT_DIR/renovatio-mcp-server/target" -maxdepth 1 -type f -name 'renovatio-mcp-server-*.jar' ! -name '*-sources.jar' ! -name '*-javadoc.jar' | sort | tail -n 1)"
+  [[ -n "$jar" ]] || return 1
+  MCP_JAR="$jar"
+}
+
 start_api() {
   if [[ ! -f "$API_JAR" ]]; then
     echo "Missing API jar: $API_JAR"
@@ -73,6 +80,11 @@ start_api() {
 }
 
 start_mcp() {
+  resolve_mcp_jar || {
+    echo "Missing MCP jar matching: $ROOT_DIR/renovatio-mcp-server/target/renovatio-mcp-server-*.jar"
+    exit 1
+  }
+
   if [[ ! -f "$MCP_JAR" ]]; then
     echo "Missing MCP jar: $MCP_JAR"
     exit 1
