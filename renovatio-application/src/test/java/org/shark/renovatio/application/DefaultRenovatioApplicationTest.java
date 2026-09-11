@@ -33,6 +33,31 @@ class DefaultRenovatioApplicationTest {
         assertArrayEquals(first.artifacts().get("generated.txt"), kit.artifacts.workspace.get("generated.txt"));
     }
 
+    @Test void previewRunsBatchOrchestrationThroughTheCanonicalApplicationBoundary() {
+        var kit = new ApplicationContractTestKit(); var app = kit.application();
+        app.createProject(new CreateProject("project", "Project", "create-1", Map.of()));
+        app.analyzeProject(new AnalyzeProject("project"));
+        app.resolveDecisions(new ResolveDecisions("project", "decisions-1",
+                Map.of("style", "hexagonal", "batch.target", "SPRING_BATCH")));
+        MigrationPlan plan = app.plan(new Plan("project"));
+
+        ArtifactManifest manifest = app.preview(new Preview("project", plan.id()));
+
+        assertEquals(1, kit.batchCalls);
+        assertTrue(manifest.artifacts().containsKey("generated.txt"));
+        assertEquals("batch:SPRING_BATCH:[generated.txt]",
+                new String(manifest.artifacts().get("batch/orchestration.txt"), StandardCharsets.UTF_8));
+    }
+
+    @Test void previewRejectsDuplicateTargetAndBatchArtifactPaths() {
+        var kit = new ApplicationContractTestKit(); var app = kit.application(); kit.seed(app);
+        kit.batchCollides = true;
+        MigrationPlan plan = app.plan(new Plan("project"));
+
+        assertThrows(ApplicationFailure.ValidationFailed.class,
+                () -> app.preview(new Preview("project", plan.id())));
+    }
+
     @Test void applyReplayDoesNotRepeatWritesOrGitAndConflictingKeyFails() {
         var kit = new ApplicationContractTestKit(); var app = kit.application(); kit.seed(app);
         MigrationPlan plan = app.plan(new Plan("project"));

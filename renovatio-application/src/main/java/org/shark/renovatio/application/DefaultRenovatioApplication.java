@@ -15,6 +15,7 @@ public final class DefaultRenovatioApplication implements RenovatioApplication {
     private final ProposalProvider proposals;
     private final ArchitectureProjector projector;
     private final TargetEmitter emitter;
+    private final BatchOrchestrationPlanner batchPlanner;
     private final TargetRefiner refiner;
     private final ValidationGate validator;
     private final ProjectRepository projects;
@@ -27,8 +28,17 @@ public final class DefaultRenovatioApplication implements RenovatioApplication {
             ArchitectureProjector projector, TargetEmitter emitter, TargetRefiner refiner,
             ValidationGate validator, ProjectRepository projects, ArtifactRepository artifacts,
             IdempotencyRepository idempotency, GitPort git, ClockPort clock) {
+        this(analyzer, proposals, projector, emitter, BatchOrchestrationPlanner.disabled(), refiner, validator,
+                projects, artifacts, idempotency, git, clock);
+    }
+
+    public DefaultRenovatioApplication(SourceAnalyzer analyzer, ProposalProvider proposals,
+            ArchitectureProjector projector, TargetEmitter emitter, BatchOrchestrationPlanner batchPlanner,
+            TargetRefiner refiner, ValidationGate validator, ProjectRepository projects, ArtifactRepository artifacts,
+            IdempotencyRepository idempotency, GitPort git, ClockPort clock) {
         this.analyzer = Objects.requireNonNull(analyzer); this.proposals = Objects.requireNonNull(proposals);
         this.projector = Objects.requireNonNull(projector); this.emitter = Objects.requireNonNull(emitter);
+        this.batchPlanner = Objects.requireNonNull(batchPlanner);
         this.refiner = Objects.requireNonNull(refiner); this.validator = Objects.requireNonNull(validator);
         this.projects = Objects.requireNonNull(projects); this.artifacts = Objects.requireNonNull(artifacts);
         this.idempotency = Objects.requireNonNull(idempotency); this.git = Objects.requireNonNull(git);
@@ -78,9 +88,21 @@ public final class DefaultRenovatioApplication implements RenovatioApplication {
         MigrationPlan plan = projects.plan(query.projectId(), query.planId()).orElseThrow(() -> new ApplicationFailure.NotFound("plan not found"));
         SourceSnapshot current = analyzer.snapshot(query.projectId());
         if (!plan.sourceHash().equals(current.hash())) throw new ApplicationFailure.StaleSource("plan source is stale");
-        Map<String, byte[]> emitted = emitter.emit(plan.projection());
+        Map<String, byte[]> emitted = new java.util.TreeMap<>(emitter.emit(plan.projection()));
+        Map<String, byte[]> batchArtifacts = batchPlanner.plan(plan.projection(), plan.decisions(), emitted);
+        rejectDuplicateArtifacts(emitted, batchArtifacts);
+        emitted.putAll(batchArtifacts);
         ArtifactManifest value = new ArtifactManifest(null, query.projectId(), plan.sourceHash(), refiner.refine(emitted));
         projects.saveManifest(value); return value;
+    }
+
+    private static void rejectDuplicateArtifacts(Map<String, byte[]> targetArtifacts,
+                                                 Map<String, byte[]> batchArtifacts) {
+        java.util.Set<String> duplicates = new java.util.TreeSet<>(targetArtifacts.keySet());
+        duplicates.retainAll(batchArtifacts.keySet());
+        if (!duplicates.isEmpty()) {
+            throw new ApplicationFailure.ValidationFailed("duplicate artifact path(s): " + duplicates);
+        }
     }
 
     @Override public ValidationResult validate(Validate query) {
