@@ -35,3 +35,20 @@
 - 2026-09-11T19:09:32.988065Z | work.resume | from=blocked to=active actor=project:agent change=change-20260911t190932987935z
 - 2026-09-11T19:09:38.606776Z | work.criterion-stage-marked | criterion=license actor=project:agent stage=implemented
 - 2026-09-11T19:09:43.746886Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T19:10:35.033302Z | evidence.added | id=issue-224-mit-license-checks type=verification result=success revision=1 actor=project:agent
+- 2026-09-11T19:10:42.180092Z | work.criterion-stage-marked | criterion=license actor=project:agent stage=verified
+- 2026-09-11T19:10:42.418656Z | work.criterion-stage-marked | criterion=license actor=project:owner stage=accepted
+- 2026-09-11T19:10:42.656926Z | work.criterion-stage-marked | criterion=community-files actor=project:agent stage=verified
+- 2026-09-11T19:10:42.900220Z | work.criterion-stage-marked | criterion=community-files actor=project:owner stage=accepted
+- 2026-09-11T19:10:43.148634Z | work.criterion-stage-marked | criterion=tracked-artifacts actor=project:agent stage=verified
+- 2026-09-11T19:10:43.382189Z | work.criterion-stage-marked | criterion=tracked-artifacts actor=project:owner stage=accepted
+- 2026-09-11T19:10:43.601229Z | work.criterion-stage-marked | criterion=agora-retention actor=project:agent stage=verified
+- 2026-09-11T19:10:43.810255Z | work.criterion-stage-marked | criterion=agora-retention actor=project:owner stage=accepted
+- 2026-09-11T19:10:44.021205Z | work.criterion-stage-marked | criterion=history-scan actor=project:agent stage=verified
+- 2026-09-11T19:10:44.245189Z | work.criterion-stage-marked | criterion=history-scan actor=project:owner stage=accepted
+- 2026-09-11T19:10:44.461174Z | work.criterion-stage-marked | criterion=dependency-license-scan actor=project:agent stage=verified
+- 2026-09-11T19:10:44.675888Z | work.criterion-stage-marked | criterion=dependency-license-scan actor=project:owner stage=accepted
+- 2026-09-11T19:10:44.890491Z | work.criterion-stage-marked | criterion=repo-size actor=project:agent stage=verified
+- 2026-09-11T19:10:45.110910Z | work.criterion-stage-marked | criterion=repo-size actor=project:owner stage=accepted
+- 2026-09-11T19:10:54.454650Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-11T19:11:01.441748Z | work.transitioned | from=verifying to=completed actor=project:owner
