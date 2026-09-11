@@ -29,6 +29,12 @@ class SurfaceCapabilityRegistryTest {
                 .map(Map.class::cast)
                 .anyMatch(capability -> "python.target".equals(capability.get("id"))
                         && "planned".equals(capability.get("maturity"))));
+        assertTrue(((List<?>) document.get("capabilities")).stream()
+                .map(Map.class::cast)
+                .anyMatch(capability -> "node.target".equals(capability.get("id"))
+                        && "experimental".equals(capability.get("maturity"))
+                        && "experimental".equals(((Map<?, ?>) capability.get("surfaces")).get("api"))
+                        && "experimental".equals(((Map<?, ?>) capability.get("surfaces")).get("cli"))));
     }
 
     @Test
