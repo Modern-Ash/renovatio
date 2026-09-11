@@ -40,3 +40,12 @@
 - 2026-09-10T01:34:44.302796Z | work.criterion-stage-marked | criterion=logging actor=project:agent stage=verified
 - 2026-09-10T01:34:57.946120Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
 - 2026-09-10T01:34:58.175470Z | evidence.added | id=evidence-000002 type=static-analysis result=success revision=1 actor=project:agent
+- 2026-09-11T13:46:28.830445Z | work.criterion-stage-marked | criterion=single-authority actor=project:owner stage=accepted
+- 2026-09-11T13:46:29.048272Z | work.criterion-stage-marked | criterion=provider-cleanup actor=project:owner stage=accepted
+- 2026-09-11T13:46:29.268481Z | work.criterion-stage-marked | criterion=dependency-direction actor=project:owner stage=accepted
+- 2026-09-11T13:46:29.489163Z | work.criterion-stage-marked | criterion=service-decomposition actor=project:owner stage=accepted
+- 2026-09-11T13:46:29.703883Z | work.criterion-stage-marked | criterion=legacy-route actor=project:owner stage=accepted
+- 2026-09-11T13:46:29.925476Z | work.criterion-stage-marked | criterion=emitter-registration actor=project:owner stage=accepted
+- 2026-09-11T13:46:30.147048Z | work.criterion-stage-marked | criterion=logging actor=project:owner stage=accepted
+- 2026-09-11T13:46:35.817295Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T13:46:38.836876Z | work.transitioned | from=verifying to=completed actor=project:owner
