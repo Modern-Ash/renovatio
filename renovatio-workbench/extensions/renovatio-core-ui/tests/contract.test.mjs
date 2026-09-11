@@ -60,6 +60,8 @@ test('keeps dashboard continuity at a configuration boundary', () => {
 });
 
 test('loads live projects through the Spring Boot adapter with explicit failure states', () => {
+    assert.match(shell, /\/api\/v1\/capabilities/);
+    assert.match(shell, /loadCapabilities\(\)/);
     assert.match(shell, /\/api\/workbench\/projects/);
     assert.match(shell, /\/workbench\/assets/);
     assert.match(shell, /encodeURIComponent\(this\.selectedProject\)/);

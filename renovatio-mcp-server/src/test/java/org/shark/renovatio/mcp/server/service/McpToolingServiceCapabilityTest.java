@@ -1,0 +1,44 @@
+package org.shark.renovatio.mcp.server.service;
+
+import org.junit.jupiter.api.Test;
+import org.shark.renovatio.application.spi.ApplicationCommandBus;
+import org.shark.renovatio.core.service.LanguageProviderRegistry;
+import org.shark.renovatio.mcp.server.model.McpTool;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class McpToolingServiceCapabilityTest {
+    @Test
+    void listsAndExecutesCapabilitiesToolFromSharedContract() {
+        LanguageProviderRegistry providers = mock(LanguageProviderRegistry.class);
+        when(providers.generateTools()).thenReturn(List.of());
+        McpToolingService service = new McpToolingService(
+                providers,
+                mock(ApplicationCommandBus.class),
+                mock(McpToolAdapter.class),
+                "2024-11-05");
+
+        List<McpTool> tools = service.getMcpTools();
+        assertEquals("renovatio.capabilities", tools.get(0).getName());
+        assertEquals("2026-09-11.ac09", tools.get(0).getMetadata().get("capabilityContractVersion"));
+
+        Map<String, Object> result = service.executeTool("renovatio.capabilities", Map.of());
+        assertEquals(true, result.get("success"));
+        assertEquals("renovatio.surface-capabilities", result.get("id"));
+        assertFalse(((List<?>) result.get("capabilities")).isEmpty());
+        assertTrue(((List<?>) result.get("surfaces")).contains("mcp"));
+        assertTrue(((List<?>) result.get("capabilities")).stream()
+                .map(Map.class::cast)
+                .anyMatch(capability -> "reference-pipeline".equals(capability.get("id"))
+                        && "project-member".equals(capability.get("authorization"))
+                        && ((List<?>) capability.get("errors")).contains("CAPABILITY_UNAVAILABLE")
+                        && "supported".equals(((Map<?, ?>) capability.get("runtime")).get("equivalence"))));
+    }
+}

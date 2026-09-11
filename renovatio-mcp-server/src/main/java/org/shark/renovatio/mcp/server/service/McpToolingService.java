@@ -1,6 +1,7 @@
 package org.shark.renovatio.mcp.server.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.shark.renovatio.application.capability.SurfaceCapabilityRegistry;
 import org.shark.renovatio.mcp.server.model.McpPrompt;
 import org.shark.renovatio.mcp.server.model.McpResource;
 import org.shark.renovatio.mcp.server.model.McpTool;
@@ -38,6 +39,7 @@ public class McpToolingService {
     private final LanguageProviderRegistry providerRegistry;
     private final ApplicationCommandBus application;
     private final McpToolAdapter toolAdapter;
+    private final SurfaceCapabilityRegistry capabilityRegistry;
     private final List<McpPrompt> prompts;
     private final List<McpResource> resources;
 
@@ -52,6 +54,7 @@ public class McpToolingService {
         this.providerRegistry = providerRegistry;
         this.application = application;
         this.toolAdapter = toolAdapter;
+        this.capabilityRegistry = new SurfaceCapabilityRegistry();
         this.spec = protocolSpec;
         this.prompts = createPrompts();
         this.resources = createResources();
@@ -63,7 +66,8 @@ public class McpToolingService {
     public List<McpTool> getMcpTools() {
         // Use the new protocol-agnostic API and convert to MCP tools
         var tools = providerRegistry.generateTools();
-        var mcpTools = toolAdapter.toMcpTools(tools);
+        var mcpTools = new ArrayList<>(toolAdapter.toMcpTools(tools));
+        mcpTools.add(capabilityTool());
         logger.debug("Resolved {} MCP tool(s)", mcpTools.size());
         return mcpTools;
     }
@@ -112,6 +116,11 @@ public class McpToolingService {
     public Map<String, Object> executeTool(String toolName, Map<String, Object> arguments) {
         logger.debug("Executing MCP tool: '{}' with arguments: {}", toolName, redactForLog(arguments, 0));
         try {
+            if ("renovatio.capabilities".equals(toolName) || "renovatio_capabilities".equals(toolName)) {
+                Map<String, Object> result = new LinkedHashMap<>(capabilityRegistry.asMap());
+                result.put("success", true);
+                return result;
+            }
             String internalToolName = toInternalToolName(toolName);
             Map<String, Object> normalizedArguments = new HashMap<>(arguments);
 
@@ -141,6 +150,32 @@ public class McpToolingService {
             errorResult.put("error", e.getClass().getSimpleName());
             return errorResult;
         }
+    }
+
+    private McpTool capabilityTool() {
+        Map<String, Object> inputSchema = new LinkedHashMap<>();
+        inputSchema.put("type", "object");
+        inputSchema.put("properties", Map.of());
+        inputSchema.put("additionalProperties", false);
+
+        Map<String, Object> outputSchema = new LinkedHashMap<>();
+        outputSchema.put("type", "object");
+        outputSchema.put("required", List.of("id", "version", "surfaces", "capabilities"));
+
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("capabilityContractVersion", SurfaceCapabilityRegistry.CONTRACT_VERSION);
+        metadata.put("maturity", "stable");
+        metadata.put("tags", List.of("renovatio", "capabilities", "surface-contract"));
+
+        return new McpTool(
+                "renovatio.capabilities",
+                "Return the versioned Renovatio capability contract shared by API, CLI, MCP and Workbench.",
+                inputSchema,
+                outputSchema,
+                List.of(),
+                Map.of(),
+                metadata
+        );
     }
 
 
