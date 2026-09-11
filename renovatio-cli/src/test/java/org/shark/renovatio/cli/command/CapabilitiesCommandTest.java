@@ -30,6 +30,8 @@ class CapabilitiesCommandTest {
         assertThat(stdout.toString(StandardCharsets.UTF_8))
                 .contains("\"id\" : \"renovatio.surface-capabilities\"")
                 .contains("\"cobol.analyze\"")
+                .contains("\"node.target\"")
+                .contains("\"maturity\" : \"experimental\"")
                 .contains("\"python.target\"")
                 .contains("\"authorization\" : \"project-member\"")
                 .contains("\"VALIDATION_FAILED\"")

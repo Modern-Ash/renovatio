@@ -26,7 +26,9 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
                     files.put(path, content);
                 });
         files.put("src/main.ts", generateMain());
+        files.put("src/main.test.ts", generateSmokeTest());
         files.put("package.json", generatePackageJson());
+        files.put("package-lock.json", generatePackageLock());
         files.put("tsconfig.json", generateTsConfig());
         if (profile.persistence() != null
                 && profile.persistence().defaultStrategy() == MigrationProfile.PersistenceStrategy.PRISMA) {
@@ -111,18 +113,37 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
 
     private String generateMain() {
         return """
-                import express from 'express';
+                import { createServer } from 'node:http';
 
-                const app = express();
-                app.use(express.json());
+                export function healthResponse(): string {
+                  return JSON.stringify({ status: 'ok' });
+                }
 
-                app.get('/health', (_req, res) => {
-                  res.json({ status: 'ok' });
+                const server = createServer((request, response) => {
+                  if (request.url === '/health') {
+                    response.writeHead(200, { 'content-type': 'application/json' });
+                    response.end(healthResponse());
+                    return;
+                  }
+                  response.writeHead(404, { 'content-type': 'application/json' });
+                  response.end(JSON.stringify({ error: 'not_found' }));
                 });
 
-                const port = process.env.PORT || 3000;
-                app.listen(port, () => {
+                const port = Number(process.env.PORT || 3000);
+                server.listen(port, () => {
                   console.log(`Server running on port ${port}`);
+                });
+                """;
+    }
+
+    private String generateSmokeTest() {
+        return """
+                import { strict as assert } from 'node:assert';
+                import test from 'node:test';
+                import { healthResponse } from './main';
+
+                test('health response is stable', () => {
+                  assert.deepEqual(JSON.parse(healthResponse()), { status: 'ok' });
                 });
                 """;
     }
@@ -132,17 +153,39 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
                 {
                   "name": "renovatio-node-app",
                   "version": "1.0.0",
+                  "private": true,
+                  "packageManager": "npm@10.8.2",
                   "main": "dist/main.js",
                   "scripts": {
                     "build": "tsc",
+                    "lint": "tsc --noEmit",
+                    "test": "npm run build && node --test dist/**/*.test.js",
                     "start": "node dist/main.js"
                   },
-                  "dependencies": {
-                    "express": "^4.18.2"
-                  },
                   "devDependencies": {
-                    "typescript": "^5.3.3",
-                    "@types/express": "^4.17.21"
+                    "@types/node": "20.14.10",
+                    "typescript": "5.5.4"
+                  }
+                }
+                """;
+    }
+
+    private String generatePackageLock() {
+        return """
+                {
+                  "name": "renovatio-node-app",
+                  "version": "1.0.0",
+                  "lockfileVersion": 3,
+                  "requires": true,
+                  "packages": {
+                    "": {
+                      "name": "renovatio-node-app",
+                      "version": "1.0.0",
+                      "devDependencies": {
+                        "@types/node": "20.14.10",
+                        "typescript": "5.5.4"
+                      }
+                    }
                   }
                 }
                 """;
@@ -157,7 +200,7 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
                     "outDir": "dist",
                     "rootDir": "src",
                     "strict": true,
-                    "esModuleInterop": true,
+                    "moduleResolution": "node",
                     "skipLibCheck": true,
                     "forceConsistentCasingInFileNames": true
                   },

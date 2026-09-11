@@ -53,11 +53,18 @@ class NodeEmitterTest {
         assertTrue(firstFiles.get("src/first/domain/first.entity.ts").contains("interface FirstEntity"));
         assertTrue(firstFiles.get("src/first/domain/first.repository.ts").contains("interface FirstRepository"));
         assertTrue(firstFiles.get("src/first/api/first.controller.ts").contains("firstController"));
-        for (String shared : List.of("src/main.ts", "package.json", "tsconfig.json", "docs/node-idioms.md")) {
+        for (String shared : sharedProjectArtifacts()) {
             assertEquals(firstFiles.get(shared), secondFiles.get(shared), shared);
         }
         assertFalse(firstFiles.get("src/main.ts").contains("FIRST"));
         assertFalse(firstFiles.get("package.json").contains("first"));
+        assertTrue(firstFiles.get("src/main.ts").contains("createServer"));
+        assertTrue(firstFiles.get("src/main.test.ts").contains("health response is stable"));
+        assertTrue(firstFiles.get("package.json").contains("\"lint\": \"tsc --noEmit\""));
+        assertTrue(firstFiles.get("package.json").contains("\"test\": \"npm run build && node --test dist/**/*.test.js\""));
+        assertFalse(firstFiles.get("package.json").contains("\"express\""));
+        assertTrue(firstFiles.get("package-lock.json").contains("\"lockfileVersion\": 3"));
+        assertTrue(firstFiles.get("package-lock.json").contains("\"typescript\": \"5.5.4\""));
         assertTrue(firstFiles.get("docs/node-idioms.md").contains("COBOL to TypeScript Idiom Mappings"));
         assertTrue(firstFiles.get("docs/node-idioms.md").contains("| MOVE | assignment |"));
     }
@@ -75,7 +82,7 @@ class NodeEmitterTest {
 
         assertTrue(firstFiles.get("src/first/domain/first.service.ts")
                 .startsWith("/**\n * Migrated from COBOL program FIRST"));
-        for (String shared : List.of("src/main.ts", "package.json", "tsconfig.json", "docs/node-idioms.md")) {
+        for (String shared : sharedProjectArtifacts()) {
             assertEquals(firstFiles.get(shared), secondFiles.get(shared), shared);
             assertFalse(firstFiles.get(shared).contains("Migrated from COBOL"), shared);
         }
@@ -101,6 +108,11 @@ class NodeEmitterTest {
                 new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
         return TargetModel.from(program, MigrationProfiles.effective(MigrationProfiles.emptyOverlay(),
                 Map.of(), Map.of(), List.of()));
+    }
+
+    private static List<String> sharedProjectArtifacts() {
+        return List.of("src/main.ts", "src/main.test.ts", "package.json", "package-lock.json", "tsconfig.json",
+                "docs/node-idioms.md");
     }
 
     private static TargetModel model(String programId, List<String> artifactPaths) {
