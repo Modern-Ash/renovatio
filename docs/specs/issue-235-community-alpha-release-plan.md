@@ -2,7 +2,7 @@
 issue: 235
 epic: 221
 agora_work: architecture-convergence-2026/community-alpha-release
-status: blocked-by-dependencies
+status: ready-for-release-review
 ---
 
 # Issue 235 Implementation Plan
@@ -50,5 +50,7 @@ status: blocked-by-dependencies
 
 ## Current State
 
-This plan is prepared but implementation is blocked by dependencies, especially
-AC-03 / issue #224 license approval.
+Dependency issues AC-01, AC-02, AC-03, AC-07, AC-09 and AC-10 were verified
+closed on 2026-09-11. The release package can proceed to candidate review, but
+tag creation and publication remain blocked until Spec Owner approval is
+recorded for the exact candidate SHA.

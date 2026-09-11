@@ -11,3 +11,5 @@
 - 2026-09-11T18:14:32.060583Z | swarm.status-changed | from=ready to=blocked
 - 2026-09-11T19:09:32.993503Z | swarm.status-changed | from=blocked to=running
 - 2026-09-11T19:11:01.447964Z | swarm.status-changed | from=running to=completed
+- 2026-09-11T20:01:29.524735Z | swarm.status-changed | from=blocked to=running
+- 2026-09-11T20:14:26.397412Z | swarm.status-changed | from=running to=blocked
