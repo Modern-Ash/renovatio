@@ -4,11 +4,10 @@ import org.shark.renovatio.api.dto.ProjectDto;
 import org.shark.renovatio.api.entity.ProjectEntity;
 import org.shark.renovatio.api.dto.ReusableReferenceDto;
 import org.shark.renovatio.api.repository.ProjectRepository;
+import org.shark.renovatio.shared.security.WorkspaceRootPolicy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -22,12 +21,14 @@ public class ProjectService {
     private final ProjectRepository projectRepo;
     private final DecisionLayerService decisionLayer;
     private final ReusableAssetsService reusableAssets;
+    private final WorkspaceRootPolicy workspaceRootPolicy;
 
     public ProjectService(ProjectRepository projectRepo, DecisionLayerService decisionLayer,
-                          ReusableAssetsService reusableAssets) {
+                          ReusableAssetsService reusableAssets, WorkspaceRootPolicy workspaceRootPolicy) {
         this.projectRepo = projectRepo;
         this.decisionLayer = decisionLayer;
         this.reusableAssets = reusableAssets;
+        this.workspaceRootPolicy = workspaceRootPolicy;
     }
 
     @Transactional
@@ -61,29 +62,24 @@ public class ProjectService {
     }
 
     private String normalizeAndCreateWorkspace(String workspacePath) {
-        Path workspace = Paths.get(workspacePath);
-        if (!workspace.isAbsolute()) {
-            workspace = workspace.toAbsolutePath();
-        }
-        try {
-            Files.createDirectories(workspace);
-            return workspace.normalize().toString();
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Unable to create workspace directory: " + workspace, e);
-        }
+        return workspaceRootPolicy.prepareWorkspace(workspacePath).toString();
     }
 
     private String normalizeJavaOutputPath(String javaOutputPath, String workspacePath) {
         if (javaOutputPath == null || javaOutputPath.isBlank()) {
-            return Paths.get(workspacePath).resolve("generated-java-stubs").normalize().toString();
+            return workspaceRootPolicy.resolveForWrite(Path.of(workspacePath), "generated-java-stubs").toString();
         }
 
         Path requested = Paths.get(javaOutputPath.trim());
         if (requested.isAbsolute()) {
-            return requested.normalize().toString();
+            if (!requested.normalize().startsWith(Path.of(workspacePath).normalize())) {
+                throw new SecurityException("javaOutputPath must stay inside workspace");
+            }
+            return workspaceRootPolicy.resolveForWrite(Path.of(workspacePath),
+                    Path.of(workspacePath).normalize().relativize(requested.normalize()).toString()).toString();
         }
 
-        return Paths.get(workspacePath).resolve(requested).normalize().toString();
+        return workspaceRootPolicy.resolveForWrite(Path.of(workspacePath), requested.toString()).toString();
     }
 
     private String trimOrNull(String value) {

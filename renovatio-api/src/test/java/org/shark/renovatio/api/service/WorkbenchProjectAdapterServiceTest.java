@@ -2,15 +2,15 @@ package org.shark.renovatio.api.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.shark.renovatio.shared.security.WorkspaceRootPolicy;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 class WorkbenchProjectAdapterServiceTest {
-    private final WorkbenchProjectAdapterService adapter = new WorkbenchProjectAdapterService();
-
     @Test
     void legacyAssetsRemainReadOnlyAndTargetsRequireDevelopmentMode(@TempDir Path root) throws Exception {
+        WorkbenchProjectAdapterService adapter = new WorkbenchProjectAdapterService(WorkspaceRootPolicy.under(root));
         Files.writeString(root.resolve("PAYROLL.CBL"), "IDENTIFICATION DIVISION.");
         Files.createDirectories(root.resolve("generated"));
         Files.writeString(root.resolve("generated/App.java"), "class App {}");
@@ -23,6 +23,7 @@ class WorkbenchProjectAdapterServiceTest {
 
     @Test
     void traversalIsRejected(@TempDir Path root) {
+        WorkbenchProjectAdapterService adapter = new WorkbenchProjectAdapterService(WorkspaceRootPolicy.under(root));
         assertThrows(SecurityException.class, () -> adapter.read(root, "../outside.txt"));
     }
 }

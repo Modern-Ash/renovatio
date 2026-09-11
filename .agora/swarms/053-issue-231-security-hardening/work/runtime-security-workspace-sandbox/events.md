@@ -1,0 +1,35 @@
+# Work events
+
+- 2026-09-11T15:26:51.334731Z | work.created | state=drafting actor=project:owner
+- 2026-09-11T15:33:44.039152Z | artifact.added | kind=spec uri=docs/specs/issue-231-runtime-security-workspace-sandbox.md actor=project:owner
+- 2026-09-11T15:33:44.064776Z | artifact.added | kind=implementation-plan uri=docs/specs/issue-231-runtime-security-workspace-sandbox-plan.md actor=project:owner
+- 2026-09-11T15:33:44.091707Z | artifact.added | kind=security-report uri=docs/reports/issue-231-security-report.md actor=project:owner
+- 2026-09-11T15:33:44.115837Z | artifact.added | kind=operations-guide uri=docs/security/issue-231-operations-guide.md actor=project:owner
+- 2026-09-11T15:33:47.552904Z | artifact.added | kind=threat-model uri=docs/security/issue-231-threat-model.md actor=project:owner
+- 2026-09-11T15:33:50.473656Z | artifact.added | kind=test-report uri=docs/reports/issue-231-test-report.md actor=project:owner
+- 2026-09-11T15:33:57.930633Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-11T15:33:57.984477Z | evidence.added | id=evidence-000002 type=test result=success revision=1 actor=project:agent
+- 2026-09-11T15:34:08.476253Z | work.criterion-stage-marked | criterion=deployment-modes actor=project:owner stage=specified
+- 2026-09-11T15:34:08.488589Z | work.criterion-stage-marked | criterion=authentication actor=project:owner stage=specified
+- 2026-09-11T15:34:08.512056Z | work.criterion-stage-marked | criterion=authorization actor=project:owner stage=specified
+- 2026-09-11T15:34:08.541880Z | work.criterion-stage-marked | criterion=workspace-sandbox actor=project:owner stage=specified
+- 2026-09-11T15:34:19.210221Z | work.criterion-stage-marked | criterion=auditability actor=project:owner stage=specified
+- 2026-09-11T15:34:19.222557Z | work.criterion-stage-marked | criterion=safe-apply actor=project:owner stage=specified
+- 2026-09-11T15:34:19.234575Z | work.criterion-stage-marked | criterion=security-tests actor=project:owner stage=specified
+- 2026-09-11T15:34:19.270479Z | work.criterion-stage-marked | criterion=web-hardening actor=project:owner stage=specified
+- 2026-09-11T15:34:25.364604Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-11T15:34:35.441804Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-11T15:34:51.366414Z | work.criterion-stage-marked | criterion=deployment-modes actor=project:owner stage=planned
+- 2026-09-11T15:34:51.382436Z | work.criterion-stage-marked | criterion=authorization actor=project:owner stage=planned
+- 2026-09-11T15:34:51.440329Z | work.criterion-stage-marked | criterion=authentication actor=project:owner stage=planned
+- 2026-09-11T15:34:51.552809Z | work.criterion-stage-marked | criterion=workspace-sandbox actor=project:owner stage=planned
+- 2026-09-11T15:34:55.941114Z | work.criterion-stage-marked | criterion=safe-apply actor=project:owner stage=planned
+- 2026-09-11T15:34:58.747250Z | work.criterion-stage-marked | criterion=web-hardening actor=project:owner stage=planned
+- 2026-09-11T15:35:01.434913Z | work.criterion-stage-marked | criterion=auditability actor=project:owner stage=planned
+- 2026-09-11T15:35:04.373657Z | work.criterion-stage-marked | criterion=security-tests actor=project:owner stage=planned
+- 2026-09-11T15:35:08.442704Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-11T15:35:16.222741Z | work.criterion-stage-marked | criterion=workspace-sandbox actor=project:agent stage=implemented
+- 2026-09-11T15:35:16.233531Z | work.criterion-stage-marked | criterion=deployment-modes actor=project:agent stage=implemented
+- 2026-09-11T15:35:16.282652Z | work.criterion-stage-marked | criterion=safe-apply actor=project:agent stage=implemented
+- 2026-09-11T15:35:16.333975Z | work.criterion-stage-marked | criterion=security-tests actor=project:agent stage=implemented
+- 2026-09-11T15:35:26.021734Z | work.transitioned | from=implementing to=verifying actor=project:agent
