@@ -28,10 +28,15 @@ manifest and characterization evidence.
 
 ## Agora State
 
+The missing `.agora/swarms/002-architecture-convergence-2026/SWARM.md` record
+was restored from the existing `architecture-convergence-2026` work materials,
+and `jcl-decoupling-integration` was registered and completed through the Agora
+CLI.
+
 `agora work inspect --swarm architecture-convergence-2026 --work
-jcl-decoupling-integration` cannot currently inspect the declared work because
-Agora resolves the swarm to `.agora/swarms/002-architecture-convergence-2026`,
-which is absent in this checkout. `agora validate` also reports pre-existing
-stale evidence digests. This implementation therefore records artifacts in the
-repository and GitHub PR, while durable Agora closure remains blocked by project
-state repair.
+jcl-decoupling-integration` now succeeds with state `completed`, 7/7 criteria
+satisfied, 5 artifacts, 2 successful evidence entries and one `spec-owner`
+approval.
+
+`agora validate` no longer reports `swarm.invalid`; it still reports pre-existing
+historical evidence digest drift for unrelated artifacts.
