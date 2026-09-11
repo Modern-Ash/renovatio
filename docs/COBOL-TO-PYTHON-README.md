@@ -1,3 +1,9 @@
+# Current Status Notice
+
+As of issue #234, `renovatio-provider-python` is an unsupported lab package for
+COBOL runtime/PIC research. It is not a supported `TargetEmitter`, does not emit
+COBOL-to-Python artifacts, and is not exposed as a production target.
+
 # COBOL to Python Translation - Documentation Index
 
 ## 📚 Índice de Documentación

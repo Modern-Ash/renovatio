@@ -42,7 +42,7 @@ public final class SurfaceCapabilityRegistry {
                                 Map.of("api", "supported", "cli", "supported", "mcp", "planned", "workbench", "supported")),
                         preview("node.target", "Generate Node target artifacts", "apply", "cobol", "node"),
                         preview("jcl.batch", "Model JCL batch orchestration", "plan", "jcl", "java"),
-                        planned("python.target", "Generate Python target artifacts", "apply", "cobol", "python")
+                        unsupported("python.lab", "Unsupported Python lab package for COBOL runtime/PIC research", "research", "cobol", "python")
                 )
         );
     }
@@ -69,6 +69,11 @@ public final class SurfaceCapabilityRegistry {
     private static CapabilityDescriptor planned(String id, String summary, String operation, String source, String target) {
         return descriptor(id, summary, operation, source, target, "planned",
                 Map.of("api", "planned", "cli", "planned", "mcp", "planned", "workbench", "planned"));
+    }
+
+    private static CapabilityDescriptor unsupported(String id, String summary, String operation, String source, String target) {
+        return descriptor(id, summary, operation, source, target, "unsupported",
+                Map.of("api", "unsupported", "cli", "unsupported", "mcp", "unsupported", "workbench", "unsupported"));
     }
 
     private static CapabilityDescriptor descriptor(String id, String summary, String operation, String source,

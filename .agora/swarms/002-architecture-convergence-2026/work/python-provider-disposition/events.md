@@ -1,0 +1,37 @@
+# Work events
+
+- 2026-09-11T17:45:28.837292Z | work.created | state=drafting actor=project:owner
+- 2026-09-11T17:48:39.484143Z | artifact.added | kind=spec uri=docs/specs/issue-234-python-provider-disposition.md actor=project:owner
+- 2026-09-11T17:48:39.709977Z | artifact.added | kind=implementation-plan uri=docs/specs/issue-234-python-provider-disposition-plan.md actor=project:owner
+- 2026-09-11T17:48:39.946060Z | artifact.added | kind=capability-assessment uri=docs/reports/issue-234-python-capability-assessment.md actor=project:agent
+- 2026-09-11T17:48:40.173166Z | artifact.added | kind=decision-record uri=docs/adr/ADR-002-python-provider-disposition.md actor=project:owner
+- 2026-09-11T17:48:40.398432Z | artifact.added | kind=disposition-report uri=docs/reports/issue-234-python-disposition-report.md actor=project:agent
+- 2026-09-11T17:48:40.643572Z | artifact.added | kind=test-report uri=docs/reports/issue-234-test-report.md actor=project:agent
+- 2026-09-11T17:48:49.730481Z | work.criterion-stage-marked | criterion=assessment actor=project:owner stage=specified
+- 2026-09-11T17:48:49.983270Z | work.criterion-stage-marked | criterion=decision actor=project:owner stage=specified
+- 2026-09-11T17:48:50.224069Z | work.criterion-stage-marked | criterion=truthfulness actor=project:owner stage=specified
+- 2026-09-11T17:48:50.465420Z | work.criterion-stage-marked | criterion=integration-option actor=project:owner stage=specified
+- 2026-09-11T17:48:50.712054Z | work.criterion-stage-marked | criterion=archive-option actor=project:owner stage=specified
+- 2026-09-11T17:48:50.963496Z | work.criterion-stage-marked | criterion=ci-scope actor=project:owner stage=specified
+- 2026-09-11T17:48:51.211182Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-11T17:48:51.463046Z | work.criterion-stage-marked | criterion=assessment actor=project:owner stage=planned
+- 2026-09-11T17:48:51.688086Z | work.criterion-stage-marked | criterion=decision actor=project:owner stage=planned
+- 2026-09-11T17:48:51.915371Z | work.criterion-stage-marked | criterion=truthfulness actor=project:owner stage=planned
+- 2026-09-11T17:48:52.139023Z | work.criterion-stage-marked | criterion=integration-option actor=project:owner stage=planned
+- 2026-09-11T17:48:52.365284Z | work.criterion-stage-marked | criterion=archive-option actor=project:owner stage=planned
+- 2026-09-11T17:48:52.592230Z | work.criterion-stage-marked | criterion=ci-scope actor=project:owner stage=planned
+- 2026-09-11T17:48:53.246295Z | work.criterion-stage-marked | criterion=assessment actor=project:agent stage=implemented
+- 2026-09-11T17:48:53.470610Z | work.criterion-stage-marked | criterion=decision actor=project:agent stage=implemented
+- 2026-09-11T17:48:53.689984Z | work.criterion-stage-marked | criterion=truthfulness actor=project:agent stage=implemented
+- 2026-09-11T17:48:53.912074Z | work.criterion-stage-marked | criterion=integration-option actor=project:agent stage=implemented
+- 2026-09-11T17:48:54.138321Z | work.criterion-stage-marked | criterion=archive-option actor=project:agent stage=implemented
+- 2026-09-11T17:48:54.364812Z | work.criterion-stage-marked | criterion=ci-scope actor=project:agent stage=implemented
+- 2026-09-11T17:48:54.826138Z | work.criterion-stage-marked | criterion=assessment actor=project:agent stage=verified
+- 2026-09-11T17:48:55.061799Z | work.criterion-stage-marked | criterion=decision actor=project:agent stage=verified
+- 2026-09-11T17:48:55.287603Z | work.criterion-stage-marked | criterion=truthfulness actor=project:agent stage=verified
+- 2026-09-11T17:48:55.521875Z | work.criterion-stage-marked | criterion=integration-option actor=project:agent stage=verified
+- 2026-09-11T17:48:55.746706Z | work.criterion-stage-marked | criterion=archive-option actor=project:agent stage=verified
+- 2026-09-11T17:48:55.973059Z | work.criterion-stage-marked | criterion=ci-scope actor=project:agent stage=verified
+- 2026-09-11T17:49:05.642034Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-11T17:49:05.880396Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-11T17:49:06.113038Z | work.transitioned | from=implementing to=verifying actor=project:agent

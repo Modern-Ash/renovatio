@@ -25,7 +25,7 @@ recording the evidence for each one.
 |---|---|
 | Auto‑translated code is unreadable and unmaintainable | Deterministic transliteration through a neutral semantic IR, then **verified** OpenRewrite refactors toward idiomatic OOP/hexagonal code |
 | "Big bang" rewrites are unverifiable | **Characterization / golden‑master harness is a merge gate** — generated behavior is pinned before any refactor |
-| One tool = one target language and one architecture | **Decision engine**: pick Java, Node or Python; transaction‑script, layered‑MVC or hexagonal; pluggable persistence — defaults reproduce current behavior byte‑for‑byte |
+| One tool = one target language and one architecture | **Decision engine**: Java is the stable path, Node is experimental, and Python is an unsupported lab package; transaction‑script, layered‑MVC or hexagonal architecture decisions remain explicit and auditable |
 | LLMs hallucinate and can't be audited | LLM runs at temperature 0, schema‑validated, content‑addressed cache committed to the repo, every call recorded as governed evidence. Deterministic fallback always present |
 | The JCL that runs everything in production is lost | `renovatio-jcl` parses JCL (steps, `COND`, datasets, utilities) and emits a real orchestration (Spring Batch first) |
 | No traceability from old to new | Semantic diff maps every COBOL paragraph to its target use‑case/method; every decision is stored and attributable |
@@ -49,7 +49,7 @@ flowchart TD
         D["MigrationProfile + DecisionPoints<br/>target language · architecture · persistence · framework · batch.target<br/>low-confidence decisions → heuristic / LLM suggestion you confirm"]
     end
     subgraph P4["4 · Emit + Refactor"]
-        E["TargetEmitter SPI → Java / Node / Python<br/>renovatio-architecture (IR→IR) · cobol-openrewrite-recipes<br/>incremental, characterization-verified refactors"]
+        E["TargetEmitter SPI → Java / Node<br/>Python lab package is not a TargetEmitter<br/>renovatio-architecture (IR→IR) · cobol-openrewrite-recipes<br/>incremental, characterization-verified refactors"]
     end
     OUT["Idiomatic application on your chosen stack<br/>+ traceability report"]
 
@@ -71,8 +71,11 @@ gated by characterization tests + human review.
 
 - **COBOL → Java** — parsing, metrics, migration plans, copybook and embedded‑DB2/EXEC‑SQL
   code generation, OpenRewrite‑based modernization pipeline.
-- **COBOL → Node and COBOL → Python** — via the `TargetEmitter` SPI (`renovatio-emitter-node`,
-  `renovatio-provider-python`); Prisma persistence strategy and idiom catalog for Node.
+- **COBOL → Node** — experimental `TargetEmitter` SPI path via `renovatio-emitter-node`,
+  Prisma persistence strategy and idiom catalog.
+- **Python lab package** — `renovatio-provider-python` is preserved as unsupported
+  COBOL runtime/PIC research only. It does not implement `TargetEmitter`, does not emit
+  migration artifacts, and is not advertised as a supported COBOL-to-Python target.
 - **Architecture transform** — neutral IR→IR transformation into canonical transaction‑script
   or hexagonal Java layouts, with a UI preview of the target architecture.
 - **Pluggable persistence** — `PersistenceStrategy` SPI (JPA, Prisma, …) chosen per migration.
@@ -108,7 +111,7 @@ flowchart LR
     subgraph emit["Emitters (TargetEmitter SPI)"]
         J["provider-java"]
         N["emitter-node"]
-        PY["provider-python"]
+        PY["provider-python<br/>lab / unsupported"]
         PERS["renovatio-persistence"]
     end
     subgraph surface["Surfaces"]
@@ -142,7 +145,7 @@ renovatio/
 ├── renovatio-persistence/      # PersistenceStrategy SPI (JPA, Prisma, …)
 ├── renovatio-llm/              # Governed LLM: prompt catalog, validation, deterministic cache
 ├── renovatio-emitter-node/     # Node/TypeScript TargetEmitter
-├── renovatio-provider-python/  # Python provider / emitter
+├── renovatio-provider-python/  # Unsupported Python lab package (PIC/runtime mirror only)
 ├── renovatio-provider-java/    # Java provider (OpenRewrite integration)
 ├── renovatio-provider-cobol/   # COBOL provider (parsing, metrics, migration)
 ├── cobol-openrewrite-recipes/  # OpenRewrite recipes for post‑generation refactoring
@@ -183,7 +186,7 @@ This builds everything (Java reactor, renovatio-ui, renovatio-workbench, Python)
 2. `./mvnw clean install` — builds all 21 Java modules
 3. `cd renovatio-ui && npm ci && npm run build` — Vite SPA → `renovatio-api/src/main/resources/static/`
 4. `cd renovatio-workbench && npm ci && npm run build` — Theia workbench
-5. `cd renovatio-provider-python && pip install -e ".[test]" && pytest` — Python provider
+5. `cd renovatio-provider-python && pip install -e ".[test]" && pytest` — unsupported Python lab package
 6. `cd specs/1-cobol-python-migration && pytest tests/` — migration spec tests
 
 ### Individual components
@@ -198,7 +201,7 @@ cd renovatio-ui && npm ci && npm run build
 # renovatio-workbench (Theia)
 cd renovatio-workbench && npm ci && npm run build
 
-# Python provider
+# Python lab package (unsupported, not a TargetEmitter)
 cd renovatio-provider-python && python3 -m venv .venv && source .venv/bin/activate && pip install -e ".[test]" && pytest
 ```
 
