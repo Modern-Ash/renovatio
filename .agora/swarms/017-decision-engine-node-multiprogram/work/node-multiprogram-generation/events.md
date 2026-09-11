@@ -76,3 +76,11 @@
 - 2026-09-04T14:58:25.770901Z | tool.prepared | run=tool-20260904t14581788544705z tool=github-pull-requests operation=view actor=project:agent
 - 2026-09-04T14:58:25.774387Z | tool.running | run=tool-20260904t14581788544705z actor=project:agent
 - 2026-09-04T14:58:26.911109Z | tool.completed | run=tool-20260904t14581788544705z exit-code=0
+- 2026-09-11T14:06:50.022038Z | work.criterion-stage-marked | criterion=program-artifacts actor=project:owner stage=accepted
+- 2026-09-11T14:06:50.257953Z | work.criterion-stage-marked | criterion=shared-artifacts actor=project:owner stage=accepted
+- 2026-09-11T14:06:50.505016Z | work.criterion-stage-marked | criterion=collision-safety actor=project:owner stage=accepted
+- 2026-09-11T14:06:50.732936Z | work.criterion-stage-marked | criterion=cli-end-to-end actor=project:owner stage=accepted
+- 2026-09-11T14:06:50.962059Z | work.criterion-stage-marked | criterion=compatibility actor=project:owner stage=accepted
+- 2026-09-11T14:06:51.194647Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=accepted
+- 2026-09-11T14:06:53.927032Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T14:06:59.711751Z | work.transitioned | from=verifying to=completed actor=project:owner
