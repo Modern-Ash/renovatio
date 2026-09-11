@@ -35,3 +35,14 @@
 - 2026-09-11T17:49:05.642034Z | work.transitioned | from=clarified to=planned actor=project:agent
 - 2026-09-11T17:49:05.880396Z | work.transitioned | from=planned to=implementing actor=project:agent
 - 2026-09-11T17:49:06.113038Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-11T17:49:34.415525Z | evidence.added | id=issue-234-focused-capability-tests type=test result=success revision=1 actor=project:agent
+- 2026-09-11T17:49:34.653403Z | evidence.added | id=issue-234-python-lab-pytest type=test result=success revision=1 actor=project:agent
+- 2026-09-11T17:49:34.893189Z | evidence.added | id=issue-234-diff-check type=static-check result=success revision=1 actor=project:agent
+- 2026-09-11T17:49:39.688923Z | work.criterion-stage-marked | criterion=assessment actor=project:owner stage=accepted
+- 2026-09-11T17:49:39.919935Z | work.criterion-stage-marked | criterion=decision actor=project:owner stage=accepted
+- 2026-09-11T17:49:40.179750Z | work.criterion-stage-marked | criterion=truthfulness actor=project:owner stage=accepted
+- 2026-09-11T17:49:40.410633Z | work.criterion-stage-marked | criterion=integration-option actor=project:owner stage=accepted
+- 2026-09-11T17:49:40.647030Z | work.criterion-stage-marked | criterion=archive-option actor=project:owner stage=accepted
+- 2026-09-11T17:49:40.881712Z | work.criterion-stage-marked | criterion=ci-scope actor=project:owner stage=accepted
+- 2026-09-11T17:49:41.123153Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T17:49:41.366485Z | work.transitioned | from=verifying to=completed actor=project:owner
