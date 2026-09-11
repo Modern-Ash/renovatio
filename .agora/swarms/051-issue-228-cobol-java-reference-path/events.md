@@ -6,3 +6,4 @@
 - 2026-09-10T13:00:21.099563Z | swarm.status-changed | from=ready to=blocked
 - 2026-09-10T13:01:48.514176Z | swarm.status-changed | from=blocked to=ready
 - 2026-09-10T13:01:48.768385Z | swarm.status-changed | from=ready to=running
+- 2026-09-11T13:37:00.892013Z | swarm.status-changed | from=running to=completed

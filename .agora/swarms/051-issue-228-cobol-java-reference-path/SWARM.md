@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "issue-228-cobol-java-reference-path"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "chore/issue-228-agora-closure"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
