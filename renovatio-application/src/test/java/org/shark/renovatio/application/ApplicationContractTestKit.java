@@ -23,6 +23,7 @@ public final class ApplicationContractTestKit {
     public int batchCalls;
     public int refineCalls;
     public int validateCalls;
+    public boolean batchCollides;
 
     public DefaultRenovatioApplication application() {
         ProposalProvider proposals = (project, analysis) -> new DomainReview(analysis.semanticModel(), List.of("proposal:" + project));
@@ -30,6 +31,7 @@ public final class ApplicationContractTestKit {
         TargetEmitter emitter = projection -> { emitCalls++; return bytes("generated.txt", projection.toString()); };
         BatchOrchestrationPlanner batch = (projection, decisions, generated) -> {
             batchCalls++;
+            if (batchCollides) return bytes("generated.txt", "batch overwrite");
             return decisions.containsKey("batch.target")
                     ? bytes("batch/orchestration.txt", "batch:" + decisions.get("batch.target") + ":" + generated.keySet())
                     : Map.of();

@@ -21,6 +21,22 @@ Coverage:
 - `DefaultRenovatioApplicationTest`: preview combines target artifacts and batch orchestration through one application manifest.
 - `ApplicationArchitectureTest`: application module remains transport/framework/filesystem neutral.
 
+Review remediation command:
+
+```bash
+mvn -q -pl renovatio-decisions,renovatio-llm,renovatio-jcl,renovatio-application,renovatio-api -am \
+  -Dexec.skip=true \
+  -Dtest=DecisionSuggestionServiceTest,BatchDecisionPointsTest,F7AcceptanceTest,ReviewRegressionTest,DefaultRenovatioApplicationTest,ApplicationArchitectureTest,WorkbenchAiServiceTest \
+  -Dsurefire.failIfNoSpecifiedTests=false test
+```
+
+Result: PASS.
+
+Review coverage:
+
+- Restores `DecisionSuggestionService.promptId(...)` for existing API callers.
+- Rejects duplicate target/batch artifact paths before manifest refinement.
+
 Additional check:
 
 ```bash

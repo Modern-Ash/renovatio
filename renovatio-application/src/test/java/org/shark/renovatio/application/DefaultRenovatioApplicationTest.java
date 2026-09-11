@@ -49,6 +49,15 @@ class DefaultRenovatioApplicationTest {
                 new String(manifest.artifacts().get("batch/orchestration.txt"), StandardCharsets.UTF_8));
     }
 
+    @Test void previewRejectsDuplicateTargetAndBatchArtifactPaths() {
+        var kit = new ApplicationContractTestKit(); var app = kit.application(); kit.seed(app);
+        kit.batchCollides = true;
+        MigrationPlan plan = app.plan(new Plan("project"));
+
+        assertThrows(ApplicationFailure.ValidationFailed.class,
+                () -> app.preview(new Preview("project", plan.id())));
+    }
+
     @Test void applyReplayDoesNotRepeatWritesOrGitAndConflictingKeyFails() {
         var kit = new ApplicationContractTestKit(); var app = kit.application(); kit.seed(app);
         MigrationPlan plan = app.plan(new Plan("project"));

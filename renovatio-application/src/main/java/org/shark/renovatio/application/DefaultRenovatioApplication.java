@@ -89,9 +89,20 @@ public final class DefaultRenovatioApplication implements RenovatioApplication {
         SourceSnapshot current = analyzer.snapshot(query.projectId());
         if (!plan.sourceHash().equals(current.hash())) throw new ApplicationFailure.StaleSource("plan source is stale");
         Map<String, byte[]> emitted = new java.util.TreeMap<>(emitter.emit(plan.projection()));
-        emitted.putAll(batchPlanner.plan(plan.projection(), plan.decisions(), emitted));
+        Map<String, byte[]> batchArtifacts = batchPlanner.plan(plan.projection(), plan.decisions(), emitted);
+        rejectDuplicateArtifacts(emitted, batchArtifacts);
+        emitted.putAll(batchArtifacts);
         ArtifactManifest value = new ArtifactManifest(null, query.projectId(), plan.sourceHash(), refiner.refine(emitted));
         projects.saveManifest(value); return value;
+    }
+
+    private static void rejectDuplicateArtifacts(Map<String, byte[]> targetArtifacts,
+                                                 Map<String, byte[]> batchArtifacts) {
+        java.util.Set<String> duplicates = new java.util.TreeSet<>(targetArtifacts.keySet());
+        duplicates.retainAll(batchArtifacts.keySet());
+        if (!duplicates.isEmpty()) {
+            throw new ApplicationFailure.ValidationFailed("duplicate artifact path(s): " + duplicates);
+        }
     }
 
     @Override public ValidationResult validate(Validate query) {

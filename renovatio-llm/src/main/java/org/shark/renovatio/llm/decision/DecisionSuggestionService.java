@@ -126,6 +126,10 @@ public final class DecisionSuggestionService implements DecisionSuggestionPort {
         return normalized.contains("bearer ") || normalized.contains("api_key") || normalized.contains("sk-");
     }
 
+    public static String promptId(DecisionPoint.Category category) {
+        return DecisionSuggestionPort.promptId(category);
+    }
+
     private static LlmFailureCategory mapFailure(String failure) {
         if (failure == null) return LlmFailureCategory.PROVIDER_ERROR;
         return switch (failure) {
