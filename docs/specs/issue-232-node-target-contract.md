@@ -9,6 +9,7 @@
 The Node renderer must emit these byte-identical files for every program in a project:
 
 - `src/main.ts`
+- `src/health.ts`
 - `src/main.test.ts`
 - `package.json`
 - `package-lock.json`
@@ -30,7 +31,8 @@ The generated `package.json` must include:
 
 - `build`: TypeScript compilation.
 - `lint`: TypeScript no-emit validation.
-- `test`: build plus Node's built-in test runner.
+- `test`: build plus Node's built-in test runner using the concrete emitted
+  `dist/main.test.js` path.
 - `start`: execute the compiled entrypoint.
 
 ## Capability Maturity

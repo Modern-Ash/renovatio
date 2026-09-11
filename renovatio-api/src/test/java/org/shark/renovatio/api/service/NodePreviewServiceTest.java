@@ -45,6 +45,7 @@ class NodePreviewServiceTest {
         Map<String, String> files = service.generateNodePreview("project");
 
         assertTrue(files.containsKey("src/main.ts"));
+        assertTrue(files.containsKey("src/health.ts"));
         assertTrue(files.containsKey("src/main.test.ts"));
         assertTrue(files.containsKey("package.json"));
         assertTrue(files.containsKey("package-lock.json"));
@@ -52,8 +53,10 @@ class NodePreviewServiceTest {
         assertTrue(files.containsKey("docs/node-idioms.md"));
         assertTrue(files.get("package.json").contains("\"build\": \"tsc\""));
         assertTrue(files.get("package.json").contains("\"lint\": \"tsc --noEmit\""));
-        assertTrue(files.get("package.json").contains("\"test\": \"npm run build && node --test dist/**/*.test.js\""));
+        assertTrue(files.get("package.json").contains("\"test\": \"npm run build && node --test dist/main.test.js\""));
         assertFalse(files.get("package.json").contains("\"express\""));
+        assertTrue(files.get("src/main.test.ts").contains("from './health'"));
+        assertFalse(files.get("src/main.test.ts").contains("from './main'"));
         assertTrue(files.get("package-lock.json").contains("\"lockfileVersion\": 3"));
         assertEquals(files.get("src/main.test.ts"), files.get("src/main.test.ts"));
     }

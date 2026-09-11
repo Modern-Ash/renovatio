@@ -53,15 +53,21 @@ class NodeEmitterTest {
         assertTrue(firstFiles.get("src/first/domain/first.entity.ts").contains("interface FirstEntity"));
         assertTrue(firstFiles.get("src/first/domain/first.repository.ts").contains("interface FirstRepository"));
         assertTrue(firstFiles.get("src/first/api/first.controller.ts").contains("firstController"));
+        assertTrue(firstFiles.get("src/first/api/first.controller.ts").contains("interface HttpResponse"));
+        assertFalse(firstFiles.get("src/first/api/first.controller.ts").contains("express"));
         for (String shared : sharedProjectArtifacts()) {
             assertEquals(firstFiles.get(shared), secondFiles.get(shared), shared);
         }
         assertFalse(firstFiles.get("src/main.ts").contains("FIRST"));
         assertFalse(firstFiles.get("package.json").contains("first"));
         assertTrue(firstFiles.get("src/main.ts").contains("createServer"));
+        assertTrue(firstFiles.get("src/main.ts").contains("from './health'"));
+        assertTrue(firstFiles.get("src/health.ts").contains("healthResponse"));
         assertTrue(firstFiles.get("src/main.test.ts").contains("health response is stable"));
+        assertTrue(firstFiles.get("src/main.test.ts").contains("from './health'"));
+        assertFalse(firstFiles.get("src/main.test.ts").contains("from './main'"));
         assertTrue(firstFiles.get("package.json").contains("\"lint\": \"tsc --noEmit\""));
-        assertTrue(firstFiles.get("package.json").contains("\"test\": \"npm run build && node --test dist/**/*.test.js\""));
+        assertTrue(firstFiles.get("package.json").contains("\"test\": \"npm run build && node --test dist/main.test.js\""));
         assertFalse(firstFiles.get("package.json").contains("\"express\""));
         assertTrue(firstFiles.get("package-lock.json").contains("\"lockfileVersion\": 3"));
         assertTrue(firstFiles.get("package-lock.json").contains("\"typescript\": \"5.5.4\""));
@@ -111,8 +117,8 @@ class NodeEmitterTest {
     }
 
     private static List<String> sharedProjectArtifacts() {
-        return List.of("src/main.ts", "src/main.test.ts", "package.json", "package-lock.json", "tsconfig.json",
-                "docs/node-idioms.md");
+        return List.of("src/main.ts", "src/health.ts", "src/main.test.ts", "package.json", "package-lock.json",
+                "tsconfig.json", "docs/node-idioms.md");
     }
 
     private static TargetModel model(String programId, List<String> artifactPaths) {

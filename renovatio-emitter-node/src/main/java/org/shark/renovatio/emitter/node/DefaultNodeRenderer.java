@@ -26,6 +26,7 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
                     files.put(path, content);
                 });
         files.put("src/main.ts", generateMain());
+        files.put("src/health.ts", generateHealth());
         files.put("src/main.test.ts", generateSmokeTest());
         files.put("package.json", generatePackageJson());
         files.put("package-lock.json", generatePackageLock());
@@ -97,9 +98,11 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
         }
         if (path.endsWith(".controller.ts")) {
             return """
-                    import type { Request, Response } from 'express';
+                    export interface HttpResponse {
+                      json(body: unknown): void;
+                    }
 
-                    export function %sController(_request: Request, response: Response): void {
+                    export function %sController(response: HttpResponse): void {
                       response.json({ program: '%s' });
                     }
                     """.formatted(variableName(typeName), literal);
@@ -114,10 +117,7 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
     private String generateMain() {
         return """
                 import { createServer } from 'node:http';
-
-                export function healthResponse(): string {
-                  return JSON.stringify({ status: 'ok' });
-                }
+                import { healthResponse } from './health';
 
                 const server = createServer((request, response) => {
                   if (request.url === '/health') {
@@ -136,11 +136,19 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
                 """;
     }
 
+    private String generateHealth() {
+        return """
+                export function healthResponse(): string {
+                  return JSON.stringify({ status: 'ok' });
+                }
+                """;
+    }
+
     private String generateSmokeTest() {
         return """
                 import { strict as assert } from 'node:assert';
                 import test from 'node:test';
-                import { healthResponse } from './main';
+                import { healthResponse } from './health';
 
                 test('health response is stable', () => {
                   assert.deepEqual(JSON.parse(healthResponse()), { status: 'ok' });
@@ -159,7 +167,7 @@ public final class DefaultNodeRenderer implements NodeArtifactRenderer {
                   "scripts": {
                     "build": "tsc",
                     "lint": "tsc --noEmit",
-                    "test": "npm run build && node --test dist/**/*.test.js",
+                    "test": "npm run build && node --test dist/main.test.js",
                     "start": "node dist/main.js"
                   },
                   "devDependencies": {

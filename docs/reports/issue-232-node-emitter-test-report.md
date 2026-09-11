@@ -31,9 +31,11 @@ Result: passed.
 - Node renderer emits deterministic shared build artifacts across programs.
 - Multi-program provider and CLI aggregation still deduplicate equal shared files.
 - Generated Node target includes `package.json`, `package-lock.json`, `tsconfig.json`,
-  `src/main.ts`, `src/main.test.ts`, and `docs/node-idioms.md`.
+  `src/main.ts`, `src/health.ts`, `src/main.test.ts`, and `docs/node-idioms.md`.
 - Package scripts include build, lint, test, and start commands.
 - Generated bootstrap uses built-in Node HTTP APIs instead of adding an Express runtime dependency.
+- Generated smoke tests import the side-effect-free `src/health.ts` helper and run the concrete
+  `dist/main.test.js` path.
 - API preview service exposes the same build/test artifacts.
 - API, CLI, and application capability contracts keep `node.target` experimental.
 - `docs/specs/issue-232-node-target-contract.md` records the target artifact and maturity contract.
