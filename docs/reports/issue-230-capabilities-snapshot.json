@@ -1,0 +1,58 @@
+{
+  "id": "renovatio.surface-capabilities",
+  "version": "2026-09-11.ac09",
+  "owner": "application",
+  "surfaces": ["api", "cli", "mcp", "workbench"],
+  "capabilities": [
+    {
+      "id": "cobol.analyze",
+      "operation": "analyze",
+      "sourceLanguage": "cobol",
+      "targetLanguage": "java",
+      "maturity": "stable",
+      "surfaces": { "api": "supported", "cli": "supported", "mcp": "supported", "workbench": "supported" },
+      "states": ["PENDING", "RUNNING", "COMPLETED", "FAILED"],
+      "runtime": { "llm": "planned", "persistence": "planned", "equivalence": "planned" }
+    },
+    {
+      "id": "cobol.plan",
+      "operation": "plan",
+      "sourceLanguage": "cobol",
+      "targetLanguage": "java",
+      "maturity": "stable",
+      "surfaces": { "api": "supported", "cli": "supported", "mcp": "supported", "workbench": "supported" },
+      "states": ["PENDING", "RUNNING", "COMPLETED", "FAILED"],
+      "runtime": { "llm": "planned", "persistence": "planned", "equivalence": "planned" }
+    },
+    {
+      "id": "java.plan",
+      "operation": "plan",
+      "sourceLanguage": "java",
+      "targetLanguage": "java",
+      "maturity": "stable",
+      "surfaces": { "api": "supported", "cli": "planned", "mcp": "supported", "workbench": "planned" },
+      "states": ["PENDING", "RUNNING", "COMPLETED", "FAILED"],
+      "runtime": { "llm": "planned", "persistence": "planned", "equivalence": "planned" }
+    },
+    {
+      "id": "reference-pipeline",
+      "operation": "reference-pipeline",
+      "sourceLanguage": "cobol",
+      "targetLanguage": "java",
+      "maturity": "stable",
+      "surfaces": { "api": "supported", "cli": "supported", "mcp": "planned", "workbench": "supported" },
+      "states": ["PENDING", "RUNNING", "COMPLETED", "FAILED"],
+      "runtime": { "llm": "planned", "persistence": "supported", "equivalence": "supported" }
+    },
+    {
+      "id": "python.target",
+      "operation": "apply",
+      "sourceLanguage": "cobol",
+      "targetLanguage": "python",
+      "maturity": "planned",
+      "surfaces": { "api": "planned", "cli": "planned", "mcp": "planned", "workbench": "planned" },
+      "states": ["PENDING", "RUNNING", "COMPLETED", "FAILED"],
+      "runtime": { "llm": "planned", "persistence": "planned", "equivalence": "planned" }
+    }
+  ]
+}

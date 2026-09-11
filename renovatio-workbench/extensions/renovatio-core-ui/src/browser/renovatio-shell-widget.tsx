@@ -35,6 +35,7 @@ const PROJECT_ASSETS = [
 type ProjectAssetItem = { id: string; name: string; writable: boolean };
 type ProjectAssetGroup = { group: string; items: ProjectAssetItem[] };
 type WorkbenchProject = { id: string; name: string };
+type SurfaceCapabilities = { id: string; version: string; capabilities: Array<{ id: string; maturity: string }> };
 type WorkbenchAsset = { id: string; name: string; category: string; writable: boolean };
 type WorkbenchContext = { activeArea: RenovatioAreaId | null; selectedAssetId: string | null };
 type WorkbenchAnalysis = { inventory: Record<string, number>; runs: Array<{ runId: string; dryRun: boolean; startedAt: string }> };
@@ -111,6 +112,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected dashboardUrl = 'http://127.0.0.1:5173/';
     protected backendUrl = 'http://127.0.0.1:8080';
     protected projects: WorkbenchProject[] = [];
+    protected capabilities?: SurfaceCapabilities;
     protected projectAssets: ProjectAssetGroup[] = PROJECT_ASSETS.map(group => ({ group: group.group, items: group.items.map(name => ({ id: name, name, writable: false })) }));
     protected loading = true;
     protected selectedAsset = 'PAYROLL.CBL';
@@ -195,6 +197,7 @@ export class RenovatioShellWidget extends ReactWidget {
         const backend = await this.readEnv('RENOVATIO_BACKEND_URL');
         this.dashboardUrl = dashboard ?? this.dashboardUrl;
         this.backendUrl = (backend ?? this.backendUrl).replace(/\/$/, '');
+        void this.loadCapabilities();
         await this.loadProjects();
         this.loading = false;
         if (this.shellState === 'loading') this.shellState = 'ready';
@@ -207,6 +210,17 @@ export class RenovatioShellWidget extends ReactWidget {
         void this.loadSourceExplorer();
         void this.loadDomainModel();
         this.update();
+    }
+
+    protected async loadCapabilities(): Promise<void> {
+        try {
+            const response = await fetch(`${this.backendUrl}/api/v1/capabilities`);
+            if (!response.ok) throw new Error(`Capability adapter returned ${response.status}`);
+            this.capabilities = await response.json() as SurfaceCapabilities;
+            this.update();
+        } catch {
+            this.capabilities = undefined;
+        }
     }
 
     protected async loadProjects(): Promise<void> {

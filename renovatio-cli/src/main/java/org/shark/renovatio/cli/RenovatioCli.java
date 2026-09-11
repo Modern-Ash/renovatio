@@ -2,6 +2,7 @@ package org.shark.renovatio.cli;
 
 import org.shark.renovatio.cli.command.AnalyzeCommand;
 import org.shark.renovatio.cli.command.ApplyCommand;
+import org.shark.renovatio.cli.command.CapabilitiesCommand;
 import org.shark.renovatio.cli.command.DecisionsCommand;
 import org.shark.renovatio.cli.command.DiffCommand;
 import org.shark.renovatio.cli.command.GenerateCommand;
@@ -29,6 +30,7 @@ import picocli.CommandLine.Command;
         description = "Command-line adapter over the in-process Renovatio core",
         subcommands = {
                 AnalyzeCommand.class,
+                CapabilitiesCommand.class,
                 MetricsCommand.class,
                 GenerateCommand.class,
                 PlanCommand.class,

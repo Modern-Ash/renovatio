@@ -1,0 +1,44 @@
+# Work events
+
+- 2026-09-11T14:41:57.434413Z | work.created | state=drafting actor=project:owner
+- 2026-09-11T14:43:32.158646Z | artifact.added | kind=spec uri=docs/specs/issue-230-surface-contracts-capabilities.md actor=project:owner
+- 2026-09-11T14:43:32.402662Z | artifact.added | kind=implementation-plan uri=docs/specs/issue-230-surface-contracts-capabilities-plan.md actor=project:agent
+- 2026-09-11T14:43:32.649381Z | artifact.added | kind=capability-contract uri=docs/specs/issue-230-capability-contract.md actor=project:agent
+- 2026-09-11T14:43:32.906926Z | artifact.added | kind=api-contract uri=docs/specs/issue-230-api-contract.md actor=project:agent
+- 2026-09-11T14:43:33.166102Z | artifact.added | kind=compatibility-report uri=docs/reports/issue-230-compatibility-report.md actor=project:agent
+- 2026-09-11T14:43:33.411736Z | artifact.added | kind=test-report uri=docs/reports/issue-230-test-report.md actor=project:agent
+- 2026-09-11T14:43:37.259840Z | work.criterion-stage-marked | criterion=capability-schema actor=project:owner stage=specified
+- 2026-09-11T14:43:37.482019Z | work.criterion-stage-marked | criterion=common-semantics actor=project:owner stage=specified
+- 2026-09-11T14:43:37.713585Z | work.criterion-stage-marked | criterion=no-duplication actor=project:owner stage=specified
+- 2026-09-11T14:43:37.940609Z | work.criterion-stage-marked | criterion=api-contract actor=project:owner stage=specified
+- 2026-09-11T14:43:38.171451Z | work.criterion-stage-marked | criterion=workbench-client actor=project:owner stage=specified
+- 2026-09-11T14:43:38.391989Z | work.criterion-stage-marked | criterion=legacy-ui actor=project:owner stage=specified
+- 2026-09-11T14:43:38.635592Z | work.criterion-stage-marked | criterion=contract-suite actor=project:owner stage=specified
+- 2026-09-11T14:43:38.865821Z | work.criterion-stage-marked | criterion=truthful-docs actor=project:owner stage=specified
+- 2026-09-11T14:43:39.100809Z | work.criterion-stage-marked | criterion=capability-schema actor=project:owner stage=planned
+- 2026-09-11T14:43:39.332770Z | work.criterion-stage-marked | criterion=common-semantics actor=project:owner stage=planned
+- 2026-09-11T14:43:39.571877Z | work.criterion-stage-marked | criterion=no-duplication actor=project:owner stage=planned
+- 2026-09-11T14:43:39.806741Z | work.criterion-stage-marked | criterion=api-contract actor=project:owner stage=planned
+- 2026-09-11T14:43:40.031525Z | work.criterion-stage-marked | criterion=workbench-client actor=project:owner stage=planned
+- 2026-09-11T14:43:40.266104Z | work.criterion-stage-marked | criterion=legacy-ui actor=project:owner stage=planned
+- 2026-09-11T14:43:40.503608Z | work.criterion-stage-marked | criterion=contract-suite actor=project:owner stage=planned
+- 2026-09-11T14:43:40.750308Z | work.criterion-stage-marked | criterion=truthful-docs actor=project:owner stage=planned
+- 2026-09-11T14:43:49.620531Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-11T14:43:56.895554Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-11T14:44:04.875031Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-11T14:53:15.222334Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-11T14:53:15.254673Z | evidence.added | id=evidence-000002 type=test result=failure revision=1 actor=project:agent
+- 2026-09-11T14:59:03.980388Z | evidence.added | id=evidence-000003 type=test result=success revision=1 actor=project:agent
+- 2026-09-11T14:59:11.116324Z | evidence.added | id=evidence-000004 type=test result=failure revision=1 actor=project:agent
+- 2026-09-11T14:59:15.408723Z | evidence.added | id=evidence-000005 type=test result=success revision=1 actor=project:agent
+- 2026-09-11T14:59:28.424671Z | work.criterion-satisfied | criterion=capability-schema actor=project:owner
+- 2026-09-11T14:59:28.645921Z | work.criterion-satisfied | criterion=common-semantics actor=project:owner
+- 2026-09-11T14:59:28.875050Z | work.criterion-satisfied | criterion=no-duplication actor=project:owner
+- 2026-09-11T14:59:29.099572Z | work.criterion-satisfied | criterion=api-contract actor=project:owner
+- 2026-09-11T14:59:29.328561Z | work.criterion-satisfied | criterion=workbench-client actor=project:owner
+- 2026-09-11T14:59:29.555024Z | work.criterion-satisfied | criterion=legacy-ui actor=project:owner
+- 2026-09-11T14:59:29.781654Z | work.criterion-satisfied | criterion=contract-suite actor=project:owner
+- 2026-09-11T14:59:30.001895Z | work.criterion-satisfied | criterion=truthful-docs actor=project:owner
+- 2026-09-11T15:00:58.926185Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-11T15:01:15.534455Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T15:01:18.501348Z | work.transitioned | from=verifying to=completed actor=project:owner

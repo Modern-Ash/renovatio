@@ -36,6 +36,7 @@ class RenovatioCliSmokeTest {
 
         String output = stdout.toString(StandardCharsets.UTF_8);
         assertThat(output).contains("analyze");
+        assertThat(output).contains("capabilities");
         assertThat(output).contains("metrics");
         assertThat(output).contains("generate");
         assertThat(output).contains("plan");
@@ -59,6 +60,7 @@ class RenovatioCliSmokeTest {
         assertThat(commandLine.execute("profile", "init", "--help")).isZero();
         assertThat(commandLine.execute("generate", "--help")).isZero();
         assertThat(commandLine.execute("reference-pipeline", "--help")).isZero();
+        assertThat(commandLine.execute("capabilities", "--help")).isZero();
     }
 
     @Test
