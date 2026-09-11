@@ -5,13 +5,13 @@ swarm: "architecture-convergence-2026"
 title: "AC-03: Higiene del repositorio y fundamentos open source"
 state: "implementing"
 revision: 1
-operational-status: "blocked"
-status-reason: "License acceptance criterion requires explicit owner approval of repository license before LICENSE can be added and the cycle can complete."
+operational-status: "active"
+status-reason: "Owner approved MIT License on 2026-09-11; LICENSE can now be added and the license criterion can proceed."
 status-by: "project:agent"
-status-at: "2026-09-11T18:09:16.737051Z"
+status-at: "2026-09-11T19:09:32.987817Z"
 acceptance-criteria: {"license":"El titular aprueba y se agrega una licencia expl\u00edcita compatible con dependencias y modelo de contribuci\u00f3n.","community-files":"Existen CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, CHANGELOG.md y pol\u00edtica DCO o CLA claramente elegida.","tracked-artifacts":"data/renovatio-db.mv.db y renovatio-provider-cobol/target_bad dejan de estar versionados y se agregan reglas preventivas.","agora-retention":"Existe una pol\u00edtica aprobada para conservar \u00edndices, decisiones y evidencia de releases en Git y externalizar o archivar ejecuciones voluminosas.","history-scan":"Se revisa todo el historial Git por secretos, PII, bases de datos y artifacts sensibles; cada hallazgo tiene remediaci\u00f3n o aceptaci\u00f3n expl\u00edcita.","dependency-license-scan":"Se registra un inventario de licencias de dependencias y no quedan incompatibilidades sin decisi\u00f3n humana.","repo-size":"Se mide tama\u00f1o antes/despu\u00e9s y se documenta cualquier reescritura de historia, que requiere aprobaci\u00f3n expl\u00edcita."}
 satisfied-criteria: []
-criterion-statuses: {"license":["specified","planned"],"community-files":["specified","planned","implemented"],"tracked-artifacts":["specified","planned","implemented"],"agora-retention":["specified","planned","implemented"],"history-scan":["specified","planned","implemented"],"dependency-license-scan":["specified","planned","implemented"],"repo-size":["specified","planned","implemented"]}
+criterion-statuses: {"license":["specified","planned","implemented"],"community-files":["specified","planned","implemented"],"tracked-artifacts":["specified","planned","implemented"],"agora-retention":["specified","planned","implemented"],"history-scan":["specified","planned","implemented"],"dependency-license-scan":["specified","planned","implemented"],"repo-size":["specified","planned","implemented"]}
 required-artifacts: ["spec","implementation-plan","license-review","repository-hygiene-report","security-report"]
 child-work-refs: []
 budget-limits: null
@@ -25,7 +25,7 @@ Eliminar artefactos accidentales del tree, definir política de evidencia Agora 
 
 ## Acceptance criteria
 
-- [ ] **license:** El titular aprueba y se agrega una licencia explícita compatible con dependencias y modelo de contribución.; stages: specified, planned
+- [ ] **license:** El titular aprueba y se agrega una licencia explícita compatible con dependencias y modelo de contribución.; stages: specified, planned, implemented
 - [ ] **community-files:** Existen CONTRIBUTING.md, CODE_OF_CONDUCT.md, SECURITY.md, CHANGELOG.md y política DCO o CLA claramente elegida.; stages: specified, planned, implemented
 - [ ] **tracked-artifacts:** data/renovatio-db.mv.db y renovatio-provider-cobol/target_bad dejan de estar versionados y se agregan reglas preventivas.; stages: specified, planned, implemented
 - [ ] **agora-retention:** Existe una política aprobada para conservar índices, decisiones y evidencia de releases en Git y externalizar o archivar ejecuciones voluminosas.; stages: specified, planned, implemented

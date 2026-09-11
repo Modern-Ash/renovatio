@@ -4,7 +4,7 @@ Date: 2026-09-11
 
 ## Status
 
-License decision pending owner approval.
+Resolved. The project owner approved the MIT License on 2026-09-11.
 
 ## Recommendation
 
@@ -13,19 +13,21 @@ explicit patent grant, which is helpful for a modernization engine with
 potentially reusable architecture and code-generation components.
 
 MIT is also viable if the owner prefers a shorter permissive license and accepts
-the lack of an explicit patent grant.
+the lack of an explicit patent grant. The owner selected MIT for this
+repository.
 
 ## Current Repository State
 
-- No root `LICENSE` file exists before this issue.
+- Root `LICENSE` now exists with standard MIT terms and copyright holder
+  `Modern Ash`.
 - Community contribution policy now uses DCO sign-off.
 - No CLA is introduced.
 
-## Decision Required
+## Decision
 
-The owner must approve one explicit license before this acceptance criterion can
-be fully closed. No license text has been added in this change because the issue
-forbids choosing a license on behalf of the owner.
+The license decision is complete for issue #224. Future release candidates
+should still attach generated Maven/npm/Python dependency license reports before
+publication.
 
 ## Dependency Compatibility Notes
 

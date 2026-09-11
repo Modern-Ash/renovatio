@@ -39,6 +39,6 @@ Signed-off-by: Your Name <you@example.com>
 
 ## License
 
-The explicit repository license is pending owner approval in issue #224. Do not
-copy external code into this repository unless its license is documented and
-compatible with the license chosen by the project owner.
+This repository is licensed under the MIT License. Do not copy external code
+into this repository unless its license is documented and compatible with MIT
+and the repository's dependency obligations.

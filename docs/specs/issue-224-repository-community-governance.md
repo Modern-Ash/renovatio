@@ -14,21 +14,19 @@ retention boundaries.
   CLA.
 - Remove tracked runtime/build artifacts from the current tree.
 - Extend `.gitignore` to prevent recurrence.
-- Document license status, dependency license inventory, history scan findings,
+- Document license decision, dependency license inventory, history scan findings,
   repo size measurements, and Agora retention policy.
 
 ## Human Decisions
 
-- Repository license is pending owner approval. Recommended option: Apache-2.0
-  for a permissive license with explicit patent grant. MIT is a simpler
-  permissive alternative. No license text is added until the owner approves.
+- Repository license is MIT, approved by the owner on 2026-09-11. The
+  repository includes the MIT license text at `LICENSE`.
 - History rewrite is not performed in this issue. Any `filter-repo`, BFG, or
   force-push requires separate explicit approval.
 
 ## Acceptance Criteria Mapping
 
-- `license`: license review documents pending owner approval and compatible
-  options.
+- `license`: owner-approved MIT license is present at the repository root.
 - `community-files`: required community files exist and DCO is documented.
 - `tracked-artifacts`: H2 database and `target_bad` are removed from the index
   and ignore rules prevent recurrence.

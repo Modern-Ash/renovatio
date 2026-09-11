@@ -32,3 +32,6 @@
 - 2026-09-11T18:09:16.253429Z | work.criterion-stage-marked | criterion=dependency-license-scan actor=project:agent stage=implemented
 - 2026-09-11T18:09:16.485575Z | work.criterion-stage-marked | criterion=repo-size actor=project:agent stage=implemented
 - 2026-09-11T18:09:16.737435Z | work.block | from=active to=blocked actor=project:agent change=change-20260911t180916737251z
+- 2026-09-11T19:09:32.988065Z | work.resume | from=blocked to=active actor=project:agent change=change-20260911t190932987935z
+- 2026-09-11T19:09:38.606776Z | work.criterion-stage-marked | criterion=license actor=project:agent stage=implemented
+- 2026-09-11T19:09:43.746886Z | approval.added | role=spec-owner actor=project:owner delegation=none
