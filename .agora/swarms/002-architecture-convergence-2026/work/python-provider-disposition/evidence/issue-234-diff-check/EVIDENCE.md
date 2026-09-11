@@ -9,8 +9,8 @@ artifact-references: ["docs/reports/issue-234-test-report.md"]
 artifact-content-sha256: {"docs/reports/issue-234-test-report.md":null}
 produced-by: "project:agent"
 timestamp: "2026-09-11T17:49:34.892991Z"
-tested-commit: "e40c60fdda3483232b9dfd2d6dc289688d1164e9"
-command: ["git diff --check"]
+tested-commit: "pending-review-fix-commit"
+command: ["git diff --check origin/main...HEAD"]
 exit-code: 0
 tests-total: null
 tests-passed: null

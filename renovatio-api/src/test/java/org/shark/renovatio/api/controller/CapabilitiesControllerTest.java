@@ -22,7 +22,7 @@ class CapabilitiesControllerTest {
         mvc.perform(get("/api/v1/capabilities"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value("renovatio.surface-capabilities"))
-                .andExpect(jsonPath("$.version").value("2026-09-11.ac09"))
+                .andExpect(jsonPath("$.version").value("2026-09-11.ac13"))
                 .andExpect(jsonPath("$.capabilities[?(@.id == 'cobol.analyze')].maturity").value("stable"))
                 .andExpect(jsonPath("$.capabilities[?(@.id == 'python.lab')].maturity").value("unsupported"))
                 .andExpect(jsonPath("$.capabilities[?(@.id == 'python.lab')].surfaces.api").value("unsupported"))

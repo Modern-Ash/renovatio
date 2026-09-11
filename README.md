@@ -261,7 +261,7 @@ Each phase is one governed Agora cycle with its own spec, plan and acceptance cr
 | F2 | `renovatio-semantic-ir` + `TargetEmitter` SPI | ✅ done |
 | F3 | `renovatio-architecture` IR→IR (transaction‑script / hexagonal) | ✅ done |
 | F4 | Pluggable `PersistenceStrategy` SPI | ✅ done |
-| F5 | Node / Python emitter + Prisma strategy | ✅ done |
+| F5 | Node emitter + Prisma strategy; Python preserved only as unsupported lab research | ✅ done |
 | F6 | Residual LLM: naming, docs, control‑flow plans, semantic diff | ✅ done |
 | **F7** | **[`renovatio-jcl`](https://github.com/Modern-Ash/renovatio/issues/153) — batch orchestration (JCL steps, `COND`, datasets, utilities)** | ✅ delivered, in review |
 | **F8** | **[Reusable decision profiles & policy catalog](https://github.com/Modern-Ash/renovatio/issues/154)** — templates shared across projects | 🔜 open |

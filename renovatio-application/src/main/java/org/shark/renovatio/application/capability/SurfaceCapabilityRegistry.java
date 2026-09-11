@@ -11,7 +11,7 @@ import java.util.Set;
  * Versioned application-owned capability catalog consumed by API, CLI, MCP and Workbench.
  */
 public final class SurfaceCapabilityRegistry {
-    public static final String CONTRACT_VERSION = "2026-09-11.ac09";
+    public static final String CONTRACT_VERSION = "2026-09-11.ac13";
     public static final String DOCUMENT_ID = "renovatio.surface-capabilities";
 
     private static final List<String> SURFACES = List.of("api", "cli", "mcp", "workbench");
