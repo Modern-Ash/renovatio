@@ -26,12 +26,20 @@ public final class SurfaceCapabilityRegistry {
                 Instant.parse("2026-09-11T00:00:00Z"),
                 SURFACES,
                 List.of(
-                        supported("cobol.analyze", "Analyze COBOL workspaces", "analyze", "cobol", "java"),
-                        supported("cobol.metrics", "Summarize COBOL migration metrics", "metrics", "cobol", "java"),
-                        supported("java.plan", "Plan Java modernization work", "plan", "java", "java"),
-                        supported("java.apply", "Apply approved Java modernization work", "apply", "java", "java"),
-                        supported("java.diff", "Preview Java modernization diffs", "diff", "java", "java"),
-                        supported("reference-pipeline", "Run the verified COBOL-to-Java reference path", "reference-pipeline", "cobol", "java"),
+                        supported("cobol.analyze", "Analyze COBOL workspaces", "analyze", "cobol", "java",
+                                allSupported()),
+                        supported("cobol.metrics", "Summarize COBOL migration metrics", "metrics", "cobol", "java",
+                                allSupported()),
+                        supported("cobol.plan", "Plan COBOL-to-Java modernization work", "plan", "cobol", "java",
+                                allSupported()),
+                        supported("java.plan", "Plan Java modernization work", "plan", "java", "java",
+                                Map.of("api", "supported", "cli", "planned", "mcp", "supported", "workbench", "planned")),
+                        supported("java.apply", "Apply approved Java modernization work", "apply", "java", "java",
+                                Map.of("api", "supported", "cli", "planned", "mcp", "supported", "workbench", "planned")),
+                        supported("java.diff", "Preview Java modernization diffs", "diff", "java", "java",
+                                Map.of("api", "supported", "cli", "planned", "mcp", "supported", "workbench", "planned")),
+                        supported("reference-pipeline", "Run the verified COBOL-to-Java reference path", "reference-pipeline", "cobol", "java",
+                                Map.of("api", "supported", "cli", "supported", "mcp", "planned", "workbench", "supported")),
                         preview("node.target", "Generate Node target artifacts", "apply", "cobol", "node"),
                         preview("jcl.batch", "Model JCL batch orchestration", "plan", "jcl", "java"),
                         planned("python.target", "Generate Python target artifacts", "apply", "cobol", "python")
@@ -47,9 +55,10 @@ public final class SurfaceCapabilityRegistry {
         return SUPPORTED_OPERATIONS.contains(operation);
     }
 
-    private static CapabilityDescriptor supported(String id, String summary, String operation, String source, String target) {
+    private static CapabilityDescriptor supported(String id, String summary, String operation, String source,
+            String target, Map<String, String> surfaces) {
         return descriptor(id, summary, operation, source, target, "stable",
-                Map.of("api", "supported", "cli", "supported", "mcp", "supported", "workbench", "supported"));
+                surfaces);
     }
 
     private static CapabilityDescriptor preview(String id, String summary, String operation, String source, String target) {
@@ -67,7 +76,7 @@ public final class SurfaceCapabilityRegistry {
         return new CapabilityDescriptor(id, summary, operation, source, target, maturity,
                 List.of("workspacePath", "projectId"), orderedSurfaces(surfaces),
                 "project-member",
-                List.of("accepted", "planned", "running", "succeeded", "failed", "unavailable"),
+                List.of("PENDING", "RUNNING", "COMPLETED", "FAILED"),
                 List.of("VALIDATION_FAILED", "CAPABILITY_UNAVAILABLE", "AUTHORIZATION_DENIED", "STALE_INPUT"),
                 List.of("sourceTreeHash", "profileHash", "manifestHash", "equivalenceHash"),
                 Map.of(
@@ -75,6 +84,10 @@ public final class SurfaceCapabilityRegistry {
                         "persistence", id.contains("reference") || id.contains("apply") ? "supported" : "planned",
                         "equivalence", id.contains("reference") ? "supported" : "planned"
                 ));
+    }
+
+    private static Map<String, String> allSupported() {
+        return Map.of("api", "supported", "cli", "supported", "mcp", "supported", "workbench", "supported");
     }
 
     private static Map<String, String> orderedSurfaces(Map<String, String> values) {

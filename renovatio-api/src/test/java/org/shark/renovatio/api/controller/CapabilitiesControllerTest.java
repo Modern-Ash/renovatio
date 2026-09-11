@@ -28,12 +28,16 @@ class CapabilitiesControllerTest {
                 .andExpect(jsonPath("$.capabilities[?(@.id == 'reference-pipeline')].authorization")
                         .value("project-member"))
                 .andExpect(jsonPath("$.capabilities[?(@.id == 'reference-pipeline')].states[0]")
-                        .value("accepted"))
+                        .value("PENDING"))
                 .andExpect(jsonPath("$.capabilities[?(@.id == 'reference-pipeline')].errors[0]")
                         .value("VALIDATION_FAILED"))
                 .andExpect(jsonPath("$.capabilities[?(@.id == 'reference-pipeline')].manifestHashes[0]")
                         .value("sourceTreeHash"))
                 .andExpect(jsonPath("$.capabilities[?(@.id == 'reference-pipeline')].runtime.equivalence")
+                        .value("supported"))
+                .andExpect(jsonPath("$.capabilities[?(@.id == 'java.plan')].surfaces.cli")
+                        .value("planned"))
+                .andExpect(jsonPath("$.capabilities[?(@.id == 'cobol.plan')].surfaces.cli")
                         .value("supported"));
     }
 }

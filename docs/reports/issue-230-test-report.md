@@ -34,7 +34,7 @@
 - `CapabilitiesControllerTest`
   - Verifies `/api/v1/capabilities` exposes the shared contract and common semantics.
 - `McpToolingServiceCapabilityTest`
-  - Verifies MCP lists and executes `renovatio.capabilities` using the shared contract and metadata version.
+  - Verifies MCP lists/describes and executes `renovatio_capabilities` using the shared contract and metadata version, and keeps the discovery tool available under language filtering.
 - CLI smoke registration for `capabilities`
 - `renovatio-ui` client test for `/api/v1/capabilities`
 - `renovatio-workbench` contract test for capability discovery through public API

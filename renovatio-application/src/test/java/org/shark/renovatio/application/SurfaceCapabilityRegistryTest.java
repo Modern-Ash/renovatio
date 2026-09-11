@@ -37,7 +37,7 @@ class SurfaceCapabilityRegistryTest {
 
         assertEquals("project-member", capability.get("authorization"));
         assertTrue(((List<?>) capability.get("states")).containsAll(
-                List.of("accepted", "planned", "running", "succeeded", "failed", "unavailable")));
+                List.of("PENDING", "RUNNING", "COMPLETED", "FAILED")));
         assertTrue(((List<?>) capability.get("errors")).containsAll(
                 List.of("VALIDATION_FAILED", "CAPABILITY_UNAVAILABLE", "AUTHORIZATION_DENIED", "STALE_INPUT")));
         assertTrue(((List<?>) capability.get("manifestHashes")).containsAll(
@@ -47,6 +47,16 @@ class SurfaceCapabilityRegistryTest {
         assertEquals("supported", runtime.get("persistence"));
         assertEquals("supported", runtime.get("equivalence"));
         assertEquals("planned", runtime.get("llm"));
+    }
+
+    @Test
+    void declaresSurfaceSpecificSupportInsteadOfBlanketStability() {
+        Map<?, ?> javaPlanSurfaces = (Map<?, ?>) capability("java.plan").get("surfaces");
+        Map<?, ?> cobolPlanSurfaces = (Map<?, ?>) capability("cobol.plan").get("surfaces");
+
+        assertEquals("planned", javaPlanSurfaces.get("cli"));
+        assertEquals("supported", javaPlanSurfaces.get("mcp"));
+        assertEquals("supported", cobolPlanSurfaces.get("cli"));
     }
 
     private static Map<String, Object> capability(String id) {

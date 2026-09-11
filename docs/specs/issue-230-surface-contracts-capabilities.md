@@ -15,7 +15,7 @@ The contract is implemented by `SurfaceCapabilityRegistry` in `renovatio-applica
 
 - API: `GET /api/v1/capabilities`
 - CLI: `renovatio capabilities [--json]`
-- MCP: `renovatio.capabilities`
+- MCP: `renovatio_capabilities` (`renovatio.capabilities` remains accepted as an execution alias)
 
 ## Maturity Semantics
 
@@ -25,4 +25,4 @@ The contract is implemented by `SurfaceCapabilityRegistry` in `renovatio-applica
 
 The registry currently marks the COBOL-to-Java path and reference pipeline as stable, Node/JCL work as experimental or planned, and Python target generation as planned.
 
-Each capability also declares authorization, normalized lifecycle states, error codes, manifest hash fields, and runtime support for LLM, persistence and equivalence.
+Each capability also declares authorization, API job lifecycle states (`PENDING`, `RUNNING`, `COMPLETED`, `FAILED`), error codes, manifest hash fields, and runtime support for LLM, persistence and equivalence. Surface support is declared per capability and adapter; stable capabilities may still be `planned` on surfaces that do not expose a runnable command or endpoint yet.

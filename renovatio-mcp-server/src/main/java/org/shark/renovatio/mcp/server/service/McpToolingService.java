@@ -30,6 +30,8 @@ public class McpToolingService {
     private static final Logger logger = LoggerFactory.getLogger(McpToolingService.class);
     private static final ObjectMapper JSON_MAPPER = new ObjectMapper();
     private static final String DEFAULT_SPEC = "2024-11-05";
+    private static final String CAPABILITIES_TOOL_NAME = "renovatio_capabilities";
+    private static final String CAPABILITIES_TOOL_ALIAS = "renovatio.capabilities";
     // Keys whose values should never be logged verbatim
     private static final java.util.Set<String> SENSITIVE_KEYS = java.util.Set.of(
             "content", "source", "code", "diff", "patch", "body", "text", "data", "fileContent"
@@ -88,7 +90,8 @@ public class McpToolingService {
                 filtered.add(t);
             }
         }
-        var mcpTools = toolAdapter.toMcpTools(filtered);
+        var mcpTools = new ArrayList<>(toolAdapter.toMcpTools(filtered));
+        mcpTools.add(capabilityTool());
         logger.debug("Resolved {} MCP tool(s) for language '{}'", mcpTools.size(), lang);
         return mcpTools;
     }
@@ -116,7 +119,7 @@ public class McpToolingService {
     public Map<String, Object> executeTool(String toolName, Map<String, Object> arguments) {
         logger.debug("Executing MCP tool: '{}' with arguments: {}", toolName, redactForLog(arguments, 0));
         try {
-            if ("renovatio.capabilities".equals(toolName) || "renovatio_capabilities".equals(toolName)) {
+            if (isCapabilitiesTool(toolName)) {
                 Map<String, Object> result = new LinkedHashMap<>(capabilityRegistry.asMap());
                 result.put("success", true);
                 return result;
@@ -168,7 +171,7 @@ public class McpToolingService {
         metadata.put("tags", List.of("renovatio", "capabilities", "surface-contract"));
 
         return new McpTool(
-                "renovatio.capabilities",
+                CAPABILITIES_TOOL_NAME,
                 "Return the versioned Renovatio capability contract shared by API, CLI, MCP and Workbench.",
                 inputSchema,
                 outputSchema,
@@ -293,9 +296,14 @@ public class McpToolingService {
      */
     public McpTool getTool(String toolName) {
         return getMcpTools().stream()
-                .filter(tool -> tool.getName().equals(toolName))
+                .filter(tool -> tool.getName().equals(toolName) || (isCapabilitiesTool(toolName)
+                        && CAPABILITIES_TOOL_NAME.equals(tool.getName())))
                 .findFirst()
                 .orElse(null);
+    }
+
+    private static boolean isCapabilitiesTool(String toolName) {
+        return CAPABILITIES_TOOL_NAME.equals(toolName) || CAPABILITIES_TOOL_ALIAS.equals(toolName);
     }
 
     /**

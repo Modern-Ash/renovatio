@@ -26,10 +26,12 @@ class McpToolingServiceCapabilityTest {
                 "2024-11-05");
 
         List<McpTool> tools = service.getMcpTools();
-        assertEquals("renovatio.capabilities", tools.get(0).getName());
+        assertEquals("renovatio_capabilities", tools.get(0).getName());
         assertEquals("2026-09-11.ac09", tools.get(0).getMetadata().get("capabilityContractVersion"));
+        assertEquals("renovatio_capabilities", service.getTool("renovatio_capabilities").getName());
+        assertEquals("renovatio_capabilities", service.getTool("renovatio.capabilities").getName());
 
-        Map<String, Object> result = service.executeTool("renovatio.capabilities", Map.of());
+        Map<String, Object> result = service.executeTool("renovatio_capabilities", Map.of());
         assertEquals(true, result.get("success"));
         assertEquals("renovatio.surface-capabilities", result.get("id"));
         assertFalse(((List<?>) result.get("capabilities")).isEmpty());
@@ -40,5 +42,18 @@ class McpToolingServiceCapabilityTest {
                         && "project-member".equals(capability.get("authorization"))
                         && ((List<?>) capability.get("errors")).contains("CAPABILITY_UNAVAILABLE")
                         && "supported".equals(((Map<?, ?>) capability.get("runtime")).get("equivalence"))));
+    }
+
+    @Test
+    void includesCapabilitiesToolWhenLanguageFilterIsApplied() {
+        LanguageProviderRegistry providers = mock(LanguageProviderRegistry.class);
+        when(providers.generateTools()).thenReturn(List.of());
+        McpToolingService service = new McpToolingService(
+                providers,
+                mock(ApplicationCommandBus.class),
+                mock(McpToolAdapter.class),
+                "2024-11-05");
+
+        assertEquals("renovatio_capabilities", service.getMcpTools("java").get(0).getName());
     }
 }
