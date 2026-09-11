@@ -1,0 +1,28 @@
+# Work events
+
+- 2026-09-11T18:12:58.503305Z | work.created | state=drafting actor=project:owner
+- 2026-09-11T18:13:48.609564Z | artifact.added | kind=spec uri=docs/specs/issue-235-community-alpha-release.md actor=project:owner
+- 2026-09-11T18:13:48.664430Z | artifact.added | kind=release-plan uri=docs/release/0.3.0-alpha.1-release-plan.md actor=project:agent
+- 2026-09-11T18:13:52.033664Z | artifact.added | kind=implementation-plan uri=docs/specs/issue-235-community-alpha-release-plan.md actor=project:agent
+- 2026-09-11T18:13:56.701467Z | artifact.added | kind=community-docs uri=docs/release/0.3.0-alpha.1-community-docs.md actor=project:agent
+- 2026-09-11T18:14:00.959432Z | artifact.added | kind=sbom uri=docs/release/0.3.0-alpha.1-sbom.md actor=project:agent
+- 2026-09-11T18:14:03.963970Z | artifact.added | kind=release-notes uri=docs/release/0.3.0-alpha.1-release-notes.md actor=project:agent
+- 2026-09-11T18:14:09.144517Z | artifact.added | kind=release-readiness-report uri=docs/reports/issue-235-release-readiness-report.md actor=project:agent
+- 2026-09-11T18:14:16.200383Z | work.criterion-stage-marked | criterion=release-scope actor=project:owner stage=specified
+- 2026-09-11T18:14:20.871624Z | work.criterion-stage-marked | criterion=release-scope actor=project:owner stage=specified
+- 2026-09-11T18:14:21.094325Z | work.criterion-stage-marked | criterion=release-scope actor=project:owner stage=planned
+- 2026-09-11T18:14:21.324151Z | work.criterion-stage-marked | criterion=quickstart actor=project:owner stage=specified
+- 2026-09-11T18:14:21.552588Z | work.criterion-stage-marked | criterion=quickstart actor=project:owner stage=planned
+- 2026-09-11T18:14:21.800518Z | work.criterion-stage-marked | criterion=docs actor=project:owner stage=specified
+- 2026-09-11T18:14:22.031830Z | work.criterion-stage-marked | criterion=docs actor=project:owner stage=planned
+- 2026-09-11T18:14:22.249993Z | work.criterion-stage-marked | criterion=versioning actor=project:owner stage=specified
+- 2026-09-11T18:14:22.479858Z | work.criterion-stage-marked | criterion=versioning actor=project:owner stage=planned
+- 2026-09-11T18:14:22.713728Z | work.criterion-stage-marked | criterion=supply-chain actor=project:owner stage=specified
+- 2026-09-11T18:14:22.943204Z | work.criterion-stage-marked | criterion=supply-chain actor=project:owner stage=planned
+- 2026-09-11T18:14:23.171132Z | work.criterion-stage-marked | criterion=quality-gates actor=project:owner stage=specified
+- 2026-09-11T18:14:23.416245Z | work.criterion-stage-marked | criterion=quality-gates actor=project:owner stage=planned
+- 2026-09-11T18:14:23.657750Z | work.criterion-stage-marked | criterion=clean-repository actor=project:owner stage=specified
+- 2026-09-11T18:14:23.895206Z | work.criterion-stage-marked | criterion=clean-repository actor=project:owner stage=planned
+- 2026-09-11T18:14:24.142322Z | work.criterion-stage-marked | criterion=approval actor=project:owner stage=specified
+- 2026-09-11T18:14:24.396924Z | work.criterion-stage-marked | criterion=approval actor=project:owner stage=planned
+- 2026-09-11T18:14:32.055216Z | work.block | from=active to=blocked actor=project:agent change=change-20260911t181432055092z

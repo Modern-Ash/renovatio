@@ -4,8 +4,8 @@
 
 Please do not open public issues for suspected vulnerabilities.
 
-Report security concerns privately to the repository owner or through GitHub
-private vulnerability reporting when enabled. Include:
+Report security concerns privately to `jobs@platformxsolutions.com` or through
+GitHub private vulnerability reporting when enabled. Include:
 
 - Affected component and version or commit.
 - Reproduction steps or proof of concept.

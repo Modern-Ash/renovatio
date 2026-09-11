@@ -2,8 +2,8 @@
 schema: "agora/swarm/v1"
 id: "architecture-convergence-2026"
 method: "spec-driven"
-status: "completed"
-branch: "issue-224-repo-community-governance"
+status: "blocked"
+branch: "issue-235-community-alpha-release"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}
 ---

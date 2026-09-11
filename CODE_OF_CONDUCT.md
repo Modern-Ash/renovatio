@@ -32,5 +32,5 @@ and other contributions that do not align with this Code of Conduct. Maintainers
 may also temporarily or permanently ban contributors for behavior they consider
 inappropriate, threatening, offensive, or harmful.
 
-Report incidents to the maintainers through the private security contact listed
-in `SECURITY.md`.
+Report incidents to the maintainers through `jobs@platformxsolutions.com`, the
+private contact listed in `SECURITY.md`.
