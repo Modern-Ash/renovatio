@@ -25,10 +25,6 @@
             <artifactId>renovatio-decisions</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.shark.renovatio</groupId>
-            <artifactId>renovatio-llm</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>test</scope>

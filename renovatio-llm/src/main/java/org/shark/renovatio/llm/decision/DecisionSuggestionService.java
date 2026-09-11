@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.shark.renovatio.decisions.DecisionPoint;
 import org.shark.renovatio.decisions.DecisionPoint.LlmFailureCategory;
+import org.shark.renovatio.decisions.DecisionSuggestionPort;
 import org.shark.renovatio.decisions.DecisionTransitions;
 import org.shark.renovatio.llm.cache.CommittedCacheIndex;
 import org.shark.renovatio.llm.cache.ResultDisposition;
@@ -22,7 +23,7 @@ import java.util.Locale;
 import java.util.Optional;
 
 /** Bounded, option-only suggestions. All failures retain deterministic defaults. */
-public final class DecisionSuggestionService {
+public final class DecisionSuggestionService implements DecisionSuggestionPort {
     public static final BigDecimal ELIGIBILITY_THRESHOLD = new BigDecimal("0.8");
     private static final ObjectMapper JSON = new ObjectMapper();
     private final SuggestionRuntime runtime;
@@ -31,8 +32,8 @@ public final class DecisionSuggestionService {
         this.runtime = java.util.Objects.requireNonNull(runtime);
     }
 
-    public SuggestionBatch suggest(List<DecisionPoint> current, String profileHash,
-                                   int providerCallCap, Instant now) {
+    @Override public SuggestionBatch suggest(List<DecisionPoint> current, String profileHash,
+                                             int providerCallCap, Instant now) {
         if (providerCallCap < 0 || providerCallCap > 100) throw new IllegalArgumentException("providerCallCap");
         List<DecisionPoint> result = new ArrayList<>(current);
         List<DecisionPoint> eligible = current.stream().filter(DecisionPoint::active)
@@ -46,7 +47,7 @@ public final class DecisionSuggestionService {
         for (DecisionPoint decision : eligible) {
             RuntimeResult evaluated;
             try {
-                String promptId = promptId(decision.category());
+                String promptId = DecisionSuggestionPort.promptId(decision.category());
                 ObjectNode canonicalInput = input(decision, profileHash);
                 Optional<RuntimeResult> cached = runtime.lookup(promptId, canonicalInput, deterministic(decision));
                 if (cached.isPresent()) evaluated = cached.get();
@@ -125,10 +126,6 @@ public final class DecisionSuggestionService {
         return normalized.contains("bearer ") || normalized.contains("api_key") || normalized.contains("sk-");
     }
 
-    public static String promptId(DecisionPoint.Category category) {
-        return "decision." + category.name().toLowerCase(Locale.ROOT).replace('_', '-') + ".v1";
-    }
-
     private static LlmFailureCategory mapFailure(String failure) {
         if (failure == null) return LlmFailureCategory.PROVIDER_ERROR;
         return switch (failure) {
@@ -179,8 +176,6 @@ public final class DecisionSuggestionService {
             return new RuntimeResult(null, cacheHit, failure);
         }
     }
-    public record SuggestionBatch(List<DecisionPoint> decisions, int suggestionsAttempted,
-                                  int suggestionsFailed, int cacheHits) { }
     private record Validation(String option, BigDecimal confidence, String rationale,
                               LlmFailureCategory failure) {
         static Validation failure(LlmFailureCategory failure) {

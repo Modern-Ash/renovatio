@@ -18,6 +18,10 @@ public final class ApplicationPorts {
     public interface ProposalProvider { DomainReview review(String projectId, Analysis analysis); }
     public interface ArchitectureProjector { Object project(Analysis analysis, Map<String, String> decisions); }
     public interface TargetEmitter { Map<String, byte[]> emit(Object projection); }
+    public interface BatchOrchestrationPlanner {
+        Map<String, byte[]> plan(Object projection, Map<String, String> decisions, Map<String, byte[]> targetArtifacts);
+        static BatchOrchestrationPlanner disabled() { return (projection, decisions, targetArtifacts) -> Map.of(); }
+    }
     public interface TargetRefiner { Map<String, byte[]> refine(Map<String, byte[]> artifacts); }
     public interface ValidationGate { ValidationResult validate(ArtifactManifest manifest); }
     public interface ProjectRepository {
