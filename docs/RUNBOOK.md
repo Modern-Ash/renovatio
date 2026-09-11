@@ -4,7 +4,7 @@
 - Java 21 (JDK completo)
 - Maven 3.9+
 - Git
-- 2 minutos en una máquina con dependencias Maven en caché
+- Menos de 10 minutos para la validación de referencia desde clone limpio; en una máquina con dependencias Maven en caché, la suite medida tarda ~2 minutos.
 
 ## Pasos
 
@@ -26,6 +26,23 @@ cd renovatio
 
 # Test end-to-end del pipeline (ejecuta pipeline completo para cada fixture)
 ./mvnw test -pl renovatio-provider-cobol -Dtest=PipelineE2ETest
+```
+
+### 3b. Ejecutar la demo por CLI
+```bash
+./mvnw -q -pl renovatio-cli -am -DskipTests package
+java -jar renovatio-cli/target/renovatio.jar reference-pipeline \
+  renovatio-provider-cobol/src/test/resources/fixtures/batch-simple \
+  --out /tmp/renovatio-reference-cli/batch-simple
+```
+
+### 3c. Verificar la ruta API
+```bash
+./mvnw -q -pl renovatio-api -am \
+  -Dtest=ReferencePipelineApiTest \
+  -Djacoco.skip=true \
+  -Dexec.skip=true \
+  test
 ```
 
 ### 4. Ejecutar todos los tests del módulo
@@ -52,8 +69,25 @@ Cada fixture contiene:
 #### Tests esperados
 - `FixturesExistenceTest`: 6 tests pasando
 - `PipelineE2ETest`: 12 tests pasando (pipeline productivo, build Maven y repetibilidad)
+- `ReferencePipelineApiTest`: endpoint REST del pipeline pasando
 - Suite completa medida: 149 tests pasando en `renovatio-provider-cobol`
 - Tiempo medido de la suite completa: 88.62 s (JDK 21.0.12, dependencias en caché)
+
+#### Evidencia desde clone limpio
+Para reproducir la validación cronometrada desde un clone limpio local:
+
+```bash
+rm -rf /tmp/renovatio-reference-clean
+git clone file://"$PWD" /tmp/renovatio-reference-clean
+cd /tmp/renovatio-reference-clean
+/usr/bin/time -p ./mvnw -q \
+  -pl renovatio-provider-cobol,renovatio-cli,renovatio-api -am \
+  -Dtest=PipelineE2ETest,PipelineValidationTest,SurfaceProofTest,FixturesExistenceTest,RenovatioCliSmokeTest,ReferencePipelineApiTest \
+  -Dsurefire.failIfNoSpecifiedTests=false \
+  -Djacoco.skip=true \
+  -Dexec.skip=true \
+  test
+```
 
 #### Criterios de aceptación satisfechos
 - `fixtures`: Archivos redistribuibles con inputs, decisions, manifests y outputs esperados
@@ -62,6 +96,7 @@ Cada fixture contiene:
 - `idempotency`: Reaplicar mismo ChangeSet no genera cambios adicionales
 - `semantic-gaps`: Statements no soportados generan Action Items estables
 - `equivalence`: Comparación contra el conjunto completo de golden Java (faltantes, inesperados y contenido)
+- `surface-proof`: La misma ruta está disponible por servicio application, MCP, CLI y API
 
 ### 6. Revisar Action Items (semantic gaps)
 Los Action Items se generan durante la ejecución del pipeline y se registran en el `PipelineResult.semanticGaps()`.

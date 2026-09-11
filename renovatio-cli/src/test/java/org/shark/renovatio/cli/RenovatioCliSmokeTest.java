@@ -41,6 +41,7 @@ class RenovatioCliSmokeTest {
         assertThat(output).contains("plan");
         assertThat(output).contains("apply");
         assertThat(output).contains("diff");
+        assertThat(output).contains("reference-pipeline");
         assertThat(output).contains("review");
         assertThat(output).contains("report");
         assertThat(output).contains("serve");
@@ -57,6 +58,7 @@ class RenovatioCliSmokeTest {
 
         assertThat(commandLine.execute("profile", "init", "--help")).isZero();
         assertThat(commandLine.execute("generate", "--help")).isZero();
+        assertThat(commandLine.execute("reference-pipeline", "--help")).isZero();
     }
 
     @Test
