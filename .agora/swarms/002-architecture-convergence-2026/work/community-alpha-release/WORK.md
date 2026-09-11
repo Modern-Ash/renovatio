@@ -3,12 +3,12 @@ schema: "agora/work/v1"
 id: "community-alpha-release"
 swarm: "architecture-convergence-2026"
 title: "AC-14: Publicar Renovatio 0.3.0-alpha como technical preview (#235)"
-state: "drafting"
+state: "implementing"
 revision: 1
 operational-status: "blocked"
-status-reason: "Release publication is blocked until required epic #221 dependencies are closed, especially AC-03 / issue #224 owner-approved repository license and LICENSE file. No tag or GitHub Release may be created before Spec Owner approval of the release-readiness report for the exact candidate SHA."
+status-reason: "Publication remains blocked: npm --prefix renovatio-workbench audit --audit-level=moderate fails on Theia 1.75.0 transitive vulnerabilities; Theia 1.75.0 is the latest published package checked on 2026-09-11, so Spec Owner must approve mitigation or wait for patched upstream before tag/release."
 status-by: "project:agent"
-status-at: "2026-09-11T18:14:32.054976Z"
+status-at: "2026-09-11T20:14:26.391752Z"
 acceptance-criteria: {"release-scope":"Release notes y capability matrix distinguen reference, beta, experimental y planned sin sobrepromesas.","quickstart":"Un contribuidor externo completa el quick start COBOL a Java offline en menos de diez minutos desde clone limpio.","docs":"README, arquitectura as-is/target, ADRs, seguridad, contribucion, troubleshooting y examples no contienen enlaces rotos ni estados historicos contradictorios.","versioning":"POMs, packages, UI, tags y artifacts usan una version coherente y existe changelog desde 0.2.0.","supply-chain":"Se publican checksums, SBOM, provenance de build y artifacts firmados segun la politica aprobada.","quality-gates":"Build completo, tests, caracterizacion, equivalencia, scans y smoke tests pasan sobre el commit exacto del tag.","clean-repository":"El tag no contiene DBs, targets, credenciales, PII ni evidencia interna no aprobada para distribucion.","approval":"El Spec Owner revisa el release-readiness report y aprueba explicitamente la publicacion; Agora conserva evidencia y handoff."}
 satisfied-criteria: []
 criterion-statuses: {"release-scope":["specified","planned"],"quickstart":["specified","planned"],"docs":["specified","planned"],"versioning":["specified","planned"],"supply-chain":["specified","planned"],"quality-gates":["specified","planned"],"clean-repository":["specified","planned"],"approval":["specified","planned"]}

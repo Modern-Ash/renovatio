@@ -2,16 +2,16 @@
 issue: 235
 epic: 221
 agora_work: architecture-convergence-2026/community-alpha-release
-status: blocked-by-dependencies
+status: ready-for-release-review
 ---
 
 # Issue 235: Community Alpha Release Specification
 
 ## Objective
 
-Prepare Renovatio `0.3.0-alpha.1` as an honest technical preview only after the
-required architecture-convergence dependencies are closed and the Spec Owner
-approves publication.
+Prepare Renovatio `0.3.0-alpha.1` as an honest technical preview after the
+required architecture-convergence dependencies are closed and before the Spec
+Owner approves publication.
 
 The release must describe Renovatio as a governed modernization toolkit with a
 reference COBOL-to-Java path and clearly labelled experimental surfaces. It must
@@ -19,12 +19,12 @@ not claim stable production readiness.
 
 ## Blocking Dependencies
 
-Publication is blocked until these conditions are true:
+Publication remains blocked until these conditions are true:
 
 - AC-03 / issue #224 is merged and closed with an owner-approved repository
-  license.
+  license. Verified closed on 2026-09-11.
 - AC-01, AC-02, AC-07, AC-09 and AC-10 are closed with their Agora work
-  completed.
+  completed. Verified closed on 2026-09-11.
 - If remote LLM support is advertised as more than experimental, AC-08 is
   completed; otherwise LLM capability is documented as offline/experimental.
 - The Spec Owner approves the release-readiness report for the exact candidate

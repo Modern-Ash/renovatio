@@ -26,3 +26,14 @@
 - 2026-09-11T18:14:24.142322Z | work.criterion-stage-marked | criterion=approval actor=project:owner stage=specified
 - 2026-09-11T18:14:24.396924Z | work.criterion-stage-marked | criterion=approval actor=project:owner stage=planned
 - 2026-09-11T18:14:32.055216Z | work.block | from=active to=blocked actor=project:agent change=change-20260911t181432055092z
+- 2026-09-11T20:01:29.519424Z | work.resume | from=blocked to=active actor=project:agent change=change-20260911t200129519300z
+- 2026-09-11T20:13:44.954049Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-11T20:13:51.820951Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-11T20:13:58.116406Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-11T20:14:14.501885Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-11T20:14:14.515218Z | evidence.added | id=evidence-000002 type=test result=success revision=1 actor=project:agent
+- 2026-09-11T20:14:14.528352Z | evidence.added | id=evidence-000003 type=test result=success revision=1 actor=project:agent
+- 2026-09-11T20:14:14.594827Z | evidence.added | id=evidence-000004 type=supply-chain-scan result=failure revision=1 actor=project:agent
+- 2026-09-11T20:14:18.853767Z | evidence.added | id=evidence-000005 type=release-verification result=success revision=1 actor=project:agent
+- 2026-09-11T20:14:22.135790Z | evidence.added | id=evidence-000006 type=supply-chain-scan result=success revision=1 actor=project:agent
+- 2026-09-11T20:14:26.392036Z | work.block | from=active to=blocked actor=project:agent change=change-20260911t201426391862z

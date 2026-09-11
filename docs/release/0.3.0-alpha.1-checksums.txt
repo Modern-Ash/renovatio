@@ -1,0 +1,8 @@
+122dc9b53283e6b2dc69d3e00ceba305fab8d94d5fb3c332a20fffd1215614e0  docs/release/0.3.0-alpha.1-capability-matrix.md
+112ca5df605d2f983e15b72a6e163da90c0353b1d2eb0d6cb855b6ae632cf064  docs/release/0.3.0-alpha.1-community-docs.md
+8d4c290827e87c4ca447fdfe533f17635507a8257169bbf1b1d8cad9f1ea875b  docs/release/0.3.0-alpha.1-provenance.md
+10abcdb0931ab1059c57144f8bb562a5bc5e3f5b2af2ed7b6dff473fc6b346c2  docs/release/0.3.0-alpha.1-release-notes.md
+004821b6e1b6aa8c6dce27b9eb1ec78fa92c921de7dd3a9cf71963e8a3200d7a  docs/release/0.3.0-alpha.1-release-plan.md
+dd45871d5e5eb8e465c5066b61b155057c456464de75369a60996ffde3e13638  docs/release/0.3.0-alpha.1-sbom.md
+ae63d28fdecef32f02ca7eb2a9f3ddf045f8d01e18bf2096017c60f44977b1b8  docs/release/0.3.0-alpha.1-troubleshooting.md
+f357442ee820795a32b59dd71e4f4c688855fedcc1f2bce91fd99c7656827e5a  docs/reports/issue-235-release-readiness-report.md
