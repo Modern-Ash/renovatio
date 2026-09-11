@@ -79,8 +79,6 @@ load_nvm_if_available() {
 log "Checking prerequisites"
 require_command git
 require_command java
-require_command node
-require_command npm
 require_command python3
 load_nvm_if_available
 if command -v nvm >/dev/null 2>&1 && [[ -f renovatio-workbench/.nvmrc ]]; then
@@ -89,6 +87,8 @@ if command -v nvm >/dev/null 2>&1 && [[ -f renovatio-workbench/.nvmrc ]]; then
   nvm use "$REQUIRED_NODE" >/dev/null || nvm install "$REQUIRED_NODE"
   set -u
 fi
+require_command node
+require_command npm
 pass "toolchain commands available"
 
 if [[ "$RUN_BOOTSTRAP" == true ]]; then
@@ -119,6 +119,14 @@ else
     test
 fi
 pass "reference path verified"
+
+log "Exercising CLI reference-pipeline command"
+./mvnw -q -pl renovatio-cli -am -DskipTests -Djacoco.skip=true package
+CLI_OUTPUT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/renovatio-epic221-cli.XXXXXX")"
+java -jar renovatio-cli/target/renovatio.jar reference-pipeline \
+  renovatio-provider-cobol/src/test/resources/fixtures/batch-simple \
+  --out "$CLI_OUTPUT_DIR/batch-simple"
+pass "CLI reference-pipeline verified"
 
 log "Verifying 0.3.0-alpha release readiness"
 ./scripts/verify-alpha-release.sh
