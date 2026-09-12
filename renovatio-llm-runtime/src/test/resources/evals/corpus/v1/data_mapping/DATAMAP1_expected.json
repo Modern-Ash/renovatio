@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "kind": "cobol.data_mapping",
+  "proposal": {
+    "entities": [
+      {
+        "name": "Customer",
+        "table": "CUSTOMER",
+        "fields": [
+          {"name": "id", "type": "Long", "cobolField": "CUST-ID", "jdbcType": "BIGINT", "nullable": false},
+          {"name": "name", "type": "String", "cobolField": "CUST-NAME", "jdbcType": "VARCHAR", "length": 30, "nullable": false},
+          {"name": "email", "type": "String", "cobolField": "CUST-EMAIL", "jdbcType": "VARCHAR", "length": 50, "nullable": true},
+          {"name": "phone", "type": "String", "cobolField": "CUST-PHONE", "jdbcType": "VARCHAR", "length": 15, "nullable": true},
+          {"name": "address", "type": "String", "cobolField": "CUST-ADDRESS", "jdbcType": "VARCHAR", "length": 100, "nullable": true},
+          {"name": "balance", "type": "BigDecimal", "cobolField": "CUST-BALANCE", "jdbcType": "DECIMAL", "precision": 10, "scale": 2, "nullable": false},
+          {"name": "status", "type": "CustomerStatus", "cobolField": "CUST-STATUS", "jdbcType": "CHAR", "length": 1, "nullable": false}
+        ]
+      }
+    ],
+    "enums": [
+      {
+        "name": "CustomerStatus",
+        "values": [
+          {"code": "A", "description": "ACTIVE"},
+          {"code": "I", "description": "INACTIVE"}
+        ]
+      }
+    ]
+  },
+  "confidence": 0.94,
+  "rationale": "Clear copybook structure with level 01 group and level 05 elementary items. Status field uses 88-level condition names mapping to enum.",
+  "schema": "typed-proposal.v1.json",
+  "metadata": {
+    "model": "gemini-2.0-flash",
+    "promptHash": "sha256:eval_prompt_hash",
+    "inputHash": "sha256:DATAMAP1",
+    "outputHash": "sha256:eval_output",
+    "latencyMs": 1800,
+    "tokensUsed": 1100,
+    "cacheStatus": "MISS"
+  }
+}

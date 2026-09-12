@@ -19,10 +19,13 @@ public final class RenovatioCliContext implements AutoCloseable {
     private final ConfigurableApplicationContext context;
 
     private RenovatioCliContext() {
+        System.setProperty("debug", "false");
+        System.setProperty("logging.level.org.springframework", "ERROR");
         this.context = new SpringApplicationBuilder(RenovatioCliConfiguration.class)
                 .web(WebApplicationType.NONE)
                 .bannerMode(Banner.Mode.OFF)
-                .properties("logging.level.root=WARN", "spring.main.log-startup-info=false")
+                .properties("debug=false", "logging.level.root=WARN",
+                        "logging.level.org.springframework=ERROR", "spring.main.log-startup-info=false")
                 .run();
     }
 

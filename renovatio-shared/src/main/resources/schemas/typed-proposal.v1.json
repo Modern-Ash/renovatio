@@ -1,0 +1,31 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://renovatio.shark.org/schemas/typed-proposal.v1.json",
+  "title": "TypedProposal",
+  "type": "object",
+  "required": ["version", "kind", "proposal", "confidence", "rationale", "schema", "metadata"],
+  "properties": {
+    "version": { "type": "string", "const": "1.0" },
+    "kind": {
+      "type": "string",
+      "enum": ["cobol.structure_analysis", "cobol.business_rule", "cobol.data_mapping"]
+    },
+    "proposal": { "type": "object" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "rationale": { "type": "string", "maxLength": 5000 },
+    "schema": { "type": "string", "pattern": "^[a-z-]+\\.v\\d+\\.json$" },
+    "metadata": {
+      "type": "object",
+      "required": ["model", "promptHash", "inputHash", "outputHash", "latencyMs", "tokensUsed", "cacheStatus"],
+      "properties": {
+        "model": { "type": "string" },
+        "promptHash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "inputHash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "outputHash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "latencyMs": { "type": "integer", "minimum": 0 },
+        "tokensUsed": { "type": "integer", "minimum": 0 },
+        "cacheStatus": { "type": "string", "enum": ["HIT", "MISS", "BYPASS"] }
+      }
+    }
+  }
+}
