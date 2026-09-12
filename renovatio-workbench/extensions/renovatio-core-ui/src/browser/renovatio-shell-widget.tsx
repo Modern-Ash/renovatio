@@ -1212,7 +1212,7 @@ export class RenovatioShellWidget extends ReactWidget {
         const selectedInvariant = this.selectedDomainType === 'invariant' ? draft?.invariants.find(invariant => invariant.id === this.selectedDomainId) : undefined;
         const selectedEvidence = selectedNode?.evidence ?? selectedInvariant?.evidence ?? [];
         const controlDisabled = this.domainState === 'loading' || this.domainState === 'saving' || !draft || draftDiagnostics.some(diagnostic => diagnostic.severity === 'error');
-        return <section className='renovatio-domain-editor' aria-label='Business DomainModel editor'>
+        return <section className='renovatio-domain-editor' role='region' aria-label='Business DomainModel editor'>
             <header className='renovatio-domain-toolbar'>
                 <div>
                     <span className='renovatio-coordinate'>DOMAIN.MODEL / SCHEMA {draft?.schemaVersion ?? '1'}</span>
