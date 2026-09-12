@@ -811,6 +811,16 @@ public class SimpleCobolIrParser {
             joined = joined + Symbols.SPACE + nextRaw;
             lastIndex++;
         }
+        if (lastIndex + 1 < lines.size()) {
+            String upperJoined = joined.toUpperCase(Locale.ROOT);
+            String nextRaw = lines.get(lastIndex + 1).trim();
+            String nextUpper = nextRaw.toUpperCase(Locale.ROOT);
+            if (!upperJoined.contains(" " + Keywords.UNTIL + " ")
+                    && nextUpper.startsWith(Keywords.UNTIL + " ")) {
+                joined = joined + Symbols.SPACE + nextRaw;
+                lastIndex++;
+            }
+        }
         return finishParsePerform(joined, lines, lastIndex, statements);
     }
 

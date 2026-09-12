@@ -229,6 +229,22 @@ class PerformStatementParsingTest {
     }
 
     @Test
+    void parsesInlineVaryingBlockWithUntilContinuation() {
+        List<PerformStatement> statements = performStatements(program("""
+                PERFORM VARYING WS-IDX FROM 1 BY 1
+                    UNTIL WS-IDX > 10
+                    PERFORM 100-ADD
+                END-PERFORM."""));
+        assertEquals(1, statements.size());
+        PerformStatement s = statements.get(0);
+        assertTrue(s.isInline());
+        assertTrue(s.hasVarying());
+        assertEquals("WS-IDX", s.varyingVariable());
+        assertEquals("WS-IDX > 10", s.untilCondition());
+        assertEquals(1, s.inlineBody().size());
+    }
+
+    @Test
     void parsesInlineTimesBlock() {
         List<PerformStatement> statements = performStatements(program("""
                 PERFORM 3 TIMES
