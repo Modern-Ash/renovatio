@@ -1,0 +1,59 @@
+# Work events
+
+- 2026-09-10T15:43:10.772985Z | work.created | state=drafting actor=project:owner
+- 2026-09-10T16:24:13.030418Z | artifact.added | kind=spec uri=file://.agora/swarms/002-architecture-convergence-2026/work/governed-llm-integration/spec.md actor=project:agent
+- 2026-09-10T16:31:14.097523Z | work.clarified-advisory | questions=5 actor=project:owner
+- 2026-09-10T16:40:10.636424Z | artifact.added | kind=implementation-plan uri=file://.agora/swarms/002-architecture-convergence-2026/work/governed-llm-integration/implementation-plan.md actor=project:agent
+- 2026-09-10T16:41:22.713229Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-10T16:45:06.393660Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-10T16:49:00.900062Z | work.criterion-stage-marked | criterion=bounded-role actor=project:owner stage=planned
+- 2026-09-10T16:49:01.148906Z | work.criterion-stage-marked | criterion=module-boundary actor=project:owner stage=planned
+- 2026-09-10T16:49:01.390963Z | work.criterion-stage-marked | criterion=runtime-config actor=project:owner stage=planned
+- 2026-09-10T16:49:01.623326Z | work.criterion-stage-marked | criterion=governance actor=project:owner stage=planned
+- 2026-09-10T16:49:01.858650Z | work.criterion-stage-marked | criterion=review actor=project:owner stage=planned
+- 2026-09-10T16:49:02.095994Z | work.criterion-stage-marked | criterion=evaluation actor=project:owner stage=planned
+- 2026-09-10T16:49:02.328922Z | work.criterion-stage-marked | criterion=failure-modes actor=project:owner stage=planned
+- 2026-09-10T16:49:02.560630Z | work.criterion-stage-marked | criterion=security actor=project:owner stage=planned
+- 2026-09-10T16:54:19.541090Z | artifact.added | kind=runtime-contract uri=file://.agora/swarms/002-architecture-convergence-2026/work/governed-llm-integration/runtime-contract.md actor=project:agent
+- 2026-09-10T16:54:20.838153Z | artifact.added | kind=threat-model uri=file://.agora/swarms/002-architecture-convergence-2026/work/governed-llm-integration/threat-model.md actor=project:agent
+- 2026-09-10T16:55:27.321632Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-10T20:01:01.608157Z | work.criterion-stage-marked | criterion=bounded-role actor=project:agent stage=implemented
+- 2026-09-10T20:01:01.863151Z | work.criterion-stage-marked | criterion=runtime-config actor=project:agent stage=implemented
+- 2026-09-10T20:01:53.577428Z | artifact.added | kind=runtime-contract uri=file://renovatio-shared/src/main/java/org/shark/renovatio/shared/llm actor=project:agent
+- 2026-09-10T20:02:36.174870Z | artifact.added | kind=runtime-contract uri=file://renovatio-shared/src/main/resources/schemas/proposal-request.v1.json actor=project:agent
+- 2026-09-10T20:02:36.720730Z | artifact.added | kind=runtime-contract uri=file://renovatio-shared/src/main/resources/schemas/typed-proposal.v1.json actor=project:agent
+- 2026-09-10T20:03:31.061887Z | artifact.added | kind=threat-model uri=file://.agora/swarms/002-architecture-convergence-2026/work/governed-llm-integration/threat-model.md actor=project:agent
+- 2026-09-10T21:24:53.444231Z | work.criterion-stage-marked | criterion=bounded-role actor=project:agent stage=implemented
+- 2026-09-10T21:24:53.664017Z | work.criterion-stage-marked | criterion=runtime-config actor=project:agent stage=implemented
+- 2026-09-10T21:24:53.868571Z | work.criterion-stage-marked | criterion=security actor=project:agent stage=implemented
+- 2026-09-10T21:25:23.489765Z | artifact.added | kind=runtime-contract uri=file://renovatio-llm-runtime/src/main/java actor=project:agent
+- 2026-09-10T22:28:39.514794Z | work.criterion-stage-marked | criterion=module-boundary actor=project:agent stage=implemented
+- 2026-09-10T22:45:31.568042Z | work.criterion-stage-marked | criterion=governance actor=project:agent stage=implemented
+- 2026-09-10T22:45:31.796407Z | work.criterion-stage-marked | criterion=review actor=project:agent stage=implemented
+- 2026-09-10T22:45:59.876771Z | artifact.added | kind=runtime-contract uri=file://renovatio-llm-runtime/src/main/java/org/shark/renovatio/llm actor=project:agent
+- 2026-09-10T22:46:36.093852Z | artifact.added | kind=threat-model uri=file://.agora/swarms/002-architecture-convergence-2026/work/governed-llm-integration/threat-model.md actor=project:agent
+- 2026-09-10T22:51:58.209979Z | work.criterion-stage-marked | criterion=runtime-config actor=project:agent stage=implemented
+- 2026-09-10T22:51:58.437546Z | work.criterion-stage-marked | criterion=failure-modes actor=project:agent stage=implemented
+- 2026-09-10T22:52:12.538504Z | artifact.added | kind=test-report uri=file://renovatio-llm-runtime/target/surefire-reports actor=project:agent
+- 2026-09-10T23:17:37.089345Z | work.criterion-stage-marked | criterion=evaluation actor=project:agent stage=implemented
+- 2026-09-10T23:17:54.235421Z | artifact.added | kind=evaluation-report uri=file://renovatio-llm-runtime/target/surefire-reports actor=project:agent
+- 2026-09-10T23:18:01.657344Z | work.criterion-stage-marked | criterion=bounded-role actor=project:owner stage=verified
+- 2026-09-10T23:18:01.876127Z | work.criterion-stage-marked | criterion=module-boundary actor=project:owner stage=verified
+- 2026-09-10T23:18:02.118448Z | work.criterion-stage-marked | criterion=runtime-config actor=project:owner stage=verified
+- 2026-09-10T23:18:02.355444Z | work.criterion-stage-marked | criterion=governance actor=project:owner stage=verified
+- 2026-09-10T23:18:02.596718Z | work.criterion-stage-marked | criterion=review actor=project:owner stage=verified
+- 2026-09-10T23:18:02.828716Z | work.criterion-stage-marked | criterion=evaluation actor=project:owner stage=verified
+- 2026-09-10T23:18:03.057962Z | work.criterion-stage-marked | criterion=failure-modes actor=project:owner stage=verified
+- 2026-09-10T23:18:03.290218Z | work.criterion-stage-marked | criterion=security actor=project:owner stage=verified
+- 2026-09-10T23:18:10.052475Z | work.criterion-stage-marked | criterion=bounded-role actor=project:owner stage=accepted
+- 2026-09-10T23:18:10.300831Z | work.criterion-stage-marked | criterion=module-boundary actor=project:owner stage=accepted
+- 2026-09-10T23:18:10.531677Z | work.criterion-stage-marked | criterion=runtime-config actor=project:owner stage=accepted
+- 2026-09-10T23:18:10.759400Z | work.criterion-stage-marked | criterion=governance actor=project:owner stage=accepted
+- 2026-09-10T23:18:10.978757Z | work.criterion-stage-marked | criterion=review actor=project:owner stage=accepted
+- 2026-09-10T23:18:11.205954Z | work.criterion-stage-marked | criterion=evaluation actor=project:owner stage=accepted
+- 2026-09-10T23:18:11.427434Z | work.criterion-stage-marked | criterion=failure-modes actor=project:owner stage=accepted
+- 2026-09-10T23:18:11.650141Z | work.criterion-stage-marked | criterion=security actor=project:owner stage=accepted
+- 2026-09-10T23:18:45.952534Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-10T23:19:10.885743Z | evidence.added | id=evidence-000001 type=test-run result=success revision=1 actor=project:agent
+- 2026-09-10T23:19:15.697573Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-10T23:19:36.914307Z | work.transitioned | from=verifying to=completed actor=project:owner

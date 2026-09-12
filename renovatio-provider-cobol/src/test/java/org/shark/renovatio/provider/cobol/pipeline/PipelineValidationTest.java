@@ -48,6 +48,14 @@ class PipelineValidationTest {
         assertThat(validator.validate(new FileWritingPipeline(true), request).isIdempotent()).isFalse();
     }
 
+    @Test
+    void generatedInfiniteLoopDetectorMatchesRealEmitterSyntax() {
+        assertThat(CobolPipelineOrchestrator.containsGeneratedInfiniteLoop(
+            "for (int wsCounter = 1; true; wsCounter += 1) {")).isTrue();
+        assertThat(CobolPipelineOrchestrator.containsGeneratedInfiniteLoop(
+            "for (int index = 0; index < 10; index++) {")).isFalse();
+    }
+
     private static final class FileWritingPipeline implements PipelineOrchestrator {
         private final boolean drift;
         private final AtomicInteger executions = new AtomicInteger();

@@ -36,7 +36,7 @@ test('DiagramCanvas renders a React Flow surface and reports every interaction u
     assert.match(canvas, /onConnect=\{handleConnect\}/);
     assert.match(canvas, /onPaneClick=\{handlePaneClick\}/);
     // Every event kind from the protocol must actually be emitted somewhere.
-    for (const event of ["type: 'nodeMoved'", "type: 'nodeSelected'", "type: 'edgeCreated'"]) {
+    for (const event of ["type: 'nodeMoved'", "type: 'nodeSelected'", "type: 'edgeCreated'", "type: 'nodesPruned'"]) {
         assert.match(canvas, new RegExp(event.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     }
     // Host-extensibility hooks required by #265 (UML), #266 (DER) and #267 (Architecture)
@@ -53,6 +53,8 @@ test('the public entry point re-exports the component and the protocol types', (
 test('package metadata declares react as a peer dependency, not a bundled one', () => {
     assert.ok(pkg.peerDependencies?.react, 'react must be a peer dependency');
     assert.ok(pkg.peerDependencies?.['react-dom'], 'react-dom must be a peer dependency');
+    assert.equal(pkg.devDependencies?.react, undefined, 'react must be provided by the host runtime');
+    assert.equal(pkg.devDependencies?.['react-dom'], undefined, 'react-dom must be provided by the host runtime');
     assert.ok(pkg.dependencies?.['@xyflow/react'], '@xyflow/react must be declared as a real dependency');
     assert.equal(pkg.dependencies?.['@theia/core'], undefined, 'this package must not depend on @theia/core');
 });
