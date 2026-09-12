@@ -1742,7 +1742,7 @@ export class RenovatioShellWidget extends ReactWidget {
                     </dl>
                     {this.analysisNotice && <p role='status'>{this.analysisNotice}</p>}
                     {this.analysisState === 'ready' && <div className='renovatio-analysis-results'>
-                        {inventoryEntries.length ? <dl>{inventoryEntries.map(([category, count]) => <div key={category}><dt>{category}</dt><dd>{count}</dd></div>)}</dl> : <p>No inventory categories were returned.</p>}
+                        {inventoryEntries.length ? <dl>{inventoryEntries.map(([category, count]) => <div key={category}><dt>{category}: </dt><dd>{count}</dd></div>)}</dl> : <p>No inventory categories were returned.</p>}
                         <p>{this.analysis?.runs.length ? `Persisted runs: ${this.analysis.runs.map(run => run.runId).join(', ')}` : 'No persisted runs for this project yet.'}</p>
                     </div>}
                     {this.analysisState === 'empty' && <p>{jobDone && inventoryTotal === 0
