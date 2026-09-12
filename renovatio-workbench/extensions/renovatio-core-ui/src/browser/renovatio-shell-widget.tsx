@@ -103,6 +103,18 @@ const MVC_LAYERS = ['controller', 'service', 'model'] as const;
 const ACTIVE_AREA_KEY = 'renovatio.workbench.active-area';
 const SELECTED_PROJECT_KEY = 'renovatio.workbench.selected-project';
 
+class DomainDiagramErrorBoundary extends React.Component<{ fallback: React.ReactNode; children: React.ReactNode }, { hasError: boolean }> {
+    state = { hasError: false };
+
+    static getDerivedStateFromError(): { hasError: boolean } {
+        return { hasError: true };
+    }
+
+    override render(): React.ReactNode {
+        return this.state.hasError ? this.props.fallback : this.props.children;
+    }
+}
+
 @injectable()
 export class RenovatioShellWidget extends ReactWidget {
     static readonly ID = 'renovatio.shell.widget';
@@ -1234,7 +1246,9 @@ export class RenovatioShellWidget extends ReactWidget {
             {this.domainState === 'error' && !draft && <p>The DomainModel adapter is unavailable. Reload to retry.</p>}
             {this.domainState === 'conflict' && <p>Reload the latest revision, then reapply the intended correction. No newer data was overwritten.</p>}
             {draft && <div className='renovatio-domain-grid'>
-                {this.domainViewMode === 'diagram' ? this.renderDomainDiagramSurface(draft) : this.renderDomainCatalog(draft)}
+                {this.domainViewMode === 'diagram'
+                    ? <DomainDiagramErrorBoundary fallback={this.renderDomainCatalog(draft)}>{this.renderDomainDiagramSurface(draft)}</DomainDiagramErrorBoundary>
+                    : this.renderDomainCatalog(draft)}
                 {this.renderDomainForm(draft, selectedNode, selectedRelation, selectedInvariant)}
                 {this.renderDomainInspector(draftDiagnostics, selectedEvidence)}
             </div>}
