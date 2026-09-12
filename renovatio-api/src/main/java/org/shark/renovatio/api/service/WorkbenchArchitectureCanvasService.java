@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -14,12 +15,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.shark.renovatio.api.dto.ArchitecturePreviewDto;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto;
+import org.shark.renovatio.api.dto.WorkbenchChangeSetDto;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.ArchitectureProfileDraft;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.CanvasNode;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.Change;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.Comparison;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.DependencyDiagnostic;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.DependencyRule;
+import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.ExcludedNode;
+import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.LayoutPosition;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.ManifestEntry;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.Version;
 import org.shark.renovatio.api.entity.ProjectArchitectureProfileVersionEntity;
@@ -136,6 +140,35 @@ public class WorkbenchArchitectureCanvasService {
         return new Comparison(List.copyOf(added), List.copyOf(removed), List.copyOf(changed));
     }
 
+    @Transactional(readOnly = true)
+    public WorkbenchChangeSetDto.CreateRequest generateChangeSetRequest(String projectId) {
+        requireProject(projectId);
+        ProjectArchitectureProfileVersionEntity current = latest(projectId);
+        if (current == null) {
+            throw validation("PROFILE_NOT_SAVED", "architecture", "Save the architecture profile before generating a change set");
+        }
+        ArchitectureProfileDraft draft = deserialize(current);
+        WorkbenchArchitectureCanvasDto canvas = view(projectId, current, draft);
+        List<DependencyDiagnostic> blockers = canvas.dependencyDiagnostics().stream()
+                .filter(diagnostic -> "error".equalsIgnoreCase(diagnostic.severity())).toList();
+        if (!blockers.isEmpty()) throw new ValidationException(blockers);
+        var excluded = draft.excludedNodeIds().stream().map(ExcludedNode::id).collect(Collectors.toSet());
+        List<WorkbenchChangeSetDto.FileChangeRequest> files = canvas.manifest().stream()
+                .filter(entry -> !excluded.contains(entry.componentId()))
+                .map(entry -> new WorkbenchChangeSetDto.FileChangeRequest(entry.path(), "create",
+                        generatedJavaStub(entry, current.getRevision(), canvas.canonicalHash())))
+                .toList();
+        if (files.isEmpty()) {
+            throw validation("NO_GENERATED_ARTIFACTS", "architecture", "All architecture artifacts are excluded from generation");
+        }
+        return new WorkbenchChangeSetDto.CreateRequest(
+                "Generate Java targets from architecture revision " + current.getRevision(),
+                false,
+                files,
+                List.of("architecture:" + draft.style(), "architecture-revision:" + current.getRevision()),
+                List.of("architectureHash:" + canvas.canonicalHash(), "excludedNodeIds:" + excluded.size()));
+    }
+
     private WorkbenchArchitectureCanvasDto view(String projectId, ProjectArchitectureProfileVersionEntity entity,
                                                 ArchitectureProfileDraft draft) {
         ArchitecturePreviewDto preview = previews.preview(projectId, draft.style(), draft.moduleGrouping());
@@ -149,12 +182,16 @@ public class WorkbenchArchitectureCanvasService {
     private List<CanvasNode> canvas(ArchitecturePreviewDto preview, ArchitectureProfileDraft draft) {
         Map<String, String> packages = draft.packageRoots();
         Map<String, String> suffixes = draft.suffixes();
+        Map<String, ExcludedNode> excluded = draft.excludedNodeIds().stream()
+                .collect(Collectors.toMap(ExcludedNode::id, Function.identity(), (left, right) -> left));
         return preview.components().stream().map(component -> {
             String layer = layer(component.kind().name(), component.name());
             String className = draft.classNames().getOrDefault(component.name(),
                     draft.classNames().getOrDefault(layer, classBase(component.name()) + suffixes.getOrDefault(layer, "")));
+            ExcludedNode excludedNode = excluded.get(component.id());
             return new CanvasNode(component.id(), layer, component.kind().name(), component.name(),
-                    packages.getOrDefault(layer, packages.get("base")), className, component.id());
+                    packages.getOrDefault(layer, packages.get("base")), className, component.id(),
+                    excludedNode != null, excludedNode == null ? "" : excludedNode.reason());
         }).sorted(Comparator.comparing(CanvasNode::layer).thenComparing(CanvasNode::label)).toList();
     }
 
@@ -170,6 +207,17 @@ public class WorkbenchArchitectureCanvasService {
             return new ManifestEntry(path(packageName, className), artifact.role(), layer, className, packageName,
                     artifact.componentId());
         }).sorted(Comparator.comparing(ManifestEntry::path)).toList();
+    }
+
+    private String generatedJavaStub(ManifestEntry entry, long revision, String architectureHash) {
+        return "package " + entry.packageName() + ";\n\n"
+                + "/**\n"
+                + " * Generated by Renovatio Workbench from architecture revision " + revision + ".\n"
+                + " * Architecture hash: " + architectureHash + "\n"
+                + " * Role: " + entry.role() + "; layer: " + entry.layer() + "; component: " + entry.componentId() + "\n"
+                + " */\n"
+                + "public class " + entry.className() + " {\n"
+                + "}\n";
     }
 
     private List<DependencyDiagnostic> dependencyDiagnostics(ArchitecturePreviewDto preview, List<DependencyRule> rules) {
@@ -202,7 +250,7 @@ public class WorkbenchArchitectureCanvasService {
                 resolved.architecture().moduleGrouping(), resolved.runtime().framework(),
                 resolved.persistence().defaultStrategy(), map(extensions, EXT_PACKAGE_PREFIX, defaultsPackages()),
                 map(extensions, EXT_SUFFIX_PREFIX, defaultsSuffixes(resolved.architecture().style())),
-                map(extensions, EXT_CLASS_PREFIX, Map.of()), rules(extensions.get(EXT_RULES))));
+                map(extensions, EXT_CLASS_PREFIX, Map.of()), rules(extensions.get(EXT_RULES)), Map.of(), List.of()));
     }
 
     private MigrationProfile toProfile(MigrationProfile current, ArchitectureProfileDraft draft) {
@@ -234,7 +282,8 @@ public class WorkbenchArchitectureCanvasService {
         Map<String, String> classes = clean(draft.classNames());
         List<DependencyRule> rules = draft.dependencyRules() == null || draft.dependencyRules().isEmpty()
                 ? defaultRules(style) : draft.dependencyRules().stream().map(this::normalizeRule).toList();
-        return new ArchitectureProfileDraft(style, grouping, framework, persistence, packages, suffixes, classes, rules);
+        return new ArchitectureProfileDraft(style, grouping, framework, persistence, packages, suffixes, classes, rules,
+                cleanLayout(draft.layout()), cleanExcluded(draft.excludedNodeIds()));
     }
 
     private DependencyRule normalizeRule(DependencyRule rule) {
@@ -266,14 +315,36 @@ public class WorkbenchArchitectureCanvasService {
     private Map<String, String> merge(Map<String, String> defaults, Map<String, String> values) {
         Map<String, String> result = new LinkedHashMap<>(defaults);
         clean(values).forEach(result::put);
-        return Map.copyOf(result);
+        return Collections.unmodifiableMap(result);
     }
 
     private Map<String, String> clean(Map<String, String> values) {
         if (values == null) return Map.of();
         Map<String, String> result = new LinkedHashMap<>();
         values.forEach((key, value) -> { if (!blank(key) && !blank(value)) result.put(key(key), value.trim()); });
+        return Collections.unmodifiableMap(result);
+    }
+
+    private Map<String, LayoutPosition> cleanLayout(Map<String, LayoutPosition> values) {
+        if (values == null || values.isEmpty()) return Map.of();
+        Map<String, LayoutPosition> result = new LinkedHashMap<>();
+        values.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            if (!blank(entry.getKey()) && entry.getValue() != null
+                    && Double.isFinite(entry.getValue().x()) && Double.isFinite(entry.getValue().y())) {
+                result.put(entry.getKey().trim(), entry.getValue());
+            }
+        });
         return Map.copyOf(result);
+    }
+
+    private List<ExcludedNode> cleanExcluded(List<ExcludedNode> values) {
+        if (values == null || values.isEmpty()) return List.of();
+        Map<String, ExcludedNode> result = new LinkedHashMap<>();
+        values.stream().filter(value -> value != null && !blank(value.id()))
+                .sorted(Comparator.comparing(ExcludedNode::id))
+                .forEach(value -> result.putIfAbsent(value.id().trim(),
+                        new ExcludedNode(value.id().trim(), blank(value.reason()) ? "Excluded from generation" : value.reason().trim())));
+        return List.copyOf(result.values());
     }
 
     private Map<String, String> defaultsPackages() {
@@ -328,6 +399,8 @@ public class WorkbenchArchitectureCanvasService {
         for (DependencyRule rule : draft.dependencyRules()) {
             result.put("dependencyRules." + rule.fromLayer() + "." + rule.toLayer(), rule.allowed() + ":" + rule.reason());
         }
+        draft.layout().forEach((key, value) -> result.put("layout." + key, value.x() + "," + value.y()));
+        draft.excludedNodeIds().forEach(value -> result.put("excludedNodeIds." + value.id(), value.reason()));
         return result;
     }
 

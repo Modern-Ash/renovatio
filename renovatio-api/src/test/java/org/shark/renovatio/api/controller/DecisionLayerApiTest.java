@@ -268,6 +268,25 @@ class DecisionLayerApiTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void workbenchAiItemDecisionUsesGovernedDecisionTransition() throws Exception {
+        service.upsertAnalysis(projectId, "e".repeat(64));
+        String response = mvc.perform(get(path("/workbench/ai")).header("X-Role", "ADMIN"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].revision").value(1))
+                .andReturn().getResponse().getContentAsString();
+        JsonNode first = json.readTree(response).path("items").get(0);
+
+        mvc.perform(post(path("/workbench/ai/items/" + first.path("id").asText() + ":decide"))
+                        .header("X-Role", "MANAGER")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"action":"accept","revision":1}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.items[0].approvalStatus").value("approved"));
+    }
+
     private String path(String suffix) { return "/api/projects/" + projectId + suffix; }
     private record PatchRequest(String chosenOption, long revision) { }
 }
