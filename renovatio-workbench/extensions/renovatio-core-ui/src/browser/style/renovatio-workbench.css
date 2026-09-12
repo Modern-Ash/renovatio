@@ -206,6 +206,10 @@
     grid-template-columns: minmax(140px, 0.42fr) minmax(220px, 0.8fr) minmax(280px, 1.7fr);
 }
 
+.renovatio-shell-grid.is-focused-area {
+    grid-template-columns: minmax(140px, 0.34fr) minmax(0, 2.6fr);
+}
+
 .renovatio-activity-rail,
 .renovatio-project-explorer,
 .renovatio-area-content,
@@ -647,6 +651,68 @@
 
 .renovatio-domain-add {
     margin-top: 8px;
+}
+
+/* Issue #265: diagram view mode replaces the catalog column. */
+.renovatio-domain-diagram {
+    background: rgba(4, 13, 15, 0.7);
+    border: 1px solid rgba(238, 248, 245, 0.18);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    padding: 12px;
+}
+
+.renovatio-domain-diagram-surface {
+    flex: 1;
+    min-height: 320px;
+    position: relative;
+}
+
+.renovatio-domain-class-node {
+    background: #071012;
+    border: 1px solid rgba(238, 248, 245, 0.28);
+    color: var(--renovatio-ink);
+    font: 11px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    min-width: 160px;
+}
+
+.renovatio-domain-class-node.is-selected {
+    border-color: var(--renovatio-accent);
+    box-shadow: 0 0 0 1px var(--renovatio-accent);
+}
+
+.renovatio-domain-class-node header {
+    border-bottom: 1px solid rgba(238, 248, 245, 0.18);
+    display: grid;
+    gap: 3px;
+    padding: 6px 8px;
+}
+
+.renovatio-domain-class-badge {
+    color: var(--renovatio-accent);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+}
+
+.renovatio-domain-class-properties {
+    display: grid;
+    gap: 3px;
+    list-style: none;
+    margin: 0;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 6px 8px;
+}
+
+.renovatio-domain-class-property-type {
+    color: var(--renovatio-muted);
+}
+
+.renovatio-domain-class-empty {
+    color: var(--renovatio-muted);
+    font-style: italic;
 }
 
 .renovatio-domain-add button {
@@ -1182,6 +1248,61 @@
 .renovatio-equivalence-card span,
 .renovatio-equivalence-card small {
     font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    overflow-wrap: anywhere;
+}
+
+.renovatio-analysis-panel {
+    gap: 14px;
+}
+
+.renovatio-analysis-header {
+    align-items: center;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.renovatio-analysis-header button {
+    background: var(--renovatio-accent);
+    border: 0;
+    color: #071311;
+    cursor: pointer;
+    font: 700 12px/1 Barlow, "Segoe UI", sans-serif;
+    padding: 9px 12px;
+}
+
+.renovatio-analysis-header button:disabled {
+    cursor: progress;
+    opacity: 0.65;
+}
+
+.renovatio-analysis-meta,
+.renovatio-analysis-results dl {
+    display: grid;
+    gap: 8px;
+    grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    margin: 0;
+}
+
+.renovatio-analysis-meta div,
+.renovatio-analysis-results dl div {
+    border-left: 2px solid var(--renovatio-accent);
+    display: grid;
+    gap: 4px;
+    padding-left: 8px;
+}
+
+.renovatio-analysis-meta dt,
+.renovatio-analysis-results dt {
+    color: var(--renovatio-muted);
+    font: 700 10px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.renovatio-analysis-meta dd,
+.renovatio-analysis-results dd {
+    margin: 0;
     overflow-wrap: anywhere;
 }
 
