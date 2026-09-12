@@ -1,0 +1,37 @@
+{
+  "name": "@renovatio/diagram-canvas",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Reusable drag-and-drop diagram canvas (React Flow) for the Renovatio Workbench. Renders a view-model (DiagramModel) and emits view events (DiagramEvent) — it has no knowledge of DomainModel, ArchitectureProfileDraft, or the backend API.",
+  "keywords": [
+    "theia-extension",
+    "renovatio",
+    "diagram"
+  ],
+  "files": [
+    "lib",
+    "src"
+  ],
+  "main": "lib/browser/index.js",
+  "types": "lib/browser/index.d.ts",
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('lib',{recursive:true,force:true})\"",
+    "build": "tsc -b",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@xyflow/react": "12.11.6"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "typescript": "5.9.3"
+  }
+}
