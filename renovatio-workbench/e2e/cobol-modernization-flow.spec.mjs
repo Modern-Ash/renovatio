@@ -23,7 +23,9 @@ test('Theia guides COBOL source scan through modeling, architecture, shadow revi
     await expect(page.getByLabel('Analysis inventory')).toContainText('cobol: 1');
     await expect(page.getByLabel('Analysis inventory')).toContainText('analysis-2026-09-08');
 
-    await activityRail.getByRole('button', { name: /Domain/ }).click();
+    const domainAreaButton = activityRail.getByRole('button', { name: /Domain/ });
+    await domainAreaButton.click();
+    await expect(domainAreaButton).toHaveAttribute('aria-pressed', 'true');
     const domainEditor = page.getByRole('region', { name: 'Business DomainModel editor' });
     await expect(domainEditor).toContainText('Employee Payroll');
     await expect(page.getByLabel('Domain provenance and history')).toContainText('src/PAYROLL.CBL#EMPLOYEE-RECORD');
