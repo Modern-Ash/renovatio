@@ -570,7 +570,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected async loadProjectDetails(): Promise<WorkbenchProject | undefined> {
         const current = this.projects.find(project => project.id === this.selectedProject);
         try {
-            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}`);
+            const response = await fetch(`${this.backendUrl}/api/workbench/projects/${encodeURIComponent(this.selectedProject)}`);
             if (!response.ok) return current;
             const project = await response.json() as WorkbenchProject;
             this.projects = this.projects.map(candidate => candidate.id === project.id ? { ...candidate, ...project } : candidate);
@@ -600,9 +600,9 @@ export class RenovatioShellWidget extends ReactWidget {
         this.analysisNotice = 'Starting analysis...';
         this.update();
         try {
-            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/jobs`, {
+            const response = await fetch(`${this.backendUrl}/api/workbench/projects/${encodeURIComponent(this.selectedProject)}/jobs`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Role': 'ADMIN' },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ operation: 'analyze', params: { workspacePath } })
             });
             if (!response.ok) throw new Error(`Analyze job returned ${response.status}`);
@@ -619,10 +619,11 @@ export class RenovatioShellWidget extends ReactWidget {
 
     protected async pollAnalysisJob(jobId: string): Promise<void> {
         const pollToken = ++this.analysisPollToken;
-        for (let attempt = 0; attempt < 20 && pollToken === this.analysisPollToken; attempt++) {
-            await this.delay(attempt < 3 ? 1000 : 2500);
+        let attempt = 0;
+        while (pollToken === this.analysisPollToken) {
+            await this.delay(attempt++ < 3 ? 1000 : 2500);
             try {
-                const response = await fetch(`${this.backendUrl}/api/jobs/${encodeURIComponent(jobId)}`, { headers: { 'X-Role': 'ADMIN' } });
+                const response = await fetch(`${this.backendUrl}/api/workbench/jobs/${encodeURIComponent(jobId)}`);
                 if (!response.ok) throw new Error(`Job adapter returned ${response.status}`);
                 this.analysisJob = await response.json() as WorkbenchJob;
                 const status = this.analysisJob.status.toUpperCase();
