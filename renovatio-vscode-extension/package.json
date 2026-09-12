@@ -1,0 +1,505 @@
+{
+  "name": "renovatio-vscode-extension",
+  "displayName": "Renovatio Modernization",
+  "description": "Native VS Code integration for Renovatio COBOL modernization workflows.",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "publisher": "modern-ash",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Modern-Ash/renovatio.git",
+    "directory": "renovatio-vscode-extension"
+  },
+  "engines": {
+    "vscode": "^1.100.0",
+    "node": ">=20"
+  },
+  "categories": [
+    "Other",
+    "Programming Languages",
+    "Visualization"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:**/*.cbl",
+    "workspaceContains:**/*.cob",
+    "workspaceContains:**/*.cpy",
+    "workspaceContains:**/*.jcl",
+    "onCommand:renovatio.selectProject",
+    "onCommand:renovatio.analyzeSelectedPath",
+    "onCommand:renovatio.analyzeCobolSources",
+    "onCommand:renovatio.addCobolSourceRoot",
+    "onCommand:renovatio.removeCobolSourceRoot",
+    "onCommand:renovatio.selectGeneratedOutputFolder",
+    "onCommand:renovatio.openControlDeck",
+    "onCommand:renovatio.openPersistenceModel",
+    "onCommand:renovatio.openGeneratedCode",
+    "onView:renovatio.views.welcome",
+    "onCommand:renovatio.openDomainSample",
+    "onCommand:renovatio.openArchitectureSample",
+    "onCustomEditor:renovatio.diagram.domain",
+    "onCustomEditor:renovatio.diagram.architecture",
+    "onView:renovatio.projects",
+    "onView:renovatio.operations",
+    "onView:renovatio.analysis",
+    "onView:renovatio.domainModel",
+    "onCommand:renovatio.openNativeDomainDiagram",
+    "onCommand:renovatio.openNativePersistenceDiagram",
+    "onCommand:renovatio.openNativeArchitectureDiagram"
+  ],
+  "main": "dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "Renovatio",
+      "properties": {
+        "renovatio.backendUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8081",
+          "description": "Renovatio API base URL."
+        },
+        "renovatio.role": {
+          "type": "string",
+          "default": "ADMIN",
+          "description": "Role header sent to the Renovatio API during local development."
+        },
+        "renovatio.cobolRoots": {
+          "type": "array",
+          "default": [],
+          "scope": "resource",
+          "items": {
+            "type": "string"
+          },
+          "description": "COBOL source roots analyzed by Renovatio. Relative paths are resolved from the VS Code workspace folder."
+        },
+        "renovatio.generatedRoot": {
+          "type": "string",
+          "default": "generated/java",
+          "scope": "resource",
+          "description": "Future target-code output root used after discovery, decisions, and approval. Relative paths are resolved from the VS Code workspace folder."
+        },
+        "renovatio.targetLanguage": {
+          "type": "string",
+          "default": "java",
+          "scope": "resource",
+          "enum": [
+            "java",
+            "python",
+            "node"
+          ],
+          "description": "Modernization target language used later for approved emission planning."
+        },
+        "renovatio.targetPackage": {
+          "type": "string",
+          "default": "com.example.modernized",
+          "scope": "resource",
+          "description": "Default package/module namespace for later target-code emission."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "renovatio.refresh",
+        "title": "Renovatio: Refresh",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "renovatio.selectProject",
+        "title": "Renovatio: Select Project",
+        "icon": "$(folder-active)"
+      },
+      {
+        "command": "renovatio.analyzeSelectedPath",
+        "title": "Renovatio: Analyze Explorer Selection",
+        "icon": "$(play)"
+      },
+      {
+        "command": "renovatio.analyzeCobolSources",
+        "title": "Renovatio: Analyze COBOL Sources",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "renovatio.analyzeWorkspace",
+        "title": "Renovatio: Analyze VS Code Workspace",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "renovatio.addCobolSourceRoot",
+        "title": "Renovatio: Add COBOL Source Root",
+        "icon": "$(add)"
+      },
+      {
+        "command": "renovatio.removeCobolSourceRoot",
+        "title": "Renovatio: Remove COBOL Source Root",
+        "icon": "$(remove)"
+      },
+      {
+        "command": "renovatio.selectGeneratedOutputFolder",
+        "title": "Renovatio: Configure Future Output Folder",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "renovatio.openControlDeck",
+        "title": "Renovatio: Open Control Deck",
+        "icon": "$(dashboard)"
+      },
+      {
+        "command": "renovatio.openDomainModel",
+        "title": "Renovatio: Open Domain Model",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "renovatio.openPersistenceModel",
+        "title": "Renovatio: Open Inferred Persistence",
+        "icon": "$(database)"
+      },
+      {
+        "command": "renovatio.openGeneratedCode",
+        "title": "Renovatio: Open Future Output",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "renovatio.openDomainSample",
+        "title": "Renovatio: Open Domain Diagram Sample",
+        "category": "Renovatio"
+      },
+      {
+        "command": "renovatio.openArchitectureSample",
+        "title": "Renovatio: Open Architecture Diagram Sample",
+        "category": "Renovatio"
+      },
+      {
+        "command": "renovatio.openNativeDomainDiagram",
+        "title": "Renovatio: Open Native Domain Diagram",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "renovatio.openNativePersistenceDiagram",
+        "title": "Renovatio: Open Native Persistence Diagram",
+        "icon": "$(database)"
+      },
+      {
+        "command": "renovatio.openNativeArchitectureDiagram",
+        "title": "Renovatio: Open Native Architecture Diagram",
+        "icon": "$(circuit-board)"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "renovatio.analyzeSelectedPath",
+          "group": "navigation@50",
+          "when": "resourceScheme == file"
+        },
+        {
+          "command": "renovatio.addCobolSourceRoot",
+          "group": "navigation@51"
+        },
+        {
+          "command": "renovatio.openControlDeck",
+          "group": "navigation@52"
+        },
+        {
+          "command": "renovatio.openDomainModel",
+          "group": "navigation@53"
+        },
+        {
+          "command": "renovatio.openPersistenceModel",
+          "group": "navigation@58"
+        },
+        {
+          "command": "renovatio.openGeneratedCode",
+          "group": "navigation@59"
+        },
+        {
+          "command": "renovatio.analyzeWorkspace",
+          "group": "navigation@60"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "renovatio.refresh"
+        },
+        {
+          "command": "renovatio.selectProject"
+        },
+        {
+          "command": "renovatio.analyzeSelectedPath"
+        },
+        {
+          "command": "renovatio.analyzeCobolSources"
+        },
+        {
+          "command": "renovatio.analyzeWorkspace"
+        },
+        {
+          "command": "renovatio.addCobolSourceRoot"
+        },
+        {
+          "command": "renovatio.removeCobolSourceRoot"
+        },
+        {
+          "command": "renovatio.selectGeneratedOutputFolder"
+        },
+        {
+          "command": "renovatio.openControlDeck"
+        },
+        {
+          "command": "renovatio.openDomainModel"
+        },
+        {
+          "command": "renovatio.openPersistenceModel"
+        },
+        {
+          "command": "renovatio.openGeneratedCode"
+        },
+        {
+          "command": "renovatio.openDomainSample"
+        },
+        {
+          "command": "renovatio.openArchitectureSample"
+        },
+        {
+          "command": "renovatio.openNativeDomainDiagram"
+        },
+        {
+          "command": "renovatio.openNativePersistenceDiagram"
+        },
+        {
+          "command": "renovatio.openNativeArchitectureDiagram"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "renovatio.refresh",
+          "when": "view == renovatio.projects || view == renovatio.analysis",
+          "group": "navigation@1"
+        },
+        {
+          "command": "renovatio.selectProject",
+          "when": "view == renovatio.projects",
+          "group": "navigation@2"
+        },
+        {
+          "command": "renovatio.analyzeWorkspace",
+          "when": "view == renovatio.operations || view == renovatio.analysis",
+          "group": "navigation@2"
+        },
+        {
+          "command": "renovatio.addCobolSourceRoot",
+          "when": "view == renovatio.projects || view == renovatio.operations",
+          "group": "navigation@3"
+        },
+        {
+          "command": "renovatio.selectGeneratedOutputFolder",
+          "when": "view == renovatio.projects || view == renovatio.operations",
+          "group": "navigation@4"
+        },
+        {
+          "command": "renovatio.openControlDeck",
+          "when": "view == renovatio.operations",
+          "group": "navigation@5"
+        },
+        {
+          "command": "renovatio.openDomainModel",
+          "when": "view == renovatio.operations || view == renovatio.domainModel",
+          "group": "navigation@6"
+        },
+        {
+          "command": "renovatio.openPersistenceModel",
+          "when": "view == renovatio.operations || view == renovatio.analysis",
+          "group": "navigation@11"
+        },
+        {
+          "command": "renovatio.openGeneratedCode",
+          "when": "view == renovatio.operations || view == renovatio.analysis",
+          "group": "navigation@12"
+        },
+        {
+          "command": "renovatio.openNativeDomainDiagram",
+          "when": "view == renovatio.operations || view == renovatio.domainModel || view == renovatio.analysis",
+          "group": "navigation@8"
+        },
+        {
+          "command": "renovatio.openNativePersistenceDiagram",
+          "when": "view == renovatio.operations || view == renovatio.domainModel || view == renovatio.analysis",
+          "group": "navigation@8"
+        },
+        {
+          "command": "renovatio.openNativeArchitectureDiagram",
+          "when": "view == renovatio.operations || view == renovatio.domainModel || view == renovatio.analysis",
+          "group": "navigation@8"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "renovatio.selectProject",
+          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "group": "inline@1"
+        },
+        {
+          "command": "renovatio.analyzeSelectedPath",
+          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "group": "inline@2"
+        },
+        {
+          "command": "renovatio.openControlDeck",
+          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "group": "inline@3"
+        },
+        {
+          "command": "renovatio.openDomainModel",
+          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "group": "inline@4"
+        },
+        {
+          "command": "renovatio.openPersistenceModel",
+          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "group": "inline@9"
+        },
+        {
+          "command": "renovatio.openGeneratedCode",
+          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "group": "inline@10"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "renovatio",
+          "title": "Renovatio",
+          "icon": "resources/renovatio-icon-master.png"
+        }
+      ]
+    },
+    "views": {
+      "renovatio": [
+        {
+          "id": "renovatio.projects",
+          "name": "Workspace"
+        },
+        {
+          "id": "renovatio.operations",
+          "name": "Operations"
+        },
+        {
+          "id": "renovatio.analysis",
+          "name": "Discovery"
+        },
+        {
+          "id": "renovatio.domainModel",
+          "name": "Domain Model"
+        },
+        {
+          "id": "renovatio.views.welcome",
+          "name": "Diagram Editor"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "renovatio.projects",
+        "contents": "Open a VS Code workspace and configure COBOL source roots.\n[Select Project](command:renovatio.selectProject)\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)"
+      },
+      {
+        "view": "renovatio.analysis",
+        "contents": "Run analysis from configured COBOL source roots or the Explorer context menu.\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Native Persistence Diagram](command:renovatio.openNativePersistenceDiagram)\n[Open Inferred Persistence](command:renovatio.openPersistenceModel)"
+      },
+      {
+        "view": "renovatio.domainModel",
+        "contents": "Run discovery to seed the versioned DomainModel, then inspect nodes, relations and invariants.\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Domain Model](command:renovatio.openDomainModel)\n[Open Native Domain Diagram](command:renovatio.openNativeDomainDiagram)\n[Open Native Architecture Diagram](command:renovatio.openNativeArchitectureDiagram)"
+      },
+      {
+        "view": "renovatio.operations",
+        "contents": "Run the Renovatio workflow through native VS Code commands.\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Control Deck](command:renovatio.openControlDeck)"
+      },
+      {
+        "view": "renovatio.views.welcome",
+        "contents": "Open native Renovatio diagram editors from the current workspace.\n[Open Native Domain Diagram](command:renovatio.openNativeDomainDiagram)\n[Open Native Persistence Diagram](command:renovatio.openNativePersistenceDiagram)\n[Open Native Architecture Diagram](command:renovatio.openNativeArchitectureDiagram)\n[Open Domain Diagram Sample](command:renovatio.openDomainSample)\n[Open Architecture Diagram Sample](command:renovatio.openArchitectureSample)"
+      }
+    ],
+    "languages": [
+      {
+        "id": "cobol",
+        "aliases": [
+          "COBOL",
+          "cobol"
+        ],
+        "extensions": [
+          ".cbl",
+          ".cob",
+          ".cobol",
+          ".cpy",
+          ".copybook"
+        ]
+      },
+      {
+        "id": "jcl",
+        "aliases": [
+          "JCL",
+          "jcl"
+        ],
+        "extensions": [
+          ".jcl",
+          ".job",
+          ".proc"
+        ]
+      }
+    ],
+    "grammars": [
+      {
+        "language": "cobol",
+        "scopeName": "source.cobol",
+        "path": "./syntaxes/cobol.tmLanguage.json"
+      },
+      {
+        "language": "jcl",
+        "scopeName": "source.jcl",
+        "path": "./syntaxes/jcl.tmLanguage.json"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "renovatio.diagram.domain",
+        "displayName": "Renovatio Domain Diagram",
+        "selector": [
+          {
+            "filenamePattern": "*.renovatio-domain.json"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "renovatio.diagram.architecture",
+        "displayName": "Renovatio Architecture Diagram",
+        "selector": [
+          {
+            "filenamePattern": "*.renovatio-arch.json"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
+  },
+  "scripts": {
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "node scripts/build.mjs",
+    "watch": "node scripts/build.mjs --watch",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {
+    "@renovatio/diagram-canvas": "file:../renovatio-workbench/extensions/renovatio-diagram-canvas",
+    "@xyflow/react": "12.11.6",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.7",
+    "@types/vscode": "^1.100.0",
+    "@vscode/vsce": "^3.6.0",
+    "esbuild": "^0.28.2",
+    "typescript": "5.9.3"
+  }
+}

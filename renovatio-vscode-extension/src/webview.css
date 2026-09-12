@@ -1,0 +1,147 @@
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+  font-family: var(--vscode-font-family);
+}
+
+.renovatio-vscode-editor {
+  display: grid;
+  grid-template-rows: 40px 1fr;
+  width: 100%;
+  height: 100%;
+}
+
+.renovatio-vscode-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  background: var(--vscode-sideBar-background);
+  font-size: 12px;
+}
+
+.renovatio-vscode-toolbar span {
+  color: var(--vscode-descriptionForeground);
+}
+
+.toolbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.toolbar-field select {
+  border: 1px solid var(--vscode-dropdown-border, var(--vscode-panel-border));
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: var(--vscode-dropdown-foreground);
+  background: var(--vscode-dropdown-background);
+  font: inherit;
+}
+
+.renovatio-vscode-toolbar button {
+  border: 1px solid var(--vscode-button-border, transparent);
+  border-radius: 4px;
+  padding: 5px 10px;
+  color: var(--vscode-button-foreground);
+  background: var(--vscode-button-background);
+  cursor: pointer;
+}
+
+.renovatio-vscode-canvas {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--vscode-editor-background);
+}
+
+/* React Flow's own wrapper positions this node via transform; this element
+   just needs to size to its content, not position itself (issue #270's
+   gap fix replaced the hand-positioned absolute node card with a real
+   DiagramCanvas node — see webview.tsx). */
+.renovatio-vscode-node {
+  width: 240px;
+  min-height: 112px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 6px;
+  background: var(--vscode-editorWidget-background);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  user-select: none;
+}
+
+.renovatio-vscode-node.excluded {
+  opacity: 0.55;
+  border-style: dashed;
+}
+
+.renovatio-vscode-node.selected {
+  border-color: var(--vscode-focusBorder);
+  box-shadow: 0 0 0 1px var(--vscode-focusBorder), 0 12px 30px rgba(0, 0, 0, 0.24);
+}
+
+.node-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  font-weight: 700;
+}
+
+.node-title small {
+  color: var(--vscode-descriptionForeground);
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.node-body {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+}
+
+.property-row {
+  display: grid;
+  grid-template-columns: minmax(80px, 1fr) minmax(70px, auto);
+  gap: 10px;
+  align-items: baseline;
+  font-size: 12px;
+}
+
+.property-row code {
+  color: var(--vscode-textPreformat-foreground);
+  font-family: var(--vscode-editor-font-family);
+  font-size: 11px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.muted,
+.node-note {
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+}
+
+.node-note {
+  border-top: 1px solid var(--vscode-panel-border);
+  padding: 7px 10px;
+}
