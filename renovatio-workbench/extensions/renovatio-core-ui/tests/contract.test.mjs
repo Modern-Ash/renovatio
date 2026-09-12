@@ -6,6 +6,8 @@ const contribution = await readFile(new URL('../src/browser/renovatio-workbench-
 const widget = await readFile(new URL('../src/browser/renovatio-workbench-widget.tsx', import.meta.url), 'utf8');
 const shell = await readFile(new URL('../src/browser/renovatio-shell-widget.tsx', import.meta.url), 'utf8');
 const styles = await readFile(new URL('../src/browser/style/renovatio-workbench.css', import.meta.url), 'utf8');
+const domainMapper = await readFile(new URL('../src/browser/domain-diagram-mapper.ts', import.meta.url), 'utf8');
+const domainClassNode = await readFile(new URL('../src/browser/domain-class-node.tsx', import.meta.url), 'utf8');
 
 test('registers the stable command and menu contribution', () => {
     assert.match(contribution, /renovatio\.workbench\.open/);
@@ -41,6 +43,10 @@ test('provides accessible project navigation over all required asset classes', (
     }
     assert.match(shell, /aria-label='Renovatio activity areas'/);
     assert.match(shell, /aria-label='Project assets'/);
+    assert.match(shell, /const showProjectExplorer = this\.activeArea === 'project'/);
+    assert.match(shell, /showProjectExplorer && this\.renderProjectExplorer\(\)/);
+    assert.match(shell, /renovatio-shell-grid is-focused-area/);
+    assert.match(styles, /renovatio-shell-grid\.is-focused-area/);
     assert.match(shell, /aria-current=/);
 });
 
@@ -86,8 +92,15 @@ test('restores only project-scoped non-sensitive context through the adapter', (
 test('shows read-only inventory and persisted run summaries in Analysis', () => {
     assert.match(shell, /\/workbench\/analysis/);
     assert.match(shell, /analysisState/);
-    assert.match(shell, /Analysis data is unavailable/);
-    assert.match(shell, /No inventory or persisted runs/);
+    assert.match(shell, /startAnalysis/);
+    assert.match(shell, /operation: 'analyze'/);
+    assert.match(shell, /pollAnalysisJob/);
+    assert.match(shell, /\/api\/jobs\/\$\{encodeURIComponent\(jobId\)\}/);
+    assert.match(shell, /Analysis completed but found 0 COBOL programs/);
+    assert.match(shell, /Run Analyze to inventory COBOL programs/);
+    assert.match(shell, /COBOL scan root/);
+    assert.match(shell, /Last run/);
+    assert.doesNotMatch(shell, /UI boundary is available; live data remains governed by the existing backend contract\.'\}\<\/p\>\\n            \<\/article\>\\n            \{this\.activeArea === 'analysis'/);
     assert.doesNotMatch(shell, /method: 'POST'.*workbench\/analysis/);
 });
 
@@ -248,4 +261,56 @@ test('provides integrated Equivalence Lab execution and promotion gates (issue #
     assert.match(shell, /Gate blocks promotion/);
     assert.match(styles, /renovatio-equivalence-grid/);
     assert.match(styles, /state-cancelled/);
+});
+
+test('renders the DomainModel as a UML class diagram alongside the original list view (issue #265)', () => {
+    assert.match(shell, /from '@renovatio\/diagram-canvas\/lib\/browser'/);
+    assert.match(shell, /domainViewMode: 'diagram' \| 'list' = 'diagram'/);
+    assert.match(shell, /aria-label='Domain view mode'/);
+    assert.match(shell, /this\.domainViewMode = 'diagram'/);
+    assert.match(shell, /this\.domainViewMode = 'list'/);
+    assert.match(shell, /renderDomainDiagramSurface/);
+    assert.match(shell, /renderDomainCatalog/);
+    assert.match(shell, /<DiagramCanvas/);
+    assert.match(shell, /nodeTypes=\{\{ domainClass: DomainClassNode \}\}/);
+    assert.match(shell, /domainModelToDiagram\(draft, this\.domainLayoutHints\)/);
+    assert.match(styles, /renovatio-domain-diagram\b/);
+    assert.match(styles, /renovatio-domain-class-node/);
+});
+
+test('wires DiagramCanvas events back into real DomainModel mutations (issue #265)', () => {
+    assert.match(shell, /handleDomainDiagramEvent = \(event: DiagramEvent\)/);
+    // Every DiagramEvent case the canvas can emit must be handled explicitly.
+    assert.match(shell, /event\.type === 'nodeSelected'/);
+    assert.match(shell, /event\.type === 'nodeMoved'/);
+    assert.match(shell, /event\.type === 'edgeCreated'/);
+    // Selecting a node in the diagram reuses the exact same selection path
+    // list mode uses, so the structured editor/inspector panels work for both.
+    assert.match(shell, /this\.selectDomainItem\('node', event\.id\)/);
+    // A drag-to-connect creates a real DomainRelation with the actual
+    // endpoints (not the "same node twice" placeholder addDomainItem uses).
+    assert.match(shell, /createDomainRelationFromDrag\(event\.source, event\.target\)/);
+    assert.match(shell, /protected createDomainRelationFromDrag\(fromId: string, toId: string\): void/);
+    assert.match(shell, /fromId, toId, kind: 'ASSOCIATES_WITH'/);
+    // Moved positions are kept in memory only for now (issue #268 persists
+    // them); this must not be routed through markDomainChanged/domainDirty.
+    assert.match(shell, /domainLayoutHints = \{ \.\.\.this\.domainLayoutHints, \[event\.id\]: \{ x: event\.x, y: event\.y \} \}/);
+});
+
+test('domainModelToDiagram maps DomainNode/DomainRelation to the canvas-agnostic view-model (issue #265)', () => {
+    assert.match(domainMapper, /export function domainModelToDiagram/);
+    assert.match(domainMapper, /id: node\.id/);
+    assert.match(domainMapper, /label: node\.name/);
+    assert.match(domainMapper, /source: relation\.fromId/);
+    assert.match(domainMapper, /target: relation\.toId/);
+    // Must not reimplement or duplicate @renovatio/diagram-canvas's own protocol types.
+    assert.match(domainMapper, /from '@renovatio\/diagram-canvas\/lib\/browser'/);
+});
+
+test('DomainClassNode renders name, stereotype and properties as a UML class box (issue #265)', () => {
+    assert.match(domainClassNode, /export function DomainClassNode/);
+    assert.match(domainClassNode, /data\.kind/);
+    assert.match(domainClassNode, /data\.properties/);
+    assert.match(domainClassNode, /property\.required/);
+    assert.match(domainClassNode, /from '@xyflow\/react'/);
 });
