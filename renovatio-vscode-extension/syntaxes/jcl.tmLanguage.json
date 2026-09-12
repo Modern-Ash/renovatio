@@ -1,0 +1,12 @@
+{
+  "scopeName": "source.jcl",
+  "patterns": [
+    { "match": "^//\\*.*$", "name": "comment.line.jcl" },
+    { "match": "^//\\S+", "name": "entity.name.label.jcl" },
+    { "match": "\\b(JOB|EXEC|DD|PROC|PEND|IF|THEN|ELSE|ENDIF|SET|INCLUDE|OUTPUT)\\b", "name": "keyword.control.jcl" },
+    { "match": "\\b(PGM|PROC|DSN|DISP|SPACE|UNIT|SYSOUT|DCB|PARM|COND|CLASS|MSGCLASS|REGION)\\b", "name": "storage.type.jcl" },
+    { "match": "&[A-Z0-9_#@$]+", "name": "variable.other.jcl" },
+    { "begin": "'", "end": "'", "name": "string.quoted.single.jcl" },
+    { "match": "\\b\\d+\\b", "name": "constant.numeric.jcl" }
+  ]
+}

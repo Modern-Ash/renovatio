@@ -3,6 +3,7 @@ import {
     ReactFlow,
     Background,
     Controls,
+    MarkerType,
     MiniMap,
     addEdge,
     applyNodeChanges,
@@ -28,6 +29,27 @@ export interface DiagramCanvasProps {
     /** Maps a DiagramNodeVM to a React Flow node `type` key (defaults to
      * always returning 'default', i.e. React Flow's built-in box). */
     nodeTypeFor?: (node: DiagramNodeVM) => string;
+    /** Maps a DiagramEdgeVM to inline React Flow edge style (stroke color,
+     * dash pattern, ...). Kept generic on purpose — this package has no
+     * opinion on what an edge "kind" like ALLOWED/DENIED or ASSOCIATES_WITH
+     * means; the host (#265, #267) supplies the mapping. Defaults to no
+     * override (React Flow's default edge look). */
+    edgeStyleFor?: (edge: DiagramEdgeVM) => React.CSSProperties;
+    /** Maps a DiagramEdgeVM to a `url(#markerId)` reference for each end of
+     * the edge (e.g. ER crow's-foot cardinality glyphs for #266, or nothing
+     * for a plain UML association). The referenced `<marker>` elements must
+     * be supplied by the host via `defs` — this package draws no notation
+     * of its own, it only wires the reference through to React Flow. */
+    edgeMarkerFor?: (edge: DiagramEdgeVM) => { markerStart?: string; markerEnd?: string };
+    /** Host-supplied `<marker>`/other SVG defs (e.g. ER cardinality glyphs),
+     * rendered once in a zero-size <svg> so `edgeMarkerFor`'s `url(#id)`
+     * references resolve. SVG marker lookups are document-wide, so this
+     * defs block does not need to live inside React Flow's own <svg>. */
+    defs?: React.ReactNode;
+    /** Shows a generic prune affordance for selected nodes. The host receives
+     * `nodesPruned` and decides whether to soft-exclude, delete, or ignore. */
+    enablePrune?: boolean;
+    pruneLabel?: string;
     className?: string;
 }
 
@@ -63,14 +85,24 @@ function toFlowNodes(
     }));
 }
 
-function toFlowEdges(diagramEdges: DiagramEdgeVM[]): Edge[] {
-    return diagramEdges.map(edge => ({
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        label: edge.label,
-        data: { kind: edge.kind, ...edge.data }
-    }));
+function toFlowEdges(
+    diagramEdges: DiagramEdgeVM[],
+    styleFor?: (edge: DiagramEdgeVM) => React.CSSProperties,
+    markerFor?: (edge: DiagramEdgeVM) => { markerStart?: string; markerEnd?: string }
+): Edge[] {
+    return diagramEdges.map(edge => {
+        const markers = markerFor?.(edge);
+        return {
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            label: edge.label,
+            markerStart: markers?.markerStart,
+            markerEnd: markers?.markerEnd ?? { type: MarkerType.ArrowClosed },
+            style: styleFor?.(edge),
+            data: { kind: edge.kind, ...edge.data }
+        };
+    });
 }
 
 /**
@@ -83,15 +115,26 @@ function toFlowEdges(diagramEdges: DiagramEdgeVM[]): Edge[] {
 export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
     const typeFor = props.nodeTypeFor ?? DEFAULT_NODE_TYPE;
     const [flowNodes, setFlowNodes] = useState<Node[]>(() => toFlowNodes(props.model.nodes, typeFor));
-    const flowEdges = useMemo(() => toFlowEdges(props.model.edges), [props.model.edges]);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const flowEdges = useMemo(
+        () => toFlowEdges(props.model.edges, props.edgeStyleFor, props.edgeMarkerFor),
+        [props.model.edges, props.edgeStyleFor, props.edgeMarkerFor]
+    );
 
     useEffect(() => {
         setFlowNodes(toFlowNodes(props.model.nodes, typeFor));
+        setSelectedIds([]);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.model.nodes]);
 
     const handleNodesChange: OnNodesChange = useCallback(changes => {
-        setFlowNodes(current => applyNodeChanges(changes, current));
+        setFlowNodes(current => {
+            const next = applyNodeChanges(changes, current);
+            if ((changes as NodeChange[]).some(change => change.type === 'select')) {
+                setSelectedIds(next.filter(node => node.selected).map(node => node.id));
+            }
+            return next;
+        });
         for (const change of changes as NodeChange[]) {
             if (change.type === 'position' && change.position && change.dragging === false) {
                 props.onEvent({ type: 'nodeMoved', id: change.id, x: change.position.x, y: change.position.y });
@@ -111,12 +154,24 @@ export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
     }, [props.onEvent]);
 
     const handlePaneClick = useCallback(() => {
+        setSelectedIds([]);
         props.onEvent({ type: 'nodeSelected', id: null });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.onEvent]);
 
+    const handlePruneSelection = useCallback(() => {
+        if (!selectedIds.length) return;
+        props.onEvent({ type: 'nodesPruned', ids: selectedIds });
+    }, [props.onEvent, selectedIds]);
+
     return (
-        <div className={props.className ?? 'renovatio-diagram-canvas'} style={{ width: '100%', height: '100%' }}>
+        <div className={props.className ?? 'renovatio-diagram-canvas'} style={{ width: '100%', height: '100%', position: 'relative' }}>
+            {props.defs && <svg width={0} height={0} style={{ position: 'absolute' }} aria-hidden='true'><defs>{props.defs}</defs></svg>}
+            {props.enablePrune && selectedIds.length > 0 && <button
+                type='button'
+                className='renovatio-diagram-prune-selection'
+                onClick={handlePruneSelection}
+            >{props.pruneLabel ?? `Prune selection (${selectedIds.length})`}</button>}
             <ReactFlow
                 nodes={flowNodes}
                 edges={flowEdges}
@@ -124,6 +179,8 @@ export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
                 onNodesChange={handleNodesChange}
                 onConnect={handleConnect}
                 onPaneClick={handlePaneClick}
+                selectionOnDrag
+                multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
                 fitView
             >
                 <Background />

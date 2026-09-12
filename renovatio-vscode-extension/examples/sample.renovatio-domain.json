@@ -1,0 +1,41 @@
+{
+  "nodes": [
+    {
+      "id": "customer",
+      "kind": "ENTITY",
+      "name": "Customer",
+      "properties": [
+        { "name": "id", "type": "String", "required": true, "isKey": true },
+        { "name": "name", "type": "String", "required": true },
+        { "name": "email", "type": "String", "required": false }
+      ],
+      "confidence": 0.91
+    },
+    {
+      "id": "booking",
+      "kind": "AGGREGATE",
+      "name": "Booking",
+      "properties": [
+        { "name": "id", "type": "String", "required": true, "isKey": true },
+        { "name": "customerId", "type": "String", "required": true }
+      ],
+      "confidence": 0.87
+    }
+  ],
+  "relations": [
+    {
+      "id": "customer-booking",
+      "fromId": "customer",
+      "toId": "booking",
+      "kind": "CONTAINS",
+      "sourceCardinality": "ONE",
+      "targetCardinality": "ZERO_OR_MORE"
+    }
+  ],
+  "invariants": [],
+  "layout": {
+    "customer": { "x": 80, "y": 120 },
+    "booking": { "x": 420, "y": 120 }
+  },
+  "excludedNodeIds": []
+}

@@ -21,7 +21,12 @@ export interface DomainClassNodeData {
     label: string;
     kind: string;
     properties: DomainProperty[];
+    tableName?: string | null;
+    sourceDataset?: string | null;
     confidence?: number;
+    pendingSuggestionCount?: number;
+    excluded?: boolean;
+    exclusionReason?: string;
     [key: string]: unknown;
 }
 
@@ -35,18 +40,26 @@ export function DomainClassNode(props: NodeProps): React.ReactElement {
     const data = props.data as unknown as DomainClassNodeData;
     const badgeClass = KIND_BADGE_CLASS[data.kind] ?? 'is-other';
     return (
-        <div className={`renovatio-domain-class-node ${props.selected ? 'is-selected' : ''}`}>
+        <div
+            className={`renovatio-domain-class-node ${data.excluded ? 'is-excluded' : ''} ${props.selected ? 'is-selected' : ''}`}
+            title={data.excluded ? data.exclusionReason || 'Excluded from generation' : undefined}
+        >
             <Handle type='target' position={Position.Left} />
             <Handle type='source' position={Position.Right} />
             <header>
                 <span className={`renovatio-domain-class-badge ${badgeClass}`}>{data.kind}</span>
                 <strong>{data.label}</strong>
+                {Boolean(data.pendingSuggestionCount) && <span className='renovatio-domain-suggestion-badge'>{data.pendingSuggestionCount}</span>}
             </header>
+            {(data.tableName || data.sourceDataset) && <div className='renovatio-domain-class-storage'>
+                {data.tableName && <span>table {data.tableName}</span>}
+                {data.sourceDataset && <span>source {data.sourceDataset}</span>}
+            </div>}
             <ul className='renovatio-domain-class-properties'>
                 {data.properties.length
                     ? data.properties.map((property, index) => (
                         <li key={`${property.name}:${index}`}>
-                            <span className='renovatio-domain-class-property-name'>{property.name}</span>
+                            <span className='renovatio-domain-class-property-name'>{property.isKey ? 'PK ' : ''}{property.columnName ?? property.name}</span>
                             <span className='renovatio-domain-class-property-type'>: {property.type}{property.required ? '*' : ''}</span>
                         </li>
                     ))

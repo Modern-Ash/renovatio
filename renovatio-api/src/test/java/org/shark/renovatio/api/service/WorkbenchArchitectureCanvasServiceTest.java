@@ -12,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.ArchitectureProfileDraft;
 import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.DependencyRule;
+import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.ExcludedNode;
+import org.shark.renovatio.api.dto.WorkbenchArchitectureCanvasDto.LayoutPosition;
 import org.shark.renovatio.api.entity.ProjectEntity;
 import org.shark.renovatio.api.repository.ProjectArchitectureProfileVersionRepository;
 import org.shark.renovatio.api.repository.ProjectDecisionRepository;
@@ -68,7 +70,7 @@ class WorkbenchArchitectureCanvasServiceTest {
         var saved = service.save(projectId, 0, new ArchitectureProfileDraft(
                 MigrationProfile.ArchitectureStyle.LAYERED_MVC, MigrationProfile.ModuleGrouping.BY_PROGRAM,
                 MigrationProfile.Framework.SPRING_BOOT, MigrationProfile.PersistenceStrategy.IN_MEMORY,
-                Map.of(), Map.of(), Map.of(), List.of()));
+                Map.of(), Map.of(), Map.of(), List.of(), Map.of(), List.of()));
 
         assertThat(saved.revision()).isEqualTo(1);
         assertThat(saved.canvas()).extracting(value -> value.layer())
@@ -87,7 +89,8 @@ class WorkbenchArchitectureCanvasServiceTest {
                 MigrationProfile.Framework.SPRING_BOOT, MigrationProfile.PersistenceStrategy.JPA,
                 Map.of("service", "com.acme.app.services", "model", "com.acme.app.domain"),
                 Map.of("service", "UseCase", "model", "Record"), Map.of(),
-                List.of(new DependencyRule("service", "model", false, "force a visible violation"))));
+                List.of(new DependencyRule("service", "model", false, "force a visible violation")),
+                Map.of(), List.of()));
 
         assertThat(saved.dependencyDiagnostics()).extracting(value -> value.code())
                 .contains("FORBIDDEN_DEPENDENCY");
@@ -102,11 +105,12 @@ class WorkbenchArchitectureCanvasServiceTest {
         var first = service.save(projectId, 0, new ArchitectureProfileDraft(
                 MigrationProfile.ArchitectureStyle.LAYERED_MVC, MigrationProfile.ModuleGrouping.BY_PROGRAM,
                 MigrationProfile.Framework.SPRING_BOOT, MigrationProfile.PersistenceStrategy.IN_MEMORY,
-                Map.of(), Map.of(), Map.of(), List.of()));
+                Map.of(), Map.of(), Map.of(), List.of(), Map.of(), List.of()));
         var second = service.save(projectId, 1, new ArchitectureProfileDraft(
                 MigrationProfile.ArchitectureStyle.HEXAGONAL, MigrationProfile.ModuleGrouping.BY_DOMAIN,
                 MigrationProfile.Framework.SPRING_BOOT, MigrationProfile.PersistenceStrategy.JPA,
-                Map.of("adapter", "com.acme.adapters"), Map.of("adapter", "Gateway"), Map.of(), List.of()));
+                Map.of("adapter", "com.acme.adapters"), Map.of("adapter", "Gateway"), Map.of(), List.of(),
+                Map.of(), List.of()));
 
         assertThat(first.canonicalHash()).startsWith("sha256:");
         assertThat(second.canonicalHash()).isNotEqualTo(first.canonicalHash());
@@ -119,5 +123,55 @@ class WorkbenchArchitectureCanvasServiceTest {
         assertThat(restored.profile().style()).isEqualTo(MigrationProfile.ArchitectureStyle.LAYERED_MVC);
         assertThatThrownBy(() -> service.save(projectId, 1, second.profile()))
                 .isInstanceOf(WorkbenchArchitectureCanvasService.RevisionConflictException.class);
+    }
+
+    @Test
+    void layoutAndPruneMetadataRoundTripThroughVersionedArchitectureProfile() {
+        var base = service.save(projectId, 0, new ArchitectureProfileDraft(
+                MigrationProfile.ArchitectureStyle.LAYERED_MVC, MigrationProfile.ModuleGrouping.BY_PROGRAM,
+                MigrationProfile.Framework.SPRING_BOOT, MigrationProfile.PersistenceStrategy.IN_MEMORY,
+                Map.of(), Map.of(), Map.of(), List.of(), Map.of(), List.of()));
+        String nodeId = base.canvas().get(0).id();
+        var arranged = service.save(projectId, 1, new ArchitectureProfileDraft(
+                base.profile().style(), base.profile().moduleGrouping(), base.profile().framework(),
+                base.profile().persistence(), base.profile().packageRoots(), base.profile().suffixes(),
+                base.profile().classNames(), base.profile().dependencyRules(),
+                Map.of(nodeId, new LayoutPosition(320, 180)),
+                List.of(new ExcludedNode(nodeId, "Legacy report only"))));
+
+        assertThat(arranged.profile().layout()).containsEntry(nodeId, new LayoutPosition(320, 180));
+        assertThat(arranged.profile().excludedNodeIds()).containsExactly(new ExcludedNode(nodeId, "Legacy report only"));
+        assertThat(arranged.canvas().stream().filter(node -> node.id().equals(nodeId)).findFirst().orElseThrow().excluded())
+                .isTrue();
+        assertThat(service.compare(projectId, 1, 2).added()).extracting(value -> value.targetId())
+                .contains("layout." + nodeId, "excludedNodeIds." + nodeId);
+    }
+
+    @Test
+    void generateChangeSetRequestFiltersExcludedNodesAndRejectsBlockingDiagnostics() {
+        var base = service.save(projectId, 0, new ArchitectureProfileDraft(
+                MigrationProfile.ArchitectureStyle.LAYERED_MVC, MigrationProfile.ModuleGrouping.BY_PROGRAM,
+                MigrationProfile.Framework.SPRING_BOOT, MigrationProfile.PersistenceStrategy.IN_MEMORY,
+                Map.of(), Map.of(), Map.of(), List.of(), Map.of(), List.of()));
+        String excludedId = base.canvas().get(0).componentId();
+        var pruned = service.save(projectId, 1, new ArchitectureProfileDraft(
+                base.profile().style(), base.profile().moduleGrouping(), base.profile().framework(),
+                base.profile().persistence(), base.profile().packageRoots(), base.profile().suffixes(),
+                base.profile().classNames(), base.profile().dependencyRules(), Map.of(),
+                List.of(new ExcludedNode(excludedId, "Pilot excluded"))));
+
+        var request = service.generateChangeSetRequest(projectId);
+
+        assertThat(request.title()).contains("architecture revision " + pruned.revision());
+        assertThat(request.files()).noneMatch(file -> file.proposedContent().contains("component: " + excludedId));
+        assertThat(request.evidence()).contains("excludedNodeIds:1");
+
+        service.save(projectId, 2, new ArchitectureProfileDraft(
+                MigrationProfile.ArchitectureStyle.LAYERED_MVC, MigrationProfile.ModuleGrouping.BY_PROGRAM,
+                MigrationProfile.Framework.SPRING_BOOT, MigrationProfile.PersistenceStrategy.IN_MEMORY,
+                Map.of(), Map.of(), Map.of(),
+                List.of(new DependencyRule("service", "model", false, "block generate")), Map.of(), List.of()));
+        assertThatThrownBy(() -> service.generateChangeSetRequest(projectId))
+                .isInstanceOf(WorkbenchArchitectureCanvasService.ValidationException.class);
     }
 }

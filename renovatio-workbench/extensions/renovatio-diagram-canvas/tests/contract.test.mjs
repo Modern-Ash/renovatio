@@ -43,6 +43,14 @@ test('DiagramCanvas renders a React Flow surface and reports every interaction u
     // to register their own node renderers without forking this component.
     assert.match(canvas, /nodeTypes\?:/);
     assert.match(canvas, /nodeTypeFor\?:/);
+    assert.match(canvas, /edgeStyleFor\?:/);
+    assert.match(canvas, /edgeMarkerFor\?:/);
+    assert.match(canvas, /defs\?: React\.ReactNode/);
+    assert.match(canvas, /toFlowEdges\(props\.model\.edges, props\.edgeStyleFor, props\.edgeMarkerFor\)/);
+    assert.match(canvas, /enablePrune\?:/);
+    assert.match(canvas, /type: 'nodesPruned'/);
+    assert.match(canvas, /selectionOnDrag/);
+    assert.match(canvas, /multiSelectionKeyCode/);
 });
 
 test('the public entry point re-exports the component and the protocol types', () => {

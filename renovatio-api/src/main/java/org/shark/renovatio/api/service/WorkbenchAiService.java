@@ -83,11 +83,29 @@ public class WorkbenchAiService {
                         "Low-confidence or failed LLM suggestions stay visible with their failure category."));
     }
 
+    public WorkbenchAiDto decide(String projectId, String itemId, DecisionRequest request) {
+        DecisionPoint current = decisions.decisions(projectId, null, null, null).stream()
+                .filter(item -> item.id().equals(itemId))
+                .findFirst()
+                .orElseThrow(DecisionLayerService.ResourceNotFoundException::new);
+        String option = switch (request.action()) {
+            case "accept" -> current.chosenOption();
+            case "reject", "fallback" -> current.defaultOption();
+            case "edit" -> request.option();
+            default -> throw new IllegalArgumentException("AI decision action must be accept, reject, fallback or edit");
+        };
+        if (option == null || option.isBlank()) throw new IllegalArgumentException("Edited AI decisions require an allowed option");
+        decisions.patch(projectId, itemId, option, request.revision());
+        return summary(projectId);
+    }
+
     private WorkbenchAiDto.Item item(DecisionPoint value) {
         return new WorkbenchAiDto.Item(value.id(), value.category().name(), value.source().name(),
                 value.status().name(), value.confidence(), value.evidence().size(), value.llmFailed(),
                 promptId(value.category()), PROMPT_VERSION, value.question(), value.chosenOption(),
-                value.rationale(), value.evidence(), reviewActions(value), approvalStatus(value));
+                value.rationale(), value.evidence(), reviewActions(value), approvalStatus(value),
+                value.location().nodeKind(), value.location().nodeId(), value.options(), value.defaultOption(),
+                value.revision());
     }
 
     private WorkbenchAiDto.AuditEvent audit(DecisionPoint decision, String contextHash) {
@@ -198,4 +216,6 @@ public class WorkbenchAiService {
             default -> List.of("source-explorer.read");
         };
     }
+
+    public record DecisionRequest(String action, String option, long revision) { }
 }

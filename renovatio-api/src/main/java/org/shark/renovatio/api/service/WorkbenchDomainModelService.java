@@ -90,6 +90,10 @@ public class WorkbenchDomainModelService {
         compare("node", before.nodes(), after.nodes(), DomainNode::id, added, removed, changed);
         compare("relation", before.relations(), after.relations(), DomainRelation::id, added, removed, changed);
         compare("invariant", before.invariants(), after.invariants(), BusinessInvariant::id, added, removed, changed);
+        compare("layout", new ArrayList<>(before.layout().entrySet()), new ArrayList<>(after.layout().entrySet()),
+                Map.Entry::getKey, added, removed, changed);
+        compare("excludedNode", before.excludedNodeIds(), after.excludedNodeIds(), DomainModel.ExcludedNode::id,
+                added, removed, changed);
         Comparator<Change> order = Comparator.comparing(Change::targetType).thenComparing(Change::targetId);
         added.sort(order); removed.sort(order); changed.sort(order);
         return new Comparison(List.copyOf(added), List.copyOf(removed), List.copyOf(changed));
@@ -144,7 +148,8 @@ public class WorkbenchDomainModelService {
             }
             nodes.replaceAll(node -> node.id().equals(nodeId)
                     ? new DomainNode(edited.id(), edited.kind(), edited.name(), edited.properties(),
-                    edited.evidence(), Origin.HUMAN, edited.confidence()) : node);
+                    edited.evidence(), Origin.HUMAN, edited.confidence(), edited.tableName(),
+                    edited.sourceDataset()) : node);
         } else {
             boolean referenced = model.relations().stream().anyMatch(relation -> relation.fromId().equals(nodeId)
                     || relation.toId().equals(nodeId))
@@ -154,7 +159,7 @@ public class WorkbenchDomainModelService {
             nodes.removeIf(node -> node.id().equals(nodeId));
         }
         return saveInternal(projectId, revision, new DomainModel(model.schemaVersion(), model.projectId(),
-                nodes, model.relations(), model.invariants()));
+                nodes, model.relations(), model.invariants(), retainLayout(model, nodes), retainExcluded(model, nodes)));
     }
 
     private WorkbenchDomainModelDto decideInvariant(String projectId, String suggestionId, String action,
@@ -178,7 +183,7 @@ public class WorkbenchDomainModelService {
             invariants.removeIf(invariant -> invariant.id().equals(invariantId));
         }
         return saveInternal(projectId, revision, new DomainModel(model.schemaVersion(), model.projectId(),
-                model.nodes(), model.relations(), invariants));
+                model.nodes(), model.relations(), invariants, model.layout(), model.excludedNodeIds()));
     }
 
     private WorkbenchDomainModelDto saveInternal(String projectId, long expectedRevision, DomainModel candidate) {
@@ -191,7 +196,7 @@ public class WorkbenchDomainModelService {
         DomainModel normalized;
         try {
             normalized = new DomainModel(candidate.schemaVersion(), candidate.projectId(), candidate.nodes(),
-                    candidate.relations(), candidate.invariants());
+                    candidate.relations(), candidate.invariants(), candidate.layout(), candidate.excludedNodeIds());
         } catch (IllegalArgumentException | NullPointerException error) {
             throw validation("INVALID_MODEL", projectId, error.getMessage());
         }
@@ -268,6 +273,17 @@ public class WorkbenchDomainModelService {
 
     private DomainModel empty(String projectId) {
         return new DomainModel(DomainModel.SCHEMA_VERSION, projectId, List.of(), List.of(), List.of());
+    }
+
+    private Map<String, DomainModel.LayoutPosition> retainLayout(DomainModel model, List<DomainNode> nodes) {
+        var ids = nodes.stream().map(DomainNode::id).collect(Collectors.toSet());
+        return model.layout().entrySet().stream().filter(entry -> ids.contains(entry.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (left, right) -> left, LinkedHashMap::new));
+    }
+
+    private List<DomainModel.ExcludedNode> retainExcluded(DomainModel model, List<DomainNode> nodes) {
+        var ids = nodes.stream().map(DomainNode::id).collect(Collectors.toSet());
+        return model.excludedNodeIds().stream().filter(entry -> ids.contains(entry.id())).toList();
     }
 
     private String serialize(DomainModel model) {
