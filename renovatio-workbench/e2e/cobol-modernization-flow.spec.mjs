@@ -24,9 +24,10 @@ test('Theia guides COBOL source scan through modeling, architecture, shadow revi
     await expect(page.getByLabel('Analysis inventory')).toContainText('analysis-2026-09-08');
 
     await activityRail.getByRole('button', { name: /Domain/ }).click();
-    await expect(page.getByLabel('Business DomainModel editor')).toContainText('Employee Payroll');
+    const domainEditor = page.getByRole('region', { name: 'Business DomainModel editor' });
+    await expect(domainEditor).toContainText('Employee Payroll');
     await expect(page.getByLabel('Domain provenance and history')).toContainText('src/PAYROLL.CBL#EMPLOYEE-RECORD');
-    await expect(page.getByLabel('Business DomainModel editor')).toContainText('Net pay equals gross pay minus tax withholding.');
+    await expect(domainEditor).toContainText('Net pay equals gross pay minus tax withholding.');
 
     await activityRail.getByRole('button', { name: /Architecture/ }).click();
     await expect(page.getByLabel('Architecture Canvas editor')).toContainText('HEXAGONAL');
