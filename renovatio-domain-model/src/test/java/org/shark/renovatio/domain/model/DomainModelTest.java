@@ -112,6 +112,37 @@ class DomainModelTest {
         assertEquals(1, model.relations().size());
     }
 
+    @Test
+    void projectsRepositoriesOnlyForNamedPhysicalResources() {
+        SourceSpan span = new SourceSpan("src/sql.cob", 1, 1, 1, 8);
+        SourceProvenance provenance = new SourceProvenance("src/sql.cob", "a".repeat(64), "COBOL", Optional.empty(), List.of());
+        SemanticProgram.IoOperation selectCustomer = new SemanticProgram.IoOperation(
+                SemanticProgram.Header.create("SQLDEMO", SemanticProgram.NodeKind.IO_OPERATION, "database-select", span),
+                SemanticProgram.IoKind.DATABASE, "SELECT", Optional.of("CUSTOMER_TABLE"),
+                SemanticProgram.Direction.READ, List.of());
+        SemanticProgram.IoOperation fetchCursor = new SemanticProgram.IoOperation(
+                SemanticProgram.Header.create("SQLDEMO", SemanticProgram.NodeKind.IO_OPERATION, "database-fetch", span),
+                SemanticProgram.IoKind.DATABASE, "FETCH", Optional.empty(),
+                SemanticProgram.Direction.READ, List.of());
+        SemanticProgram program = new SemanticProgram("1", SemanticProgram.Header.create("SQLDEMO",
+                SemanticProgram.NodeKind.PROGRAM, "program", span), "SQLDEMO", provenance,
+                List.of(), List.of(), List.of(), List.of(selectCustomer, fetchCursor),
+                new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
+
+        DomainModel model = new SemanticDomainProjector().project("project-1", List.of(program));
+
+        DomainModel.DomainNode repository = model.nodes().stream()
+                .filter(node -> node.name().equals("CUSTOMER_TABLE"))
+                .findFirst().orElseThrow();
+        DomainModel.DomainNode cursorOperation = model.nodes().stream()
+                .filter(node -> node.name().equals("FETCH"))
+                .findFirst().orElseThrow();
+        assertEquals(DomainModel.Kind.REPOSITORY, repository.kind());
+        assertEquals(DomainModel.Kind.EXTERNAL_SYSTEM, cursorOperation.kind());
+        assertFalse(model.nodes().stream().anyMatch(node ->
+                node.kind() == DomainModel.Kind.REPOSITORY && node.name().equals("FETCH")));
+    }
+
     private static DomainModel.DomainNode node(String id, DomainModel.Kind kind) {
         return new DomainModel.DomainNode(id, kind, id, List.of(
                 new DomainModel.Evidence("src/" + id + ".cob:1", "COBOL", "fixture")),

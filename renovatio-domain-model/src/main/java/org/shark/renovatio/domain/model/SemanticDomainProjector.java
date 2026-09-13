@@ -32,10 +32,12 @@ public final class SemanticDomainProjector {
             }
             for (SemanticProgram.IoOperation io : program.ioOperations()) {
                 String id = "boundary:" + program.programId() + ":" + io.header().id();
-                Kind kind = io.ioKind() == SemanticProgram.IoKind.DATABASE || io.ioKind() == SemanticProgram.IoKind.FILE
-                        ? Kind.REPOSITORY : Kind.EXTERNAL_SYSTEM;
-                nodes.add(new DomainNode(id, kind, io.operation(), List.of(evidence(program, io.operation())),
-                        Origin.DETERMINISTIC, 0.7));
+                boolean persistentResource = (io.ioKind() == SemanticProgram.IoKind.DATABASE
+                        || io.ioKind() == SemanticProgram.IoKind.FILE) && io.resourceReference().isPresent();
+                Kind kind = persistentResource ? Kind.REPOSITORY : Kind.EXTERNAL_SYSTEM;
+                String name = io.resourceReference().orElse(io.operation());
+                nodes.add(new DomainNode(id, kind, name, List.of(evidence(program, io.operation())),
+                        Origin.DETERMINISTIC, persistentResource ? 0.8 : 0.5));
                 relations.add(new DomainRelation("relation:" + useCaseId + ":" + id, useCaseId, id, RelationKind.USES));
             }
             for (SemanticProgram.UnclassifiedDataAccess access : program.unclassifiedDataAccesses()) {

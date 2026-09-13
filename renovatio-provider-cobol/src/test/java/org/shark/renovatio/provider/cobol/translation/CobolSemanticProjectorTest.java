@@ -215,6 +215,38 @@ class CobolSemanticProjectorTest {
     }
 
     @Test
+    void projectsDb2ResourceReferencesOnlyWhenStatementNamesPhysicalTable() {
+        String source = """
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. SQLRESOURCE.
+                PROCEDURE DIVISION.
+                MAIN.
+                    EXEC SQL SELECT COL FROM CUSTOMER_TABLE END-EXEC.
+                    EXEC SQL INSERT INTO POLICY_TABLE (COL) VALUES (1) END-EXEC.
+                    EXEC SQL UPDATE CLAIM_TABLE SET COL = 1 END-EXEC.
+                    EXEC SQL DELETE FROM PAYMENT_TABLE WHERE COL = 1 END-EXEC.
+                    EXEC SQL FETCH CURSOR-A INTO :VALUE-A END-EXEC.
+                    EXEC SQL OPEN CURSOR-A END-EXEC.
+                    EXEC SQL CLOSE CURSOR-A END-EXEC.
+                """;
+        var model = models.parse(source);
+
+        SemanticProgram program = projector.project(model, "sql-resource.cob", source.getBytes(),
+                Optional.empty(), Optional.empty());
+        Map<String, List<Optional<String>>> resources = program.ioOperations().stream()
+                .collect(Collectors.groupingBy(SemanticProgram.IoOperation::operation,
+                        Collectors.mapping(SemanticProgram.IoOperation::resourceReference, Collectors.toList())));
+
+        assertTrue(resources.get("SELECT").contains(Optional.of("CUSTOMER_TABLE")));
+        assertTrue(resources.get("INSERT").contains(Optional.of("POLICY_TABLE")));
+        assertTrue(resources.get("UPDATE").contains(Optional.of("CLAIM_TABLE")));
+        assertTrue(resources.get("DELETE").contains(Optional.of("PAYMENT_TABLE")));
+        assertEquals(List.of(Optional.empty()), resources.get("FETCH"));
+        assertEquals(List.of(Optional.empty()), resources.get("OPEN"));
+        assertEquals(List.of(Optional.empty()), resources.get("CLOSE"));
+    }
+
+    @Test
     void projectsOpenAndCloseWithoutInventingReadDirectionOrResource() {
         String source = """
                 IDENTIFICATION DIVISION.
