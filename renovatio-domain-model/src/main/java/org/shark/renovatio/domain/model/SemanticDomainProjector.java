@@ -5,19 +5,11 @@ import org.shark.renovatio.semantic.ir.SemanticProgram;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static org.shark.renovatio.domain.model.DomainModel.*;
 
 /** Pure, conservative projection from Semantic IR to the neutral business model. */
 public final class SemanticDomainProjector {
-    private static final Set<String> NON_RESOURCE_OPERATIONS = Set.of(
-            "SELECT", "INSERT", "UPDATE", "DELETE", "FETCH", "OPEN", "CLOSE", "SET", "GET",
-            "LINK", "RETURN", "ABEND", "ASKTIME", "FORMATTIME", "STARTBR", "READNEXT",
-            "ENDBR", "READ", "WRITE", "REWRITE", "MERGE", "DECLARE", "COMMIT", "ROLLBACK",
-            "READQ", "WRITEQ", "DELETEQ", "SEND", "RECEIVE", "DEFINE", "ASSIGN"
-    );
-
     public DomainModel project(String projectId, List<SemanticProgram> programs) {
         if (projectId == null || projectId.isBlank()) throw new IllegalArgumentException("projectId is required");
         List<DomainNode> nodes = new ArrayList<>();
@@ -42,7 +34,7 @@ public final class SemanticDomainProjector {
                 String id = "boundary:" + program.programId() + ":" + io.header().id();
                 String resource = io.resourceReference().orElse("");
                 boolean persistentResource = (io.ioKind() == SemanticProgram.IoKind.DATABASE
-                        || io.ioKind() == SemanticProgram.IoKind.FILE) && isPhysicalResourceName(resource);
+                        || io.ioKind() == SemanticProgram.IoKind.FILE) && isPhysicalResourceName(resource, io.operation());
                 Kind kind = persistentResource ? Kind.REPOSITORY : Kind.EXTERNAL_SYSTEM;
                 String name = io.resourceReference().orElse(io.operation());
                 nodes.add(new DomainNode(id, kind, name, List.of(evidence(program, io.operation())),
@@ -79,9 +71,9 @@ public final class SemanticDomainProjector {
         return new DomainModel(DomainModel.SCHEMA_VERSION, projectId, nodes, List.of(), List.of());
     }
 
-    private boolean isPhysicalResourceName(String value) {
+    private boolean isPhysicalResourceName(String value, String operation) {
         if (value == null || value.isBlank()) return false;
-        return !NON_RESOURCE_OPERATIONS.contains(value.strip().toUpperCase());
+        return operation == null || !value.strip().equalsIgnoreCase(operation.strip());
     }
 
     private Evidence evidence(SemanticProgram program, String rationale) {

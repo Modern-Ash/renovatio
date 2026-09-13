@@ -30,7 +30,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
@@ -39,11 +38,6 @@ public class JobService {
     private static final Logger log = LoggerFactory.getLogger(JobService.class);
     private static final String KEY_BROWSER_WORKSPACE = "browserWorkspace";
     private static final String KEY_WORKSPACE_LABEL = "workspaceLabel";
-    private static final Set<String> NON_RESOURCE_OPERATIONS = Set.of(
-            "SELECT", "INSERT", "UPDATE", "DELETE", "FETCH", "OPEN", "CLOSE", "SET", "GET",
-            "LINK", "RETURN", "ABEND", "ASKTIME", "FORMATTIME", "STARTBR", "READNEXT",
-            "ENDBR", "READ", "WRITE", "REWRITE", "MERGE", "DECLARE", "COMMIT", "ROLLBACK"
-    );
 
     private final JobRepository jobRepo;
     private final Executor jobExecutor;
@@ -318,7 +312,8 @@ public class JobService {
         return model.nodes().stream().anyMatch(node ->
                 node.origin() == DomainModel.Origin.DETERMINISTIC
                         && node.kind() == DomainModel.Kind.REPOSITORY
-                        && NON_RESOURCE_OPERATIONS.contains(node.name().toUpperCase()));
+                        && node.evidence().stream().anyMatch(evidence ->
+                                node.name().equalsIgnoreCase(evidence.rationale())));
     }
 
     private DomainModel mergeProjectedDeterministicModel(DomainModel projected, DomainModel current) {
