@@ -122,8 +122,18 @@ export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
     );
 
     useEffect(() => {
-        setFlowNodes(toFlowNodes(props.model.nodes, typeFor));
-        setSelectedIds([]);
+        // Reconcile incoming nodes with the current selection instead of
+        // treating every new `model.nodes` array identity as a full reset.
+        // Selecting a node itself triggers a host re-render that remaps a
+        // fresh nodes array (new object identity, same ids) — clearing
+        // selectedIds here made the prune button disappear and lost the
+        // selection before a user could act on it (see #276 review).
+        const validIds = new Set(props.model.nodes.map(node => node.id));
+        setSelectedIds(current => current.filter(id => validIds.has(id)));
+        setFlowNodes(current => {
+            const selected = new Set(current.filter(node => node.selected).map(node => node.id));
+            return toFlowNodes(props.model.nodes, typeFor).map(node => ({ ...node, selected: selected.has(node.id) }));
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.model.nodes]);
 

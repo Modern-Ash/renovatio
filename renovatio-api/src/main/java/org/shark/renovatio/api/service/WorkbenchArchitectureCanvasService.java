@@ -160,10 +160,32 @@ public class WorkbenchArchitectureCanvasService {
         List<DependencyDiagnostic> blockers = canvas.dependencyDiagnostics().stream()
                 .filter(diagnostic -> "error".equalsIgnoreCase(diagnostic.severity())).toList();
         if (!blockers.isEmpty()) throw new ValidationException(blockers);
-        validateJavaManifest(canvas.manifest());
         var excluded = draft.excludedNodeIds().stream().map(ExcludedNode::id).collect(Collectors.toSet());
-        List<WorkbenchChangeSetDto.FileChangeRequest> files = canvas.manifest().stream()
-                .filter(entry -> !excluded.contains(entry.componentId()))
+        // Validate only what will actually become file changes — an excluded
+        // component with an unresolved class/package override must not block
+        // generation of the components that remain (see #276 review).
+        List<ManifestEntry> included = canvas.manifest().stream()
+                .filter(entry -> !excluded.contains(entry.componentId())).toList();
+        validateJavaManifest(included);
+        // Two DIFFERENT components landing on the same manifest path (e.g. a
+        // layer-scoped class override applied to every component in that
+        // layer) would otherwise silently overwrite each other as
+        // WorkbenchChangeSetService applies file changes sequentially (see
+        // #276 review). Multiple artifacts from the SAME component (e.g. a
+        // service's "contract" and "implementation" roles) are a distinct,
+        // pre-existing path-per-role gap, not this bug — excluded here so
+        // this check doesn't reject an otherwise-valid manifest.
+        List<String> crossComponentDuplicates = included.stream()
+                .collect(Collectors.groupingBy(ManifestEntry::path))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue().stream().map(ManifestEntry::componentId).distinct().count() > 1)
+                .map(Map.Entry::getKey).sorted().toList();
+        if (!crossComponentDuplicates.isEmpty()) {
+            throw validation("DUPLICATE_ARTIFACT_PATH", "architecture",
+                    "Multiple components resolve to the same generated path; use component-specific class overrides: "
+                            + String.join(", ", crossComponentDuplicates));
+        }
+        List<WorkbenchChangeSetDto.FileChangeRequest> files = included.stream()
                 .map(entry -> new WorkbenchChangeSetDto.FileChangeRequest(entry.path(), "create",
                         generatedJavaStub(entry, current.getRevision(), canvas.canonicalHash())))
                 .toList();
@@ -196,7 +218,7 @@ public class WorkbenchArchitectureCanvasService {
         return preview.components().stream().map(component -> {
             String layer = layer(component.kind().name(), component.name());
             String className = draft.classNames().getOrDefault(component.name(),
-                    draft.classNames().getOrDefault(layer, classBase(component.name()) + suffixes.getOrDefault(layer, "")));
+                    draft.classNames().getOrDefault(layer, classBase(component.name()) + defaultSuffix(suffixes, layer)));
             ExcludedNode excludedNode = excluded.get(component.id());
             return new CanvasNode(component.id(), layer, component.kind().name(), component.name(),
                     packages.getOrDefault(layer, packages.get("base")), className, component.id(),
@@ -486,6 +508,19 @@ public class WorkbenchArchitectureCanvasService {
             if (key.contains("repository")) return "repository";
             return key.contains("adapter") || key.contains("outbound") ? "adapter" : "service";
         }
+    }
+    /** Falls back to a capitalized layer name (e.g. "Controller", "Service")
+     * when the profile has no explicit suffix for a layer, instead of an
+     * empty string. An unconfigured profile (suffixes = {}) previously
+     * collapsed every layer's className to the same classBase(component
+     * name), so a program's Controller/Service/Model all resolved to the
+     * identical generated path and silently overwrote each other (see
+     * #276 review — "Reject duplicate generated artifact paths"). */
+    private String defaultSuffix(Map<String, String> suffixes, String layer) {
+        String configured = suffixes.get(layer);
+        if (configured != null && !configured.isBlank()) return configured;
+        if (layer == null || layer.isBlank()) return "";
+        return Character.toUpperCase(layer.charAt(0)) + layer.substring(1).toLowerCase(Locale.ROOT);
     }
     private String classBase(String value) {
         String compact = value.replaceAll("[^A-Za-z0-9]+", " ").trim();

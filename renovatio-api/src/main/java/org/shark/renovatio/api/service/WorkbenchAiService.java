@@ -84,13 +84,20 @@ public class WorkbenchAiService {
     }
 
     public WorkbenchAiDto decide(String projectId, String itemId, DecisionRequest request) {
+        if ("reject".equals(request.action())) {
+            // Reject must remove the suggestion from the pending queue without
+            // endorsing any option as user-chosen (patch() always selects one,
+            // which would leave the "rejected" suggestion active — see #276 review).
+            decisions.reject(projectId, itemId, request.revision());
+            return summary(projectId);
+        }
         DecisionPoint current = decisions.decisions(projectId, null, null, null).stream()
                 .filter(item -> item.id().equals(itemId))
                 .findFirst()
                 .orElseThrow(DecisionLayerService.ResourceNotFoundException::new);
         String option = switch (request.action()) {
             case "accept" -> current.chosenOption();
-            case "reject", "fallback" -> current.defaultOption();
+            case "fallback" -> current.defaultOption();
             case "edit" -> request.option();
             default -> throw new IllegalArgumentException("AI decision action must be accept, reject, fallback or edit");
         };

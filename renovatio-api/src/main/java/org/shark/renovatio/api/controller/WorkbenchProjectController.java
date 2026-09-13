@@ -212,7 +212,14 @@ public class WorkbenchProjectController {
     private Path root(String id) { return projects.getProject(id).map(p -> Path.of(p.getWorkspacePath()).toAbsolutePath().normalize()).orElseThrow(() -> new IllegalArgumentException("Project not found")); }
     private boolean canView(String role) { return devNoAuthEnabled || access.canView(AccessRole.fromString(role)); }
     private boolean canModify(String role) { return devNoAuthEnabled ? devWriteEnabled : access.canModify(AccessRole.fromString(role)); }
-    private String actor(String role) { return AccessRole.fromString(role).name().toLowerCase(); }
+    private String actor(String role) {
+        AccessRole resolved = AccessRole.fromString(role);
+        // dev-no-auth-enabled workbench setups intentionally omit X-Role; canModify()
+        // already treats that as allowed via devWriteEnabled, so actor() must not NPE
+        // on the null AccessRole.fromString(null) returns (see #276 review: this was
+        // producing a 500 on Architecture Generate / data-migration generate).
+        return resolved == null ? "dev" : resolved.name().toLowerCase();
+    }
     private String relative(String assetId) { return assetId != null && assetId.startsWith("/") ? assetId.substring(1) : assetId; }
     @ExceptionHandler(WorkbenchChangeSetService.ChangeSetException.class)
     public ResponseEntity<ErrorResponse> changeSetError(WorkbenchChangeSetService.ChangeSetException exception) {
