@@ -23,6 +23,7 @@ class WorkbenchProjectAdapterServiceTest {
 
     @Test
     void generatedDataMigrationArtifactsAreWritableOnlyInDevelopmentMode(@TempDir Path root) throws Exception {
+        WorkbenchProjectAdapterService adapter = new WorkbenchProjectAdapterService(WorkspaceRootPolicy.under(root));
         assertThrows(SecurityException.class, () -> adapter.write(root,
                 "generated-data-migration/demo/staging-load.sql", "select 1;", false));
 
