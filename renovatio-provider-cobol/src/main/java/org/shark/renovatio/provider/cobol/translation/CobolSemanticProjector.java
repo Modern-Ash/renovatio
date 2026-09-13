@@ -120,7 +120,7 @@ public final class CobolSemanticProjector {
             String command = matcher.group(1).toUpperCase(Locale.ROOT);
             target.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
                     SemanticProgram.NodeKind.IO_OPERATION, "cics:" + ordinal++, span),
-                    SemanticProgram.IoKind.TRANSACTION, command, Optional.of(command),
+                    SemanticProgram.IoKind.TRANSACTION, command, Optional.empty(),
                     SemanticProgram.Direction.UNKNOWN, List.of()));
         }
     }

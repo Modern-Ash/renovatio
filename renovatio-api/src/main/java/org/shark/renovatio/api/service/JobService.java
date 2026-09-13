@@ -26,9 +26,11 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Stream;
 
@@ -37,6 +39,11 @@ public class JobService {
     private static final Logger log = LoggerFactory.getLogger(JobService.class);
     private static final String KEY_BROWSER_WORKSPACE = "browserWorkspace";
     private static final String KEY_WORKSPACE_LABEL = "workspaceLabel";
+    private static final Set<String> NON_RESOURCE_OPERATIONS = Set.of(
+            "SELECT", "INSERT", "UPDATE", "DELETE", "FETCH", "OPEN", "CLOSE", "SET", "GET",
+            "LINK", "RETURN", "ABEND", "ASKTIME", "FORMATTIME", "STARTBR", "READNEXT",
+            "ENDBR", "READ", "WRITE", "REWRITE", "MERGE", "DECLARE", "COMMIT", "ROLLBACK"
+    );
 
     private final JobRepository jobRepo;
     private final Executor jobExecutor;
@@ -288,17 +295,57 @@ public class JobService {
             String projectId,
             List<org.shark.renovatio.semantic.ir.SemanticProgram> semanticPrograms) {
         var current = domainModelService.read(projectId);
-        if (!current.model().nodes().isEmpty() || !current.model().relations().isEmpty()) {
-            return new WorkbenchDomainModelDtoSeed(false, current.revision(),
-                    current.model().nodes().size(), current.model().relations().size());
-        }
         DomainModel projected = domainProjector.project(projectId, semanticPrograms);
         if (projected.nodes().isEmpty() && projected.relations().isEmpty()) {
             return new WorkbenchDomainModelDtoSeed(false, current.revision(), 0, 0);
         }
+        if (!current.model().nodes().isEmpty() || !current.model().relations().isEmpty()) {
+            if (hasStaleOperationRepositories(current.model())) {
+                var refreshed = domainModelService.save(projectId, current.revision(),
+                        mergeProjectedDeterministicModel(projected, current.model()));
+                return new WorkbenchDomainModelDtoSeed(true, refreshed.revision(),
+                        refreshed.model().nodes().size(), refreshed.model().relations().size());
+            }
+            return new WorkbenchDomainModelDtoSeed(false, current.revision(),
+                    current.model().nodes().size(), current.model().relations().size());
+        }
         var seeded = domainModelService.save(projectId, current.revision(), projected);
         return new WorkbenchDomainModelDtoSeed(true, seeded.revision(),
                 seeded.model().nodes().size(), seeded.model().relations().size());
+    }
+
+    private boolean hasStaleOperationRepositories(DomainModel model) {
+        return model.nodes().stream().anyMatch(node ->
+                node.origin() == DomainModel.Origin.DETERMINISTIC
+                        && node.kind() == DomainModel.Kind.REPOSITORY
+                        && NON_RESOURCE_OPERATIONS.contains(node.name().toUpperCase()));
+    }
+
+    private DomainModel mergeProjectedDeterministicModel(DomainModel projected, DomainModel current) {
+        Map<String, DomainModel.DomainNode> nodes = new LinkedHashMap<>();
+        projected.nodes().forEach(node -> nodes.put(node.id(), node));
+        current.nodes().stream()
+                .filter(node -> node.origin() != DomainModel.Origin.DETERMINISTIC)
+                .forEach(node -> nodes.putIfAbsent(node.id(), node));
+
+        Map<String, DomainModel.DomainRelation> relations = new LinkedHashMap<>();
+        projected.relations().forEach(relation -> relations.put(relation.id(), relation));
+        current.relations().stream()
+                .filter(relation -> nodes.containsKey(relation.fromId()) && nodes.containsKey(relation.toId()))
+                .forEach(relation -> relations.putIfAbsent(relation.id(), relation));
+
+        List<DomainModel.BusinessInvariant> invariants = current.invariants().stream()
+                .filter(invariant -> nodes.containsKey(invariant.subjectId()))
+                .toList();
+        Map<String, DomainModel.LayoutPosition> layout = current.layout().entrySet().stream()
+                .filter(entry -> nodes.containsKey(entry.getKey()))
+                .collect(java.util.stream.Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                        (left, right) -> left, LinkedHashMap::new));
+        List<DomainModel.ExcludedNode> excluded = current.excludedNodeIds().stream()
+                .filter(exclusion -> nodes.containsKey(exclusion.id()))
+                .toList();
+        return new DomainModel(projected.schemaVersion(), projected.projectId(), List.copyOf(nodes.values()),
+                List.copyOf(relations.values()), invariants, layout, excluded);
     }
 
     private record WorkbenchDomainModelDtoSeed(boolean seeded, long revision, int nodes, int relations) {}

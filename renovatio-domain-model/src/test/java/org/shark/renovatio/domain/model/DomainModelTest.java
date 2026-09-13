@@ -124,9 +124,13 @@ class DomainModelTest {
                 SemanticProgram.Header.create("SQLDEMO", SemanticProgram.NodeKind.IO_OPERATION, "database-fetch", span),
                 SemanticProgram.IoKind.DATABASE, "FETCH", Optional.empty(),
                 SemanticProgram.Direction.READ, List.of());
+        SemanticProgram.IoOperation malformedSelect = new SemanticProgram.IoOperation(
+                SemanticProgram.Header.create("SQLDEMO", SemanticProgram.NodeKind.IO_OPERATION, "database-malformed-select", span),
+                SemanticProgram.IoKind.DATABASE, "SELECT", Optional.of("SELECT"),
+                SemanticProgram.Direction.READ, List.of());
         SemanticProgram program = new SemanticProgram("1", SemanticProgram.Header.create("SQLDEMO",
                 SemanticProgram.NodeKind.PROGRAM, "program", span), "SQLDEMO", provenance,
-                List.of(), List.of(), List.of(), List.of(selectCustomer, fetchCursor),
+                List.of(), List.of(), List.of(), List.of(selectCustomer, fetchCursor, malformedSelect),
                 new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
 
         DomainModel model = new SemanticDomainProjector().project("project-1", List.of(program));
@@ -141,6 +145,8 @@ class DomainModelTest {
         assertEquals(DomainModel.Kind.EXTERNAL_SYSTEM, cursorOperation.kind());
         assertFalse(model.nodes().stream().anyMatch(node ->
                 node.kind() == DomainModel.Kind.REPOSITORY && node.name().equals("FETCH")));
+        assertFalse(model.nodes().stream().anyMatch(node ->
+                node.kind() == DomainModel.Kind.REPOSITORY && node.name().equals("SELECT")));
     }
 
     private static DomainModel.DomainNode node(String id, DomainModel.Kind kind) {
