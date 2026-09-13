@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://renovatio.shark.org/schemas/proposal-request.v1.json",
+  "title": "ProposalRequest",
+  "type": "object",
+  "required": ["version", "kind", "input", "schema", "budget", "model"],
+  "properties": {
+    "version": { "type": "string", "const": "1.0" },
+    "kind": {
+      "type": "string",
+      "enum": ["cobol.structure_analysis", "cobol.business_rule", "cobol.data_mapping"]
+    },
+    "input": {
+      "type": "object",
+      "required": ["sourceHash", "context"],
+      "properties": {
+        "sourceHash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+        "context": { "type": "object" }
+      }
+    },
+    "schema": { "type": "string", "pattern": "^[a-z-]+\\.v\\d+\\.json$" },
+    "budget": {
+      "type": "object",
+      "required": ["maxTokens", "maxLatencyMs"],
+      "properties": {
+        "maxTokens": { "type": "integer", "minimum": 100, "maximum": 50000 },
+        "maxLatencyMs": { "type": "integer", "minimum": 100, "maximum": 30000 },
+        "maxCostUSD": { "type": "number", "minimum": 0, "maximum": 10 }
+      }
+    },
+    "model": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" }
+      }
+    }
+  }
+}

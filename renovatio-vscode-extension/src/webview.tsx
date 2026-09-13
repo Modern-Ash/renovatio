@@ -48,7 +48,7 @@ function App(): React.ReactElement {
             if (event.data?.type === 'setModel') {
                 const documentKind: DocumentKind = event.data.documentKind;
                 const model: DiagramModel = event.data.model;
-                setState({ documentKind, model: withLayout(model, autoArrange(model.nodes, model.edges, documentKind)) });
+                setState({ documentKind, model: withMissingLayout(model, autoArrange(model.nodes, model.edges, documentKind)) });
             }
         };
         const errorListener = (event: ErrorEvent): void => {
@@ -175,6 +175,16 @@ function autoArrange(nodes: DiagramNodeVM[], edges: DiagramEdgeVM[], kind: Docum
 
 function withLayout(model: DiagramModel, positions: Record<string, { x: number; y: number }>): DiagramModel {
     return { nodes: model.nodes.map(node => ({ ...node, x: positions[node.id]?.x ?? node.x, y: positions[node.id]?.y ?? node.y })), edges: model.edges };
+}
+
+function withMissingLayout(model: DiagramModel, positions: Record<string, { x: number; y: number }>): DiagramModel {
+    return {
+        nodes: model.nodes.map(node => {
+            if (typeof node.x === 'number' && typeof node.y === 'number') return node;
+            return { ...node, x: positions[node.id]?.x ?? node.x, y: positions[node.id]?.y ?? node.y };
+        }),
+        edges: model.edges
+    };
 }
 
 function orderedGroups(nodes: DiagramNodeVM[], kind: DocumentKind): string[] {

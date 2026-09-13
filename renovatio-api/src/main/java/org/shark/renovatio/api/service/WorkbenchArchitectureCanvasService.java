@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.shark.renovatio.api.dto.ArchitecturePreviewDto;
@@ -45,6 +46,13 @@ public class WorkbenchArchitectureCanvasService {
     static final String EXT_CLASS_PREFIX = ArchitectureLayoutOverrides.EXT_CLASS_PREFIX;
     static final String EXT_RULES = ArchitectureLayoutOverrides.EXT_RULES;
     private static final List<String> MVC_LAYERS = List.of("controller", "service", "model");
+    private static final Set<String> JAVA_KEYWORDS = Set.of(
+            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const",
+            "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float",
+            "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native",
+            "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp",
+            "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void",
+            "volatile", "while", "true", "false", "null", "_");
 
     private final ProjectRepository projects;
     private final ProjectArchitectureProfileVersionRepository versions;
@@ -152,6 +160,7 @@ public class WorkbenchArchitectureCanvasService {
         List<DependencyDiagnostic> blockers = canvas.dependencyDiagnostics().stream()
                 .filter(diagnostic -> "error".equalsIgnoreCase(diagnostic.severity())).toList();
         if (!blockers.isEmpty()) throw new ValidationException(blockers);
+        validateJavaManifest(canvas.manifest());
         var excluded = draft.excludedNodeIds().stream().map(ExcludedNode::id).collect(Collectors.toSet());
         List<WorkbenchChangeSetDto.FileChangeRequest> files = canvas.manifest().stream()
                 .filter(entry -> !excluded.contains(entry.componentId()))
@@ -218,6 +227,24 @@ public class WorkbenchArchitectureCanvasService {
                 + " */\n"
                 + "public class " + entry.className() + " {\n"
                 + "}\n";
+    }
+
+    private void validateJavaManifest(List<ManifestEntry> manifest) {
+        List<DependencyDiagnostic> diagnostics = manifest.stream()
+                .flatMap(entry -> {
+                    List<DependencyDiagnostic> entryDiagnostics = new ArrayList<>();
+                    if (!isValidPackageName(entry.packageName())) {
+                        entryDiagnostics.add(new DependencyDiagnostic("error", "INVALID_JAVA_PACKAGE",
+                                entry.componentId(), entry.packageName(), "Package name is not a valid Java package"));
+                    }
+                    if (!isValidJavaIdentifier(entry.className())) {
+                        entryDiagnostics.add(new DependencyDiagnostic("error", "INVALID_JAVA_CLASS",
+                                entry.componentId(), entry.className(), "Class name is not a valid Java identifier"));
+                    }
+                    return entryDiagnostics.stream();
+                })
+                .toList();
+        if (!diagnostics.isEmpty()) throw new ValidationException(diagnostics);
     }
 
     private List<DependencyDiagnostic> dependencyDiagnostics(ArchitecturePreviewDto preview, List<DependencyRule> rules) {
@@ -434,6 +461,17 @@ public class WorkbenchArchitectureCanvasService {
     private boolean blank(String value) { return value == null || value.isBlank(); }
     private String key(String value) { return value.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-"); }
     private String path(String packageName, String className) { return packageName.replace('.', '/') + "/" + className + ".java"; }
+    private boolean isValidPackageName(String value) {
+        return !blank(value) && java.util.Arrays.stream(value.split("\\.")).allMatch(this::isValidJavaIdentifier);
+    }
+    private boolean isValidJavaIdentifier(String value) {
+        if (blank(value) || JAVA_KEYWORDS.contains(value)) return false;
+        if (!Character.isJavaIdentifierStart(value.charAt(0))) return false;
+        for (int i = 1; i < value.length(); i++) {
+            if (!Character.isJavaIdentifierPart(value.charAt(i))) return false;
+        }
+        return true;
+    }
     private String layer(String value, String label) {
         try {
             return ArchitectureLayoutOverrides.from(MigrationProfiles.emptyOverlay())

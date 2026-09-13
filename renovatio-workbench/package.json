@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "clean": "npm run clean --workspaces --if-present",
-    "build:extension": "npm run build --workspace @renovatio/core-ui",
+    "build:extension": "npm run build --workspace @renovatio/diagram-canvas && npm run build --workspace @renovatio/core-ui",
     "build:application": "npm run build --workspace @renovatio/workbench-browser",
     "build": "npm run build:extension && npm run build:application",
     "test": "npm run test --workspace @renovatio/core-ui",
@@ -35,6 +35,10 @@
     "hardening:audit": "node scripts/release-hardening-audit.mjs",
     "performance:budget": "node scripts/performance-budget.mjs",
     "pilot:demo": "node scripts/demo-pilot.mjs"
+  },
+  "dependencies": {
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0"

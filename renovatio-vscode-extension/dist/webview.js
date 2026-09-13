@@ -28628,6 +28628,7 @@
           setSelectedIds([]);
         }, [props.model.nodes]);
         const handleNodesChange = (0, react_1.useCallback)((changes) => {
+          const removedNodeIds = [];
           setFlowNodes((current) => {
             const next = (0, react_2.applyNodeChanges)(changes, current);
             if (changes.some((change) => change.type === "select")) {
@@ -28642,6 +28643,12 @@
             if (change.type === "select" && change.selected) {
               props.onEvent({ type: "nodeSelected", id: change.id });
             }
+            if (change.type === "remove") {
+              removedNodeIds.push(change.id);
+            }
+          }
+          if (removedNodeIds.length > 0) {
+            props.onEvent({ type: "nodesPruned", ids: removedNodeIds });
           }
         }, [props.onEvent]);
         const handleConnect = (0, react_1.useCallback)((connection) => {
@@ -37746,7 +37753,7 @@
         if (event.data?.type === "setModel") {
           const documentKind = event.data.documentKind;
           const model = event.data.model;
-          setState({ documentKind, model: withLayout(model, autoArrange(model.nodes, model.edges, documentKind)) });
+          setState({ documentKind, model: withMissingLayout(model, autoArrange(model.nodes, model.edges, documentKind)) });
         }
       };
       const errorListener = (event) => {
@@ -37867,6 +37874,15 @@
   }
   function withLayout(model, positions) {
     return { nodes: model.nodes.map((node) => ({ ...node, x: positions[node.id]?.x ?? node.x, y: positions[node.id]?.y ?? node.y })), edges: model.edges };
+  }
+  function withMissingLayout(model, positions) {
+    return {
+      nodes: model.nodes.map((node) => {
+        if (typeof node.x === "number" && typeof node.y === "number") return node;
+        return { ...node, x: positions[node.id]?.x ?? node.x, y: positions[node.id]?.y ?? node.y };
+      }),
+      edges: model.edges
+    };
   }
   function orderedGroups(nodes, kind) {
     if (kind === "architecture") {

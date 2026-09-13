@@ -174,4 +174,18 @@ class WorkbenchArchitectureCanvasServiceTest {
         assertThatThrownBy(() -> service.generateChangeSetRequest(projectId))
                 .isInstanceOf(WorkbenchArchitectureCanvasService.ValidationException.class);
     }
+
+    @Test
+    void generateChangeSetRequestRejectsInvalidJavaPackagesAndClassOverrides() {
+        service.save(projectId, 0, new ArchitectureProfileDraft(
+                MigrationProfile.ArchitectureStyle.LAYERED_MVC, MigrationProfile.ModuleGrouping.BY_PROGRAM,
+                MigrationProfile.Framework.SPRING_BOOT, MigrationProfile.PersistenceStrategy.IN_MEMORY,
+                Map.of("service", "com.acme.123bad"), Map.of(), Map.of("service", "Order Service"),
+                List.of(), Map.of(), List.of()));
+
+        assertThatThrownBy(() -> service.generateChangeSetRequest(projectId))
+                .isInstanceOfSatisfying(WorkbenchArchitectureCanvasService.ValidationException.class, error ->
+                        assertThat(error.diagnostics()).extracting(value -> value.code())
+                                .contains("INVALID_JAVA_PACKAGE", "INVALID_JAVA_CLASS"));
+    }
 }

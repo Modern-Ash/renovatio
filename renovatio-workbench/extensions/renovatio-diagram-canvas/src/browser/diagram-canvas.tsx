@@ -128,6 +128,7 @@ export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
     }, [props.model.nodes]);
 
     const handleNodesChange: OnNodesChange = useCallback(changes => {
+        const removedNodeIds: string[] = [];
         setFlowNodes(current => {
             const next = applyNodeChanges(changes, current);
             if ((changes as NodeChange[]).some(change => change.type === 'select')) {
@@ -142,6 +143,12 @@ export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
             if (change.type === 'select' && change.selected) {
                 props.onEvent({ type: 'nodeSelected', id: change.id });
             }
+            if (change.type === 'remove') {
+                removedNodeIds.push(change.id);
+            }
+        }
+        if (removedNodeIds.length > 0) {
+            props.onEvent({ type: 'nodesPruned', ids: removedNodeIds });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.onEvent]);

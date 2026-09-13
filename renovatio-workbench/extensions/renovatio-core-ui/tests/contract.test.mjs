@@ -100,7 +100,9 @@ test('shows read-only inventory and persisted run summaries in Analysis', () => 
     assert.match(shell, /startAnalysis/);
     assert.match(shell, /operation: 'analyze'/);
     assert.match(shell, /pollAnalysisJob/);
-    assert.match(shell, /\/api\/jobs\/\$\{encodeURIComponent\(jobId\)\}/);
+    assert.match(shell, /\/api\/workbench\/projects\/\$\{encodeURIComponent\(this\.selectedProject\)\}\/jobs/);
+    assert.match(shell, /\/api\/workbench\/jobs\/\$\{encodeURIComponent\(jobId\)\}/);
+    assert.doesNotMatch(shell, /X-Role': 'ADMIN'/);
     assert.match(shell, /Analysis completed but found 0 COBOL programs/);
     assert.match(shell, /Run Analyze to inventory COBOL programs/);
     assert.match(shell, /COBOL scan root/);

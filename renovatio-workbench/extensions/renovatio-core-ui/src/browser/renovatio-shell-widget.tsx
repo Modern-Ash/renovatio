@@ -113,6 +113,18 @@ const MVC_LAYERS = ['controller', 'service', 'model'] as const;
 const ACTIVE_AREA_KEY = 'renovatio.workbench.active-area';
 const SELECTED_PROJECT_KEY = 'renovatio.workbench.selected-project';
 
+class DomainDiagramErrorBoundary extends React.Component<{ fallback: React.ReactNode; children: React.ReactNode }, { hasError: boolean }> {
+    state = { hasError: false };
+
+    static getDerivedStateFromError(): { hasError: boolean } {
+        return { hasError: true };
+    }
+
+    override render(): React.ReactNode {
+        return this.state.hasError ? this.props.fallback : this.props.children;
+    }
+}
+
 @injectable()
 export class RenovatioShellWidget extends ReactWidget {
     static readonly ID = 'renovatio.shell.widget';
@@ -699,7 +711,7 @@ export class RenovatioShellWidget extends ReactWidget {
     protected async loadProjectDetails(): Promise<WorkbenchProject | undefined> {
         const current = this.projects.find(project => project.id === this.selectedProject);
         try {
-            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}`);
+            const response = await fetch(`${this.backendUrl}/api/workbench/projects/${encodeURIComponent(this.selectedProject)}`);
             if (!response.ok) return current;
             const project = await response.json() as WorkbenchProject;
             this.projects = this.projects.map(candidate => candidate.id === project.id ? { ...candidate, ...project } : candidate);
@@ -729,9 +741,9 @@ export class RenovatioShellWidget extends ReactWidget {
         this.analysisNotice = 'Starting analysis...';
         this.update();
         try {
-            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/jobs`, {
+            const response = await fetch(`${this.backendUrl}/api/workbench/projects/${encodeURIComponent(this.selectedProject)}/jobs`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-Role': 'ADMIN' },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ operation: 'analyze', params: { workspacePath } })
             });
             if (!response.ok) throw new Error(`Analyze job returned ${response.status}`);
@@ -748,10 +760,11 @@ export class RenovatioShellWidget extends ReactWidget {
 
     protected async pollAnalysisJob(jobId: string): Promise<void> {
         const pollToken = ++this.analysisPollToken;
-        for (let attempt = 0; attempt < 20 && pollToken === this.analysisPollToken; attempt++) {
-            await this.delay(attempt < 3 ? 1000 : 2500);
+        let attempt = 0;
+        while (pollToken === this.analysisPollToken) {
+            await this.delay(attempt++ < 3 ? 1000 : 2500);
             try {
-                const response = await fetch(`${this.backendUrl}/api/jobs/${encodeURIComponent(jobId)}`, { headers: { 'X-Role': 'ADMIN' } });
+                const response = await fetch(`${this.backendUrl}/api/workbench/jobs/${encodeURIComponent(jobId)}`);
                 if (!response.ok) throw new Error(`Job adapter returned ${response.status}`);
                 this.analysisJob = await response.json() as WorkbenchJob;
                 const status = this.analysisJob.status.toUpperCase();
@@ -1513,7 +1526,7 @@ export class RenovatioShellWidget extends ReactWidget {
         const selectedInvariant = this.selectedDomainType === 'invariant' ? draft?.invariants.find(invariant => invariant.id === this.selectedDomainId) : undefined;
         const selectedEvidence = selectedNode?.evidence ?? selectedInvariant?.evidence ?? [];
         const controlDisabled = this.domainState === 'loading' || this.domainState === 'saving' || !draft || draftDiagnostics.some(diagnostic => diagnostic.severity === 'error');
-        return <section className='renovatio-domain-editor' aria-label='Business DomainModel editor'>
+        return <section className='renovatio-domain-editor' role='region' aria-label='Business DomainModel editor'>
             <header className='renovatio-domain-toolbar'>
                 <div>
                     <span className='renovatio-coordinate'>DOMAIN.MODEL / SCHEMA {draft?.schemaVersion ?? '1'}</span>
@@ -1536,9 +1549,11 @@ export class RenovatioShellWidget extends ReactWidget {
             {this.domainState === 'error' && !draft && <p>The DomainModel adapter is unavailable. Reload to retry.</p>}
             {this.domainState === 'conflict' && <p>Reload the latest revision, then reapply the intended correction. No newer data was overwritten.</p>}
             {draft && <div className='renovatio-domain-grid'>
-                {this.domainViewMode === 'diagram' ? this.renderDomainDiagramSurface(draft)
-                    : this.domainViewMode === 'der' ? this.renderDomainDerSurface(draft)
-                    : this.renderDomainCatalog(draft)}
+                {this.domainViewMode === 'diagram'
+                    ? <DomainDiagramErrorBoundary fallback={this.renderDomainCatalog(draft)}>{this.renderDomainDiagramSurface(draft)}</DomainDiagramErrorBoundary>
+                    : this.domainViewMode === 'der'
+                        ? <DomainDiagramErrorBoundary fallback={this.renderDomainCatalog(draft)}>{this.renderDomainDerSurface(draft)}</DomainDiagramErrorBoundary>
+                        : this.renderDomainCatalog(draft)}
                 {this.renderDomainForm(draft, selectedNode, selectedRelation, selectedInvariant)}
                 {this.renderDomainInspector(draftDiagnostics, selectedEvidence)}
             </div>}
@@ -2177,7 +2192,7 @@ export class RenovatioShellWidget extends ReactWidget {
                     </dl>
                     {this.analysisNotice && <p role='status'>{this.analysisNotice}</p>}
                     {this.analysisState === 'ready' && <div className='renovatio-analysis-results'>
-                        {inventoryEntries.length ? <dl>{inventoryEntries.map(([category, count]) => <div key={category}><dt>{category}</dt><dd>{count}</dd></div>)}</dl> : <p>No inventory categories were returned.</p>}
+                        {inventoryEntries.length ? <dl>{inventoryEntries.map(([category, count]) => <div key={category}><dt>{category}: </dt><dd>{count}</dd></div>)}</dl> : <p>No inventory categories were returned.</p>}
                         <p>{this.analysis?.runs.length ? `Persisted runs: ${this.analysis.runs.map(run => run.runId).join(', ')}` : 'No persisted runs for this project yet.'}</p>
                     </div>}
                     {this.analysisState === 'empty' && <p>{jobDone && inventoryTotal === 0

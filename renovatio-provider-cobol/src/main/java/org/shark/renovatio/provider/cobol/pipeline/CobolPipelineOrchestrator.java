@@ -38,11 +38,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 /** Production-backed COBOL-to-Java reference pipeline. */
 public class CobolPipelineOrchestrator implements PipelineOrchestrator {
     private static final Logger log = LoggerFactory.getLogger(CobolPipelineOrchestrator.class);
     private static final String GENERATED_PACKAGE = "src/main/java/org/shark/renovatio/generated/cobol";
+    private static final Pattern GENERATED_INFINITE_FOR_LOOP =
+        Pattern.compile("\\bfor\\s*\\([^;]*;\\s*true\\s*;");
 
     private final CobolParsingService parsingService;
     private final JavaGenerationOrchestrator generationOrchestrator;
@@ -187,7 +190,7 @@ public class CobolPipelineOrchestrator implements PipelineOrchestrator {
                         "Generated source contains TODO or unsupported placeholder behavior",
                         "Resolve the associated manual action before accepting the migration"));
                 }
-                if (entry.getValue() != null && entry.getValue().contains("for (...; true;")) {
+                if (containsGeneratedInfiniteLoop(entry.getValue())) {
                     gaps.recordGap(ActionItem.blocking("UNTRANSLATED_EXECUTABLE_CONTROL_FLOW", entry.getKey(), "",
                         "Generated source retains explicitly untranslated COBOL statements",
                         "Implement the executable COBOL construct before accepting migrated behavior"));
@@ -389,6 +392,10 @@ public class CobolPipelineOrchestrator implements PipelineOrchestrator {
     private boolean containsUnresolvedMarker(String source) {
         return source != null && (source.contains("TODO")
             || source.contains("UnsupportedOperationException") || source.contains("FIXME"));
+    }
+
+    static boolean containsGeneratedInfiniteLoop(String source) {
+        return source != null && GENERATED_INFINITE_FOR_LOOP.matcher(source).find();
     }
 
     private StageResult executeStage(String name, StageOperation operation) {
