@@ -67,7 +67,7 @@ renovatio:
 # Migración de COBOL con DB2 embebido a Java Spring Boot + JPA
 
 > **Jira Epic**: [RENO-100: Modernización módulo Customer Management](https://your-company.atlassian.net/browse/RENO-100)  
-> **GitHub Issue**: [#150](https://github.com/accentureshark/renovatio/issues/150)  
+> **GitHub Issue**: [#150](https://github.com/Modern-Ash/renovatio/issues/150)  
 > **Sprint**: Sprint 5 & 6 (Oct 2025)
 
 ## 1. Resumen ejecutivo
@@ -177,11 +177,11 @@ El módulo Customer Management del sistema legacy mainframe está escrito en COB
 
 | Tarea | Jira Ticket | Asignado | Story Points | Estado | GitHub PR |
 |-------|-------------|----------|--------------|--------|-----------|
-| Análisis de programas COBOL | [RENO-110](https://jira/RENO-110) | @juan-dev | 3 | ✅ Done | [#155](https://github.com/accentureshark/renovatio/pull/155) |
-| Análisis de estructura DB2 | [RENO-111](https://jira/RENO-111) | @maria-dba | 2 | ✅ Done | [#156](https://github.com/accentureshark/renovatio/pull/156) |
-| Configuración entorno migración | [RENO-112](https://jira/RENO-112) | @carlos-devops | 2 | ✅ Done | [#157](https://github.com/accentureshark/renovatio/pull/157) |
-| Parser EXEC SQL mejorado | [RENO-113](https://jira/RENO-113) | @ana-dev | 5 | 🔄 In Progress | [#158 (draft)](https://github.com/accentureshark/renovatio/pull/158) |
-| Generador entidades JPA | [RENO-114](https://jira/RENO-114) | @pedro-dev | 8 | 🔄 In Progress | [#159 (draft)](https://github.com/accentureshark/renovatio/pull/159) |
+| Análisis de programas COBOL | [RENO-110](https://jira/RENO-110) | @juan-dev | 3 | ✅ Done | [#155](https://github.com/Modern-Ash/renovatio/pull/155) |
+| Análisis de estructura DB2 | [RENO-111](https://jira/RENO-111) | @maria-dba | 2 | ✅ Done | [#156](https://github.com/Modern-Ash/renovatio/pull/156) |
+| Configuración entorno migración | [RENO-112](https://jira/RENO-112) | @carlos-devops | 2 | ✅ Done | [#157](https://github.com/Modern-Ash/renovatio/pull/157) |
+| Parser EXEC SQL mejorado | [RENO-113](https://jira/RENO-113) | @ana-dev | 5 | 🔄 In Progress | [#158 (draft)](https://github.com/Modern-Ash/renovatio/pull/158) |
+| Generador entidades JPA | [RENO-114](https://jira/RENO-114) | @pedro-dev | 8 | 🔄 In Progress | [#159 (draft)](https://github.com/Modern-Ash/renovatio/pull/159) |
 
 #### Sprint 6 (2 semanas)
 
@@ -200,7 +200,7 @@ El módulo Customer Management del sistema legacy mainframe está escrito en COB
 
 **1.1 Análisis de programas COBOL**
 - **Jira**: [RENO-110](https://your-company.atlassian.net/browse/RENO-110)
-- **GitHub PR**: [#155](https://github.com/accentureshark/renovatio/pull/155) ✅ Merged
+- **GitHub PR**: [#155](https://github.com/Modern-Ash/renovatio/pull/155) ✅ Merged
 - **Descripción**: Ejecutar `cobol.analyze` para identificar patrones, dependencias y complejidad
 - **Responsable**: @juan-dev
 - **Duración**: 2 días
@@ -212,7 +212,7 @@ El módulo Customer Management del sistema legacy mainframe está escrito en COB
 
 **1.2 Análisis de estructura DB2**
 - **Jira**: [RENO-111](https://your-company.atlassian.net/browse/RENO-111)
-- **GitHub PR**: [#156](https://github.com/accentureshark/renovatio/pull/156) ✅ Merged
+- **GitHub PR**: [#156](https://github.com/Modern-Ash/renovatio/pull/156) ✅ Merged
 - **Descripción**: Documentar esquema DB2, relaciones, índices y constraints
 - **Responsable**: @maria-dba
 - **Duración**: 1.5 días
@@ -221,7 +221,7 @@ El módulo Customer Management del sistema legacy mainframe está escrito en COB
 
 **1.3 Configuración entorno de migración**
 - **Jira**: [RENO-112](https://your-company.atlassian.net/browse/RENO-112)
-- **GitHub PR**: [#157](https://github.com/accentureshark/renovatio/pull/157) ✅ Merged
+- **GitHub PR**: [#157](https://github.com/Modern-Ash/renovatio/pull/157) ✅ Merged
 - **Descripción**: Preparar workspace, herramientas Renovatio, DB2 de pruebas
 - **Responsable**: @carlos-devops
 - **Duración**: 1.5 días
@@ -230,7 +230,7 @@ El módulo Customer Management del sistema legacy mainframe está escrito en COB
 
 **2.1 Parser EXEC SQL mejorado**
 - **Jira**: [RENO-113](https://your-company.atlassian.net/browse/RENO-113)
-- **GitHub PR**: [#158 (draft)](https://github.com/accentureshark/renovatio/pull/158) 🔄
+- **GitHub PR**: [#158 (draft)](https://github.com/Modern-Ash/renovatio/pull/158) 🔄
 - **Descripción**: Mejorar parser para manejar EXEC SQL complejos (cursores, host variables)
 - **Responsable**: @ana-dev
 - **Duración**: 4 días
@@ -244,7 +244,7 @@ El módulo Customer Management del sistema legacy mainframe está escrito en COB
 
 **2.2 Generador de entidades JPA**
 - **Jira**: [RENO-114](https://your-company.atlassian.net/browse/RENO-114)
-- **GitHub PR**: [#159 (draft)](https://github.com/accentureshark/renovatio/pull/159) 🔄
+- **GitHub PR**: [#159 (draft)](https://github.com/Modern-Ash/renovatio/pull/159) 🔄
 - **Descripción**: Template Freemarker para generar entidades JPA desde DDL y copybooks
 - **Responsable**: @pedro-dev
 - **Duración**: 5 días
@@ -547,7 +547,7 @@ logging:
 
 - **Jira Epic**: [RENO-100](https://your-company.atlassian.net/browse/RENO-100)
 - **Jira Board**: https://your-company.atlassian.net/secure/RapidBoard.jspa?rapidView=123
-- **GitHub Milestone**: [v2.1.0](https://github.com/accentureshark/renovatio/milestone/5)
+- **GitHub Milestone**: [v2.1.0](https://github.com/Modern-Ash/renovatio/milestone/5)
 - **Confluence docs**: https://your-company.atlassian.net/wiki/spaces/RENO/pages/123456
 - **Slack channel**: `#renovatio-customer-migration`
 
