@@ -43,3 +43,11 @@
 - 2026-09-04T15:39:32.592174Z | tool.running | run=tool-20260904t15391788547172z actor=project:agent
 - 2026-09-04T15:39:32.627127Z | tool.completed | run=tool-20260904t15391788547172z exit-code=0
 - 2026-09-04T15:39:41.093511Z | evidence.added | id=evidence-000007 type=tested-revision result=success revision=1 actor=project:agent
+- 2026-09-11T14:10:04.843815Z | work.criterion-stage-marked | criterion=profile-contract actor=project:owner stage=accepted
+- 2026-09-11T14:10:05.115113Z | work.criterion-stage-marked | criterion=traceable-content actor=project:owner stage=accepted
+- 2026-09-11T14:10:05.378618Z | work.criterion-stage-marked | criterion=java-emission actor=project:owner stage=accepted
+- 2026-09-11T14:10:05.631644Z | work.criterion-stage-marked | criterion=node-emission actor=project:owner stage=accepted
+- 2026-09-11T14:10:05.872672Z | work.criterion-stage-marked | criterion=safety-determinism actor=project:owner stage=accepted
+- 2026-09-11T14:10:06.118342Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=accepted
+- 2026-09-11T14:10:09.874272Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T14:10:20.553372Z | work.transitioned | from=verifying to=completed actor=project:owner

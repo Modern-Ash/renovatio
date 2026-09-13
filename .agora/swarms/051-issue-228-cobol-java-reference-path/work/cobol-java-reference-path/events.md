@@ -60,3 +60,7 @@
 - 2026-09-10T14:06:14.470093Z | work.criterion-stage-marked | criterion=runbook actor=project:owner stage=accepted
 - 2026-09-10T14:06:40.748692Z | work.transitioned | from=implementing to=verifying actor=project:agent
 - 2026-09-10T14:06:45.052335Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T13:36:43.989200Z | evidence.added | id=evidence-000001 type=test result=success revision=1 actor=project:agent
+- 2026-09-11T13:36:51.439297Z | work.criterion-stage-marked | criterion=surface-proof actor=project:owner stage=accepted
+- 2026-09-11T13:36:54.190704Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T13:37:00.886801Z | work.transitioned | from=verifying to=completed actor=project:owner

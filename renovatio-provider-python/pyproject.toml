@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "renovatio-provider-python"
 version = "0.0.1"
-description = "Renovatio Python language provider: COBOL runtime mirror and Python code generation for COBOL-to-Python migration."
+description = "Unsupported Renovatio Python lab package: COBOL runtime/PIC mirror research only; not a TargetEmitter or COBOL-to-Python generator."
 requires-python = ">=3.10"
 dependencies = ["jinja2>=3.0", "jsonschema>=4.0"]
 

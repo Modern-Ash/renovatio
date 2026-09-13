@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.shark.renovatio</groupId>
         <artifactId>renovatio-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.3.0-alpha.1</version>
     </parent>
     <artifactId>renovatio-decisions</artifactId>
     <name>Renovatio Decision Domain</name>

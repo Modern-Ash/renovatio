@@ -2,6 +2,7 @@ package org.shark.renovatio.jcl.decision;
 
 import org.junit.jupiter.api.Test;
 import org.shark.renovatio.decisions.DecisionPoint;
+import org.shark.renovatio.decisions.DecisionSuggestionPort;
 import org.shark.renovatio.jcl.parse.JclStep;
 
 import java.time.Instant;
@@ -20,6 +21,6 @@ class BatchDecisionPointsTest {
         assertEquals(DecisionPoint.Category.BATCH, decision.category());
         assertEquals("RESIDUE", decision.chosenOption());
         assertEquals("decision.batch.v1",
-                org.shark.renovatio.llm.decision.DecisionSuggestionService.promptId(decision.category()));
+                DecisionSuggestionPort.promptId(decision.category()));
     }
 }

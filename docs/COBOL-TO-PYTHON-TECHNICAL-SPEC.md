@@ -1,3 +1,9 @@
+# Current Status Notice
+
+As of issue #234, this specification is historical research. The current package
+is unsupported lab code and does not implement the Renovatio `TargetEmitter`
+contract.
+
 # COBOL to Python - Especificación Técnica
 
 ## 1. Resumen Ejecutivo

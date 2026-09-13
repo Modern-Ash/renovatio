@@ -9,6 +9,7 @@ open module org.shark.renovatio.shared {
     exports org.shark.renovatio.shared.domain;
     exports org.shark.renovatio.shared.emission;
     exports org.shark.renovatio.shared.nql;
+    exports org.shark.renovatio.shared.security;
     exports org.shark.renovatio.shared.spi;
     exports org.shark.renovatio.shared.util;
 }

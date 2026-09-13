@@ -1,1 +1,0 @@
-{"schemaVersion":"cobol-ir.v1","programId":"MOVE-NUMERIC","paragraphs":{"MAIN":{"name":"MAIN","statements":[{"source":"SOURCE-NUM","target":"TARGET-NUM"}]}},"dataItems":[],"diagnostics":[]}

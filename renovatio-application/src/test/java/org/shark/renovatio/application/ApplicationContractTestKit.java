@@ -20,16 +20,25 @@ public final class ApplicationContractTestKit {
     public final MutableAnalyzer analyzer = new MutableAnalyzer();
     public final RecordingGit git = new RecordingGit();
     public int emitCalls;
+    public int batchCalls;
     public int refineCalls;
     public int validateCalls;
+    public boolean batchCollides;
 
     public DefaultRenovatioApplication application() {
         ProposalProvider proposals = (project, analysis) -> new DomainReview(analysis.semanticModel(), List.of("proposal:" + project));
         ArchitectureProjector projector = (analysis, decisions) -> analysis.semanticModel() + ":" + new java.util.TreeMap<>(decisions);
         TargetEmitter emitter = projection -> { emitCalls++; return bytes("generated.txt", projection.toString()); };
+        BatchOrchestrationPlanner batch = (projection, decisions, generated) -> {
+            batchCalls++;
+            if (batchCollides) return bytes("generated.txt", "batch overwrite");
+            return decisions.containsKey("batch.target")
+                    ? bytes("batch/orchestration.txt", "batch:" + decisions.get("batch.target") + ":" + generated.keySet())
+                    : Map.of();
+        };
         TargetRefiner refiner = generated -> { refineCalls++; return generated; };
         ValidationGate validator = manifest -> { validateCalls++; return new ValidationResult(true, List.of("validated:" + manifest.id())); };
-        return new DefaultRenovatioApplication(analyzer, proposals, projector, emitter, refiner, validator,
+        return new DefaultRenovatioApplication(analyzer, proposals, projector, emitter, batch, refiner, validator,
                 projects, artifacts, idempotency, git, () -> Instant.parse("2026-09-09T00:00:00Z"));
     }
 

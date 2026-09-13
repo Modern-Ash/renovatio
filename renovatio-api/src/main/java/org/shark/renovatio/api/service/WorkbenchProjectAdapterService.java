@@ -1,6 +1,7 @@
 package org.shark.renovatio.api.service;
 
 import org.shark.renovatio.api.dto.WorkbenchAssetDto;
+import org.shark.renovatio.shared.security.WorkspaceRootPolicy;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -14,20 +15,26 @@ public class WorkbenchProjectAdapterService {
     private static final List<String> LEGACY = List.of(".cbl", ".cob", ".cpy", ".jcl");
     private static final List<String> TARGET = List.of(".java", ".py", ".js", ".ts", ".mjs", ".cjs");
     private static final List<String> DATA_MIGRATION_ARTIFACT = List.of(".md", ".sql", ".json");
+    private final WorkspaceRootPolicy workspaceRootPolicy;
+
+    public WorkbenchProjectAdapterService(WorkspaceRootPolicy workspaceRootPolicy) {
+        this.workspaceRootPolicy = workspaceRootPolicy;
+    }
 
     public List<WorkbenchAssetDto> list(Path root, boolean devWriteEnabled) throws IOException {
-        try (var paths = Files.walk(root, 8)) {
-            return paths.filter(Files::isRegularFile).sorted().map(path -> descriptor(root, path, devWriteEnabled)).toList();
+        Path workspace = workspaceRootPolicy.resolveForWrite(root, ".");
+        try (var paths = Files.walk(workspace, 8)) {
+            return paths.filter(Files::isRegularFile).sorted().map(path -> descriptor(workspace, path, devWriteEnabled)).toList();
         }
     }
 
     public String read(Path root, String assetId) throws IOException {
-        return Files.readString(resolve(root, assetId));
+        return Files.readString(workspaceRootPolicy.resolveExisting(root, assetId));
     }
 
     public void write(Path root, String assetId, String content, boolean devWriteEnabled) throws IOException {
-        Path asset = resolve(root, assetId);
-        if (!devWriteEnabled || !isTarget(asset)) throw new SecurityException("Asset is read-only outside development target mode");
+        if (!devWriteEnabled || !isTarget(Path.of(assetId))) throw new SecurityException("Asset is read-only outside development target mode");
+        Path asset = workspaceRootPolicy.resolveForWrite(root, assetId);
         Files.createDirectories(asset.getParent());
         Files.writeString(asset, content == null ? "" : content);
     }
@@ -35,13 +42,6 @@ public class WorkbenchProjectAdapterService {
     private WorkbenchAssetDto descriptor(Path root, Path asset, boolean devWriteEnabled) {
         String id = root.relativize(asset).toString().replace(asset.getFileSystem().getSeparator(), "/");
         return new WorkbenchAssetDto(id, asset.getFileName().toString(), category(asset), devWriteEnabled && isTarget(asset));
-    }
-
-    private Path resolve(Path root, String assetId) {
-        if (assetId == null || assetId.isBlank()) throw new IllegalArgumentException("assetId is required");
-        Path resolved = root.resolve(assetId).normalize();
-        if (!resolved.startsWith(root)) throw new SecurityException("Asset path escapes workspace");
-        return resolved;
     }
 
     private boolean isTarget(Path path) {

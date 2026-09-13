@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "issue-227-provider-consolidation"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "chore/issue-227-agora-closure"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

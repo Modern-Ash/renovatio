@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.shark.renovatio</groupId>
         <artifactId>renovatio-parent</artifactId>
-        <version>0.0.1-SNAPSHOT</version>
+        <version>0.3.0-alpha.1</version>
     </parent>
     <artifactId>renovatio-jcl</artifactId>
     <name>Renovatio JCL Batch Orchestration</name>
@@ -23,10 +23,6 @@
         <dependency>
             <groupId>org.shark.renovatio</groupId>
             <artifactId>renovatio-decisions</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.shark.renovatio</groupId>
-            <artifactId>renovatio-llm</artifactId>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

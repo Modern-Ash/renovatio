@@ -1,0 +1,51 @@
+# Work events
+
+- 2026-09-11T17:18:42.519287Z | work.created | state=drafting actor=project:owner
+- 2026-09-11T17:19:00.377513Z | artifact.added | kind=spec uri=repo://docs/specs/issue-233-jcl-canonical-pipeline.md actor=project:owner
+- 2026-09-11T17:19:00.400617Z | artifact.added | kind=test-report uri=repo://docs/reports/issue-233-test-report.md actor=project:agent
+- 2026-09-11T17:19:04.938127Z | artifact.added | kind=implementation-plan uri=repo://docs/specs/issue-233-jcl-canonical-pipeline-plan.md actor=project:agent
+- 2026-09-11T17:19:07.755346Z | artifact.added | kind=architecture-report uri=repo://docs/reports/issue-233-jcl-integration-report.md actor=project:agent
+- 2026-09-11T17:19:11.672470Z | artifact.added | kind=integration-report uri=repo://docs/reports/issue-233-jcl-integration-report.md actor=project:agent
+- 2026-09-11T17:19:16.366096Z | work.criterion-stage-marked | criterion=deterministic-core actor=project:owner stage=specified
+- 2026-09-11T17:19:16.582999Z | work.criterion-stage-marked | criterion=semantic-projection actor=project:owner stage=specified
+- 2026-09-11T17:19:16.800812Z | work.criterion-stage-marked | criterion=proposal-adapter actor=project:owner stage=specified
+- 2026-09-11T17:19:17.011639Z | work.criterion-stage-marked | criterion=application-flow actor=project:owner stage=specified
+- 2026-09-11T17:19:17.221736Z | work.criterion-stage-marked | criterion=spring-batch actor=project:owner stage=specified
+- 2026-09-11T17:19:17.438538Z | work.criterion-stage-marked | criterion=fixtures actor=project:owner stage=specified
+- 2026-09-11T17:19:17.656657Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=specified
+- 2026-09-11T17:19:20.674411Z | work.transitioned | from=drafting to=clarified actor=project:owner
+- 2026-09-11T17:19:28.913131Z | work.criterion-stage-marked | criterion=deterministic-core actor=project:owner stage=planned
+- 2026-09-11T17:19:29.156722Z | work.criterion-stage-marked | criterion=semantic-projection actor=project:owner stage=planned
+- 2026-09-11T17:19:29.394722Z | work.criterion-stage-marked | criterion=proposal-adapter actor=project:owner stage=planned
+- 2026-09-11T17:19:29.652529Z | work.criterion-stage-marked | criterion=application-flow actor=project:owner stage=planned
+- 2026-09-11T17:19:29.890210Z | work.criterion-stage-marked | criterion=spring-batch actor=project:owner stage=planned
+- 2026-09-11T17:19:30.154587Z | work.criterion-stage-marked | criterion=fixtures actor=project:owner stage=planned
+- 2026-09-11T17:19:30.415263Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=planned
+- 2026-09-11T17:19:35.240369Z | work.transitioned | from=clarified to=planned actor=project:agent
+- 2026-09-11T17:19:38.146868Z | work.transitioned | from=planned to=implementing actor=project:agent
+- 2026-09-11T17:19:42.067390Z | work.criterion-stage-marked | criterion=deterministic-core actor=project:agent stage=implemented
+- 2026-09-11T17:19:42.295031Z | work.criterion-stage-marked | criterion=semantic-projection actor=project:agent stage=implemented
+- 2026-09-11T17:19:42.519923Z | work.criterion-stage-marked | criterion=proposal-adapter actor=project:agent stage=implemented
+- 2026-09-11T17:19:42.741476Z | work.criterion-stage-marked | criterion=application-flow actor=project:agent stage=implemented
+- 2026-09-11T17:19:42.959540Z | work.criterion-stage-marked | criterion=spring-batch actor=project:agent stage=implemented
+- 2026-09-11T17:19:43.181684Z | work.criterion-stage-marked | criterion=fixtures actor=project:agent stage=implemented
+- 2026-09-11T17:19:43.402587Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=implemented
+- 2026-09-11T17:19:51.050925Z | evidence.added | id=issue-233-focused-suite type=test result=success revision=1 actor=project:agent
+- 2026-09-11T17:19:55.941456Z | evidence.added | id=issue-233-jcl-llm-dependency-tree type=test result=success revision=1 actor=project:agent
+- 2026-09-11T17:19:59.079130Z | work.transitioned | from=implementing to=verifying actor=project:agent
+- 2026-09-11T17:20:02.787339Z | work.criterion-stage-marked | criterion=deterministic-core actor=project:agent stage=verified
+- 2026-09-11T17:20:03.008658Z | work.criterion-stage-marked | criterion=semantic-projection actor=project:agent stage=verified
+- 2026-09-11T17:20:03.229825Z | work.criterion-stage-marked | criterion=proposal-adapter actor=project:agent stage=verified
+- 2026-09-11T17:20:03.456055Z | work.criterion-stage-marked | criterion=application-flow actor=project:agent stage=verified
+- 2026-09-11T17:20:03.680910Z | work.criterion-stage-marked | criterion=spring-batch actor=project:agent stage=verified
+- 2026-09-11T17:20:03.917818Z | work.criterion-stage-marked | criterion=fixtures actor=project:agent stage=verified
+- 2026-09-11T17:20:04.128425Z | work.criterion-stage-marked | criterion=characterization actor=project:agent stage=verified
+- 2026-09-11T17:20:16.384682Z | work.criterion-stage-marked | criterion=deterministic-core actor=project:owner stage=accepted
+- 2026-09-11T17:20:16.607264Z | work.criterion-stage-marked | criterion=semantic-projection actor=project:owner stage=accepted
+- 2026-09-11T17:20:16.826742Z | work.criterion-stage-marked | criterion=proposal-adapter actor=project:owner stage=accepted
+- 2026-09-11T17:20:17.046983Z | work.criterion-stage-marked | criterion=application-flow actor=project:owner stage=accepted
+- 2026-09-11T17:20:17.267722Z | work.criterion-stage-marked | criterion=spring-batch actor=project:owner stage=accepted
+- 2026-09-11T17:20:17.494342Z | work.criterion-stage-marked | criterion=fixtures actor=project:owner stage=accepted
+- 2026-09-11T17:20:17.710111Z | work.criterion-stage-marked | criterion=characterization actor=project:owner stage=accepted
+- 2026-09-11T17:20:21.185814Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T17:20:25.151075Z | work.transitioned | from=verifying to=completed actor=project:owner

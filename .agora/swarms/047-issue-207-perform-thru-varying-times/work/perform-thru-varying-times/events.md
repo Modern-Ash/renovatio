@@ -71,3 +71,4 @@
 - 2026-09-08T22:13:45.959916Z | evidence.added | id=evidence-000005 type=test-suite result=success revision=2 actor=project:agent
 - 2026-09-08T22:13:46.243039Z | evidence.added | id=evidence-000006 type=coverage result=success revision=2 actor=project:agent
 - 2026-09-08T22:13:53.747624Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T13:41:00.431558Z | work.transitioned | from=verifying to=completed actor=project:owner

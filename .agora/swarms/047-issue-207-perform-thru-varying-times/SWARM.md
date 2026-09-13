@@ -2,7 +2,7 @@
 schema: "agora/swarm/v1"
 id: "issue-207-perform-thru-varying-times"
 method: "spec-driven"
-status: "running"
+status: "completed"
 branch: "agora/issue-207-perform-thru-varying-times"
 required-roles: ["spec-owner","developer"]
 assignments: {"spec-owner":"project:owner","developer":"project:agent"}

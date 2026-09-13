@@ -34,6 +34,10 @@ export function getProjects() {
   return apiCall('/projects');
 }
 
+export function getCapabilities() {
+  return apiCall('/v1/capabilities');
+}
+
 export function getProject(id) {
   return apiCall(`/projects/${id}`);
 }

@@ -79,3 +79,11 @@
 - 2026-09-04T13:58:51.064079Z | tool.prepared | run=tool-20260904t13581788541131z tool=github-issues operation=view actor=project:agent
 - 2026-09-04T13:58:51.066955Z | tool.running | run=tool-20260904t13581788541131z actor=project:agent
 - 2026-09-04T13:58:51.778645Z | tool.completed | run=tool-20260904t13581788541131z exit-code=0
+- 2026-09-11T13:53:46.426783Z | work.criterion-stage-marked | criterion=local-confirmation-precedence actor=project:owner stage=accepted
+- 2026-09-11T13:53:46.662740Z | work.criterion-stage-marked | criterion=legacy-hash-compatibility actor=project:owner stage=accepted
+- 2026-09-11T13:53:46.917875Z | work.criterion-stage-marked | criterion=cli-profile-runtime actor=project:owner stage=accepted
+- 2026-09-11T13:53:47.162336Z | work.criterion-stage-marked | criterion=cli-policy-export-runtime actor=project:owner stage=accepted
+- 2026-09-11T13:53:47.407900Z | work.criterion-stage-marked | criterion=stale-policy-signaling actor=project:owner stage=accepted
+- 2026-09-11T13:53:47.645073Z | work.criterion-stage-marked | criterion=regression-quality actor=project:owner stage=accepted
+- 2026-09-11T13:53:51.240534Z | approval.added | role=spec-owner actor=project:owner delegation=none
+- 2026-09-11T13:53:58.160416Z | work.transitioned | from=verifying to=completed actor=project:owner

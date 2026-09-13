@@ -3,6 +3,7 @@ import {
   bulkConfirmProjectDecisions,
   createBrowserAnalyzeJob,
   getArchitecturePreview,
+  getCapabilities,
   getProjectDecisions,
   getProjectProfile,
   patchProjectDecision,
@@ -129,5 +130,24 @@ describe('decision layer client', () => {
       status: 422,
       payload: { code: 'PROFILE_VALIDATION_FAILED' }
     })
+  })
+})
+
+describe('capability discovery client', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks()
+    localStorage.clear()
+    localStorage.setItem('userRole', 'ADMIN')
+  })
+
+  it('loads versioned capabilities from the public API', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true, headers: new Headers(), json: async () => ({ id: 'renovatio.surface-capabilities' })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await getCapabilities()
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/api/v1/capabilities')
   })
 })

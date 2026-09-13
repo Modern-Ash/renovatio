@@ -76,10 +76,15 @@ renovatio:
 `allowed-origin` is deliberately a single explicit development origin. Configure it to the
 actual Workbench origin (for example `http://127.0.0.1:3001`); do not use a wildcard.
 
-## One-time H2 to SQLite migration
+## SQLite bootstrap and optional legacy migration
 
-The old `data/renovatio-db.mv.db` is preserved as the source and is never modified. Create the
-SQLite target once, then normalize temporal values before running the API:
+The API no longer requires a checked-in H2 database. On startup it provisions
+the SQLite schema from `src/main/resources/db/sqlite/schema.sql` while keeping
+Hibernate `ddl-auto: none`.
+
+If you have a private legacy H2 database to migrate, keep it outside Git and
+create the SQLite target once, then normalize temporal values before running
+the API:
 
 ```bash
 mvn -pl renovatio-api -Dexec.mainClass=org.shark.renovatio.api.migration.H2ToSqliteMigrator \
@@ -89,7 +94,7 @@ mvn -pl renovatio-api -Dexec.mainClass=org.shark.renovatio.api.migration.H2ToSql
 ```
 
 The migrator refuses to overwrite an existing SQLite target. If a local migration must be repeated,
-first archive or deliberately remove only `data/renovatio.db`; never remove the H2 source file.
+first archive or deliberately remove only `data/renovatio.db`; never commit the H2 source file.
 
 ## Testing
 
