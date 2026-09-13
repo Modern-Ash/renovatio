@@ -14,19 +14,19 @@ result-kind: "repository-change"
      19 files changed, 356 insertions(+), 1 deletion(-)
      create mode 100644 .agora/tool-runs/tool-20260830t16441788119078z/RESULT.md
      create mode 100644 .agora/tool-runs/tool-20260830t16441788119078z/RUN.md
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/BinaryArithmeticExpression.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/BooleanCondition.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/CobolCondition.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/CobolDiagnostic.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/CobolExpression.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/ComparisonCondition.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/DataReferenceExpression.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/Level88ConditionReference.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/LiteralExpression.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/NegatedCondition.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/SourceSpan.java
-     create mode 100644 renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/UnaryArithmeticExpression.java
-     create mode 100644 renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/BinaryArithmeticExpression.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/BooleanCondition.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/CobolCondition.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/CobolDiagnostic.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/CobolExpression.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/ComparisonCondition.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/DataReferenceExpression.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/Level88ConditionReference.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/LiteralExpression.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/NegatedCondition.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/SourceSpan.java
+     create mode 100644 renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/UnaryArithmeticExpression.java
+     create mode 100644 renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java
 
 ## Standard error
 

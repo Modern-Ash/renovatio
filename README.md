@@ -224,7 +224,7 @@ java -jar renovatio-mcp-server/target/renovatio-mcp-server-*.jar
 
 # stdio mode
 java -cp renovatio-mcp-server/target/renovatio-mcp-server-*.jar \
-     org.shark.renovatio.mcp.server.McpStdioServerApplication
+     org.modernash.renovatio.mcp.server.McpStdioServerApplication
 ```
 
 Connect an MCP client (VS Code extension, Copilot Workspace, …) to access the migration

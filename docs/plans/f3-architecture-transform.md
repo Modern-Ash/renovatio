@@ -35,7 +35,7 @@ manifest, and emitted artifact set have passed validation.
 
 - Add `renovatio-architecture` to the root reactor and dependency management.
 - Define immutable v1 contracts under
-  `org.shark.renovatio.architecture`.
+  `org.modernash.renovatio.architecture`.
 - Define the minimal target-neutral architecture/manifest slice required in
   `renovatio-shared` so F2 `TargetEmitter` signatures remain unchanged.
 - Preserve the existing `TargetModel.from(program, effective)` identity path;

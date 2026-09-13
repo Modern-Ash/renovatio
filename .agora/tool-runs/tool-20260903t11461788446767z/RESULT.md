@@ -15,7 +15,7 @@ result-kind: "repository-change"
      create mode 100644 .agora/swarms/013-decision-engine-f7/work/f7-renovatio-jcl/revisions/0002/REVISION.md
      create mode 100644 .agora/swarms/013-decision-engine-f7/work/f7-renovatio-jcl/status-changes/change-20260903t012101112125z/STATUS.md
      create mode 100644 .agora/swarms/013-decision-engine-f7/work/f7-renovatio-jcl/status-changes/change-20260903t114458194437z/STATUS.md
-     create mode 100644 renovatio-jcl/src/test/java/org/shark/renovatio/jcl/ReviewRegressionTest.java
+     create mode 100644 renovatio-jcl/src/test/java/org/modernash/renovatio/jcl/ReviewRegressionTest.java
 
 ## Standard error
 

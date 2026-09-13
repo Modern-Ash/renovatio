@@ -47,7 +47,7 @@ export MCP_WORKSPACE_COBOL="/home/faguero/accenture/renovatio/samples/cobol/Cobo
 # export MCP_ALLOW_MUTATIONS="true"
 # export MCP_TEST_SHUTDOWN="true"
 
-mvn -Dtest=org.shark.renovatio.mcp.server.McpIntegrationTest test
+mvn -Dtest=org.modernash.renovatio.mcp.server.McpIntegrationTest test
 ```
 
 Notes:
@@ -62,7 +62,7 @@ Notes:
 - Long runs/timeouts: You can run a subset of tests by targeting a single method, e.g.:
 
 ```bash
-mvn -Dtest=org.shark.renovatio.mcp.server.McpIntegrationTest#java_plan_apply_diff_pipeline_analyze_metrics_discover_recipe_flow test
+mvn -Dtest=org.modernash.renovatio.mcp.server.McpIntegrationTest#java_plan_apply_diff_pipeline_analyze_metrics_discover_recipe_flow test
 ```
 
 ## Updating

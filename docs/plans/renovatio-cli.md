@@ -14,12 +14,12 @@
 
 ## Task 0 — module skeleton (no behaviour)
 
-1. Create `renovatio-cli/pom.xml`: parent `org.shark.renovatio:renovatio:<version>`, artifactId
+1. Create `renovatio-cli/pom.xml`: parent `org.modernash.renovatio:renovatio:<version>`, artifactId
    `renovatio-cli`. Dependencies: `renovatio-core`, `renovatio-provider-cobol`,
    `renovatio-provider-java`, `renovatio-mcp-server`, `info.picocli:picocli:4.7.6`,
    `spring-boot-starter` (exclude nothing web-related is pulled), `jackson-databind`,
    `spring-boot-starter-test` (test). Build: `spring-boot-maven-plugin` with mainClass
-   `org.shark.renovatio.cli.RenovatioCli`, and `maven-compiler-plugin` picocli annotation
+   `org.modernash.renovatio.cli.RenovatioCli`, and `maven-compiler-plugin` picocli annotation
    processor.
 2. Add `<module>renovatio-cli</module>` to root `pom.xml` after `renovatio-mcp-server`.
 3. Add `info.picocli:picocli` version to root `dependencyManagement`.

@@ -1,9 +1,9 @@
-module org.shark.renovatio.architecture {
-    requires org.shark.renovatio.semantic.ir;
-    requires org.shark.renovatio.domain.model;
-    requires org.shark.renovatio.profile;
-    requires org.shark.renovatio.shared;
+module org.modernash.renovatio.architecture {
+    requires org.modernash.renovatio.semantic.ir;
+    requires org.modernash.renovatio.domain.model;
+    requires org.modernash.renovatio.profile;
+    requires org.modernash.renovatio.shared;
 
-    exports org.shark.renovatio.architecture;
-    exports org.shark.renovatio.architecture.java;
+    exports org.modernash.renovatio.architecture;
+    exports org.modernash.renovatio.architecture.java;
 }

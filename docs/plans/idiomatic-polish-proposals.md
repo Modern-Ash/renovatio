@@ -16,7 +16,7 @@ No OpenRewrite recipe, COBOL parser, base IR type, or annotated sidecar is mutat
 
 ## Planned contracts
 
-Add package `org.shark.renovatio.provider.cobol.polish` with small immutable contracts:
+Add package `org.modernash.renovatio.provider.cobol.polish` with small immutable contracts:
 
 - `PolishProposalFamily`: the four closed families from the specification;
 - `PolishPrerequisiteEvidence`: commit, baseline, selectors, commands, hashes, environment, and

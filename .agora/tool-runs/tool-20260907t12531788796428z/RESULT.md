@@ -17,16 +17,16 @@ result-kind: "repository-change"
      create mode 100644 .agora/swarms/033-renovatio-workbench-domain-model-editor/work/domain-model-editor/review-report.md
      create mode 100644 .agora/swarms/033-renovatio-workbench-domain-model-editor/work/domain-model-editor/spec.md
      create mode 100644 .agora/swarms/033-renovatio-workbench-domain-model-editor/work/domain-model-editor/verification-report.md
-     create mode 100644 renovatio-api/src/main/java/org/shark/renovatio/api/config/DomainModelSchemaInitializer.java
-     create mode 100644 renovatio-api/src/main/java/org/shark/renovatio/api/controller/WorkbenchDomainModelExceptionHandler.java
-     create mode 100644 renovatio-api/src/main/java/org/shark/renovatio/api/dto/WorkbenchDomainModelDto.java
-     create mode 100644 renovatio-api/src/main/java/org/shark/renovatio/api/entity/DomainSuggestionDecisionEntity.java
-     create mode 100644 renovatio-api/src/main/java/org/shark/renovatio/api/entity/ProjectDomainModelVersionEntity.java
-     create mode 100644 renovatio-api/src/main/java/org/shark/renovatio/api/repository/DomainSuggestionDecisionRepository.java
-     create mode 100644 renovatio-api/src/main/java/org/shark/renovatio/api/repository/ProjectDomainModelVersionRepository.java
-     create mode 100644 renovatio-api/src/main/java/org/shark/renovatio/api/service/WorkbenchDomainModelService.java
-     create mode 100644 renovatio-api/src/test/java/org/shark/renovatio/api/controller/WorkbenchDomainModelApiTest.java
-     create mode 100644 renovatio-api/src/test/java/org/shark/renovatio/api/service/WorkbenchDomainModelServiceTest.java
+     create mode 100644 renovatio-api/src/main/java/org/modernash/renovatio/api/config/DomainModelSchemaInitializer.java
+     create mode 100644 renovatio-api/src/main/java/org/modernash/renovatio/api/controller/WorkbenchDomainModelExceptionHandler.java
+     create mode 100644 renovatio-api/src/main/java/org/modernash/renovatio/api/dto/WorkbenchDomainModelDto.java
+     create mode 100644 renovatio-api/src/main/java/org/modernash/renovatio/api/entity/DomainSuggestionDecisionEntity.java
+     create mode 100644 renovatio-api/src/main/java/org/modernash/renovatio/api/entity/ProjectDomainModelVersionEntity.java
+     create mode 100644 renovatio-api/src/main/java/org/modernash/renovatio/api/repository/DomainSuggestionDecisionRepository.java
+     create mode 100644 renovatio-api/src/main/java/org/modernash/renovatio/api/repository/ProjectDomainModelVersionRepository.java
+     create mode 100644 renovatio-api/src/main/java/org/modernash/renovatio/api/service/WorkbenchDomainModelService.java
+     create mode 100644 renovatio-api/src/test/java/org/modernash/renovatio/api/controller/WorkbenchDomainModelApiTest.java
+     create mode 100644 renovatio-api/src/test/java/org/modernash/renovatio/api/service/WorkbenchDomainModelServiceTest.java
 
 ## Standard error
 

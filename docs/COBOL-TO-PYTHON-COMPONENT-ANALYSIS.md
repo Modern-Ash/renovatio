@@ -217,7 +217,7 @@
 **Generado por JavaGenerationService usando JavaPoet:**
 
 ```java
-package org.shark.renovatio.generated.cobol;
+package org.modernash.renovatio.generated.cobol;
 
 import java.math.BigDecimal;
 
@@ -325,11 +325,11 @@ class CustomerRecord:
 <dependencies>
     <!-- Core -->
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-shared</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-core</artifactId>
     </dependency>
     
@@ -352,11 +352,11 @@ class CustomerRecord:
 <dependencies>
     <!-- Core -->
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-shared</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-cobol-ir</artifactId>
     </dependency>
     
@@ -385,15 +385,15 @@ class CustomerRecord:
 <dependencies>
     <!-- Core (SHARED) -->
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-shared</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-core</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-provider-cobol</artifactId>
     </dependency>
     

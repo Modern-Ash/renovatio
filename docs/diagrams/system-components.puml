@@ -125,8 +125,8 @@ end note
 
 note bottom of StdioApp
   Ensure component scan includes providers:
-  - org.shark.renovatio.provider.java
-  - org.shark.renovatio.provider.cobol
+  - org.modernash.renovatio.provider.java
+  - org.modernash.renovatio.provider.cobol
 end note
 
 @enduml

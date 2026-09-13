@@ -4,7 +4,7 @@
   "description": "Programa con EXEC SQL SELECT/INSERT y COPYBOOK EMP-REC.cpy",
   "sourceLanguage": "COBOL",
   "targetLanguage": "Java",
-  "package": "org.shark.renovatio.generated.cobol",
+  "package": "org.modernash.renovatio.generated.cobol",
   "className": "Db2001Repository",
   "decisions": {
     "outputDirectory": "generated-java-stubs",

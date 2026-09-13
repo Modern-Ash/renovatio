@@ -1,11 +1,11 @@
-module org.shark.renovatio.emitter.node {
-    requires org.shark.renovatio.shared;
-    requires org.shark.renovatio.architecture;
-    requires org.shark.renovatio.profile;
-    requires org.shark.renovatio.persistence;
+module org.modernash.renovatio.emitter.node {
+    requires org.modernash.renovatio.shared;
+    requires org.modernash.renovatio.architecture;
+    requires org.modernash.renovatio.profile;
+    requires org.modernash.renovatio.persistence;
     requires spring.context;
     requires spring.boot.autoconfigure;
 
-    exports org.shark.renovatio.emitter.node to spring.beans, spring.context;
-    exports org.shark.renovatio.emitter.node.prisma to spring.beans, spring.context;
+    exports org.modernash.renovatio.emitter.node to spring.beans, spring.context;
+    exports org.modernash.renovatio.emitter.node.prisma to spring.beans, spring.context;
 }

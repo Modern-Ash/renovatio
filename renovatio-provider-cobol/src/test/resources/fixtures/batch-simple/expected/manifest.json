@@ -12,11 +12,11 @@
   },
   "output": {
     "language": "Java",
-    "package": "org.shark.renovatio.generated.cobol",
+    "package": "org.modernash.renovatio.generated.cobol",
     "files": [
-      "src/main/java/org/shark/renovatio/generated/cobol/Batch001DTO.java",
-      "src/main/java/org/shark/renovatio/generated/cobol/Batch001Service.java",
-      "src/main/java/org/shark/renovatio/generated/cobol/Batch001ServiceImpl.java"
+      "src/main/java/org/modernash/renovatio/generated/cobol/Batch001DTO.java",
+      "src/main/java/org/modernash/renovatio/generated/cobol/Batch001Service.java",
+      "src/main/java/org/modernash/renovatio/generated/cobol/Batch001ServiceImpl.java"
     ]
   },
   "mappings": {

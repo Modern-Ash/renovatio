@@ -1,6 +1,6 @@
-open module org.shark.renovatio.core {
-    requires transitive org.shark.renovatio.application;
-    requires transitive org.shark.renovatio.shared;
+open module org.modernash.renovatio.core {
+    requires transitive org.modernash.renovatio.application;
+    requires transitive org.modernash.renovatio.shared;
     requires spring.context;
     requires spring.core;
     requires spring.web;
@@ -12,9 +12,9 @@ open module org.shark.renovatio.core {
     requires io.swagger.v3.oas.annotations;
     requires static lombok;
 
-    exports org.shark.renovatio.core.dto;
-    exports org.shark.renovatio.core.entity;
-    exports org.shark.renovatio.core.infrastructure;
-    exports org.shark.renovatio.core.mapper;
-    exports org.shark.renovatio.core.service;
+    exports org.modernash.renovatio.core.dto;
+    exports org.modernash.renovatio.core.entity;
+    exports org.modernash.renovatio.core.infrastructure;
+    exports org.modernash.renovatio.core.mapper;
+    exports org.modernash.renovatio.core.service;
 }

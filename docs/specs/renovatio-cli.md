@@ -27,12 +27,12 @@ supported programmatic interface.
 
 | Dependency | Contract relied upon |
 | --- | --- |
-| Routing | `org.shark.renovatio.core.service.LanguageProviderRegistry#routeToolCall(String, Map<String,Object>)` returning a result `Map<String,Object>` with a `success` boolean. |
+| Routing | `org.modernash.renovatio.core.service.LanguageProviderRegistry#routeToolCall(String, Map<String,Object>)` returning a result `Map<String,Object>` with a `success` boolean. |
 | Reserved argument keys | `workspacePath`, `scope`, `planId`, `runId`, `dryRun`, `language`, `nql` (from `LanguageProviderRegistry.RESERVED_ARGUMENT_KEYS`). |
 | COBOL tool names | `cobol.analyze`, `cobol.metrics`, `cobol.plan`, `cobol.apply`, `cobol.diff` (`CobolLanguageProvider`). |
-| Context wiring | `McpStdioServerApplication` scans `org.shark.renovatio.mcp.server` + `org.shark.renovatio.core`; the CLI reuses the same base packages so every `LanguageProvider` bean is registered. |
+| Context wiring | `McpStdioServerApplication` scans `org.modernash.renovatio.mcp.server` + `org.modernash.renovatio.core`; the CLI reuses the same base packages so every `LanguageProvider` bean is registered. |
 | Guardrail review data | `manual-action-item.v1` JSON as written by `ManualActionItemWriter`, default report path `build/reports/renovatio/manual-action-items.json`. |
-| Redaction | `org.shark.renovatio.provider.cobol.guardrail.SensitiveValueRedactor` for any value rendered from a manual action item. |
+| Redaction | `org.modernash.renovatio.provider.cobol.guardrail.SensitiveValueRedactor` for any value rendered from a manual action item. |
 | MCP entry points | `McpServerApplication.main(String[])` (HTTP) and `McpStdioServerApplication.main(String[])` (stdio). |
 
 The context bootstrap is defined once in a `RenovatioCliContext` helper so tests and every
@@ -159,7 +159,7 @@ renovatio-cli/
   pom.xml                     # depends on renovatio-core, renovatio-provider-cobol,
                               # renovatio-provider-java, renovatio-mcp-server, picocli,
                               # spring-boot-starter (no web), jackson; spring-boot-maven-plugin
-  src/main/java/org/shark/renovatio/cli/
+  src/main/java/org/modernash/renovatio/cli/
     RenovatioCli.java         # @Command root, main(); picocli + Spring bootstrap
     RenovatioCliContext.java  # builds/owns the headless ApplicationContext + registry lookup
     WorkspaceStateStore.java  # plan/run descriptor persistence
@@ -168,7 +168,7 @@ renovatio-cli/
             DiffCommand.java, ReviewCommand.java, ReportCommand.java, ServeCommand.java
     review/ManualActionItemReport.java  # jackson binding for manual-action-item.v1 + ordering
   src/main/resources/            # logback config that silences Spring banner + INFO noise on stdout
-  src/test/java/org/shark/renovatio/cli/
+  src/test/java/org/modernash/renovatio/cli/
     <one test class per command> + WorkspaceStateStoreTest + RenovatioCliContextTest
 ```
 
@@ -186,8 +186,8 @@ new SpringApplicationBuilder(RenovatioCliConfiguration.class)
     .run();
 ```
 
-`RenovatioCliConfiguration` is `@Configuration @ComponentScan({"org.shark.renovatio.core",
-"org.shark.renovatio.provider.cobol", "org.shark.renovatio.provider.java"})`. It is created once
+`RenovatioCliConfiguration` is `@Configuration @ComponentScan({"org.modernash.renovatio.core",
+"org.modernash.renovatio.provider.cobol", "org.modernash.renovatio.provider.java"})`. It is created once
 per process, cached, and closed on JVM shutdown. Subcommands obtain
 `context.getBean(LanguageProviderRegistry.class)`.
 

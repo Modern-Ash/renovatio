@@ -16,18 +16,18 @@ result-kind: "repository-change"
      create mode 100644 .agora/tool-runs/tool-20260901t17591788296390z/RUN.md
      create mode 100644 renovatio-architecture/pom.xml
      create mode 100644 renovatio-architecture/src/main/java/module-info.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ArchitectureGraph.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ArchitectureRequest.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ArchitectureResult.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ArchitectureSupport.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ArtifactManifest.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/GroupingConfiguration.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ModuleGroupingResolver.java
-     create mode 100644 renovatio-architecture/src/test/java/org/shark/renovatio/architecture/ArchitectureContractsTest.java
-     create mode 100644 renovatio-architecture/src/test/java/org/shark/renovatio/architecture/ArchitectureFixtures.java
-     create mode 100644 renovatio-architecture/src/test/java/org/shark/renovatio/architecture/ArchitectureRequestTest.java
-     create mode 100644 renovatio-architecture/src/test/java/org/shark/renovatio/architecture/ModuleGroupingResolverTest.java
-     create mode 100644 renovatio-shared/src/main/java/org/shark/renovatio/shared/emission/TargetStructure.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ArchitectureGraph.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ArchitectureRequest.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ArchitectureResult.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ArchitectureSupport.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ArtifactManifest.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/GroupingConfiguration.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ModuleGroupingResolver.java
+     create mode 100644 renovatio-architecture/src/test/java/org/modernash/renovatio/architecture/ArchitectureContractsTest.java
+     create mode 100644 renovatio-architecture/src/test/java/org/modernash/renovatio/architecture/ArchitectureFixtures.java
+     create mode 100644 renovatio-architecture/src/test/java/org/modernash/renovatio/architecture/ArchitectureRequestTest.java
+     create mode 100644 renovatio-architecture/src/test/java/org/modernash/renovatio/architecture/ModuleGroupingResolverTest.java
+     create mode 100644 renovatio-shared/src/main/java/org/modernash/renovatio/shared/emission/TargetStructure.java
 
 ## Standard error
 

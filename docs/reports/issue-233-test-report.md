@@ -48,7 +48,7 @@ Result: PASS.
 Dependency isolation check:
 
 ```bash
-mvn -q -pl renovatio-jcl dependency:tree -Dincludes=org.shark.renovatio:renovatio-llm
+mvn -q -pl renovatio-jcl dependency:tree -Dincludes=org.modernash.renovatio:renovatio-llm
 ```
 
 Result: PASS. The filtered dependency tree produced no entries for

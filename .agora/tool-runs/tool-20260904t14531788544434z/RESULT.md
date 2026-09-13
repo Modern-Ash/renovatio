@@ -24,14 +24,14 @@ result-kind: "repository-change"
     	modified:   .agora/swarms/016-decision-engine-epic-gaps/work/epic-cli-gaps/approvals.md
     	modified:   .agora/swarms/016-decision-engine-epic-gaps/work/epic-cli-gaps/events.md
     	modified:   .agora/swarms/016-decision-engine-epic-gaps/work/epic-cli-gaps/revisions/0001/REVISION.md
-    	modified:   renovatio-cli/src/test/java/org/shark/renovatio/cli/command/GenerateCommandTest.java
-    	modified:   renovatio-emitter-node/src/main/java/org/shark/renovatio/emitter/node/DefaultNodeRenderer.java
-    	modified:   renovatio-emitter-node/src/main/java/org/shark/renovatio/emitter/node/NodeArchitectureLayoutPlanner.java
-    	modified:   renovatio-emitter-node/src/main/java/org/shark/renovatio/emitter/node/config/NodeEmitterAutoConfiguration.java
-    	modified:   renovatio-emitter-node/src/test/java/org/shark/renovatio/emitter/node/NodeEmitterTest.java
-    	modified:   renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/infrastructure/CobolProviderConfiguration.java
-    	modified:   renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/JavaGenerationService.java
-    	modified:   renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/JavaGenerationRegistryRoutingTest.java
+    	modified:   renovatio-cli/src/test/java/org/modernash/renovatio/cli/command/GenerateCommandTest.java
+    	modified:   renovatio-emitter-node/src/main/java/org/modernash/renovatio/emitter/node/DefaultNodeRenderer.java
+    	modified:   renovatio-emitter-node/src/main/java/org/modernash/renovatio/emitter/node/NodeArchitectureLayoutPlanner.java
+    	modified:   renovatio-emitter-node/src/main/java/org/modernash/renovatio/emitter/node/config/NodeEmitterAutoConfiguration.java
+    	modified:   renovatio-emitter-node/src/test/java/org/modernash/renovatio/emitter/node/NodeEmitterTest.java
+    	modified:   renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolProviderConfiguration.java
+    	modified:   renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationService.java
+    	modified:   renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationRegistryRoutingTest.java
     
     Untracked files:
       (use "git add <file>..." to include in what will be committed)

@@ -4,7 +4,7 @@
   "description": "Batch simple con MOVE, COMPUTE, IF/ELSE, DISPLAY",
   "sourceLanguage": "COBOL",
   "targetLanguage": "Java",
-  "package": "org.shark.renovatio.generated.cobol",
+  "package": "org.modernash.renovatio.generated.cobol",
   "className": "Batch001Service",
   "decisions": {
     "outputDirectory": "generated-java-stubs",

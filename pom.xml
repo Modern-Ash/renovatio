@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.shark.renovatio</groupId>
+    <groupId>org.modernash.renovatio</groupId>
     <artifactId>renovatio-parent</artifactId>
     <version>0.3.0-alpha.1</version>
     <packaging>pom</packaging>
@@ -68,42 +68,42 @@
         <dependencies>
             <!-- Internal modules -->
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-semantic-ir</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-domain-model</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-jcl</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-shared</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-architecture</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-application</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-mcp-server</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-api</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -113,77 +113,77 @@
                 <version>${picocli.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-provider-java</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-provider-cobol</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-cobol-ir</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-profile</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-decisions</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-llm</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-llm-runtime</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-persistence</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>cobol-openrewrite-recipes</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-cobol-annotations</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-emitter-node</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-cli</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-cobol-runtime</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.shark.renovatio</groupId>
+                <groupId>org.modernash.renovatio</groupId>
                 <artifactId>renovatio-evals</artifactId>
                 <version>${project.version}</version>
             </dependency>

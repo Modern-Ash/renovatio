@@ -19,7 +19,7 @@
 - 2026-09-10T16:55:27.321632Z | work.transitioned | from=planned to=implementing actor=project:agent
 - 2026-09-10T20:01:01.608157Z | work.criterion-stage-marked | criterion=bounded-role actor=project:agent stage=implemented
 - 2026-09-10T20:01:01.863151Z | work.criterion-stage-marked | criterion=runtime-config actor=project:agent stage=implemented
-- 2026-09-10T20:01:53.577428Z | artifact.added | kind=runtime-contract uri=file://renovatio-shared/src/main/java/org/shark/renovatio/shared/llm actor=project:agent
+- 2026-09-10T20:01:53.577428Z | artifact.added | kind=runtime-contract uri=file://renovatio-shared/src/main/java/org/modernash/renovatio/shared/llm actor=project:agent
 - 2026-09-10T20:02:36.174870Z | artifact.added | kind=runtime-contract uri=file://renovatio-shared/src/main/resources/schemas/proposal-request.v1.json actor=project:agent
 - 2026-09-10T20:02:36.720730Z | artifact.added | kind=runtime-contract uri=file://renovatio-shared/src/main/resources/schemas/typed-proposal.v1.json actor=project:agent
 - 2026-09-10T20:03:31.061887Z | artifact.added | kind=threat-model uri=file://.agora/swarms/002-architecture-convergence-2026/work/governed-llm-integration/threat-model.md actor=project:agent
@@ -30,7 +30,7 @@
 - 2026-09-10T22:28:39.514794Z | work.criterion-stage-marked | criterion=module-boundary actor=project:agent stage=implemented
 - 2026-09-10T22:45:31.568042Z | work.criterion-stage-marked | criterion=governance actor=project:agent stage=implemented
 - 2026-09-10T22:45:31.796407Z | work.criterion-stage-marked | criterion=review actor=project:agent stage=implemented
-- 2026-09-10T22:45:59.876771Z | artifact.added | kind=runtime-contract uri=file://renovatio-llm-runtime/src/main/java/org/shark/renovatio/llm actor=project:agent
+- 2026-09-10T22:45:59.876771Z | artifact.added | kind=runtime-contract uri=file://renovatio-llm-runtime/src/main/java/org/modernash/renovatio/llm actor=project:agent
 - 2026-09-10T22:46:36.093852Z | artifact.added | kind=threat-model uri=file://.agora/swarms/002-architecture-convergence-2026/work/governed-llm-integration/threat-model.md actor=project:agent
 - 2026-09-10T22:51:58.209979Z | work.criterion-stage-marked | criterion=runtime-config actor=project:agent stage=implemented
 - 2026-09-10T22:51:58.437546Z | work.criterion-stage-marked | criterion=failure-modes actor=project:agent stage=implemented

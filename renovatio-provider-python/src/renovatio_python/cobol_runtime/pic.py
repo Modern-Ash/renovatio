@@ -1,6 +1,6 @@
 """COBOL PICTURE clause parsing -> PicType.
 
-Behavioural mirror of ``org.shark.renovatio.cobol.runtime.PicClause`` /
+Behavioural mirror of ``org.modernash.renovatio.cobol.runtime.PicClause`` /
 ``PicType`` in the Java module ``renovatio-cobol-runtime``. Keep the two in sync.
 """
 from __future__ import annotations

@@ -14,11 +14,11 @@ result-kind: "repository-change"
      11 files changed, 521 insertions(+)
      create mode 100644 .agora/tool-runs/tool-20260901t18031788296635z/RESULT.md
      create mode 100644 .agora/tool-runs/tool-20260901t18031788296635z/RUN.md
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ArchitectureProfile.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ArchitectureTransformer.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/HexagonalArchitectureProfile.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/TransactionScriptArchitectureProfile.java
-     create mode 100644 renovatio-architecture/src/test/java/org/shark/renovatio/architecture/ArchitectureTransformerTest.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ArchitectureProfile.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ArchitectureTransformer.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/HexagonalArchitectureProfile.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/TransactionScriptArchitectureProfile.java
+     create mode 100644 renovatio-architecture/src/test/java/org/modernash/renovatio/architecture/ArchitectureTransformerTest.java
 
 ## Standard error
 

@@ -1,6 +1,6 @@
 package fixture;
 
-import org.shark.renovatio.cobol.annotations.CobolDataIntent;
+import org.modernash.renovatio.cobol.annotations.CobolDataIntent;
 
 public class CharacterizationFixture {
     public static String run() {

@@ -139,8 +139,8 @@ Both modes share the same core and providers. Ensure Spring scans provider packa
 
 - Tool appears as "not implemented" (e.g., `java_analyze`):
   - In stdio mode, ensure the entrypoint includes provider packages in component scan:
-    - `org.shark.renovatio.provider.java`
-    - `org.shark.renovatio.provider.cobol`
+    - `org.modernash.renovatio.provider.java`
+    - `org.modernash.renovatio.provider.cobol`
   - Confirm project is built (`mvn clean install`) so providers are on the classpath
   - Verify `rewrite.yml` exists if relying on custom recipes and check logs for recipe discovery counts
 - Tool names with dot vs underscore:

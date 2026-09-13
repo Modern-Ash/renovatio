@@ -56,8 +56,8 @@ result-kind: "repository-change"
      create mode 100644 docs/reports/f6-explanatory-source-documentation-verification.md
      create mode 100644 docs/specs/f6-explanatory-source-documentation-plan.md
      create mode 100644 docs/specs/f6-explanatory-source-documentation.md
-     create mode 100644 renovatio-profile/src/main/java/org/shark/renovatio/profile/DocumentationSettings.java
-     create mode 100644 renovatio-shared/src/main/java/org/shark/renovatio/shared/emission/TranslationDocumentation.java
+     create mode 100644 renovatio-profile/src/main/java/org/modernash/renovatio/profile/DocumentationSettings.java
+     create mode 100644 renovatio-shared/src/main/java/org/modernash/renovatio/shared/emission/TranslationDocumentation.java
 
 ## Standard error
 

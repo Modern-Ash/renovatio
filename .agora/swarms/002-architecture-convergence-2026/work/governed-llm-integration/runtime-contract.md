@@ -86,11 +86,11 @@
 ## LLMProvider Interface (Java)
 
 ```java
-package org.shark.renovatio.llm.provider;
+package org.modernash.renovatio.llm.provider;
 
-import org.shark.renovatio.llm.domain.ProposalRequest;
-import org.shark.renovatio.llm.domain.TypedProposal;
-import org.shark.renovatio.llm.domain.LLMConfig;
+import org.modernash.renovatio.llm.domain.ProposalRequest;
+import org.modernash.renovatio.llm.domain.TypedProposal;
+import org.modernash.renovatio.llm.domain.LLMConfig;
 
 public interface LLMProvider {
 
@@ -122,7 +122,7 @@ public interface LLMProvider {
 ## LLMConfig Record
 
 ```java
-package org.shark.renovatio.llm.domain;
+package org.modernash.renovatio.llm.domain;
 
 import java.time.Duration;
 
@@ -153,7 +153,7 @@ public record CircuitBreakerConfig(
 ## ProposalMetadata
 
 ```java
-package org.shark.renovatio.llm.domain;
+package org.modernash.renovatio.llm.domain;
 
 public record ProposalMetadata(
     String providerName,

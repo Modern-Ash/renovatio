@@ -62,8 +62,8 @@ management:
 logging:
   level:
     root: INFO
-    org.shark.renovatio: INFO
-    org.shark.renovatio.mcp.server: INFO
+    org.modernash.renovatio: INFO
+    org.modernash.renovatio.mcp.server: INFO
     org.openrewrite: WARN
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

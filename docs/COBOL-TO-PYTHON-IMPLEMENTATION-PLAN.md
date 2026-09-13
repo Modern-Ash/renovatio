@@ -77,7 +77,7 @@ renovatio-provider-python/
 └── src/
     ├── main/
     │   ├── java/
-    │   │   └── org/shark/renovatio/provider/python/
+    │   │   └── org/modernash/renovatio/provider/python/
     │   │       ├── PythonProvider.java
     │   │       ├── PythonLanguageProvider.java
     │   │       ├── service/
@@ -95,7 +95,7 @@ renovatio-provider-python/
     │           └── python_service.ftl
     └── test/
         └── java/
-            └── org/shark/renovatio/provider/python/
+            └── org/modernash/renovatio/provider/python/
                 ├── PythonGenerationServiceTest.java
                 └── CobolToPythonIntegrationTest.java
 ```

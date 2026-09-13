@@ -15,11 +15,11 @@ Este documento proporciona la especificación técnica detallada para implementa
 ### 2.1 PythonLanguageProvider
 
 ```java
-package org.shark.renovatio.provider.python;
+package org.modernash.renovatio.provider.python;
 
-import org.shark.renovatio.shared.domain.*;
-import org.shark.renovatio.shared.nql.NqlQuery;
-import org.shark.renovatio.shared.spi.BaseLanguageProvider;
+import org.modernash.renovatio.shared.domain.*;
+import org.modernash.renovatio.shared.nql.NqlQuery;
+import org.modernash.renovatio.shared.spi.BaseLanguageProvider;
 import java.util.*;
 
 /**
@@ -86,10 +86,10 @@ public class PythonLanguageProvider extends BaseLanguageProvider {
 ### 2.2 PythonGenerationService
 
 ```java
-package org.shark.renovatio.provider.python.service;
+package org.modernash.renovatio.provider.python.service;
 
-import org.shark.renovatio.cobol.ir.model.*;
-import org.shark.renovatio.shared.domain.*;
+import org.modernash.renovatio.cobol.ir.model.*;
+import org.modernash.renovatio.shared.domain.*;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -202,9 +202,9 @@ public class PythonGenerationService {
 ### 2.3 CobolToPythonTypeMapper
 
 ```java
-package org.shark.renovatio.provider.python.mapper;
+package org.modernash.renovatio.provider.python.mapper;
 
-import org.shark.renovatio.cobol.ir.model.CobolDataItem;
+import org.modernash.renovatio.cobol.ir.model.CobolDataItem;
 import org.springframework.stereotype.Component;
 
 /**
@@ -286,7 +286,7 @@ public class CobolToPythonTypeMapper {
 ### 2.4 PythonTemplateService
 
 ```java
-package org.shark.renovatio.provider.python.service;
+package org.modernash.renovatio.provider.python.service;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -658,7 +658,7 @@ class CustprocService:
     <modelVersion>4.0.0</modelVersion>
     
     <parent>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -670,19 +670,19 @@ class CustprocService:
     <dependencies>
         <!-- Internal modules (SHARED) -->
         <dependency>
-            <groupId>org.shark.renovatio</groupId>
+            <groupId>org.modernash.renovatio</groupId>
             <artifactId>renovatio-shared</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.shark.renovatio</groupId>
+            <groupId>org.modernash.renovatio</groupId>
             <artifactId>renovatio-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.shark.renovatio</groupId>
+            <groupId>org.modernash.renovatio</groupId>
             <artifactId>renovatio-provider-cobol</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.shark.renovatio</groupId>
+            <groupId>org.modernash.renovatio</groupId>
             <artifactId>renovatio-cobol-ir</artifactId>
         </dependency>
         

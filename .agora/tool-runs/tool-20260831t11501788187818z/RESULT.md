@@ -14,8 +14,8 @@ result-kind: "repository-change"
      8 files changed, 385 insertions(+), 1 deletion(-)
      create mode 100644 .agora/tool-runs/tool-20260831t11471788187642z/RESULT.md
      create mode 100644 .agora/tool-runs/tool-20260831t11471788187642z/RUN.md
-     create mode 100644 renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/translation/AnnotatedContextResolver.java
-     create mode 100644 renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/AnnotatedContextResolverTest.java
+     create mode 100644 renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/translation/AnnotatedContextResolver.java
+     create mode 100644 renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/AnnotatedContextResolverTest.java
 
 ## Standard error
 

@@ -29,7 +29,7 @@ result-kind: "repository-status"
     M  .github/workflows/theia-platform-spike.yml
     M  docs/reports/carddemo-coverage.json
     M  docs/reports/carddemo-coverage.md
-    M  renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/carddemo/CardDemoCoverageReportTest.java
+    M  renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/carddemo/CardDemoCoverageReportTest.java
     M  renovatio-workbench/README.md
     A  renovatio-workbench/e2e/cobol-modernization-flow.spec.mjs
     A  renovatio-workbench/e2e/fixtures/cobol-modernization-flow.mjs

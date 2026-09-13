@@ -216,7 +216,7 @@ profile schema:
 {
   "profile": { "schemaVersion": "1" },
   "resolvedDecisions": {
-    "java.generated-package": "org.shark.renovatio.generated.cobol"
+    "java.generated-package": "org.modernash.renovatio.generated.cobol"
   },
   "appliedDecisionIds": ["<lowercase sha256>"],
   "profileHash": "<lowercase sha256>"
@@ -239,7 +239,7 @@ decision keys and baseline defaults are:
 |---:|---|---|---|
 | #1 | `java.numeric.unscaled-type` | `NUMERIC` | `CURRENT_PIC_MAPPING` |
 | #27 | `java.naming.identifier-mapping` | `NAMING` | `CANONICAL_JAVA_IDENTIFIER` |
-| #28 | `java.generated-package` | `NAMING` | `org.shark.renovatio.generated.cobol` |
+| #28 | `java.generated-package` | `NAMING` | `org.modernash.renovatio.generated.cobol` |
 | #30 | `java.accessor-convention` | `NAMING` | `JAVA_BEANS` |
 | #33 | `java.framework-coupling` | `ARCHITECTURE` | `SPRING_SERVICE` |
 | #37 | `cobol.pic.default-usage` | `NUMERIC` | `DISPLAY` |
@@ -251,7 +251,7 @@ The complete F1 option catalog is:
 |---|---|
 | `java.numeric.unscaled-type` | `CURRENT_PIC_MAPPING`, `ALWAYS_LONG`, `BIG_INTEGER` |
 | `java.naming.identifier-mapping` | `CANONICAL_JAVA_IDENTIFIER`, `PRESERVE_SANITIZED_IDENTIFIER` |
-| `java.generated-package` | `org.shark.renovatio.generated.cobol`, `org.shark.renovatio.generated` |
+| `java.generated-package` | `org.modernash.renovatio.generated.cobol`, `org.modernash.renovatio.generated` |
 | `java.accessor-convention` | `JAVA_BEANS`, `FLUENT` |
 | `java.framework-coupling` | `SPRING_SERVICE`, `PLAIN_JAVA` |
 | `cobol.pic.default-usage` | `DISPLAY`, `COMP`, `COMP_3` |

@@ -14,14 +14,14 @@ result-kind: "repository-change"
      15 files changed, 364 insertions(+), 4 deletions(-)
      create mode 100644 .agora/tool-runs/tool-20260830t23511788144672z/RESULT.md
      create mode 100644 .agora/tool-runs/tool-20260830t23511788144672z/RUN.md
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualConstruction.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualEnrichmentCoordinator.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualEnrichmentExecutor.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualEnrichmentOutcome.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualEnrichmentRequest.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualRoute.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualRouter.java
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/residual/ResidualEnrichmentCoordinatorTest.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualConstruction.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualEnrichmentCoordinator.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualEnrichmentExecutor.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualEnrichmentOutcome.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualEnrichmentRequest.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualRoute.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualRouter.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/residual/ResidualEnrichmentCoordinatorTest.java
 
 ## Standard error
 
