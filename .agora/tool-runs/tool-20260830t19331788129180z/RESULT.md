@@ -42,50 +42,50 @@ result-kind: "repository-change"
      create mode 100644 docs/specs/llm-runtime-catalog-cache.md
      create mode 100755 renovatio-llm/bin/renovatio-llm-enrich
      create mode 100644 renovatio-llm/pom.xml
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/CacheEnvelope.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/CacheIdentity.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/CacheKey.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/CommittedCacheArtifacts.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/CommittedCacheArtifactsLoader.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/CommittedCacheIndex.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/CommittedCacheIndexGenerator.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/ContentAddressedCache.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/DeterministicFallback.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/GitHeadRepositoryTree.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/PromotionDisposition.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/RepositoryTree.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/ResultDisposition.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/VerifiedPromotionManifest.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cli/LlmEnrichmentCli.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/enrichment/AgoraToolRunAttributionGateway.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/enrichment/AttributionException.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/enrichment/AttributionGateway.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/enrichment/AttributionInput.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/enrichment/AttributionResult.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/enrichment/EnrichmentResult.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/enrichment/GovernedEnrichmentService.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/enrichment/PersistenceSanitizer.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/CatalogFallbackFactory.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/OutputValidationException.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/PreparedEnrichment.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/PromptCatalog.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/PromptCatalogException.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/PromptCatalogLoader.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/PromptDefinition.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/PromptOutputValidator.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/PromptRuntime.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/StrictJsonSchemaValidator.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/AnthropicConfiguration.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/AnthropicHttpTransport.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/AnthropicLlmProvider.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/AnthropicTransport.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/LlmProvider.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/LlmRequest.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/LlmResponse.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/OfflineFakeProvider.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/ProviderException.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/ProviderFailure.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/provider/RetryPolicy.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/CacheEnvelope.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/CacheIdentity.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/CacheKey.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/CommittedCacheArtifacts.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/CommittedCacheArtifactsLoader.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/CommittedCacheIndex.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/CommittedCacheIndexGenerator.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/ContentAddressedCache.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/DeterministicFallback.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/GitHeadRepositoryTree.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/PromotionDisposition.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/RepositoryTree.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/ResultDisposition.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/VerifiedPromotionManifest.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cli/LlmEnrichmentCli.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/enrichment/AgoraToolRunAttributionGateway.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/enrichment/AttributionException.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/enrichment/AttributionGateway.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/enrichment/AttributionInput.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/enrichment/AttributionResult.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/enrichment/EnrichmentResult.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/enrichment/GovernedEnrichmentService.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/enrichment/PersistenceSanitizer.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/CatalogFallbackFactory.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/OutputValidationException.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/PreparedEnrichment.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/PromptCatalog.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/PromptCatalogException.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/PromptCatalogLoader.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/PromptDefinition.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/PromptOutputValidator.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/PromptRuntime.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/StrictJsonSchemaValidator.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/AnthropicConfiguration.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/AnthropicHttpTransport.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/AnthropicLlmProvider.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/AnthropicTransport.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/LlmProvider.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/LlmRequest.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/LlmResponse.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/OfflineFakeProvider.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/ProviderException.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/ProviderFailure.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/provider/RetryPolicy.java
      create mode 100644 renovatio-llm/src/main/resources/fallbacks/cobol.domain.naming.fallback.v1.yaml
      create mode 100644 renovatio-llm/src/main/resources/fallbacks/cobol.goto.restructure.fallback.v1.yaml
      create mode 100644 renovatio-llm/src/main/resources/fallbacks/cobol.occurs-depending.intent.fallback.v1.yaml
@@ -102,16 +102,16 @@ result-kind: "repository-change"
      create mode 100644 renovatio-llm/src/main/resources/schemas/domain-naming.v1.schema.json
      create mode 100644 renovatio-llm/src/main/resources/schemas/persistence-allowlist.v1.json
      create mode 100644 renovatio-llm/src/main/resources/schemas/unsupported-explanation.v1.schema.json
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/cache/CommittedCacheArtifactsLoaderTest.java
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/cache/ContentAddressedCacheTest.java
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/cli/LlmEnrichmentCliTest.java
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/enrichment/GovernedEnrichmentServiceTest.java
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/prompt/PromptCatalogLoaderTest.java
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/provider/ProviderRuntimeTest.java
-     create mode 100644 renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/CobolNqlParsingService.java
-     delete mode 100644 renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/LlmIntegrationService.java
-     create mode 100644 renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CobolNqlParsingServiceTest.java
-     delete mode 100644 renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/LlmIntegrationServiceTest.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/cache/CommittedCacheArtifactsLoaderTest.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/cache/ContentAddressedCacheTest.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/cli/LlmEnrichmentCliTest.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/enrichment/GovernedEnrichmentServiceTest.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/prompt/PromptCatalogLoaderTest.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/provider/ProviderRuntimeTest.java
+     create mode 100644 renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/CobolNqlParsingService.java
+     delete mode 100644 renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/LlmIntegrationService.java
+     create mode 100644 renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CobolNqlParsingServiceTest.java
+     delete mode 100644 renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/LlmIntegrationServiceTest.java
 
 ## Standard error
 

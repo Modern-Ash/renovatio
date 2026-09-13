@@ -34,7 +34,7 @@ result-kind: "repository-change"
      create mode 100644 docs/specs/f8-review-fixes-plan.md
      create mode 100644 docs/specs/f8-review-fixes.md
      create mode 100644 docs/test-reports/f8-review-fixes.md
-     create mode 100644 renovatio-cli/src/main/java/org/shark/renovatio/cli/command/DecisionsCommand.java
+     create mode 100644 renovatio-cli/src/main/java/org/modernash/renovatio/cli/command/DecisionsCommand.java
 
 ## Standard error
 

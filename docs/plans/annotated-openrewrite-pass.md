@@ -12,12 +12,12 @@
 
 ## Global Constraints
 
-- `cobol-openrewrite-recipes`, `renovatio-cobol-ir`, and `renovatio-cobol-annotations` must not depend on `org.shark.renovatio.provider.*`, any HTTP client, any credential resolver, or any prompt catalog. The recipe-boundary architecture test and Maven Enforcer rule enforce this.
+- `cobol-openrewrite-recipes`, `renovatio-cobol-ir`, and `renovatio-cobol-annotations` must not depend on `org.modernash.renovatio.provider.*`, any HTTP client, any credential resolver, or any prompt catalog. The recipe-boundary architecture test and Maven Enforcer rule enforce this.
 - All AST changes use OpenRewrite operations (`JavaTemplate`, `RenameVariable`, `ChangeFieldName`, `ChangeMethodName`, visitor rewrites). Raw string replacement on source text is forbidden.
 - Determinism: given the same base `CobolIntermediateModel` and the same validated `AnnotatedCobolModel`, the generated Java is byte-identical across runs. Annotation processing order is `(nodeId, annotationId)`. Never read wall clock, environment, random, or map iteration order.
 - Sidecar schema version is exactly `cobol-annotated-ir.v1`. Unknown or mismatched versions fail closed to deterministic translation plus a manual action item. No best-effort conversion.
 - Eligibility for application: `sidecar.baseIrHash == CobolIrIdentityProjector.baseIrHash(model)`, sidecar passes `AnnotatedCobolValidator` with zero diagnostics, `annotation.review.reviewState == ACCEPTED`, and `annotation.nodeId` resolves to exactly one base node whose kind matches `annotation.nodeKind`.
-- Maven group/version for new module: `org.shark.renovatio` / `0.0.1-SNAPSHOT`, parent `renovatio-parent`.
+- Maven group/version for new module: `org.modernash.renovatio` / `0.0.1-SNAPSHOT`, parent `renovatio-parent`.
 - `manual-action-item.v1` field enums: `failedGate` ∈ {`schema`,`compilation`,`characterization`,`review-eligibility`}; `severity` ∈ {`warning`,`error`,`critical`}; `reviewStatus` ∈ {`pending`,`accepted`,`rejected`,`resolved`}; `id` matches `^mai-[a-f0-9]{24}$` (use `ManualActionItemIds.from(...)`).
 
 ---
@@ -26,10 +26,10 @@
 
 **New — `renovatio-cobol-annotations/`**
 - `pom.xml` — zero-dependency module (test-only JUnit).
-- `src/main/java/org/shark/renovatio/cobol/annotations/CobolDataIntent.java` — the `@interface`.
-- `src/test/java/org/shark/renovatio/cobol/annotations/CobolDataIntentTest.java` — retention/target reflection test.
+- `src/main/java/org/modernash/renovatio/cobol/annotations/CobolDataIntent.java` — the `@interface`.
+- `src/test/java/org/modernash/renovatio/cobol/annotations/CobolDataIntentTest.java` — retention/target reflection test.
 
-**New — `cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/annotate/`**
+**New — `cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/annotate/`**
 - `AnnotationApplicator.java` — filters eligible annotations, applies them to a `J.CompilationUnit`, returns `AnnotationApplicationOutcome`.
 - `AnnotationApplicationOutcome.java` — record: `J.CompilationUnit tree`, `List<DroppedAnnotation> dropped`.
 - `DroppedAnnotation.java` — record: `String nodeId`, `String annotationId`, `AnnotationFamily family`, `DropReason reason`, `String detail`. Enum `DropReason { REJECTED, PENDING_REVIEW, STALE_SIDECAR, NAME_COLLISION, NODE_UNRESOLVED, FAMILY_NOT_APPLIED }`.
@@ -40,7 +40,7 @@
 - `PopulateCobolProcessRecipe.java` — after body render, run `AnnotationApplicator`; push `List<DroppedAnnotation>` into `ExecutionContext`.
 - `pom.xml` — add `renovatio-cobol-annotations` (compile).
 
-**New — `renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/translation/`**
+**New — `renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/translation/`**
 - `AnnotatedContextResolver.java` — resolves `Optional<AnnotatedCobolContext>` from request sidecar / committed path / legacy.
 - `AnnotationActionItemFactory.java` — maps `DroppedAnnotation` → `ManualActionItem`.
 
@@ -63,8 +63,8 @@
 
 **Files:**
 - Create: `renovatio-cobol-annotations/pom.xml`
-- Create: `renovatio-cobol-annotations/src/main/java/org/shark/renovatio/cobol/annotations/CobolDataIntent.java`
-- Create: `renovatio-cobol-annotations/src/test/java/org/shark/renovatio/cobol/annotations/CobolDataIntentTest.java`
+- Create: `renovatio-cobol-annotations/src/main/java/org/modernash/renovatio/cobol/annotations/CobolDataIntent.java`
+- Create: `renovatio-cobol-annotations/src/test/java/org/modernash/renovatio/cobol/annotations/CobolDataIntentTest.java`
 - Modify: `pom.xml` (root) — add module entry after `<module>cobol-openrewrite-recipes</module>`
 
 **Interfaces:**
@@ -82,7 +82,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
@@ -123,7 +123,7 @@ In `pom.xml`, add inside `<modules>` immediately after `<module>cobol-openrewrit
 `CobolDataIntentTest.java`:
 
 ```java
-package org.shark.renovatio.cobol.annotations;
+package org.modernash.renovatio.cobol.annotations;
 
 import org.junit.jupiter.api.Test;
 
@@ -172,7 +172,7 @@ Expected: FAIL — `CobolDataIntent` does not compile (type missing).
 `CobolDataIntent.java`:
 
 ```java
-package org.shark.renovatio.cobol.annotations;
+package org.modernash.renovatio.cobol.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -223,8 +223,8 @@ git commit -m "feat(cobol): add renovatio-cobol-annotations module with @CobolDa
 ## Task 2: `NodeIdentityIndex` — resolve annotation nodeId to a Java identifier
 
 **Files:**
-- Create: `cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/annotate/NodeIdentityIndex.java`
-- Test: `cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/annotate/NodeIdentityIndexTest.java`
+- Create: `cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/annotate/NodeIdentityIndex.java`
+- Test: `cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/annotate/NodeIdentityIndexTest.java`
 
 **Interfaces:**
 - Consumes: `CobolIntermediateModel`, `CobolIrIdentityProjector` (`nodes(model)` → `List<ProjectedNode>` with `nodeId`, `nodeKind`, `pointer`), `AnnotatedNodeKind`.
@@ -237,13 +237,13 @@ git commit -m "feat(cobol): add renovatio-cobol-annotations module with @CobolDa
 - [ ] **Step 1: Write the failing test**
 
 ```java
-package org.shark.renovatio.cobol.recipes.annotate;
+package org.modernash.renovatio.cobol.recipes.annotate;
 
 import org.junit.jupiter.api.Test;
-import org.shark.renovatio.cobol.ir.annotated.AnnotatedNodeKind;
-import org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
-import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+import org.modernash.renovatio.cobol.ir.annotated.AnnotatedNodeKind;
+import org.modernash.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
+import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -293,7 +293,7 @@ class NodeIdentityIndexTest {
 }
 ```
 
-> Note: confirm the exact parser entrypoint (`SimpleCobolIrParser` vs `CobolIntermediateModelService`). `CobolIntermediateModelService` lives in `renovatio-provider-cobol`; from the recipes module use `renovatio-cobol-ir`'s parser (`org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser`). Adjust the import if the class name differs.
+> Note: confirm the exact parser entrypoint (`SimpleCobolIrParser` vs `CobolIntermediateModelService`). `CobolIntermediateModelService` lives in `renovatio-provider-cobol`; from the recipes module use `renovatio-cobol-ir`'s parser (`org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser`). Adjust the import if the class name differs.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -303,11 +303,11 @@ Expected: FAIL — `NodeIdentityIndex` missing.
 - [ ] **Step 3: Implement `NodeIdentityIndex`**
 
 ```java
-package org.shark.renovatio.cobol.recipes.annotate;
+package org.modernash.renovatio.cobol.recipes.annotate;
 
-import org.shark.renovatio.cobol.ir.annotated.AnnotatedNodeKind;
-import org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
-import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.modernash.renovatio.cobol.ir.annotated.AnnotatedNodeKind;
+import org.modernash.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
+import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
@@ -370,8 +370,8 @@ Expected: PASS (3 tests). Fix casing helpers if the recipe's existing `toPascal`
 - [ ] **Step 5: Commit**
 
 ```bash
-git add cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/annotate/NodeIdentityIndex.java \
-        cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/annotate/NodeIdentityIndexTest.java
+git add cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/annotate/NodeIdentityIndex.java \
+        cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/annotate/NodeIdentityIndexTest.java
 git commit -m "feat(cobol): add NodeIdentityIndex resolving annotation nodeId to Java identifier"
 ```
 
@@ -401,7 +401,7 @@ In `cobol-openrewrite-recipes/pom.xml`, after the `renovatio-cobol-ir` dependenc
 
 ```xml
         <dependency>
-            <groupId>org.shark.renovatio</groupId>
+            <groupId>org.modernash.renovatio</groupId>
             <artifactId>renovatio-cobol-annotations</artifactId>
         </dependency>
 ```
@@ -409,12 +409,12 @@ In `cobol-openrewrite-recipes/pom.xml`, after the `renovatio-cobol-ir` dependenc
 - [ ] **Step 2: Write the failing test**
 
 ```java
-package org.shark.renovatio.cobol.recipes.annotate;
+package org.modernash.renovatio.cobol.recipes.annotate;
 
 import org.junit.jupiter.api.Test;
-import org.shark.renovatio.cobol.ir.annotated.*;
-import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+import org.modernash.renovatio.cobol.ir.annotated.*;
+import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
 
 import java.time.Instant;
 import java.util.List;
@@ -494,9 +494,9 @@ Expected: FAIL — `AnnotationApplicator` missing.
 `DroppedAnnotation.java`:
 
 ```java
-package org.shark.renovatio.cobol.recipes.annotate;
+package org.modernash.renovatio.cobol.recipes.annotate;
 
-import org.shark.renovatio.cobol.ir.annotated.AnnotationFamily;
+import org.modernash.renovatio.cobol.ir.annotated.AnnotationFamily;
 
 public record DroppedAnnotation(String nodeId, String annotationId,
                                 AnnotationFamily family, DropReason reason, String detail) {
@@ -510,7 +510,7 @@ public record DroppedAnnotation(String nodeId, String annotationId,
 `AnnotationApplicationOutcome.java`:
 
 ```java
-package org.shark.renovatio.cobol.recipes.annotate;
+package org.modernash.renovatio.cobol.recipes.annotate;
 
 import org.openrewrite.java.tree.J;
 
@@ -522,12 +522,12 @@ public record AnnotationApplicationOutcome(J.CompilationUnit tree, List<DroppedA
 `AnnotationApplicator.java` (this step: constructor + `eligible()` only; `apply()` returns the tree unchanged plus every non-eligible annotation as a `DroppedAnnotation`):
 
 ```java
-package org.shark.renovatio.cobol.recipes.annotate;
+package org.modernash.renovatio.cobol.recipes.annotate;
 
 import org.openrewrite.ExecutionContext;
 import org.openrewrite.java.tree.J;
-import org.shark.renovatio.cobol.ir.annotated.*;
-import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.modernash.renovatio.cobol.ir.annotated.*;
+import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -610,8 +610,8 @@ Expected: PASS (2 tests).
 - [ ] **Step 6: Commit**
 
 ```bash
-git add cobol-openrewrite-recipes/pom.xml cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/annotate/ \
-        cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/annotate/AnnotationApplicatorEligibilityTest.java
+git add cobol-openrewrite-recipes/pom.xml cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/annotate/ \
+        cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/annotate/AnnotationApplicatorEligibilityTest.java
 git commit -m "feat(cobol): AnnotationApplicator eligibility filtering for annotated IR pass"
 ```
 
@@ -625,12 +625,12 @@ git commit -m "feat(cobol): AnnotationApplicator eligibility filtering for annot
 
 **Interfaces:**
 - Consumes: `DataIntentPayload` (`construction()` → enum `REDEFINES`/`OCCURS_DEPENDING_ON`, `interpretation()`, `assumptions()`), `org.openrewrite.java.tree.J`, `JavaTemplate`, `org.openrewrite.java.JavaIsoVisitor`.
-- Produces: `apply()` now attaches `@org.shark.renovatio.cobol.annotations.CobolDataIntent(...)` to the matching `J.VariableDeclarations` (field) whose variable name equals `NodeIdentityIndex.toJavaFieldName(resolved.cobolName())`.
+- Produces: `apply()` now attaches `@org.modernash.renovatio.cobol.annotations.CobolDataIntent(...)` to the matching `J.VariableDeclarations` (field) whose variable name equals `NodeIdentityIndex.toJavaFieldName(resolved.cobolName())`.
 
 - [ ] **Step 1: Write the failing test**
 
 ```java
-package org.shark.renovatio.cobol.recipes.annotate;
+package org.modernash.renovatio.cobol.recipes.annotate;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
@@ -692,7 +692,7 @@ class AnnotationApplicatorDataIntentTest {
 
 - [ ] **Step 2: Create the shared test fixture helper**
 
-`AnnotatedFixtures.java` (test source, `src/test/java/org/shark/renovatio/cobol/recipes/annotate/`): a small builder returning `record Fixture(CobolIntermediateModel model, AnnotatedCobolModel sidecar)` with factory methods `redefinesDataIntent()` and `domainNaming(ReviewState)`. Move the annotation/provenance/review construction out of `AnnotationApplicatorEligibilityTest` into this class and update that test to use it.
+`AnnotatedFixtures.java` (test source, `src/test/java/org/modernash/renovatio/cobol/recipes/annotate/`): a small builder returning `record Fixture(CobolIntermediateModel model, AnnotatedCobolModel sidecar)` with factory methods `redefinesDataIntent()` and `domainNaming(ReviewState)`. Move the annotation/provenance/review construction out of `AnnotationApplicatorEligibilityTest` into this class and update that test to use it.
 
 - [ ] **Step 3: Run test to verify it fails**
 
@@ -726,7 +726,7 @@ private J.CompilationUnit applyDataIntent(J.CompilationUnit cu, ExecutionContext
                     && vd.getVariables().get(0).getSimpleName().equals(fieldName)
                     && vd.getLeadingAnnotations().stream().noneMatch(an -> "CobolDataIntent".equals(an.getSimpleName()))) {
                 return JavaTemplate.builder(tmpl)
-                        .imports("org.shark.renovatio.cobol.annotations.CobolDataIntent")
+                        .imports("org.modernash.renovatio.cobol.annotations.CobolDataIntent")
                         .javaParser(JavaParser.fromJavaVersion()
                             .classpath(org.openrewrite.java.JavaParser.runtimeClasspath()))
                         .build()
@@ -739,7 +739,7 @@ private J.CompilationUnit applyDataIntent(J.CompilationUnit cu, ExecutionContext
 }
 ```
 
-> `JavaTemplate` needs `renovatio-cobol-annotations` on the parser classpath. If `JavaParser.runtimeClasspath()` does not pick it up in the recipes-module test JVM, add `rewrite-java-17` (already test-scoped) and pass `.classpath("renovatio-cobol-annotations")` or the jar path resolved from the test classpath. Also add the import via `maybeAddImport("org.shark.renovatio.cobol.annotations.CobolDataIntent")` in the visitor and run `doAfterVisit(new org.openrewrite.java.AddImport<>(...))` if the template does not.
+> `JavaTemplate` needs `renovatio-cobol-annotations` on the parser classpath. If `JavaParser.runtimeClasspath()` does not pick it up in the recipes-module test JVM, add `rewrite-java-17` (already test-scoped) and pass `.classpath("renovatio-cobol-annotations")` or the jar path resolved from the test classpath. Also add the import via `maybeAddImport("org.modernash.renovatio.cobol.annotations.CobolDataIntent")` in the visitor and run `doAfterVisit(new org.openrewrite.java.AddImport<>(...))` if the template does not.
 
 - [ ] **Step 5: Run tests to verify they pass**
 
@@ -749,8 +749,8 @@ Expected: PASS (2 tests). Iterate on the `JavaTemplate` classpath wiring until t
 - [ ] **Step 6: Commit**
 
 ```bash
-git add cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/annotate/AnnotationApplicator.java \
-        cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/annotate/
+git add cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/annotate/AnnotationApplicator.java \
+        cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/annotate/
 git commit -m "feat(cobol): apply DATA_INTENT annotations as @CobolDataIntent markers"
 ```
 
@@ -769,7 +769,7 @@ git commit -m "feat(cobol): apply DATA_INTENT annotations as @CobolDataIntent ma
 - [ ] **Step 1: Write the failing test**
 
 ```java
-package org.shark.renovatio.cobol.recipes.annotate;
+package org.modernash.renovatio.cobol.recipes.annotate;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
@@ -888,8 +888,8 @@ Expected: PASS (all existing + new).
 - [ ] **Step 6: Commit**
 
 ```bash
-git add cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/annotate/AnnotationApplicator.java \
-        cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/annotate/AnnotationApplicatorDomainNamingTest.java
+git add cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/annotate/AnnotationApplicator.java \
+        cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/annotate/AnnotationApplicatorDomainNamingTest.java
 git commit -m "feat(cobol): apply DOMAIN_NAMING renames with deterministic collision drop"
 ```
 
@@ -909,14 +909,14 @@ git commit -m "feat(cobol): apply DOMAIN_NAMING renames with deterministic colli
 - [ ] **Step 1: Write the failing test**
 
 ```java
-package org.shark.renovatio.cobol.recipes;
+package org.modernash.renovatio.cobol.recipes;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.InMemoryExecutionContext;
 import org.openrewrite.java.JavaParser;
 import org.openrewrite.SourceFile;
-import org.shark.renovatio.cobol.recipes.annotate.AnnotationOutcomeKey;
-import org.shark.renovatio.cobol.recipes.annotate.DroppedAnnotation;
+import org.modernash.renovatio.cobol.recipes.annotate.AnnotationOutcomeKey;
+import org.modernash.renovatio.cobol.recipes.annotate.DroppedAnnotation;
 
 import java.util.List;
 
@@ -975,7 +975,7 @@ Expected: FAIL — no outcome key set; rename not applied.
 `AnnotationOutcomeKey.java`:
 
 ```java
-package org.shark.renovatio.cobol.recipes.annotate;
+package org.modernash.renovatio.cobol.recipes.annotate;
 
 public final class AnnotationOutcomeKey {
     public static final String ANNOTATION_OUTCOMES_KEY = "renovatio.cobol.annotation-outcomes";
@@ -1013,8 +1013,8 @@ Expected: PASS. The existing `PopulateCobolProcessRecipeTest` must be unchanged 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/
-git add cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeAnnotatedTest.java
+git add cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/
+git add cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeAnnotatedTest.java
 git commit -m "feat(cobol): run AnnotationApplicator post-pass inside PopulateCobolProcessRecipe"
 ```
 
@@ -1023,8 +1023,8 @@ git commit -m "feat(cobol): run AnnotationApplicator post-pass inside PopulateCo
 ## Task 7: `AnnotatedContextResolver` in `renovatio-provider-cobol`
 
 **Files:**
-- Create: `renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/translation/AnnotatedContextResolver.java`
-- Test: `renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/AnnotatedContextResolverTest.java`
+- Create: `renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/translation/AnnotatedContextResolver.java`
+- Test: `renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/AnnotatedContextResolverTest.java`
 
 **Interfaces:**
 - Consumes: `CobolIntermediateModel`, `AnnotatedCobolModel`, `AnnotatedCobolContext`, `AnnotatedCobolValidator`, `CobolIrIdentityProjector`, `GuardrailSchemaCatalog` (`resolve("cobol-annotated-ir.v1")`), Jackson `ObjectMapper`, `com.networknt` schema validator.
@@ -1038,14 +1038,14 @@ git commit -m "feat(cobol): run AnnotationApplicator post-pass inside PopulateCo
 - [ ] **Step 1: Write the failing test**
 
 ```java
-package org.shark.renovatio.provider.cobol.translation;
+package org.modernash.renovatio.provider.cobol.translation;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
-import org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
-import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
+import org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
+import org.modernash.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
+import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -1139,8 +1139,8 @@ Expected: PASS (3 tests).
 - [ ] **Step 5: Commit**
 
 ```bash
-git add renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/translation/AnnotatedContextResolver.java \
-        renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/AnnotatedContextResolverTest.java
+git add renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/translation/AnnotatedContextResolver.java \
+        renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/AnnotatedContextResolverTest.java
 git commit -m "feat(cobol): AnnotatedContextResolver with request/path/legacy precedence"
 ```
 
@@ -1149,9 +1149,9 @@ git commit -m "feat(cobol): AnnotatedContextResolver with request/path/legacy pr
 ## Task 8: `AnnotationActionItemFactory` + `CobolSemanticTranspiler` drain
 
 **Files:**
-- Create: `renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/translation/AnnotationActionItemFactory.java`
-- Modify: `renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/translation/CobolSemanticTranspiler.java`
-- Test: `renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/AnnotationActionItemFactoryTest.java`
+- Create: `renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/translation/AnnotationActionItemFactory.java`
+- Modify: `renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/translation/CobolSemanticTranspiler.java`
+- Test: `renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/AnnotationActionItemFactoryTest.java`
 - Modify test: `CobolSemanticTranspilerTest.java` — add a drain assertion
 
 **Interfaces:**
@@ -1172,14 +1172,14 @@ git commit -m "feat(cobol): AnnotatedContextResolver with request/path/legacy pr
 - [ ] **Step 1: Write the failing factory test**
 
 ```java
-package org.shark.renovatio.provider.cobol.translation;
+package org.modernash.renovatio.provider.cobol.translation;
 
 import org.junit.jupiter.api.Test;
-import org.shark.renovatio.cobol.ir.annotated.AnnotationFamily;
-import org.shark.renovatio.cobol.recipes.annotate.DroppedAnnotation;
-import org.shark.renovatio.provider.cobol.guardrail.GuardrailGate;
-import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;
-import org.shark.renovatio.provider.cobol.guardrail.ManualActionSeverity;
+import org.modernash.renovatio.cobol.ir.annotated.AnnotationFamily;
+import org.modernash.renovatio.cobol.recipes.annotate.DroppedAnnotation;
+import org.modernash.renovatio.provider.cobol.guardrail.GuardrailGate;
+import org.modernash.renovatio.provider.cobol.guardrail.ManualActionItem;
+import org.modernash.renovatio.provider.cobol.guardrail.ManualActionSeverity;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -1220,10 +1220,10 @@ Expected: FAIL — factory missing.
 - [ ] **Step 3: Implement `AnnotationActionItemFactory`**
 
 ```java
-package org.shark.renovatio.provider.cobol.translation;
+package org.modernash.renovatio.provider.cobol.translation;
 
-import org.shark.renovatio.cobol.recipes.annotate.DroppedAnnotation;
-import org.shark.renovatio.provider.cobol.guardrail.*;
+import org.modernash.renovatio.cobol.recipes.annotate.DroppedAnnotation;
+import org.modernash.renovatio.provider.cobol.guardrail.*;
 
 public final class AnnotationActionItemFactory {
 
@@ -1299,8 +1299,8 @@ Expected: PASS.
 - [ ] **Step 8: Commit**
 
 ```bash
-git add renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/translation/ \
-        renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/
+git add renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/translation/ \
+        renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/
 git commit -m "feat(cobol): map dropped annotations to manual action items in transpiler"
 ```
 
@@ -1309,8 +1309,8 @@ git commit -m "feat(cobol): map dropped annotations to manual action items in tr
 ## Task 9: Wire `JavaGenerationService` to resolve the sidecar and write action items
 
 **Files:**
-- Modify: `renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/JavaGenerationService.java` (constructor + line ~87)
-- Test: `renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/JavaGenerationServiceAnnotatedTest.java`
+- Modify: `renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationService.java` (constructor + line ~87)
+- Test: `renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationServiceAnnotatedTest.java`
 
 **Interfaces:**
 - Consumes: `AnnotatedContextResolver`, `CobolSemanticTranspiler` three-arg overload, `ManualActionItemWriter`, `AnnotatedContextResolver.Request` (built from the migration `metadata` map — `filePath` gives `cobolSourcePath`; there is no inline sidecar on the current request, so `inlineSidecar`/`sidecarPath` are `Optional.empty()` until the MCP request type carries them).
@@ -1319,7 +1319,7 @@ git commit -m "feat(cobol): map dropped annotations to manual action items in tr
 - [ ] **Step 1: Write the failing test**
 
 ```java
-package org.shark.renovatio.provider.cobol.service;
+package org.modernash.renovatio.provider.cobol.service;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -1386,8 +1386,8 @@ Expected: PASS. Fix any Spring wiring test that constructs `JavaGenerationServic
 - [ ] **Step 5: Commit**
 
 ```bash
-git add renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/JavaGenerationService.java \
-        renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/JavaGenerationServiceAnnotatedTest.java
+git add renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationService.java \
+        renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationServiceAnnotatedTest.java
 git commit -m "feat(cobol): resolve annotated sidecar and emit action items during generation"
 ```
 
@@ -1396,7 +1396,7 @@ git commit -m "feat(cobol): resolve annotated sidecar and emit action items duri
 ## Task 10: Annotated characterization fixtures wired into the offline lane
 
 **Files:**
-- Modify: `renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/characterization/CharacterizationFixtureContractTest.java`
+- Modify: `renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/characterization/CharacterizationFixtureContractTest.java`
 - Create: `renovatio-provider-cobol/src/test/resources/characterization/move-numeric/move-numeric.annotated.json`
 - Create: `renovatio-provider-cobol/src/test/resources/characterization/move-numeric/expected-annotated.java`
 - Create fixture dir: `renovatio-provider-cobol/src/test/resources/characterization/data-intent-redefines/` (`input.cob`, `expected-ir.json`, `expected-behavior.json`, `expected-action-items.json`, `translation-input.java`, `data-intent-redefines.annotated.json`, `expected-annotated.java`)
@@ -1440,7 +1440,7 @@ private String translateAnnotated(Path cobol, Path javaStub, Path sidecar) throw
     var resolution = new AnnotatedContextResolver(mapper).resolve(
             new AnnotatedContextResolver.Request(Optional.empty(), Optional.of(sidecar), cobol), model);
     assertThat(resolution.context()).as("sidecar %s must be valid", sidecar).isPresent();
-    java.util.List<org.shark.renovatio.provider.cobol.guardrail.ManualActionItem> ignored = new java.util.ArrayList<>();
+    java.util.List<org.modernash.renovatio.provider.cobol.guardrail.ManualActionItem> ignored = new java.util.ArrayList<>();
     return transpiler.enrichServiceImplementation(
             Files.readString(javaStub), resolution.context().get(), ignored::addAll);
 }
@@ -1464,7 +1464,7 @@ Expected: PASS.
 
 ```bash
 git add renovatio-provider-cobol/src/test/resources/characterization/ \
-        renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/characterization/CharacterizationFixtureContractTest.java
+        renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/characterization/CharacterizationFixtureContractTest.java
 git commit -m "test(cobol): annotated characterization fixtures for reproducible offline pass"
 ```
 
@@ -1479,7 +1479,7 @@ git commit -m "test(cobol): annotated characterization fixtures for reproducible
 
 **Interfaces:**
 - Consumes: existing boundary test infrastructure.
-- Produces: assertions that `org.shark.renovatio.cobol.recipes.annotate.*` and `renovatio-cobol-annotations` classes import nothing from `org.shark.renovatio.provider`, `java.net.http`, `okhttp`, `org.apache.hc`, or any `*.llm.*` / `*.prompt.*` package.
+- Produces: assertions that `org.modernash.renovatio.cobol.recipes.annotate.*` and `renovatio-cobol-annotations` classes import nothing from `org.modernash.renovatio.provider`, `java.net.http`, `okhttp`, `org.apache.hc`, or any `*.llm.*` / `*.prompt.*` package.
 
 - [ ] **Step 1: Locate the #123 boundary test**
 
@@ -1488,7 +1488,7 @@ Read the class it points to.
 
 - [ ] **Step 2: Write the failing assertion**
 
-Add a test method asserting the `annotate` package and the annotations module are provider-free. Since no violation exists yet, temporarily add a bogus `import org.shark.renovatio.provider.cobol.guardrail.ManualActionItem;` to `AnnotationApplicator`, run, confirm the test FAILS, then remove the import.
+Add a test method asserting the `annotate` package and the annotations module are provider-free. Since no violation exists yet, temporarily add a bogus `import org.modernash.renovatio.provider.cobol.guardrail.ManualActionItem;` to `AnnotationApplicator`, run, confirm the test FAILS, then remove the import.
 
 - [ ] **Step 3: Run to verify the guard works**
 

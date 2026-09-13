@@ -14,8 +14,8 @@ result-kind: "repository-change"
      11 files changed, 212 insertions(+), 9 deletions(-)
      create mode 100644 .agora/tool-runs/tool-20260831t00161788146171z/RESULT.md
      create mode 100644 .agora/tool-runs/tool-20260831t00161788146171z/RUN.md
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/DomainNamingPolicy.java
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/residual/DomainNamingPolicyTest.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/DomainNamingPolicy.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/residual/DomainNamingPolicyTest.java
 
 ## Standard error
 

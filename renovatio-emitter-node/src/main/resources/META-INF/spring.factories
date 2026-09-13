@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  org.shark.renovatio.emitter.node.config.NodeEmitterAutoConfiguration
+  org.modernash.renovatio.emitter.node.config.NodeEmitterAutoConfiguration

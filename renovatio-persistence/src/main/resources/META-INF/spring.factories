@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  org.shark.renovatio.persistence.config.PersistenceAutoConfiguration
+  org.modernash.renovatio.persistence.config.PersistenceAutoConfiguration

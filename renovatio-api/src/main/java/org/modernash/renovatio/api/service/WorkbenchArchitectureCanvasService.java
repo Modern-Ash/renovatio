@@ -1,0 +1,557 @@
+package org.modernash.renovatio.api.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import org.modernash.renovatio.api.dto.ArchitecturePreviewDto;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto;
+import org.modernash.renovatio.api.dto.WorkbenchChangeSetDto;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.ArchitectureProfileDraft;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.CanvasNode;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.Change;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.Comparison;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.DependencyDiagnostic;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.DependencyRule;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.ExcludedNode;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.LayoutPosition;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.ManifestEntry;
+import org.modernash.renovatio.api.dto.WorkbenchArchitectureCanvasDto.Version;
+import org.modernash.renovatio.api.entity.ProjectArchitectureProfileVersionEntity;
+import org.modernash.renovatio.api.repository.ProjectArchitectureProfileVersionRepository;
+import org.modernash.renovatio.api.repository.ProjectRepository;
+import org.modernash.renovatio.architecture.ArchitectureGraph;
+import org.modernash.renovatio.architecture.ArchitectureLayoutOverrides;
+import org.modernash.renovatio.decisions.ProfileStore;
+import org.modernash.renovatio.profile.MigrationProfile;
+import org.modernash.renovatio.profile.MigrationProfiles;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class WorkbenchArchitectureCanvasService {
+    static final String EXT_PACKAGE_PREFIX = ArchitectureLayoutOverrides.EXT_PACKAGE_PREFIX;
+    static final String EXT_SUFFIX_PREFIX = ArchitectureLayoutOverrides.EXT_SUFFIX_PREFIX;
+    static final String EXT_CLASS_PREFIX = ArchitectureLayoutOverrides.EXT_CLASS_PREFIX;
+    static final String EXT_RULES = ArchitectureLayoutOverrides.EXT_RULES;
+    private static final List<String> MVC_LAYERS = List.of("controller", "service", "model");
+    private static final Set<String> JAVA_KEYWORDS = Set.of(
+            "abstract", "assert", "boolean", "break", "byte", "case", "catch", "char", "class", "const",
+            "continue", "default", "do", "double", "else", "enum", "extends", "final", "finally", "float",
+            "for", "goto", "if", "implements", "import", "instanceof", "int", "interface", "long", "native",
+            "new", "package", "private", "protected", "public", "return", "short", "static", "strictfp",
+            "super", "switch", "synchronized", "this", "throw", "throws", "transient", "try", "void",
+            "volatile", "while", "true", "false", "null", "_");
+
+    private final ProjectRepository projects;
+    private final ProjectArchitectureProfileVersionRepository versions;
+    private final ProfileStore profiles;
+    private final ArchitecturePreviewService previews;
+    private final ObjectMapper json;
+
+    public WorkbenchArchitectureCanvasService(ProjectRepository projects,
+                                              ProjectArchitectureProfileVersionRepository versions,
+                                              ProfileStore profiles,
+                                              ArchitecturePreviewService previews,
+                                              ObjectMapper json) {
+        this.projects = projects;
+        this.versions = versions;
+        this.profiles = profiles;
+        this.previews = previews;
+        this.json = json;
+    }
+
+    @Transactional(readOnly = true)
+    public WorkbenchArchitectureCanvasDto read(String projectId) {
+        requireProject(projectId);
+        ProjectArchitectureProfileVersionEntity latest = latest(projectId);
+        ArchitectureProfileDraft draft = latest == null ? fromProfile(profiles.find(projectId)
+                .map(ProfileStore.VersionedProfile::profile).orElse(MigrationProfiles.emptyOverlay())) : deserialize(latest);
+        return view(projectId, latest, draft);
+    }
+
+    @Transactional
+    public WorkbenchArchitectureCanvasDto save(String projectId, long expectedRevision,
+                                              ArchitectureProfileDraft candidate) {
+        requireProject(projectId);
+        ArchitectureProfileDraft normalized = normalize(candidate);
+        ProjectArchitectureProfileVersionEntity current = latest(projectId);
+        long currentRevision = current == null ? 0 : current.getRevision();
+        if (expectedRevision != currentRevision) throw new RevisionConflictException(currentRevision);
+        String canonical = canonicalHash(normalized);
+        if (current != null && current.getCanonicalHash().equals(canonical)) return view(projectId, current, normalized);
+        long nextRevision = currentRevision + 1;
+        try {
+            ProjectArchitectureProfileVersionEntity saved = versions.saveAndFlush(
+                    new ProjectArchitectureProfileVersionEntity(projectId, nextRevision, canonical,
+                            serialize(normalized), LocalDateTime.now()));
+            replaceOverlay(projectId, normalized);
+            return view(projectId, saved, normalized);
+        } catch (DataIntegrityViolationException error) {
+            throw new RevisionConflictException(latest(projectId) == null ? currentRevision : latest(projectId).getRevision());
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public WorkbenchArchitectureCanvasDto preview(String projectId, ArchitectureProfileDraft candidate) {
+        requireProject(projectId);
+        ProjectArchitectureProfileVersionEntity current = latest(projectId);
+        return view(projectId, current, normalize(candidate));
+    }
+
+    @Transactional(readOnly = true)
+    public List<Version> versions(String projectId) {
+        requireProject(projectId);
+        return versions.findByProjectIdOrderByRevisionDesc(projectId).stream()
+                .map(value -> new Version(value.getRevision(), hash(value.getCanonicalHash()),
+                        value.getSavedAt(), deserialize(value).style())).toList();
+    }
+
+    @Transactional
+    public WorkbenchArchitectureCanvasDto restore(String projectId, long revision, long expectedRevision) {
+        requireProject(projectId);
+        ArchitectureProfileDraft selected = deserialize(versions.findByProjectIdAndRevision(projectId, revision)
+                .orElseThrow(() -> new NotFoundException("Architecture profile revision " + revision + " was not found")));
+        return save(projectId, expectedRevision, selected);
+    }
+
+    @Transactional(readOnly = true)
+    public Comparison compare(String projectId, long from, long to) {
+        requireProject(projectId);
+        ArchitectureProfileDraft before = deserialize(versions.findByProjectIdAndRevision(projectId, from)
+                .orElseThrow(() -> new NotFoundException("Architecture profile revision " + from + " was not found")));
+        ArchitectureProfileDraft after = deserialize(versions.findByProjectIdAndRevision(projectId, to)
+                .orElseThrow(() -> new NotFoundException("Architecture profile revision " + to + " was not found")));
+        Map<String, Object> left = flatten(before);
+        Map<String, Object> right = flatten(after);
+        List<Change> added = new ArrayList<>();
+        List<Change> removed = new ArrayList<>();
+        List<Change> changed = new ArrayList<>();
+        right.forEach((key, value) -> {
+            if (!left.containsKey(key)) added.add(new Change("profile", key, null, value));
+            else if (!Objects.equals(value, left.get(key))) changed.add(new Change("profile", key, left.get(key), value));
+        });
+        left.forEach((key, value) -> { if (!right.containsKey(key)) removed.add(new Change("profile", key, value, null)); });
+        Comparator<Change> order = Comparator.comparing(Change::targetId);
+        added.sort(order); removed.sort(order); changed.sort(order);
+        return new Comparison(List.copyOf(added), List.copyOf(removed), List.copyOf(changed));
+    }
+
+    @Transactional(readOnly = true)
+    public WorkbenchChangeSetDto.CreateRequest generateChangeSetRequest(String projectId) {
+        requireProject(projectId);
+        ProjectArchitectureProfileVersionEntity current = latest(projectId);
+        if (current == null) {
+            throw validation("PROFILE_NOT_SAVED", "architecture", "Save the architecture profile before generating a change set");
+        }
+        ArchitectureProfileDraft draft = deserialize(current);
+        WorkbenchArchitectureCanvasDto canvas = view(projectId, current, draft);
+        List<DependencyDiagnostic> blockers = canvas.dependencyDiagnostics().stream()
+                .filter(diagnostic -> "error".equalsIgnoreCase(diagnostic.severity())).toList();
+        if (!blockers.isEmpty()) throw new ValidationException(blockers);
+        var excluded = draft.excludedNodeIds().stream().map(ExcludedNode::id).collect(Collectors.toSet());
+        // Validate only what will actually become file changes — an excluded
+        // component with an unresolved class/package override must not block
+        // generation of the components that remain (see #276 review).
+        List<ManifestEntry> included = canvas.manifest().stream()
+                .filter(entry -> !excluded.contains(entry.componentId())).toList();
+        validateJavaManifest(included);
+        // Two DIFFERENT components landing on the same manifest path (e.g. a
+        // layer-scoped class override applied to every component in that
+        // layer) would otherwise silently overwrite each other as
+        // WorkbenchChangeSetService applies file changes sequentially (see
+        // #276 review). Multiple artifacts from the SAME component (e.g. a
+        // service's "contract" and "implementation" roles) are a distinct,
+        // pre-existing path-per-role gap, not this bug — excluded here so
+        // this check doesn't reject an otherwise-valid manifest.
+        List<String> crossComponentDuplicates = included.stream()
+                .collect(Collectors.groupingBy(ManifestEntry::path))
+                .entrySet().stream()
+                .filter(entry -> entry.getValue().stream().map(ManifestEntry::componentId).distinct().count() > 1)
+                .map(Map.Entry::getKey).sorted().toList();
+        if (!crossComponentDuplicates.isEmpty()) {
+            throw validation("DUPLICATE_ARTIFACT_PATH", "architecture",
+                    "Multiple components resolve to the same generated path; use component-specific class overrides: "
+                            + String.join(", ", crossComponentDuplicates));
+        }
+        List<WorkbenchChangeSetDto.FileChangeRequest> files = included.stream()
+                .map(entry -> new WorkbenchChangeSetDto.FileChangeRequest(entry.path(), "create",
+                        generatedJavaStub(entry, current.getRevision(), canvas.canonicalHash())))
+                .toList();
+        if (files.isEmpty()) {
+            throw validation("NO_GENERATED_ARTIFACTS", "architecture", "All architecture artifacts are excluded from generation");
+        }
+        return new WorkbenchChangeSetDto.CreateRequest(
+                "Generate Java targets from architecture revision " + current.getRevision(),
+                false,
+                files,
+                List.of("architecture:" + draft.style(), "architecture-revision:" + current.getRevision()),
+                List.of("architectureHash:" + canvas.canonicalHash(), "excludedNodeIds:" + excluded.size()));
+    }
+
+    private WorkbenchArchitectureCanvasDto view(String projectId, ProjectArchitectureProfileVersionEntity entity,
+                                                ArchitectureProfileDraft draft) {
+        ArchitecturePreviewDto preview = previews.preview(projectId, draft.style(), draft.moduleGrouping());
+        List<CanvasNode> canvas = canvas(preview, draft);
+        List<DependencyDiagnostic> diagnostics = dependencyDiagnostics(preview, draft.dependencyRules());
+        return new WorkbenchArchitectureCanvasDto(entity == null ? 0 : entity.getRevision(),
+                hash(canonicalHash(draft)), entity == null ? null : entity.getSavedAt(), draft, preview,
+                canvas, draft.dependencyRules(), diagnostics, manifest(preview, draft, canvas));
+    }
+
+    private List<CanvasNode> canvas(ArchitecturePreviewDto preview, ArchitectureProfileDraft draft) {
+        Map<String, String> packages = draft.packageRoots();
+        Map<String, String> suffixes = draft.suffixes();
+        Map<String, ExcludedNode> excluded = draft.excludedNodeIds().stream()
+                .collect(Collectors.toMap(ExcludedNode::id, Function.identity(), (left, right) -> left));
+        return preview.components().stream().map(component -> {
+            String layer = layer(component.kind().name(), component.name());
+            String className = draft.classNames().getOrDefault(component.name(),
+                    draft.classNames().getOrDefault(layer, classBase(component.name()) + defaultSuffix(suffixes, layer)));
+            ExcludedNode excludedNode = excluded.get(component.id());
+            return new CanvasNode(component.id(), layer, component.kind().name(), component.name(),
+                    packages.getOrDefault(layer, packages.get("base")), className, component.id(),
+                    excludedNode != null, excludedNode == null ? "" : excludedNode.reason());
+        }).sorted(Comparator.comparing(CanvasNode::layer).thenComparing(CanvasNode::label)).toList();
+    }
+
+    private List<ManifestEntry> manifest(ArchitecturePreviewDto preview, ArchitectureProfileDraft draft,
+                                         List<CanvasNode> canvas) {
+        Map<String, CanvasNode> byComponent = canvas.stream()
+                .collect(Collectors.toMap(CanvasNode::componentId, Function.identity(), (left, right) -> left));
+        return preview.artifacts().stream().map(artifact -> {
+            CanvasNode node = byComponent.get(artifact.componentId());
+            String layer = node == null ? layer(artifact.role(), artifact.path()) : node.layer();
+            String packageName = draft.packageRoots().getOrDefault(layer, draft.packageRoots().get("base"));
+            String className = node == null ? classBase(artifact.path().replace(".java", "")) : node.className();
+            return new ManifestEntry(path(packageName, className), artifact.role(), layer, className, packageName,
+                    artifact.componentId());
+        }).sorted(Comparator.comparing(ManifestEntry::path)).toList();
+    }
+
+    private String generatedJavaStub(ManifestEntry entry, long revision, String architectureHash) {
+        return "package " + entry.packageName() + ";\n\n"
+                + "/**\n"
+                + " * Generated by Renovatio Workbench from architecture revision " + revision + ".\n"
+                + " * Architecture hash: " + architectureHash + "\n"
+                + " * Role: " + entry.role() + "; layer: " + entry.layer() + "; component: " + entry.componentId() + "\n"
+                + " */\n"
+                + "public class " + entry.className() + " {\n"
+                + "}\n";
+    }
+
+    private void validateJavaManifest(List<ManifestEntry> manifest) {
+        List<DependencyDiagnostic> diagnostics = manifest.stream()
+                .flatMap(entry -> {
+                    List<DependencyDiagnostic> entryDiagnostics = new ArrayList<>();
+                    if (!isValidPackageName(entry.packageName())) {
+                        entryDiagnostics.add(new DependencyDiagnostic("error", "INVALID_JAVA_PACKAGE",
+                                entry.componentId(), entry.packageName(), "Package name is not a valid Java package"));
+                    }
+                    if (!isValidJavaIdentifier(entry.className())) {
+                        entryDiagnostics.add(new DependencyDiagnostic("error", "INVALID_JAVA_CLASS",
+                                entry.componentId(), entry.className(), "Class name is not a valid Java identifier"));
+                    }
+                    return entryDiagnostics.stream();
+                })
+                .toList();
+        if (!diagnostics.isEmpty()) throw new ValidationException(diagnostics);
+    }
+
+    private List<DependencyDiagnostic> dependencyDiagnostics(ArchitecturePreviewDto preview, List<DependencyRule> rules) {
+        return preview.relations().stream().flatMap(relation -> {
+            var from = preview.components().stream().filter(component -> component.id().equals(relation.fromComponentId())).findFirst();
+            var to = preview.components().stream().filter(component -> component.id().equals(relation.toComponentId())).findFirst();
+            if (from.isEmpty() || to.isEmpty()) return java.util.stream.Stream.<DependencyDiagnostic>empty();
+            String fromLayer = layer(from.orElseThrow().kind().name(), from.orElseThrow().name());
+            String toLayer = layer(to.orElseThrow().kind().name(), to.orElseThrow().name());
+            boolean allowed = rules.stream().filter(rule -> rule.fromLayer().equals(fromLayer)
+                    && rule.toLayer().equals(toLayer)).findFirst().map(DependencyRule::allowed).orElse(true);
+            if (allowed) return java.util.stream.Stream.<DependencyDiagnostic>empty();
+            return java.util.stream.Stream.of(new DependencyDiagnostic("error", "FORBIDDEN_DEPENDENCY",
+                    fromLayer, toLayer, fromLayer + " must not depend on " + toLayer));
+        }).distinct().sorted(Comparator.comparing(DependencyDiagnostic::fromLayer)
+                .thenComparing(DependencyDiagnostic::toLayer)).toList();
+    }
+
+    private void replaceOverlay(String projectId, ArchitectureProfileDraft draft) {
+        ProfileStore.VersionedProfile current = profiles.find(projectId)
+                .orElse(new ProfileStore.VersionedProfile(MigrationProfiles.emptyOverlay(), 0));
+        MigrationProfile overlay = toProfile(current.profile(), draft);
+        profiles.replace(projectId, overlay, current.revision());
+    }
+
+    private ArchitectureProfileDraft fromProfile(MigrationProfile profile) {
+        MigrationProfile resolved = MigrationProfiles.resolve(profile);
+        Map<String, Object> extensions = profile.extensions() == null ? Map.of() : profile.extensions();
+        return normalize(new ArchitectureProfileDraft(resolved.architecture().style(),
+                resolved.architecture().moduleGrouping(), resolved.runtime().framework(),
+                resolved.persistence().defaultStrategy(), map(extensions, EXT_PACKAGE_PREFIX, defaultsPackages()),
+                map(extensions, EXT_SUFFIX_PREFIX, defaultsSuffixes(resolved.architecture().style())),
+                map(extensions, EXT_CLASS_PREFIX, Map.of()), rules(extensions.get(EXT_RULES)), Map.of(), List.of()));
+    }
+
+    private MigrationProfile toProfile(MigrationProfile current, ArchitectureProfileDraft draft) {
+        Map<String, Object> extensions = new LinkedHashMap<>(current.extensions() == null ? Map.of() : current.extensions());
+        extensions.keySet().removeIf(key -> key.startsWith(EXT_PACKAGE_PREFIX) || key.startsWith(EXT_SUFFIX_PREFIX)
+                || key.startsWith(EXT_CLASS_PREFIX) || key.equals(EXT_RULES));
+        draft.packageRoots().forEach((key, value) -> extensions.put(EXT_PACKAGE_PREFIX + key, value));
+        draft.suffixes().forEach((key, value) -> extensions.put(EXT_SUFFIX_PREFIX + key, value));
+        draft.classNames().forEach((key, value) -> extensions.put(EXT_CLASS_PREFIX + key, value));
+        extensions.put(EXT_RULES, draft.dependencyRules().stream().map(rule -> Map.of("fromLayer", rule.fromLayer(),
+                "toLayer", rule.toLayer(), "allowed", rule.allowed(), "reason", rule.reason())).toList());
+        return new MigrationProfile(MigrationProfiles.SCHEMA_VERSION, extensions, current.target(),
+                new MigrationProfile.Architecture(draft.style(), draft.moduleGrouping()),
+                new MigrationProfile.Runtime(draft.framework()),
+                new MigrationProfile.Persistence(draft.persistence(),
+                        current.persistence() == null ? null : current.persistence().transactionBoundary(),
+                        current.persistence() == null ? null : current.persistence().sourceStrategies()),
+                current.style(), current.llm());
+    }
+
+    private ArchitectureProfileDraft normalize(ArchitectureProfileDraft draft) {
+        if (draft == null) throw validation("PROFILE_REQUIRED", "profile", "Architecture profile is required");
+        var style = draft.style() == null ? MigrationProfile.ArchitectureStyle.LAYERED_MVC : draft.style();
+        var grouping = draft.moduleGrouping() == null ? MigrationProfile.ModuleGrouping.BY_PROGRAM : draft.moduleGrouping();
+        var framework = draft.framework() == null ? MigrationProfile.Framework.SPRING_BOOT : draft.framework();
+        var persistence = draft.persistence() == null ? MigrationProfile.PersistenceStrategy.IN_MEMORY : draft.persistence();
+        Map<String, String> packages = merge(defaultsPackages(), draft.packageRoots());
+        Map<String, String> suffixes = merge(defaultsSuffixes(style), draft.suffixes());
+        Map<String, String> classes = clean(draft.classNames());
+        List<DependencyRule> rules = draft.dependencyRules() == null || draft.dependencyRules().isEmpty()
+                ? defaultRules(style) : draft.dependencyRules().stream().map(this::normalizeRule).toList();
+        return new ArchitectureProfileDraft(style, grouping, framework, persistence, packages, suffixes, classes, rules,
+                cleanLayout(draft.layout()), cleanExcluded(draft.excludedNodeIds()));
+    }
+
+    private DependencyRule normalizeRule(DependencyRule rule) {
+        if (rule == null || blank(rule.fromLayer()) || blank(rule.toLayer())) {
+            throw validation("INVALID_DEPENDENCY_RULE", "dependencyRules", "Dependency rules require source and target layers");
+        }
+        return new DependencyRule(key(rule.fromLayer()), key(rule.toLayer()), rule.allowed(),
+                blank(rule.reason()) ? "Architecture policy" : rule.reason().trim());
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<DependencyRule> rules(Object value) {
+        if (!(value instanceof List<?> list)) return List.of();
+        return list.stream().filter(Map.class::isInstance).map(Map.class::cast).map(raw -> new DependencyRule(
+                String.valueOf(raw.get("fromLayer")), String.valueOf(raw.get("toLayer")),
+                Boolean.parseBoolean(String.valueOf(raw.get("allowed"))), String.valueOf(raw.get("reason")))).toList();
+    }
+
+    private Map<String, String> map(Map<String, Object> extensions, String prefix, Map<String, String> defaults) {
+        Map<String, String> result = new LinkedHashMap<>(defaults);
+        extensions.forEach((key, value) -> {
+            if (key.startsWith(prefix) && value != null && !String.valueOf(value).isBlank()) {
+                result.put(key(key.substring(prefix.length())), String.valueOf(value));
+            }
+        });
+        return result;
+    }
+
+    private Map<String, String> merge(Map<String, String> defaults, Map<String, String> values) {
+        Map<String, String> result = new LinkedHashMap<>(defaults);
+        clean(values).forEach(result::put);
+        return Collections.unmodifiableMap(result);
+    }
+
+    private Map<String, String> clean(Map<String, String> values) {
+        if (values == null) return Map.of();
+        Map<String, String> result = new LinkedHashMap<>();
+        values.forEach((key, value) -> { if (!blank(key) && !blank(value)) result.put(key(key), value.trim()); });
+        return Collections.unmodifiableMap(result);
+    }
+
+    private Map<String, LayoutPosition> cleanLayout(Map<String, LayoutPosition> values) {
+        if (values == null || values.isEmpty()) return Map.of();
+        Map<String, LayoutPosition> result = new LinkedHashMap<>();
+        values.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            if (!blank(entry.getKey()) && entry.getValue() != null
+                    && Double.isFinite(entry.getValue().x()) && Double.isFinite(entry.getValue().y())) {
+                result.put(entry.getKey().trim(), entry.getValue());
+            }
+        });
+        return Map.copyOf(result);
+    }
+
+    private List<ExcludedNode> cleanExcluded(List<ExcludedNode> values) {
+        if (values == null || values.isEmpty()) return List.of();
+        Map<String, ExcludedNode> result = new LinkedHashMap<>();
+        values.stream().filter(value -> value != null && !blank(value.id()))
+                .sorted(Comparator.comparing(ExcludedNode::id))
+                .forEach(value -> result.putIfAbsent(value.id().trim(),
+                        new ExcludedNode(value.id().trim(), blank(value.reason()) ? "Excluded from generation" : value.reason().trim())));
+        return List.copyOf(result.values());
+    }
+
+    private Map<String, String> defaultsPackages() {
+        Map<String, String> values = new LinkedHashMap<>();
+        values.put("base", "org.modernash.renovatio.generated");
+        values.put("controller", "org.modernash.renovatio.generated.controller");
+        values.put("service", "org.modernash.renovatio.generated.service");
+        values.put("model", "org.modernash.renovatio.generated.model");
+        values.put("adapter", "org.modernash.renovatio.generated.adapter");
+        values.put("repository", "org.modernash.renovatio.generated.repository");
+        values.put("port", "org.modernash.renovatio.generated.port");
+        return Map.copyOf(values);
+    }
+
+    private Map<String, String> defaultsSuffixes(MigrationProfile.ArchitectureStyle style) {
+        Map<String, String> values = new LinkedHashMap<>();
+        values.put("controller", "Controller");
+        values.put("service", "Service");
+        values.put("model", style == MigrationProfile.ArchitectureStyle.LAYERED_MVC ? "Model" : "");
+        values.put("adapter", "Adapter");
+        values.put("repository", "Repository");
+        values.put("port", "Port");
+        return Map.copyOf(values);
+    }
+
+    private List<DependencyRule> defaultRules(MigrationProfile.ArchitectureStyle style) {
+        if (style == MigrationProfile.ArchitectureStyle.LAYERED_MVC || style == MigrationProfile.ArchitectureStyle.LAYERED) {
+            return List.of(new DependencyRule("controller", "service", true, "controllers invoke services"),
+                    new DependencyRule("service", "model", true, "services use models"),
+                    new DependencyRule("model", "controller", false, "models must stay framework independent"),
+                    new DependencyRule("model", "service", false, "models must not call services"));
+        }
+        if (style == MigrationProfile.ArchitectureStyle.CLEAN || style == MigrationProfile.ArchitectureStyle.HEXAGONAL) {
+            return List.of(new DependencyRule("adapter", "port", true, "adapters implement ports"),
+                    new DependencyRule("service", "port", true, "application services use ports"),
+                    new DependencyRule("model", "adapter", false, "domain must not depend on adapters"),
+                    new DependencyRule("service", "controller", false, "application must not depend on inbound adapters"));
+        }
+        return List.of(new DependencyRule("service", "model", true, "transaction script services use data models"),
+                new DependencyRule("model", "service", false, "data models do not invoke scripts"));
+    }
+
+    private Map<String, Object> flatten(ArchitectureProfileDraft draft) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("style", draft.style().name());
+        result.put("moduleGrouping", draft.moduleGrouping().name());
+        result.put("framework", draft.framework().name());
+        result.put("persistence", draft.persistence().name());
+        draft.packageRoots().forEach((key, value) -> result.put("packageRoots." + key, value));
+        draft.suffixes().forEach((key, value) -> result.put("suffixes." + key, value));
+        draft.classNames().forEach((key, value) -> result.put("classNames." + key, value));
+        for (DependencyRule rule : draft.dependencyRules()) {
+            result.put("dependencyRules." + rule.fromLayer() + "." + rule.toLayer(), rule.allowed() + ":" + rule.reason());
+        }
+        draft.layout().forEach((key, value) -> result.put("layout." + key, value.x() + "," + value.y()));
+        draft.excludedNodeIds().forEach(value -> result.put("excludedNodeIds." + value.id(), value.reason()));
+        return result;
+    }
+
+    private String canonicalHash(ArchitectureProfileDraft draft) {
+        return MigrationProfiles.sha256(MigrationProfiles.canonical(flatten(draft)));
+    }
+
+    private String serialize(ArchitectureProfileDraft profile) {
+        try { return json.writeValueAsString(profile); }
+        catch (JsonProcessingException error) { throw new IllegalStateException("Unable to serialize architecture profile", error); }
+    }
+
+    private ArchitectureProfileDraft deserialize(ProjectArchitectureProfileVersionEntity entity) {
+        try { return normalize(json.readValue(entity.getProfileJson(), ArchitectureProfileDraft.class)); }
+        catch (JsonProcessingException error) { throw new IllegalStateException("Unable to read architecture profile", error); }
+    }
+
+    private ProjectArchitectureProfileVersionEntity latest(String projectId) {
+        return versions.findFirstByProjectIdOrderByRevisionDesc(projectId).orElse(null);
+    }
+
+    private void requireProject(String projectId) {
+        if (!projects.existsById(projectId)) throw new NotFoundException("Project was not found");
+    }
+
+    private ValidationException validation(String code, String targetId, String message) {
+        return new ValidationException(List.of(new DependencyDiagnostic("error", code, targetId, targetId, message)));
+    }
+
+    private String hash(String value) { return "sha256:" + value; }
+    private boolean blank(String value) { return value == null || value.isBlank(); }
+    private String key(String value) { return value.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", "-"); }
+    private String path(String packageName, String className) { return packageName.replace('.', '/') + "/" + className + ".java"; }
+    private boolean isValidPackageName(String value) {
+        return !blank(value) && java.util.Arrays.stream(value.split("\\.")).allMatch(this::isValidJavaIdentifier);
+    }
+    private boolean isValidJavaIdentifier(String value) {
+        if (blank(value) || JAVA_KEYWORDS.contains(value)) return false;
+        if (!Character.isJavaIdentifierStart(value.charAt(0))) return false;
+        for (int i = 1; i < value.length(); i++) {
+            if (!Character.isJavaIdentifierPart(value.charAt(i))) return false;
+        }
+        return true;
+    }
+    private String layer(String value, String label) {
+        try {
+            return ArchitectureLayoutOverrides.from(MigrationProfiles.emptyOverlay())
+                    .layer(ArchitectureGraph.ComponentKind.valueOf(value), label);
+        } catch (IllegalArgumentException ignored) {
+            String key = (value + " " + label).toLowerCase(Locale.ROOT);
+            if (key.contains("port")) return "port";
+            if (key.contains("controller") || key.contains("inbound")) return "controller";
+            if (key.contains("service") || key.contains("use_case") || key.contains("use-case")) return "service";
+            if (key.contains("entity") || key.contains("value") || key.contains("model")
+                    || key.contains("data-transfer-object")) return "model";
+            if (key.contains("repository")) return "repository";
+            return key.contains("adapter") || key.contains("outbound") ? "adapter" : "service";
+        }
+    }
+    /** Falls back to a capitalized layer name (e.g. "Controller", "Service")
+     * when the profile has no explicit suffix for a layer, instead of an
+     * empty string. An unconfigured profile (suffixes = {}) previously
+     * collapsed every layer's className to the same classBase(component
+     * name), so a program's Controller/Service/Model all resolved to the
+     * identical generated path and silently overwrote each other (see
+     * #276 review — "Reject duplicate generated artifact paths"). */
+    private String defaultSuffix(Map<String, String> suffixes, String layer) {
+        String configured = suffixes.get(layer);
+        if (configured != null && !configured.isBlank()) return configured;
+        if (layer == null || layer.isBlank()) return "";
+        return Character.toUpperCase(layer.charAt(0)) + layer.substring(1).toLowerCase(Locale.ROOT);
+    }
+    private String classBase(String value) {
+        String compact = value.replaceAll("[^A-Za-z0-9]+", " ").trim();
+        if (compact.isBlank()) return "GeneratedArtifact";
+        StringBuilder result = new StringBuilder();
+        for (String part : compact.split("\\s+")) {
+            result.append(Character.toUpperCase(part.charAt(0)));
+            if (part.length() > 1) result.append(part.substring(1).toLowerCase(Locale.ROOT));
+        }
+        return Character.isLetter(result.charAt(0)) ? result.toString() : "Generated" + result;
+    }
+
+    public static final class RevisionConflictException extends RuntimeException {
+        private final long currentRevision;
+        public RevisionConflictException(long currentRevision) {
+            super("Expected revision does not match the current Architecture profile revision");
+            this.currentRevision = currentRevision;
+        }
+        public long currentRevision() { return currentRevision; }
+    }
+
+    public static final class ValidationException extends RuntimeException {
+        private final List<DependencyDiagnostic> diagnostics;
+        public ValidationException(List<DependencyDiagnostic> diagnostics) {
+            super("Architecture profile validation failed");
+            this.diagnostics = List.copyOf(diagnostics);
+        }
+        public List<DependencyDiagnostic> diagnostics() { return diagnostics; }
+    }
+
+    public static final class NotFoundException extends RuntimeException {
+        public NotFoundException(String message) { super(message); }
+    }
+}

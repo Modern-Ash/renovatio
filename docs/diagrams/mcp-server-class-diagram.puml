@@ -5,7 +5,7 @@ skinparam shadowing false
 skinparam linetype ortho
 
 package "renovatio-mcp-server" {
-  package "org.shark.renovatio.mcp.server" {
+  package "org.modernash.renovatio.mcp.server" {
     class McpServerApplication <<SpringBootApp>> {
       +main(args: String[]): void
     }
@@ -14,7 +14,7 @@ package "renovatio-mcp-server" {
     }
   }
 
-  package "org.shark.renovatio.mcp.server.service" {
+  package "org.modernash.renovatio.mcp.server.service" {
     class McpProtocolService {
       +listTools(params: Map): List<McpTool>
       +callTool(method: String, args: Map): ToolCallResult
@@ -36,7 +36,7 @@ package "renovatio-mcp-server" {
     }
   }
 
-  package "org.shark.renovatio.mcp.server.model" {
+  package "org.modernash.renovatio.mcp.server.model" {
     class McpTool {
       -name: String
       -description: String
@@ -55,7 +55,7 @@ package "renovatio-mcp-server" {
     }
   }
 
-  package "org.shark.renovatio.mcp.server.transport" {
+  package "org.modernash.renovatio.mcp.server.transport" {
     class McpStdioServer {
       +start(): java.util.concurrent.CompletableFuture<Void>
     }
@@ -63,7 +63,7 @@ package "renovatio-mcp-server" {
 }
 
 package "renovatio-core" {
-  package "org.shark.renovatio.core.service" {
+  package "org.modernash.renovatio.core.service" {
     class LanguageProviderRegistry {
       +generateTools(): List<Tool>
       +execute(capability: String, args: Map): Object
@@ -72,7 +72,7 @@ package "renovatio-core" {
 }
 
 package "renovatio-shared" {
-  package "org.shark.renovatio.shared.domain" {
+  package "org.modernash.renovatio.shared.domain" {
     class Tool {
       -name: String
       -description: String
@@ -109,8 +109,8 @@ note bottom of McpStdioServerApplication
   En modo stdio, es necesario incluir
   los paquetes de providers en el escaneo
   de componentes (p.ej.:
-  org.shark.renovatio.provider.java,
-  org.shark.renovatio.provider.cobol)
+  org.modernash.renovatio.provider.java,
+  org.modernash.renovatio.provider.cobol)
 end note
 
 note bottom of LanguageProviderRegistry

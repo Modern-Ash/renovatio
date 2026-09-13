@@ -16,7 +16,7 @@ renovatio-api/
 ├── pom.xml
 └── src/
     ├── main/
-    │   ├── java/org/shark/renovatio/api/
+    │   ├── java/org/modernash/renovatio/api/
     │   │   ├── RenovatioApiApplication.java
     │   │   ├── config/
     │   │   │   ├── AsyncConfig.java
@@ -54,7 +54,7 @@ renovatio-api/
     │   └── resources/
     │       └── application.yml
     └── test/
-        └── java/org/shark/renovatio/api/
+        └── java/org/modernash/renovatio/api/
             ├── controller/
             │   ├── ProjectControllerTest.java
             │   ├── JobControllerTest.java
@@ -74,15 +74,15 @@ renovatio-api/
 <dependencies>
     <!-- Core Renovatio -->
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-core</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-shared</artifactId>
     </dependency>
     <dependency>
-        <groupId>org.shark.renovatio</groupId>
+        <groupId>org.modernash.renovatio</groupId>
         <artifactId>renovatio-provider-cobol</artifactId>
     </dependency>
 
@@ -130,7 +130,7 @@ Add to root `pom.xml` `<modules>`:
 Add to root `pom.xml` `<dependencyManagement>`:
 ```xml
 <dependency>
-    <groupId>org.shark.renovatio</groupId>
+    <groupId>org.modernash.renovatio</groupId>
     <artifactId>renovatio-api</artifactId>
     <version>${project.version}</version>
 </dependency>

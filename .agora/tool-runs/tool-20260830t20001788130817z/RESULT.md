@@ -24,11 +24,11 @@ result-kind: "repository-change"
      create mode 100644 docs/reports/llm-annotated-ir-semantic-validation-20260830.md
      create mode 100644 docs/reports/llm-attribution-reconciliation-20260830.md
      create mode 100644 docs/reports/llm-promotion-history-verification-20260830.md
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/GitPromotionRepository.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/GovernedPromotionVerifier.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/cache/PromotionRepository.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/prompt/AnnotatedIrSemanticOutputValidator.java
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/cache/GovernedPromotionVerifierTest.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/GitPromotionRepository.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/GovernedPromotionVerifier.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/cache/PromotionRepository.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/prompt/AnnotatedIrSemanticOutputValidator.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/cache/GovernedPromotionVerifierTest.java
 
 ## Standard error
 

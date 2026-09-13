@@ -14,9 +14,9 @@ result-kind: "repository-change"
      8 files changed, 353 insertions(+)
      create mode 100644 .agora/tool-runs/tool-20260831t00131788146018z/RESULT.md
      create mode 100644 .agora/tool-runs/tool-20260831t00131788146018z/RUN.md
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualAnnotationAssembler.java
-     create mode 100644 renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualAnnotationContext.java
-     create mode 100644 renovatio-llm/src/test/java/org/shark/renovatio/llm/residual/ResidualAnnotationAssemblerTest.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualAnnotationAssembler.java
+     create mode 100644 renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualAnnotationContext.java
+     create mode 100644 renovatio-llm/src/test/java/org/modernash/renovatio/llm/residual/ResidualAnnotationAssemblerTest.java
 
 ## Standard error
 

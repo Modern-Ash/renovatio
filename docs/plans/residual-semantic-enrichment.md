@@ -8,7 +8,7 @@
 
 1. **Closed residual routing boundary**
    - Add a closed construction classification and request contract under
-     `org.shark.renovatio.llm.residual` for domain naming, irreducible control flow, data intent,
+     `org.modernash.renovatio.llm.residual` for domain naming, irreducible control flow, data intent,
      unsupported constructs, and the deterministic lane.
    - Route only the residual classes to the governed enrichment runtime. The deterministic class
      returns its existing result without preparing a prompt, reading the cache, or calling a
@@ -78,10 +78,10 @@
 
 ## Planned files
 
-- `renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/**`
-- `renovatio-llm/src/test/java/org/shark/renovatio/llm/residual/**`
+- `renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/**`
+- `renovatio-llm/src/test/java/org/modernash/renovatio/llm/residual/**`
 - Existing annotated-IR types under
-  `renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/**` only where the
+  `renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/**` only where the
   accepted v1 contract requires an additive typed field or validator.
 - `docs/testing/residual-semantic-enrichment.md` for final evidence.
 

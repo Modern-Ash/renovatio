@@ -1732,13 +1732,13 @@ termination-reason: null
     ?? .agora/sessions/issue-123-verification/
     ./specs/ai-modernization/ADR-001-three-pass-llm-architecture.md:27:| `MOVE`, `COMPUTE`, `IF`, `EVALUATE`, simple `PERFORM`, basic PIC mapping, level-88 mapping | Deterministic parser, IR, runtime, and recipes |
     ./specs/feature/1-cobol-python-migration/data-model.md:34:- body_ir: object (IR for actions: MOVE, PERFORM, IF, READ, WRITE)
-    ./renovatio-llm/src/test/java/org/shark/renovatio/llm/residual/ResidualEnrichmentCoordinatorTest.java:28:                ResidualConstruction.EVALUATE, ResidualConstruction.SIMPLE_PERFORM,
+    ./renovatio-llm/src/test/java/org/modernash/renovatio/llm/residual/ResidualEnrichmentCoordinatorTest.java:28:                ResidualConstruction.EVALUATE, ResidualConstruction.SIMPLE_PERFORM,
     ./specs/feature/1-cobol-python-migration/spec.md:31:- Unit Tests: Validar transformaciones unitarias de constructos COBOL → Python (p. ej., MOVE, PERFORM, READ/WRITE)
     ./specs/1-cobol-python-migration/data-model.md:34:- body_ir: object (IR for actions: MOVE, PERFORM, IF, READ, WRITE)
     ./specs/1-cobol-python-migration/spec.md:31:- Unit Tests: Validar transformaciones unitarias de constructos COBOL → Python (p. ej., MOVE, PERFORM, READ/WRITE)
     ./docs/COBOL-TO-PYTHON-IMPLEMENTATION-PLAN.md:182:| PERFORM | Method Calls | Function Calls |
     ./docs/COBOL-TO-PYTHON-IMPLEMENTATION-PLAN.md:184:| EVALUATE | switch/case | match-case (Python 3.10+) |
-    ./renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java:51:        CobolDiagnostic later = diagnostic("COBOL-PERFORM-002", 20);
+    ./renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java:51:        CobolDiagnostic later = diagnostic("COBOL-PERFORM-002", 20);
     ./docs/plans/residual-semantic-enrichment.md:17:     EVALUATE, simple PERFORM, basic PIC mapping, and level-88 conditions.
     ./docs/plans/characterization-guardrails.md:47:5. `evaluate-level-88`
     ./ARCHITECTURE.md:88:- Lightweight parser capable of extracting statements (`MOVE`, `COMPUTE`, `IF`, `PERFORM`, embedded SQL)
@@ -1753,34 +1753,34 @@ termination-reason: null
     ./docs/plans/deterministic-semantic-core.md:80:- Add focused boundary tests for PIC mappings, level-88 values/ranges/overlap, arithmetic overflow,
     ./docs/plans/deterministic-semantic-core.md:97:| `renovatio-cobol-ir` | Typed expressions/conditions, PIC-aware data items, level-88, parser diagnostics |
     ./docs/plans/deterministic-semantic-core.md:106:| `data-model` | Steps 2, 4, and 6 cover rich PIC semantics and typed level-88 predicates. |
-    ./renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:81:                        AnnotatedNodeKind.EVALUATE_STATEMENT, AnnotatedNodeKind.EVALUATE_BRANCH,
-    ./renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:82:                        AnnotatedNodeKind.PERFORM_STATEMENT),
+    ./renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:81:                        AnnotatedNodeKind.EVALUATE_STATEMENT, AnnotatedNodeKind.EVALUATE_BRANCH,
+    ./renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:82:                        AnnotatedNodeKind.PERFORM_STATEMENT),
     ./docs/specs/annotated-ir-contract.md:95:Identity-bearing nodes are data items, their level-88 conditions and values, paragraphs, recursively
     ./docs/specs/annotated-ir-contract.md:105:`MOVE_STATEMENT`, `COMPUTE_STATEMENT`, `IF_STATEMENT`, `EVALUATE_STATEMENT`, `EVALUATE_BRANCH`,
     ./docs/specs/annotated-ir-contract.md:106:`PERFORM_STATEMENT`, `CALL_STATEMENT`, `DB2_STATEMENT`, `FILE_OPERATION_STATEMENT`,
     ./docs/specs/annotated-ir-contract.md:171:- leave cross-item duplicate `annotationId` rejection to the deterministic semantic validator;
     ./docs/specs/annotated-ir-contract.md:175:JSON Schema validates document shape. A deterministic semantic validator additionally verifies
-    ./renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:33:                    EVALUATE WS-NUM
-    ./renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:38:                    END-EVALUATE.
-    ./renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:39:                    PERFORM PARA-2 THRU PARA-3.
-    ./renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:95:        // Control flow edges due to PERFORM and THRU
+    ./renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:33:                    EVALUATE WS-NUM
+    ./renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:38:                    END-EVALUATE.
+    ./renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:39:                    PERFORM PARA-2 THRU PARA-3.
+    ./renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:95:        // Control flow edges due to PERFORM and THRU
     ./docs/CONTROL-BREAK-DECOMPOSITION.md:102:           PERFORM UNTIL END-OF-FILE
     ./docs/CONTROL-BREAK-DECOMPOSITION.md:104:                   PERFORM REGION-BREAK
     ./docs/CONTROL-BREAK-DECOMPOSITION.md:107:                   PERFORM CUSTOMER-BREAK
     ./docs/CONTROL-BREAK-DECOMPOSITION.md:111:           END-PERFORM.
     ./docs/CONTROL-BREAK-DECOMPOSITION.md:113:           PERFORM FINAL-TOTALS.
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:65:                           PERFORM READ-SALES.
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:69:                           PERFORM PROCESS-RECORD UNTIL END-OF-FILE.
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:71:                           PERFORM REGION-BREAK.
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:72:                           PERFORM FINAL-TOTALS.
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:78:                               PERFORM REGION-BREAK
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:81:                               PERFORM CUSTOMER-BREAK
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:85:                           PERFORM READ-SALES.
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:91:                           PERFORM CUSTOMER-BREAK.
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:165:                           PERFORM PROCESS-PARA UNTIL END-OF-FILE.
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:171:                               PERFORM BREAK-PARA
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:260:                           PERFORM PROCESS-ITEMS UNTIL END-OF-FILE.
-    ./renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:266:                               PERFORM CATEGORY-BREAK
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:65:                           PERFORM READ-SALES.
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:69:                           PERFORM PROCESS-RECORD UNTIL END-OF-FILE.
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:71:                           PERFORM REGION-BREAK.
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:72:                           PERFORM FINAL-TOTALS.
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:78:                               PERFORM REGION-BREAK
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:81:                               PERFORM CUSTOMER-BREAK
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:85:                           PERFORM READ-SALES.
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:91:                           PERFORM CUSTOMER-BREAK.
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:165:                           PERFORM PROCESS-PARA UNTIL END-OF-FILE.
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:171:                               PERFORM BREAK-PARA
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:260:                           PERFORM PROCESS-ITEMS UNTIL END-OF-FILE.
+    ./renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:266:                               PERFORM CATEGORY-BREAK
     ./docs/specs/residual-semantic-enrichment.md:43:`MOVE`, `COMPUTE`, `IF`, `EVALUATE`, simple `PERFORM`, basic PIC mapping, level-88 conditions,
     ./docs/COBOL-TO-PYTHON-TECHNICAL-SPEC.md:540:           PERFORM VALIDATE-CUSTOMER.
     ./docs/specs/characterization-guardrails.md:55:| `evaluate-level-88` | `EVALUATE` with level-88 conditions | Supported outputs |
@@ -1801,45 +1801,45 @@ termination-reason: null
     ./docs/specs/deterministic-semantic-core.md:158:| `EVALUATE` | `evaluate-level-88`; literal, level-88, ordered branch, and `WHEN OTHER` coverage |
     ./docs/specs/deterministic-semantic-core.md:159:| Simple `PERFORM` | `perform-simple-nested`; acyclic nesting, missing target, recursion, and unsupported form rejection |
     ./renovatio-cobol-ir/src/main/resources/schema/cobol-annotated-ir.v1.schema.json:27:      "enum": ["DATA_ITEM", "LEVEL_88_CONDITION", "LEVEL_88_VALUE", "PARAGRAPH", "MOVE_STATEMENT", "COMPUTE_STATEMENT", "IF_STATEMENT", "EVALUATE_STATEMENT", "EVALUATE_BRANCH", "PERFORM_STATEMENT", "CALL_STATEMENT", "DB2_STATEMENT", "FILE_OPERATION_STATEMENT", "LITERAL_EXPRESSION", "DATA_REFERENCE_EXPRESSION", "UNARY_ARITHMETIC_EXPRESSION", "BINARY_ARITHMETIC_EXPRESSION", "COMPARISON_CONDITION", "BOOLEAN_CONDITION", "NEGATED_CONDITION", "LEVEL_88_CONDITION_REFERENCE"]
-    ./cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:27:                PERFORM PREP-PARA.
-    ./cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:34:                EVALUATE CUSTOMER-RATING
-    ./cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:39:                END-EVALUATE.
-    ./cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:97:                    PERFORM PREP-PARA.
-    ./cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:135:        assertThat(updated).doesNotContain("PERFORM");
+    ./cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:27:                PERFORM PREP-PARA.
+    ./cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:34:                EVALUATE CUSTOMER-RATING
+    ./cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:39:                END-EVALUATE.
+    ./cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:97:                    PERFORM PREP-PARA.
+    ./cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:135:        assertThat(updated).doesNotContain("PERFORM");
     ./docs/adr/0001-annotated-cobol-ir-sidecar.md:29:identities, and deterministic outputs are checked separately by a deterministic semantic validator.
-    ./renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/domain/CobolDataItem.java:114:        MOVE, COMPUTE, IF, PERFORM, CALL, READ, WRITE, OPEN, CLOSE,
-    ./renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/MetricsService.java:207:        complexity += countOccurrences(upperContent, " PERFORM UNTIL ");
-    ./renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/MetricsService.java:208:        complexity += countOccurrences(upperContent, " PERFORM VARYING ");
-    ./renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/MetricsService.java:233:        String[] cobolVerbs = {"MOVE", "COMPUTE", "IF", "PERFORM", "CALL", "READ", "WRITE",
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/Level88Condition.java:6:/** Typed representation of a COBOL level-88 condition attached to its parent item. */
-    ./renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/IndexingService.java:274:        String[] cobolVerbs = {"MOVE", "COMPUTE", "IF", "PERFORM", "CALL", "READ", "WRITE",
-    ./cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:210:                        "// Recursive PERFORM of paragraph %s detected, skipping expansion", upperName));
-    ./cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:296:                lines.add("// PERFORM with unnamed paragraph");
-    ./cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:304:                            "// PERFORM %s (paragraph is empty)", perform.paragraph()));
-    ./cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:309:                    "// PERFORM %s (paragraph not found)", perform.paragraph())));
-    ./cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:313:                        "// PERFORM THRU %s not yet expanded", perform.throughParagraph()));
-    ./renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualConstruction.java:8:    EVALUATE,
-    ./renovatio-llm/src/main/java/org/shark/renovatio/llm/residual/ResidualConstruction.java:9:    SIMPLE_PERFORM,
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/Level88Value.java:6:/** A value or inclusive range accepted by a COBOL level-88 condition name. */
+    ./renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/domain/CobolDataItem.java:114:        MOVE, COMPUTE, IF, PERFORM, CALL, READ, WRITE, OPEN, CLOSE,
+    ./renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/MetricsService.java:207:        complexity += countOccurrences(upperContent, " PERFORM UNTIL ");
+    ./renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/MetricsService.java:208:        complexity += countOccurrences(upperContent, " PERFORM VARYING ");
+    ./renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/MetricsService.java:233:        String[] cobolVerbs = {"MOVE", "COMPUTE", "IF", "PERFORM", "CALL", "READ", "WRITE",
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/Level88Condition.java:6:/** Typed representation of a COBOL level-88 condition attached to its parent item. */
+    ./renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/IndexingService.java:274:        String[] cobolVerbs = {"MOVE", "COMPUTE", "IF", "PERFORM", "CALL", "READ", "WRITE",
+    ./cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:210:                        "// Recursive PERFORM of paragraph %s detected, skipping expansion", upperName));
+    ./cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:296:                lines.add("// PERFORM with unnamed paragraph");
+    ./cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:304:                            "// PERFORM %s (paragraph is empty)", perform.paragraph()));
+    ./cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:309:                    "// PERFORM %s (paragraph not found)", perform.paragraph())));
+    ./cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java:313:                        "// PERFORM THRU %s not yet expanded", perform.throughParagraph()));
+    ./renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualConstruction.java:8:    EVALUATE,
+    ./renovatio-llm/src/main/java/org/modernash/renovatio/llm/residual/ResidualConstruction.java:9:    SIMPLE_PERFORM,
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/Level88Value.java:6:/** A value or inclusive range accepted by a COBOL level-88 condition name. */
     ./docs/reports/residual-semantic-enrichment-test-report.md:29:| `residual-only` | `ResidualEnrichmentCoordinatorTest` | MOVE, COMPUTE, IF, EVALUATE, simple PERFORM, basic PIC and level-88 execute with zero residual-runtime calls: PASS |
     ./docs/reports/residual-semantic-enrichment-revalidation-20260830.md:29:| `residual-only` | `ResidualEnrichmentCoordinatorTest` | MOVE, COMPUTE, IF, EVALUATE, simple PERFORM, basic PIC and level-88 execute with zero residual-runtime calls: PASS |
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/BusinessLogicDecomposer.java:337:     * Creates a business rule from an EVALUATE statement.
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:54:            Keywords.IF, Keywords.ELSE, Keywords.MOVE, Keywords.COMPUTE, Keywords.EVALUATE, Keywords.PERFORM,
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:58:    private static final Set<String> EXCLUDED_END_HEADERS = Set.of("END-IF", "END-EVALUATE", "END-EXEC");
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:92:        static final String EVALUATE = "EVALUATE";
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:95:        static final String END_EVALUATE = "END-EVALUATE";
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:97:        static final String PERFORM = "PERFORM";
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:446:            if (upperLine.startsWith(Keywords.EVALUATE)) {
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:450:            if (upperLine.startsWith(Keywords.PERFORM)) {
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:532:        String expression = lines.get(index).trim().substring(Keywords.EVALUATE.length()).trim();
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:558:            if (up.startsWith(Keywords.END_EVALUATE)) {
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:596:        String withoutPerform = line.substring(Keywords.PERFORM.length()).trim();
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:95:                    add(nodes, AnnotatedNodeKind.EVALUATE_BRANCH, branchPath, evaluateBranch(branch));
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:263:        if (value instanceof EvaluateStatement) return AnnotatedNodeKind.EVALUATE_STATEMENT;
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:264:        if (value instanceof PerformStatement) return AnnotatedNodeKind.PERFORM_STATEMENT;
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:277:        if (value instanceof EvaluateStatement.EvaluateWhenBranch) return AnnotatedNodeKind.EVALUATE_BRANCH;
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedNodeKind.java:5:    MOVE_STATEMENT, COMPUTE_STATEMENT, IF_STATEMENT, EVALUATE_STATEMENT, EVALUATE_BRANCH,
-    ./renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedNodeKind.java:6:    PERFORM_STATEMENT, CALL_STATEMENT, DB2_STATEMENT, FILE_OPERATION_STATEMENT,
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/BusinessLogicDecomposer.java:337:     * Creates a business rule from an EVALUATE statement.
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:54:            Keywords.IF, Keywords.ELSE, Keywords.MOVE, Keywords.COMPUTE, Keywords.EVALUATE, Keywords.PERFORM,
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:58:    private static final Set<String> EXCLUDED_END_HEADERS = Set.of("END-IF", "END-EVALUATE", "END-EXEC");
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:92:        static final String EVALUATE = "EVALUATE";
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:95:        static final String END_EVALUATE = "END-EVALUATE";
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:97:        static final String PERFORM = "PERFORM";
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:446:            if (upperLine.startsWith(Keywords.EVALUATE)) {
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:450:            if (upperLine.startsWith(Keywords.PERFORM)) {
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:532:        String expression = lines.get(index).trim().substring(Keywords.EVALUATE.length()).trim();
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:558:            if (up.startsWith(Keywords.END_EVALUATE)) {
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:596:        String withoutPerform = line.substring(Keywords.PERFORM.length()).trim();
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:95:                    add(nodes, AnnotatedNodeKind.EVALUATE_BRANCH, branchPath, evaluateBranch(branch));
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:263:        if (value instanceof EvaluateStatement) return AnnotatedNodeKind.EVALUATE_STATEMENT;
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:264:        if (value instanceof PerformStatement) return AnnotatedNodeKind.PERFORM_STATEMENT;
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:277:        if (value instanceof EvaluateStatement.EvaluateWhenBranch) return AnnotatedNodeKind.EVALUATE_BRANCH;
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedNodeKind.java:5:    MOVE_STATEMENT, COMPUTE_STATEMENT, IF_STATEMENT, EVALUATE_STATEMENT, EVALUATE_BRANCH,
+    ./renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedNodeKind.java:6:    PERFORM_STATEMENT, CALL_STATEMENT, DB2_STATEMENT, FILE_OPERATION_STATEMENT,
     
     2026-08-31T01:09:50.886950Z ERROR codex_models_manager::manager: failed to renew cache TTL: missing field `base_instructions` at line 97 column 5
     exec
@@ -2060,12 +2060,12 @@ termination-reason: null
     [INFO] Renovatio COBOL OpenRewrite Recipes                                [jar]
     [INFO] Renovatio COBOL Provider                                           [jar]
     [INFO] 
-    [INFO] ----------------< org.shark.renovatio:renovatio-parent >----------------
+    [INFO] ----------------< org.modernash.renovatio:renovatio-parent >----------------
     [INFO] Building Renovatio - Multi-Language Refactoring Platform 0.0.1-SNAPSHOT [1/8]
     [INFO]   from pom.xml
     [INFO] --------------------------------[ pom ]---------------------------------
     [INFO] 
-    [INFO] ----------------< org.shark.renovatio:renovatio-shared >----------------
+    [INFO] ----------------< org.modernash.renovatio:renovatio-shared >----------------
     [INFO] Building Renovatio Shared 0.0.1-SNAPSHOT                           [2/8]
     [INFO]   from renovatio-shared/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -2225,12 +2225,12 @@ termination-reason: null
     [INFO] Renovatio COBOL OpenRewrite Recipes                                [jar]
     [INFO] Renovatio COBOL Provider                                           [jar]
     [INFO] 
-    [INFO] ----------------< org.shark.renovatio:renovatio-parent >----------------
+    [INFO] ----------------< org.modernash.renovatio:renovatio-parent >----------------
     [INFO] Building Renovatio - Multi-Language Refactoring Platform 0.0.1-SNAPSHOT [1/8]
     [INFO]   from pom.xml
     [INFO] --------------------------------[ pom ]---------------------------------
     [INFO] 
-    [INFO] ----------------< org.shark.renovatio:renovatio-shared >----------------
+    [INFO] ----------------< org.modernash.renovatio:renovatio-shared >----------------
     [INFO] Building Renovatio Shared 0.0.1-SNAPSHOT                           [2/8]
     [INFO]   from renovatio-shared/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -2381,14 +2381,14 @@ termination-reason: null
     [INFO] Renovatio COBOL OpenRewrite Recipes                                [jar]
     [INFO] Renovatio COBOL Provider                                           [jar]
     [INFO] 
-    [INFO] ----------------< org.shark.renovatio:renovatio-parent >----------------
+    [INFO] ----------------< org.modernash.renovatio:renovatio-parent >----------------
     [INFO] Building Renovatio - Multi-Language Refactoring Platform 0.0.1-SNAPSHOT [1/8]
     [INFO]   from pom.xml
     [INFO] --------------------------------[ pom ]---------------------------------
     [INFO] 
     [INFO] --- clean:3.3.2:clean (default-clean) @ renovatio-parent ---
     [INFO] 
-    [INFO] ----------------< org.shark.renovatio:renovatio-shared >----------------
+    [INFO] ----------------< org.modernash.renovatio:renovatio-shared >----------------
     [INFO] Building Renovatio Shared 0.0.1-SNAPSHOT                           [2/8]
     [INFO]   from renovatio-shared/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -2429,32 +2429,32 @@ termination-reason: null
     [INFO] -------------------------------------------------------
     [INFO]  T E S T S
     [INFO] -------------------------------------------------------
-    [INFO] Running org.shark.renovatio.shared.nql.NqlParserServiceTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.054 s -- in org.shark.renovatio.shared.nql.NqlParserServiceTest
-    [INFO] Running org.shark.renovatio.shared.nql.NqlQueryTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.shark.renovatio.shared.nql.NqlQueryTest
-    [INFO] Running org.shark.renovatio.shared.nql.NqlCompileResultTest
-    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.shark.renovatio.shared.nql.NqlCompileResultTest
-    [INFO] Running org.shark.renovatio.shared.domain.AccessRoleTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.shared.domain.AccessRoleTest
-    [INFO] Running org.shark.renovatio.shared.domain.ProviderResultsTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in org.shark.renovatio.shared.domain.ProviderResultsTest
-    [INFO] Running org.shark.renovatio.shared.domain.ScopeTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.shared.domain.ScopeTest
-    [INFO] Running org.shark.renovatio.shared.domain.WorkspaceTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.shark.renovatio.shared.domain.WorkspaceTest
-    [INFO] Running org.shark.renovatio.shared.domain.MetricsResultTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.shared.domain.MetricsResultTest
-    [INFO] Running org.shark.renovatio.shared.domain.BasicToolTest
-    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.shared.domain.BasicToolTest
-    [INFO] Running org.shark.renovatio.shared.domain.MigrationReportTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.shared.domain.MigrationReportTest
-    [INFO] Running org.shark.renovatio.shared.util.BenchmarkUtilsTest
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in org.shark.renovatio.shared.util.BenchmarkUtilsTest
-    [INFO] Running org.shark.renovatio.shared.spi.ExtendedLanguageProviderTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.shark.renovatio.shared.spi.ExtendedLanguageProviderTest
-    [INFO] Running org.shark.renovatio.shared.spi.BaseLanguageProviderTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.shark.renovatio.shared.spi.BaseLanguageProviderTest
+    [INFO] Running org.modernash.renovatio.shared.nql.NqlParserServiceTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.054 s -- in org.modernash.renovatio.shared.nql.NqlParserServiceTest
+    [INFO] Running org.modernash.renovatio.shared.nql.NqlQueryTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.modernash.renovatio.shared.nql.NqlQueryTest
+    [INFO] Running org.modernash.renovatio.shared.nql.NqlCompileResultTest
+    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.modernash.renovatio.shared.nql.NqlCompileResultTest
+    [INFO] Running org.modernash.renovatio.shared.domain.AccessRoleTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.shared.domain.AccessRoleTest
+    [INFO] Running org.modernash.renovatio.shared.domain.ProviderResultsTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in org.modernash.renovatio.shared.domain.ProviderResultsTest
+    [INFO] Running org.modernash.renovatio.shared.domain.ScopeTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.shared.domain.ScopeTest
+    [INFO] Running org.modernash.renovatio.shared.domain.WorkspaceTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.modernash.renovatio.shared.domain.WorkspaceTest
+    [INFO] Running org.modernash.renovatio.shared.domain.MetricsResultTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.shared.domain.MetricsResultTest
+    [INFO] Running org.modernash.renovatio.shared.domain.BasicToolTest
+    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.shared.domain.BasicToolTest
+    [INFO] Running org.modernash.renovatio.shared.domain.MigrationReportTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.shared.domain.MigrationReportTest
+    [INFO] Running org.modernash.renovatio.shared.util.BenchmarkUtilsTest
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.014 s -- in org.modernash.renovatio.shared.util.BenchmarkUtilsTest
+    [INFO] Running org.modernash.renovatio.shared.spi.ExtendedLanguageProviderTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.modernash.renovatio.shared.spi.ExtendedLanguageProviderTest
+    [INFO] Running org.modernash.renovatio.shared.spi.BaseLanguageProviderTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.modernash.renovatio.shared.spi.BaseLanguageProviderTest
     [INFO] 
     [INFO] Results:
     [INFO] 
@@ -2465,7 +2465,7 @@ termination-reason: null
     [INFO] Loading execution data file /home/faguero/dev/renovatio/renovatio-shared/target/jacoco.exec
     [INFO] Analyzed bundle 'Renovatio Shared' with 20 classes
     [INFO] 
-    [INFO] -----------------< org.shark.renovatio:renovatio-core >-----------------
+    [INFO] -----------------< org.modernash.renovatio:renovatio-core >-----------------
     [INFO] Building Renovatio Core 0.0.1-SNAPSHOT                             [3/8]
     [INFO]   from renovatio-core/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -2483,8 +2483,8 @@ termination-reason: null
     [INFO] --- compiler:3.11.0:compile (default-compile) @ renovatio-core ---
     [INFO] Changes detected - recompiling the module! :dependency
     [INFO] Compiling 14 source files with javac [debug release 17 module-path] to target/classes
-    [WARNING] /home/faguero/dev/renovatio/renovatio-core/src/main/java/org/shark/renovatio/core/mapper/UserMapper.java:[16,13] Unmapped target property: "nombre".
-    [WARNING] /home/faguero/dev/renovatio/renovatio-core/src/main/java/org/shark/renovatio/core/mapper/UserMapper.java:[18,16] Unmapped target property: "name".
+    [WARNING] /home/faguero/dev/renovatio/renovatio-core/src/main/java/org/modernash/renovatio/core/mapper/UserMapper.java:[16,13] Unmapped target property: "nombre".
+    [WARNING] /home/faguero/dev/renovatio/renovatio-core/src/main/java/org/modernash/renovatio/core/mapper/UserMapper.java:[18,16] Unmapped target property: "name".
     [INFO] 
     [INFO] --- resources:3.3.1:testResources (default-testResources) @ renovatio-core ---
     [INFO] Copying 1 resource from src/test/resources to target/test-classes
@@ -2492,8 +2492,8 @@ termination-reason: null
     [INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ renovatio-core ---
     [INFO] Changes detected - recompiling the module! :dependency
     [INFO] Compiling 13 source files with javac [debug release 17 module-path] to target/test-classes
-    [INFO] /home/faguero/dev/renovatio/renovatio-core/src/test/java/org/shark/renovatio/core/service/LanguageProviderRegistryInternalsTest.java: /home/faguero/dev/renovatio/renovatio-core/src/test/java/org/shark/renovatio/core/service/LanguageProviderRegistryInternalsTest.java uses unchecked or unsafe operations.
-    [INFO] /home/faguero/dev/renovatio/renovatio-core/src/test/java/org/shark/renovatio/core/service/LanguageProviderRegistryInternalsTest.java: Recompile with -Xlint:unchecked for details.
+    [INFO] /home/faguero/dev/renovatio/renovatio-core/src/test/java/org/modernash/renovatio/core/service/LanguageProviderRegistryInternalsTest.java: /home/faguero/dev/renovatio/renovatio-core/src/test/java/org/modernash/renovatio/core/service/LanguageProviderRegistryInternalsTest.java uses unchecked or unsafe operations.
+    [INFO] /home/faguero/dev/renovatio/renovatio-core/src/test/java/org/modernash/renovatio/core/service/LanguageProviderRegistryInternalsTest.java: Recompile with -Xlint:unchecked for details.
     [INFO] 
     [INFO] --- surefire:3.1.2:test (default-test) @ renovatio-core ---
     [INFO] Using auto detected provider org.apache.maven.surefire.junitplatform.JUnitPlatformProvider
@@ -2501,65 +2501,65 @@ termination-reason: null
     [INFO] -------------------------------------------------------
     [INFO]  T E S T S
     [INFO] -------------------------------------------------------
-    [INFO] Running org.shark.renovatio.core.mapper.UserMapperTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 s -- in org.shark.renovatio.core.mapper.UserMapperTest
-    [INFO] Running org.shark.renovatio.core.dto.UserDtoTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.shark.renovatio.core.dto.UserDtoTest
-    [INFO] Running org.shark.renovatio.core.service.LanguageProviderRegistryTest
-    22:11:19.398 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration with capabilities: [APPLY]
-    22:11:19.401 [main] WARN org.shark.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'apply_org_openrewrite': No enum constant org.shark.renovatio.shared.spi.LanguageProvider.Capabilities.APPLY_ORG_OPENREWRITE
-    22:11:19.410 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration with capabilities: [APPLY]
-    22:11:19.410 [main] WARN org.shark.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'apply_org_openrewrite_migrate_to_java17': No enum constant org.shark.renovatio.shared.spi.LanguageProvider.Capabilities.APPLY_ORG_OPENREWRITE_MIGRATE_TO_JAVA17
-    22:11:19.413 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration with capabilities: [ANALYZE]
-    22:11:19.413 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered additional LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration (2 providers total)
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.11 s -- in org.shark.renovatio.core.service.LanguageProviderRegistryTest
-    [INFO] Running org.shark.renovatio.core.service.CoreEngineStandaloneTest
-    22:11:19.417 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
-    22:11:19.420 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
-    22:11:19.421 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
-    22:11:19.421 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
+    [INFO] Running org.modernash.renovatio.core.mapper.UserMapperTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.049 s -- in org.modernash.renovatio.core.mapper.UserMapperTest
+    [INFO] Running org.modernash.renovatio.core.dto.UserDtoTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.modernash.renovatio.core.dto.UserDtoTest
+    [INFO] Running org.modernash.renovatio.core.service.LanguageProviderRegistryTest
+    22:11:19.398 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration with capabilities: [APPLY]
+    22:11:19.401 [main] WARN org.modernash.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'apply_org_openrewrite': No enum constant org.modernash.renovatio.shared.spi.LanguageProvider.Capabilities.APPLY_ORG_OPENREWRITE
+    22:11:19.410 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration with capabilities: [APPLY]
+    22:11:19.410 [main] WARN org.modernash.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'apply_org_openrewrite_migrate_to_java17': No enum constant org.modernash.renovatio.shared.spi.LanguageProvider.Capabilities.APPLY_ORG_OPENREWRITE_MIGRATE_TO_JAVA17
+    22:11:19.413 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration with capabilities: [ANALYZE]
+    22:11:19.413 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered additional LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration (2 providers total)
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.11 s -- in org.modernash.renovatio.core.service.LanguageProviderRegistryTest
+    [INFO] Running org.modernash.renovatio.core.service.CoreEngineStandaloneTest
+    22:11:19.417 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
+    22:11:19.420 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
+    22:11:19.421 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
+    22:11:19.421 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
     ✅ Core engine successfully used as standalone library
     ✅ Generated 5 tools
     ✅ Supports 1 languages
-    22:11:19.424 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.shark.renovatio.core.service.CoreEngineStandaloneTest
-    [INFO] Running org.shark.renovatio.core.service.LanguageProviderRegistryErrorPathsTest
-    22:11:19.431 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration with capabilities: []
-    22:11:19.431 [main] WARN org.shark.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'unknowncap': No enum constant org.shark.renovatio.shared.spi.LanguageProvider.Capabilities.UNKNOWNCAP
-    22:11:19.434 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [ExtendedStub] for language 'java' via manual-registration with capabilities: []
-    22:11:19.434 [main] WARN org.shark.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'custom_capability': No enum constant org.shark.renovatio.shared.spi.LanguageProvider.Capabilities.CUSTOM_CAPABILITY
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.shark.renovatio.core.service.LanguageProviderRegistryErrorPathsTest
-    [INFO] Running org.shark.renovatio.core.service.LanguageProviderRegistryEdgeCasesTest
-    22:11:19.437 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [SimpleProvider] for language 'java' via manual-registration with capabilities: [ANALYZE, PLAN, APPLY, DIFF, METRICS]
-    22:11:19.437 [main] WARN org.shark.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'unknowncap': No enum constant org.shark.renovatio.shared.spi.LanguageProvider.Capabilities.UNKNOWNCAP
-    22:11:19.437 [main] WARN org.shark.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'plan_myrecipe': No enum constant org.shark.renovatio.shared.spi.LanguageProvider.Capabilities.PLAN_MYRECIPE
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.shark.renovatio.core.service.LanguageProviderRegistryEdgeCasesTest
-    [INFO] Running org.shark.renovatio.core.service.LanguageProviderRegistryFullPathsTest
-    22:11:19.442 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [CapturingProvider] for language 'java' via manual-registration with capabilities: [ANALYZE, PLAN, APPLY, DIFF, STUBS, METRICS]
-    22:11:19.443 [main] WARN org.shark.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'apply_myrecipe': No enum constant org.shark.renovatio.shared.spi.LanguageProvider.Capabilities.APPLY_MYRECIPE
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.core.service.LanguageProviderRegistryFullPathsTest
-    [INFO] Running org.shark.renovatio.core.service.LanguageProviderRegistryToolsAndRedactionTest
-    22:11:19.446 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [ToolsProvider] for language 'java' via manual-registration with capabilities: [METRICS]
-    22:11:19.446 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered additional LanguageProvider [ToolsProvider] for language 'java' via manual-registration (2 providers total)
-    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.core.service.LanguageProviderRegistryToolsAndRedactionTest
-    [INFO] Running org.shark.renovatio.core.service.MigrationReportServiceTest
-    22:11:19.449 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [StubProvider] for language 'stub' via manual-registration with capabilities: [METRICS]
+    22:11:19.424 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [MockLanguageProvider] for language 'mock' via manual-registration with capabilities: [METRICS, PLAN, APPLY, ANALYZE, DIFF]
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.modernash.renovatio.core.service.CoreEngineStandaloneTest
+    [INFO] Running org.modernash.renovatio.core.service.LanguageProviderRegistryErrorPathsTest
+    22:11:19.431 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via manual-registration with capabilities: []
+    22:11:19.431 [main] WARN org.modernash.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'unknowncap': No enum constant org.modernash.renovatio.shared.spi.LanguageProvider.Capabilities.UNKNOWNCAP
+    22:11:19.434 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [ExtendedStub] for language 'java' via manual-registration with capabilities: []
+    22:11:19.434 [main] WARN org.modernash.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'custom_capability': No enum constant org.modernash.renovatio.shared.spi.LanguageProvider.Capabilities.CUSTOM_CAPABILITY
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in org.modernash.renovatio.core.service.LanguageProviderRegistryErrorPathsTest
+    [INFO] Running org.modernash.renovatio.core.service.LanguageProviderRegistryEdgeCasesTest
+    22:11:19.437 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [SimpleProvider] for language 'java' via manual-registration with capabilities: [ANALYZE, PLAN, APPLY, DIFF, METRICS]
+    22:11:19.437 [main] WARN org.modernash.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'unknowncap': No enum constant org.modernash.renovatio.shared.spi.LanguageProvider.Capabilities.UNKNOWNCAP
+    22:11:19.437 [main] WARN org.modernash.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'plan_myrecipe': No enum constant org.modernash.renovatio.shared.spi.LanguageProvider.Capabilities.PLAN_MYRECIPE
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in org.modernash.renovatio.core.service.LanguageProviderRegistryEdgeCasesTest
+    [INFO] Running org.modernash.renovatio.core.service.LanguageProviderRegistryFullPathsTest
+    22:11:19.442 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [CapturingProvider] for language 'java' via manual-registration with capabilities: [ANALYZE, PLAN, APPLY, DIFF, STUBS, METRICS]
+    22:11:19.443 [main] WARN org.modernash.renovatio.core.service.LanguageProviderRegistry -- Unknown capability key 'apply_myrecipe': No enum constant org.modernash.renovatio.shared.spi.LanguageProvider.Capabilities.APPLY_MYRECIPE
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.core.service.LanguageProviderRegistryFullPathsTest
+    [INFO] Running org.modernash.renovatio.core.service.LanguageProviderRegistryToolsAndRedactionTest
+    22:11:19.446 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [ToolsProvider] for language 'java' via manual-registration with capabilities: [METRICS]
+    22:11:19.446 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered additional LanguageProvider [ToolsProvider] for language 'java' via manual-registration (2 providers total)
+    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.core.service.LanguageProviderRegistryToolsAndRedactionTest
+    [INFO] Running org.modernash.renovatio.core.service.MigrationReportServiceTest
+    22:11:19.449 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [StubProvider] for language 'stub' via manual-registration with capabilities: [METRICS]
     22:11:19.643 [main] WARN org.apache.pdfbox.pdmodel.font.PDType1Font -- Using fallback font LiberationSans for base font Symbol
     22:11:19.643 [main] WARN org.apache.pdfbox.pdmodel.font.PDType1Font -- Using fallback font LiberationSans for base font ZapfDingbats
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.210 s -- in org.shark.renovatio.core.service.MigrationReportServiceTest
-    [INFO] Running org.shark.renovatio.core.service.LanguageProviderRegistryMoreCoverageTest
-    22:11:19.727 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- LanguageProviderRegistry initializing...
-    22:11:19.727 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Found 1 LanguageProvider beans in Spring context
-    22:11:19.727 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via p1 with capabilities: [ANALYZE]
-    22:11:19.728 [main] INFO org.shark.renovatio.core.service.LanguageProviderRegistry -- LanguageProviderRegistry initialized with 1 providers: [java]
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.071 s -- in org.shark.renovatio.core.service.LanguageProviderRegistryMoreCoverageTest
-    [INFO] Running org.shark.renovatio.core.service.LanguageProviderRegistryInternalsTest
-    22:11:19.733 [main] WARN org.shark.renovatio.core.service.LanguageProviderRegistry -- Unknown result type: java.lang.Object
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.shark.renovatio.core.service.LanguageProviderRegistryInternalsTest
-    [INFO] Running org.shark.renovatio.core.service.ReportAccessServiceTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.shark.renovatio.core.service.ReportAccessServiceTest
-    [INFO] Running org.shark.renovatio.core.infrastructure.ReportControllerTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.043 s -- in org.shark.renovatio.core.infrastructure.ReportControllerTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.210 s -- in org.modernash.renovatio.core.service.MigrationReportServiceTest
+    [INFO] Running org.modernash.renovatio.core.service.LanguageProviderRegistryMoreCoverageTest
+    22:11:19.727 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- LanguageProviderRegistry initializing...
+    22:11:19.727 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Found 1 LanguageProvider beans in Spring context
+    22:11:19.727 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- Registered LanguageProvider [LanguageProvider$MockitoMock$odi2veSl] for language 'java' via p1 with capabilities: [ANALYZE]
+    22:11:19.728 [main] INFO org.modernash.renovatio.core.service.LanguageProviderRegistry -- LanguageProviderRegistry initialized with 1 providers: [java]
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.071 s -- in org.modernash.renovatio.core.service.LanguageProviderRegistryMoreCoverageTest
+    [INFO] Running org.modernash.renovatio.core.service.LanguageProviderRegistryInternalsTest
+    22:11:19.733 [main] WARN org.modernash.renovatio.core.service.LanguageProviderRegistry -- Unknown result type: java.lang.Object
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.modernash.renovatio.core.service.LanguageProviderRegistryInternalsTest
+    [INFO] Running org.modernash.renovatio.core.service.ReportAccessServiceTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.modernash.renovatio.core.service.ReportAccessServiceTest
+    [INFO] Running org.modernash.renovatio.core.infrastructure.ReportControllerTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.043 s -- in org.modernash.renovatio.core.infrastructure.ReportControllerTest
     [INFO] 
     [INFO] Results:
     [INFO] 
@@ -2570,7 +2570,7 @@ termination-reason: null
     [INFO] Loading execution data file /home/faguero/dev/renovatio/renovatio-core/target/jacoco.exec
     [INFO] Analyzed bundle 'Renovatio Core' with 7 classes
     [INFO] 
-    [INFO] ------------< org.shark.renovatio:renovatio-provider-java >-------------
+    [INFO] ------------< org.modernash.renovatio:renovatio-provider-java >-------------
     [INFO] Building Renovatio Java Provider 0.0.1-SNAPSHOT                    [4/8]
     [INFO]   from renovatio-provider-java/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -2602,19 +2602,19 @@ termination-reason: null
     [INFO] -------------------------------------------------------
     [INFO]  T E S T S
     [INFO] -------------------------------------------------------
-    [INFO] Running org.shark.renovatio.provider.java.discovery.OpenRewriteRecipeDiscoveryServiceSafetyTest
-    22:11:23.804 [main] INFO org.shark.renovatio.provider.java.discovery.OpenRewriteRecipeDiscoveryService -- Discovered 147 OpenRewrite recipes
-    [INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.206 s -- in org.shark.renovatio.provider.java.discovery.OpenRewriteRecipeDiscoveryServiceSafetyTest
-    [INFO] Running org.shark.renovatio.provider.java.util.RecipeSafetyUtilsTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.08 s -- in org.shark.renovatio.provider.java.util.RecipeSafetyUtilsTest
-    [INFO] Running org.shark.renovatio.provider.java.planner.JavaPlanStepTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.shark.renovatio.provider.java.planner.JavaPlanStepTest
-    [INFO] Running org.shark.renovatio.provider.java.planner.JavaPlanTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.shark.renovatio.provider.java.planner.JavaPlanTest
-    [INFO] Running org.shark.renovatio.provider.java.execution.JavaRecipeExecutionResultTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.provider.java.execution.JavaRecipeExecutionResultTest
-    [INFO] Running org.shark.renovatio.provider.java.execution.JavaChangeTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.shark.renovatio.provider.java.execution.JavaChangeTest
+    [INFO] Running org.modernash.renovatio.provider.java.discovery.OpenRewriteRecipeDiscoveryServiceSafetyTest
+    22:11:23.804 [main] INFO org.modernash.renovatio.provider.java.discovery.OpenRewriteRecipeDiscoveryService -- Discovered 147 OpenRewrite recipes
+    [INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.206 s -- in org.modernash.renovatio.provider.java.discovery.OpenRewriteRecipeDiscoveryServiceSafetyTest
+    [INFO] Running org.modernash.renovatio.provider.java.util.RecipeSafetyUtilsTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.08 s -- in org.modernash.renovatio.provider.java.util.RecipeSafetyUtilsTest
+    [INFO] Running org.modernash.renovatio.provider.java.planner.JavaPlanStepTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.modernash.renovatio.provider.java.planner.JavaPlanStepTest
+    [INFO] Running org.modernash.renovatio.provider.java.planner.JavaPlanTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.modernash.renovatio.provider.java.planner.JavaPlanTest
+    [INFO] Running org.modernash.renovatio.provider.java.execution.JavaRecipeExecutionResultTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.provider.java.execution.JavaRecipeExecutionResultTest
+    [INFO] Running org.modernash.renovatio.provider.java.execution.JavaChangeTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.modernash.renovatio.provider.java.execution.JavaChangeTest
     [INFO] 
     [INFO] Results:
     [INFO] 
@@ -2625,7 +2625,7 @@ termination-reason: null
     [INFO] Loading execution data file /home/faguero/dev/renovatio/renovatio-provider-java/target/jacoco.exec
     [INFO] Analyzed bundle 'Renovatio Java Provider' with 20 classes
     [INFO] 
-    [INFO] ------------< org.shark.renovatio:renovatio-cobol-runtime >-------------
+    [INFO] ------------< org.modernash.renovatio:renovatio-cobol-runtime >-------------
     [INFO] Building Renovatio COBOL Runtime 0.0.1-SNAPSHOT                    [5/8]
     [INFO]   from renovatio-cobol-runtime/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -2654,23 +2654,23 @@ termination-reason: null
     [INFO] -------------------------------------------------------
     [INFO]  T E S T S
     [INFO] -------------------------------------------------------
-    [INFO] Running org.shark.renovatio.cobol.runtime.PicClauseTest
-    [INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.039 s -- in org.shark.renovatio.cobol.runtime.PicClauseTest
-    [INFO] Running org.shark.renovatio.cobol.runtime.CobolDecimalTest
-    [INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in org.shark.renovatio.cobol.runtime.CobolDecimalTest
-    [INFO] Running org.shark.renovatio.cobol.runtime.EbcdicCollatorTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in org.shark.renovatio.cobol.runtime.EbcdicCollatorTest
-    [INFO] Running org.shark.renovatio.cobol.runtime.CobolAlphanumericTest
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.shark.renovatio.cobol.runtime.CobolAlphanumericTest
-    [INFO] Running org.shark.renovatio.cobol.runtime.CobolMoveTest
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.shark.renovatio.cobol.runtime.CobolMoveTest
+    [INFO] Running org.modernash.renovatio.cobol.runtime.PicClauseTest
+    [INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.039 s -- in org.modernash.renovatio.cobol.runtime.PicClauseTest
+    [INFO] Running org.modernash.renovatio.cobol.runtime.CobolDecimalTest
+    [INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in org.modernash.renovatio.cobol.runtime.CobolDecimalTest
+    [INFO] Running org.modernash.renovatio.cobol.runtime.EbcdicCollatorTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in org.modernash.renovatio.cobol.runtime.EbcdicCollatorTest
+    [INFO] Running org.modernash.renovatio.cobol.runtime.CobolAlphanumericTest
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.modernash.renovatio.cobol.runtime.CobolAlphanumericTest
+    [INFO] Running org.modernash.renovatio.cobol.runtime.CobolMoveTest
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.modernash.renovatio.cobol.runtime.CobolMoveTest
     [INFO] 
     [INFO] Results:
     [INFO] 
     [INFO] Tests run: 23, Failures: 0, Errors: 0, Skipped: 0
     [INFO] 
     [INFO] 
-    [INFO] ---------------< org.shark.renovatio:renovatio-cobol-ir >---------------
+    [INFO] ---------------< org.modernash.renovatio:renovatio-cobol-ir >---------------
     [INFO] Building Renovatio COBOL Intermediate Representation 0.0.1-SNAPSHOT [6/8]
     [INFO]   from renovatio-cobol-ir/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -2702,30 +2702,30 @@ termination-reason: null
     [INFO] -------------------------------------------------------
     [INFO]  T E S T S
     [INFO] -------------------------------------------------------
-    [INFO] Running org.shark.renovatio.cobol.ir.context.CobolTypeMapperTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.073 s -- in org.shark.renovatio.cobol.ir.context.CobolTypeMapperTest
-    [INFO] Running org.shark.renovatio.cobol.ir.context.CobolExecutionContextTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.cobol.ir.context.CobolExecutionContextTest
-    [INFO] Running org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParserTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.104 s -- in org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParserTest
-    [INFO] Running org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParserAdvancedTest
-    [INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.038 s -- in org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParserAdvancedTest
-    [INFO] Running org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParserDataModelTest
-    [INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParserDataModelTest
-    [INFO] Running org.shark.renovatio.cobol.ir.parser.CobolExpressionParserTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in org.shark.renovatio.cobol.ir.parser.CobolExpressionParserTest
-    [INFO] Running org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjectorTest
-    [INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjectorTest
-    [INFO] Running org.shark.renovatio.cobol.ir.annotated.AnnotatedIdentityTest
-    [INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.shark.renovatio.cobol.ir.annotated.AnnotatedIdentityTest
-    [INFO] Running org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolValidatorTest
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolValidatorTest
-    [INFO] Running org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModelTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModelTest
-    [INFO] Running org.shark.renovatio.cobol.ir.model.ModelClassesTest
-    [INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in org.shark.renovatio.cobol.ir.model.ModelClassesTest
-    [INFO] Running org.shark.renovatio.cobol.ir.model.TypedSemanticModelTest
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.shark.renovatio.cobol.ir.model.TypedSemanticModelTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.context.CobolTypeMapperTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.073 s -- in org.modernash.renovatio.cobol.ir.context.CobolTypeMapperTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.context.CobolExecutionContextTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.cobol.ir.context.CobolExecutionContextTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParserTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.104 s -- in org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParserTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParserAdvancedTest
+    [INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.038 s -- in org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParserAdvancedTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParserDataModelTest
+    [INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.029 s -- in org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParserDataModelTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.parser.CobolExpressionParserTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in org.modernash.renovatio.cobol.ir.parser.CobolExpressionParserTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.annotated.CobolIrIdentityProjectorTest
+    [INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.033 s -- in org.modernash.renovatio.cobol.ir.annotated.CobolIrIdentityProjectorTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.annotated.AnnotatedIdentityTest
+    [INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.modernash.renovatio.cobol.ir.annotated.AnnotatedIdentityTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolValidatorTest
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolValidatorTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolModelTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolModelTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.model.ModelClassesTest
+    [INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.016 s -- in org.modernash.renovatio.cobol.ir.model.ModelClassesTest
+    [INFO] Running org.modernash.renovatio.cobol.ir.model.TypedSemanticModelTest
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.modernash.renovatio.cobol.ir.model.TypedSemanticModelTest
     [INFO] 
     [INFO] Results:
     [INFO] 
@@ -2736,7 +2736,7 @@ termination-reason: null
     [INFO] Loading execution data file /home/faguero/dev/renovatio/renovatio-cobol-ir/target/jacoco.exec
     [INFO] Analyzed bundle 'Renovatio COBOL Intermediate Representation' with 84 classes
     [INFO] 
-    [INFO] -----------< org.shark.renovatio:cobol-openrewrite-recipes >------------
+    [INFO] -----------< org.modernash.renovatio:cobol-openrewrite-recipes >------------
     [INFO] Building Renovatio COBOL OpenRewrite Recipes 0.0.1-SNAPSHOT        [7/8]
     [INFO]   from cobol-openrewrite-recipes/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -2778,10 +2778,10 @@ termination-reason: null
     [INFO] -------------------------------------------------------
     [INFO]  T E S T S
     [INFO] -------------------------------------------------------
-    [INFO] Running org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipeTest
-    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.677 s -- in org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipeTest
-    [INFO] Running org.shark.renovatio.cobol.recipes.JavaTemplateSupportTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.207 s -- in org.shark.renovatio.cobol.recipes.JavaTemplateSupportTest
+    [INFO] Running org.modernash.renovatio.cobol.recipes.PopulateCobolProcessRecipeTest
+    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.677 s -- in org.modernash.renovatio.cobol.recipes.PopulateCobolProcessRecipeTest
+    [INFO] Running org.modernash.renovatio.cobol.recipes.JavaTemplateSupportTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.207 s -- in org.modernash.renovatio.cobol.recipes.JavaTemplateSupportTest
     [INFO] 
     [INFO] Results:
     [INFO] 
@@ -2792,7 +2792,7 @@ termination-reason: null
     [INFO] Loading execution data file /home/faguero/dev/renovatio/cobol-openrewrite-recipes/target/jacoco.exec
     [INFO] Analyzed bundle 'Renovatio COBOL OpenRewrite Recipes' with 3 classes
     [INFO] 
-    [INFO] ------------< org.shark.renovatio:renovatio-provider-cobol >------------
+    [INFO] ------------< org.modernash.renovatio:renovatio-provider-cobol >------------
     [INFO] Building Renovatio COBOL Provider 0.0.1-SNAPSHOT                   [8/8]
     [INFO]   from renovatio-provider-cobol/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -2810,8 +2810,8 @@ termination-reason: null
     [INFO] --- compiler:3.11.0:compile (default-compile) @ renovatio-provider-cobol ---
     [INFO] Changes detected - recompiling the module! :dependency
     [INFO] Compiling 36 source files with javac [debug release 17] to target/classes
-    [INFO] /home/faguero/dev/renovatio/renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/IndexingService.java: /home/faguero/dev/renovatio/renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/IndexingService.java uses or overrides a deprecated API.
-    [INFO] /home/faguero/dev/renovatio/renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/IndexingService.java: Recompile with -Xlint:deprecation for details.
+    [INFO] /home/faguero/dev/renovatio/renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/IndexingService.java: /home/faguero/dev/renovatio/renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/IndexingService.java uses or overrides a deprecated API.
+    [INFO] /home/faguero/dev/renovatio/renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/IndexingService.java: Recompile with -Xlint:deprecation for details.
     [INFO] 
     [INFO] --- resources:3.3.1:testResources (default-testResources) @ renovatio-provider-cobol ---
     [INFO] Copying 4 resources from src/test/resources to target/test-classes
@@ -2826,21 +2826,21 @@ termination-reason: null
     [INFO] -------------------------------------------------------
     [INFO]  T E S T S
     [INFO] -------------------------------------------------------
-    [INFO] Running org.shark.renovatio.provider.cobol.guardrail.ManualActionItemIdsTest
-    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.114 s -- in org.shark.renovatio.provider.cobol.guardrail.ManualActionItemIdsTest
-    [INFO] Running org.shark.renovatio.provider.cobol.guardrail.GuardrailGateRunnerTest
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in org.shark.renovatio.provider.cobol.guardrail.GuardrailGateRunnerTest
-    [INFO] Running org.shark.renovatio.provider.cobol.guardrail.ManualActionItemWriterTest
-    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.283 s -- in org.shark.renovatio.provider.cobol.guardrail.ManualActionItemWriterTest
-    [INFO] Running org.shark.renovatio.provider.cobol.guardrail.ManualActionItemTypeTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.shark.renovatio.provider.cobol.guardrail.ManualActionItemTypeTest
-    [INFO] Running org.shark.renovatio.provider.cobol.guardrail.GuardrailSchemaCatalogTest
-    [INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.170 s -- in org.shark.renovatio.provider.cobol.guardrail.GuardrailSchemaCatalogTest
-    [INFO] Running org.shark.renovatio.provider.cobol.domain.CobolDomainPojoTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in org.shark.renovatio.provider.cobol.domain.CobolDomainPojoTest
-    [INFO] Running org.shark.renovatio.provider.cobol.domain.SimpleDatasetAdapterTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.shark.renovatio.provider.cobol.domain.SimpleDatasetAdapterTest
-    [INFO] Running org.shark.renovatio.provider.cobol.CobolLanguageProviderTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.guardrail.ManualActionItemIdsTest
+    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.114 s -- in org.modernash.renovatio.provider.cobol.guardrail.ManualActionItemIdsTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.guardrail.GuardrailGateRunnerTest
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s -- in org.modernash.renovatio.provider.cobol.guardrail.GuardrailGateRunnerTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.guardrail.ManualActionItemWriterTest
+    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.283 s -- in org.modernash.renovatio.provider.cobol.guardrail.ManualActionItemWriterTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.guardrail.ManualActionItemTypeTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in org.modernash.renovatio.provider.cobol.guardrail.ManualActionItemTypeTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.guardrail.GuardrailSchemaCatalogTest
+    [INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.170 s -- in org.modernash.renovatio.provider.cobol.guardrail.GuardrailSchemaCatalogTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.domain.CobolDomainPojoTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.017 s -- in org.modernash.renovatio.provider.cobol.domain.CobolDomainPojoTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.domain.SimpleDatasetAdapterTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in org.modernash.renovatio.provider.cobol.domain.SimpleDatasetAdapterTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.CobolLanguageProviderTest
     DEBUG: toPascalCase input: 'sample.cob'
     DEBUG: after cleaning: 'sample'
     DEBUG: parts array: [sample]
@@ -2891,7 +2891,7 @@ termination-reason: null
     DEBUG: sanitizeClassName output: 'Sample'
     DEBUG: generateServiceImplementation - original: 'Sample', sanitized: 'Sample'
     Generated Service Implementation (Sample):
-    package org.shark.renovatio.generated.cobol;
+    package org.modernash.renovatio.generated.cobol;
     
     import java.lang.Override;
     import org.springframework.stereotype.Service;
@@ -2931,16 +2931,16 @@ termination-reason: null
     Archivo escrito: /tmp/junit13538026787542181847/generated-java-stubs/SampleServiceImpl.java
     Claves generadas: [SampleDTO.java, SampleService.java, SampleServiceImpl.java]
     Archivos escritos en: /tmp/junit13538026787542181847/generated-java-stubs
-    [INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.332 s -- in org.shark.renovatio.provider.cobol.CobolLanguageProviderTest
-    [INFO] Running org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspilerTest
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.052 s -- in org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspilerTest
-    [INFO] Running org.shark.renovatio.provider.cobol.service.CopybookMigrationToolTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.111 s -- in org.shark.renovatio.provider.cobol.service.CopybookMigrationToolTest
-    [INFO] Running org.shark.renovatio.provider.cobol.service.Db2MigrationToolTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.shark.renovatio.provider.cobol.service.Db2MigrationToolTest
-    [INFO] Running org.shark.renovatio.provider.cobol.service.CobolParsingServiceCicsTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.shark.renovatio.provider.cobol.service.CobolParsingServiceCicsTest
-    [INFO] Running org.shark.renovatio.provider.cobol.service.CalculatorGenerationTest
+    [INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.332 s -- in org.modernash.renovatio.provider.cobol.CobolLanguageProviderTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspilerTest
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.052 s -- in org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspilerTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.service.CopybookMigrationToolTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.111 s -- in org.modernash.renovatio.provider.cobol.service.CopybookMigrationToolTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.service.Db2MigrationToolTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.modernash.renovatio.provider.cobol.service.Db2MigrationToolTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.service.CobolParsingServiceCicsTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.modernash.renovatio.provider.cobol.service.CobolParsingServiceCicsTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.service.CalculatorGenerationTest
     DEBUG: sanitizeClassName input: 'Calculator'
     DEBUG: sanitizeClassName output: 'Calculator'
     DEBUG: generateDataTransferObject - original: 'Calculator', sanitized: 'Calculator', final: 'CalculatorDTO'
@@ -2986,7 +2986,7 @@ termination-reason: null
     DEBUG: processing part: 'storage'
     DEBUG: toPascalCase final output: 'Storage'
     Generated DTO:
-    package org.shark.renovatio.generated.cobol;
+    package org.modernash.renovatio.generated.cobol;
     
     import java.math.BigDecimal;
     
@@ -3042,7 +3042,7 @@ termination-reason: null
     DEBUG: sanitizeClassName output: 'Calculator'
     DEBUG: generateServiceInterface - original: 'Calculator', sanitized: 'Calculator'
     Generated Service Interface:
-    package org.shark.renovatio.generated.cobol;
+    package org.modernash.renovatio.generated.cobol;
     
     /**
      * Service interface for COBOL program: Calculator
@@ -3091,29 +3091,29 @@ termination-reason: null
       boolean validate(CalculatorDTO input);
     }
     
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.shark.renovatio.provider.cobol.service.CalculatorGenerationTest
-    [INFO] Running org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionServiceTest
-    22:11:45.946 [main] INFO org.shark.renovatio.cobol.ir.parser.ControlBreakPatternDetector -- Detected control break pattern for file: DATA-FILE
-    22:11:45.948 [main] INFO org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Detected 1 control break pattern(s) in SIMPLEBRK.cob
-    22:11:45.951 [main] INFO org.shark.renovatio.cobol.ir.parser.BusinessLogicDecomposer -- Decomposed program SIMPLEBRK into 2 data access, 3 business rules, 0 aggregations, 2 validations
-    22:11:45.952 [main] INFO org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/InputRepository.java
-    22:11:45.953 [main] INFO org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/DataRepository.java
-    22:11:45.953 [main] INFO org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/SimplebrkBusinessRules.java
-    22:11:45.953 [main] INFO org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/SimplebrkValidator.java
-    22:11:45.953 [main] INFO org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/SimplebrkProcessingService.java
-    22:11:45.955 [main] INFO org.shark.renovatio.cobol.ir.parser.ControlBreakPatternDetector -- Detected control break pattern for file: ITEMS-FILE
-    22:11:45.955 [main] INFO org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Detected 1 control break pattern(s) in AGGRTEST.cob
-    22:11:45.956 [main] INFO org.shark.renovatio.cobol.ir.parser.BusinessLogicDecomposer -- Decomposed program AGGRTEST into 1 data access, 5 business rules, 0 aggregations, 7 validations
-    22:11:45.959 [main] INFO org.shark.renovatio.cobol.ir.parser.ControlBreakPatternDetector -- Detected control break pattern for file: SALES-FILE
-    22:11:45.959 [main] INFO org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Detected 1 control break pattern(s) in SALESRPT.cob
-    22:11:45.959 [main] INFO org.shark.renovatio.cobol.ir.parser.BusinessLogicDecomposer -- Decomposed program SALESRPT into 2 data access, 8 business rules, 0 aggregations, 7 validations
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in org.shark.renovatio.provider.cobol.service.ControlBreakDecompositionServiceTest
-    [INFO] Running org.shark.renovatio.provider.cobol.service.ArithmeticMigrationTest
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.011 s -- in org.modernash.renovatio.provider.cobol.service.CalculatorGenerationTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionServiceTest
+    22:11:45.946 [main] INFO org.modernash.renovatio.cobol.ir.parser.ControlBreakPatternDetector -- Detected control break pattern for file: DATA-FILE
+    22:11:45.948 [main] INFO org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Detected 1 control break pattern(s) in SIMPLEBRK.cob
+    22:11:45.951 [main] INFO org.modernash.renovatio.cobol.ir.parser.BusinessLogicDecomposer -- Decomposed program SIMPLEBRK into 2 data access, 3 business rules, 0 aggregations, 2 validations
+    22:11:45.952 [main] INFO org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/InputRepository.java
+    22:11:45.953 [main] INFO org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/DataRepository.java
+    22:11:45.953 [main] INFO org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/SimplebrkBusinessRules.java
+    22:11:45.953 [main] INFO org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/SimplebrkValidator.java
+    22:11:45.953 [main] INFO org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Generated: /tmp/junit9761513578571240287/generated-decomposed/SimplebrkProcessingService.java
+    22:11:45.955 [main] INFO org.modernash.renovatio.cobol.ir.parser.ControlBreakPatternDetector -- Detected control break pattern for file: ITEMS-FILE
+    22:11:45.955 [main] INFO org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Detected 1 control break pattern(s) in AGGRTEST.cob
+    22:11:45.956 [main] INFO org.modernash.renovatio.cobol.ir.parser.BusinessLogicDecomposer -- Decomposed program AGGRTEST into 1 data access, 5 business rules, 0 aggregations, 7 validations
+    22:11:45.959 [main] INFO org.modernash.renovatio.cobol.ir.parser.ControlBreakPatternDetector -- Detected control break pattern for file: SALES-FILE
+    22:11:45.959 [main] INFO org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionService -- Detected 1 control break pattern(s) in SALESRPT.cob
+    22:11:45.959 [main] INFO org.modernash.renovatio.cobol.ir.parser.BusinessLogicDecomposer -- Decomposed program SALESRPT into 2 data access, 8 business rules, 0 aggregations, 7 validations
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.020 s -- in org.modernash.renovatio.provider.cobol.service.ControlBreakDecompositionServiceTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.service.ArithmeticMigrationTest
     DEBUG: sanitizeClassName input: 'Calculator'
     DEBUG: sanitizeClassName output: 'Calculator'
     DEBUG: generateServiceImplementation - original: 'Calculator', sanitized: 'Calculator'
     === Service Implementation BEFORE semantic transpiler ===
-    package org.shark.renovatio.generated.cobol;
+    package org.modernash.renovatio.generated.cobol;
     
     import java.lang.Override;
     import org.springframework.stereotype.Service;
@@ -3173,7 +3173,7 @@ termination-reason: null
     
     
     === Service Implementation AFTER semantic transpiler ===
-    package org.shark.renovatio.generated.cobol;
+    package org.modernash.renovatio.generated.cobol;
     
     import java.lang.Override;
     import org.springframework.stereotype.Service;
@@ -3270,10 +3270,10 @@ termination-reason: null
         }
     }
     
-    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.424 s -- in org.shark.renovatio.provider.cobol.service.ArithmeticMigrationTest
-    [INFO] Running org.shark.renovatio.provider.cobol.service.CobolParsingServiceDialectTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.shark.renovatio.provider.cobol.service.CobolParsingServiceDialectTest
-    [INFO] Running org.shark.renovatio.provider.cobol.service.JavaGenerationServiceTest
+    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.424 s -- in org.modernash.renovatio.provider.cobol.service.ArithmeticMigrationTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.service.CobolParsingServiceDialectTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.modernash.renovatio.provider.cobol.service.CobolParsingServiceDialectTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.service.JavaGenerationServiceTest
     Claves generadas: []
     Archivos escritos en: /tmp/cobol-ws-15754922199489976164/generated-java-stubs
     DEBUG: toPascalCase input: 'sample.cob'
@@ -3326,7 +3326,7 @@ termination-reason: null
     DEBUG: sanitizeClassName output: 'Sample'
     DEBUG: generateServiceImplementation - original: 'Sample', sanitized: 'Sample'
     Generated Service Implementation (Sample):
-    package org.shark.renovatio.generated.cobol;
+    package org.modernash.renovatio.generated.cobol;
     
     import java.lang.Override;
     import org.springframework.stereotype.Service;
@@ -3426,7 +3426,7 @@ termination-reason: null
     DEBUG: sanitizeClassName output: 'Calculate'
     DEBUG: generateServiceImplementation - original: 'Calculate', sanitized: 'Calculate'
     Generated Service Implementation (Calculate):
-    package org.shark.renovatio.generated.cobol;
+    package org.modernash.renovatio.generated.cobol;
     
     import java.lang.Override;
     import org.springframework.stereotype.Service;
@@ -3501,11 +3501,11 @@ termination-reason: null
     Archivo escrito: /tmp/cobol-ws-18313974603795636056/generated-java-stubs/CalculateServiceImpl.java
     Claves generadas: [CalculateDTO.java, CalculateService.java, CalculateServiceImpl.java]
     Archivos escritos en: /tmp/cobol-ws-18313974603795636056/generated-java-stubs
-    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.372 s -- in org.shark.renovatio.provider.cobol.service.JavaGenerationServiceTest
-    [INFO] Running org.shark.renovatio.provider.cobol.service.CobolNqlParsingServiceTest
-    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.shark.renovatio.provider.cobol.service.CobolNqlParsingServiceTest
-    [INFO] Running org.shark.renovatio.provider.cobol.infrastructure.CobolMcpToolsProviderTest
-    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.shark.renovatio.provider.cobol.infrastructure.CobolMcpToolsProviderTest
+    [INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.372 s -- in org.modernash.renovatio.provider.cobol.service.JavaGenerationServiceTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.service.CobolNqlParsingServiceTest
+    [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.002 s -- in org.modernash.renovatio.provider.cobol.service.CobolNqlParsingServiceTest
+    [INFO] Running org.modernash.renovatio.provider.cobol.infrastructure.CobolMcpToolsProviderTest
+    [INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s -- in org.modernash.renovatio.provider.cobol.infrastructure.CobolMcpToolsProviderTest
     [INFO] 
     [INFO] Results:
     [INFO] 
@@ -3951,36 +3951,36 @@ termination-reason: null
     exec
     /usr/bin/zsh -lc 'rg --files renovatio-provider-cobol/src/test/resources renovatio-cobol-ir/src/test renovatio-cobol-runtime/src/test cobol-openrewrite-recipes/src/test | sort; rg -n "byte|SHA-256|sha256|determin|network|HttpClient|provider SDK|move-numeric|move-alphanumeric-boundaries|compute-decimal-sign|if-nested|evaluate-level-88|perform-simple-nested" renovatio-cobol-runtime/src/test renovatio-cobol-ir/src/test cobol-openrewrite-recipes/src/test renovatio-provider-cobol/src/test | head -300' in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/JavaTemplateSupportTest.java
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedCobolModelTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedCobolValidatorTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedIdentityTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/context/CobolExecutionContextTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/context/CobolTypeMapperTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/ModelClassesTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/CobolExpressionParserTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/CobolAlphanumericTest.java
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/CobolDecimalTest.java
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/CobolMoveTest.java
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/EbcdicCollatorTest.java
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/PicClauseTest.java
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/JavaTemplateSupportTest.java
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedCobolModelTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedCobolValidatorTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedIdentityTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/context/CobolExecutionContextTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/context/CobolTypeMapperTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/ModelClassesTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/CobolExpressionParserTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/CobolAlphanumericTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/CobolDecimalTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/CobolMoveTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/EbcdicCollatorTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/PicClauseTest.java
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/invalid-family-payload.annotated.json
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/invalid-review-state.annotated.json
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/invalid-unknown-property.annotated.json
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/valid-domain-naming.annotated.json
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java:59:                "Unsupported deterministic form", new SourceSpan("sample.cob", line, 1, line, 20));
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:63:                "1000-PROC", "10:1-10:20", null, "sha256:source", "GO_TO",
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:68:                "sha256:schema", null, null, null, null, null);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:5:import com.networknt.schema.JsonSchema;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:6:import com.networknt.schema.JsonSchemaFactory;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:7:import com.networknt.schema.SpecVersion;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:8:import com.networknt.schema.ValidationMessage;
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java:59:                "Unsupported deterministic form", new SourceSpan("sample.cob", line, 1, line, 20));
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:63:                "1000-PROC", "10:1-10:20", null, "sha256:source", "GO_TO",
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:68:                "sha256:schema", null, null, null, null, null);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:5:import com.networknt.schema.JsonSchema;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:6:import com.networknt.schema.JsonSchemaFactory;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:7:import com.networknt.schema.SpecVersion;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:8:import com.networknt.schema.ValidationMessage;
     
     diff --git a/docs/reports/deterministic-semantic-core-revalidation-20260831.md b/docs/reports/deterministic-semantic-core-revalidation-20260831.md
     new file mode 100644

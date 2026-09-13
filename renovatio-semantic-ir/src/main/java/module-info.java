@@ -1,3 +1,3 @@
-module org.shark.renovatio.semantic.ir {
-    exports org.shark.renovatio.semantic.ir;
+module org.modernash.renovatio.semantic.ir {
+    exports org.modernash.renovatio.semantic.ir;
 }

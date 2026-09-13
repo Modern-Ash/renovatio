@@ -20,12 +20,12 @@ result-kind: "repository-change"
      create mode 100644 .agora/reviews/findings/unrelated-parent-commit/FINDING.md
      create mode 100644 .agora/swarms/048-architecture-convergence-2026/work/canonical-domain-architecture-model/compatibility-report.md
      create mode 100644 .agora/swarms/048-architecture-convergence-2026/work/canonical-domain-architecture-model/test-report.md
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ArchitectureModel.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/ArchitectureProjector.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/CanonicalProjectionService.java
-     create mode 100644 renovatio-architecture/src/main/java/org/shark/renovatio/architecture/DecisionSet.java
-     create mode 100644 renovatio-architecture/src/test/java/org/shark/renovatio/architecture/CanonicalProjectionInvariantsTest.java
-     create mode 100644 renovatio-architecture/src/test/java/org/shark/renovatio/architecture/DomainModelArchitectureTest.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ArchitectureModel.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/ArchitectureProjector.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/CanonicalProjectionService.java
+     create mode 100644 renovatio-architecture/src/main/java/org/modernash/renovatio/architecture/DecisionSet.java
+     create mode 100644 renovatio-architecture/src/test/java/org/modernash/renovatio/architecture/CanonicalProjectionInvariantsTest.java
+     create mode 100644 renovatio-architecture/src/test/java/org/modernash/renovatio/architecture/DomainModelArchitectureTest.java
 
 ## Standard error
 

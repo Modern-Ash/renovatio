@@ -86,8 +86,8 @@ manual exception or desirable-cluster override was applied.
 
 ```bash
 git rev-parse b430ba48a01ebe55e42b9714a5ccf5557e3981aa^{commit}
-git diff --exit-code b430ba48a01ebe55e42b9714a5ccf5557e3981aa -- renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/JavaGenerationService.java renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/MigrationPlanService.java
-sha256sum renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/JavaGenerationService.java renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/service/MigrationPlanService.java
+git diff --exit-code b430ba48a01ebe55e42b9714a5ccf5557e3981aa -- renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationService.java renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/MigrationPlanService.java
+sha256sum renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationService.java renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/service/MigrationPlanService.java
 rg --files renovatio-provider-cobol/src/test/resources/characterization -g 'input.cob'
 rg --files renovatio-provider-cobol/src/test/resources/characterization -g 'expected-ir.json'
 rg --files renovatio-provider-cobol/src/test/resources/characterization -g 'expected-behavior.json'

@@ -32,10 +32,10 @@ Backward Compatibility
 - Keep schemas in sync with MCP expectations used by Renovatio clients.
 
 Exported Packages
-- `org.shark.renovatio.shared.domain`
-- `org.shark.renovatio.shared.nql`
-- `org.shark.renovatio.shared.spi`
-- `org.shark.renovatio.shared.util`
+- `org.modernash.renovatio.shared.domain`
+- `org.modernash.renovatio.shared.nql`
+- `org.modernash.renovatio.shared.spi`
+- `org.modernash.renovatio.shared.util`
 
 Integration
 - Consumed by Renovatio core, providers (Java/COBOL), and the MCP server module.

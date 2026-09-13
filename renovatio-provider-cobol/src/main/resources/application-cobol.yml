@@ -67,7 +67,7 @@ renovatio:
 
     # Code generation configuration
     generation:
-      target-package: org.shark.renovatio.generated.cobol
+      target-package: org.modernash.renovatio.generated.cobol
       generate-tests: true
       template-engine: freemarker
 
@@ -122,7 +122,7 @@ management:
 # Logging configuration
 logging:
   level:
-    org.shark.renovatio.provider.cobol: DEBUG
+    org.modernash.renovatio.provider.cobol: DEBUG
     io.github.resilience4j: INFO
   pattern:
     console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

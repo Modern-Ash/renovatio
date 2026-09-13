@@ -1,7 +1,7 @@
 grammar Nql;
 
 @header {
-package org.shark.renovatio.shared.nql.antlr;
+package org.modernash.renovatio.shared.nql.antlr;
 }
 
 query

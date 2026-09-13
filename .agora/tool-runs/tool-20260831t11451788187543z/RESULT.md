@@ -12,7 +12,7 @@ result-kind: "repository-change"
 
     [agora/issue-127-annotated-openrewrite-pass 1b5755c] feat(cobol): apply DOMAIN_NAMING renames with deterministic collision drop
      2 files changed, 185 insertions(+), 1 deletion(-)
-     create mode 100644 cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/annotate/AnnotationApplicatorDomainNamingTest.java
+     create mode 100644 cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/annotate/AnnotationApplicatorDomainNamingTest.java
 
 ## Standard error
 

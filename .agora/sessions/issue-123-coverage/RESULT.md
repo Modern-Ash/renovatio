@@ -13,7 +13,7 @@ termination-reason: null
 
     Completed the permitted implementation checkpoint and stopped at the authority boundary.
     
-    - Added byte-stability and network/LLM dependency-boundary tests in [PopulateCobolProcessRecipeTest.java](/home/faguero/dev/renovatio/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:146).
+    - Added byte-stability and network/LLM dependency-boundary tests in [PopulateCobolProcessRecipeTest.java](/home/faguero/dev/renovatio/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:146).
     - Java 17 verification passed: 4 tests, 0 failures.
     - Registered the [test report](/home/faguero/dev/renovatio/docs/reports/deterministic-semantic-core-recipe-boundary-20260831.md) and successful evidence through Agora.
     - Work remains `implementing` and is durably `blocked`: `.git/index.lock` is read-only, preventing the required governed commit.
@@ -2129,166 +2129,166 @@ termination-reason: null
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/invalid-review-state.annotated.json:13:      "provider": "offline", "model": "fixture", "promptId": "naming", "promptVersion": "v1",
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/valid-domain-naming.annotated.json:17:      "provider": "offline",
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/valid-domain-naming.annotated.json:18:      "model": "fixture",
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/test/CobolAnalysisTest.java:3:import org.shark.renovatio.provider.cobol.service.CobolParsingService;
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java:30:                new Level88ConditionReference("account-open", SPAN),
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java:35:        assertEquals("ACCOUNT-OPEN", ((Level88ConditionReference)
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java:46:                () -> new Level88ConditionReference("", SPAN));
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java:51:        CobolDiagnostic later = diagnostic("COBOL-PERFORM-002", 20);
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java:59:                "Unsupported deterministic form", new SourceSpan("sample.cob", line, 1, line, 20));
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:1:package org.shark.renovatio.provider.cobol;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:6:import org.shark.renovatio.provider.cobol.service.*;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:23:    private CobolLanguageProvider provider;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:31:        org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:32:        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:39:        provider = new CobolLanguageProvider(
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:80:        assertEquals("cobol", provider.language());
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:85:        var capabilities = provider.capabilities();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:102:        AnalyzeResult result = provider.analyze(query, testWorkspace);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:118:        PlanResult result = provider.plan(query, scope, testWorkspace);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:133:        var result = provider.generateStubs(query, testWorkspace);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:144:        MetricsResult result = provider.metrics(scope, testWorkspace);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:153:        ApplyResult result = provider.apply("invalid-plan-id", true, testWorkspace);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java:162:        DiffResult result = provider.diff("invalid-run-id", testWorkspace);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:1:package org.shark.renovatio.provider.cobol.infrastructure;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:4:import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:5:import org.shark.renovatio.provider.cobol.domain.CobolMcpTool;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:6:import org.shark.renovatio.provider.cobol.service.*;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:18:        // Build a minimal provider
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:21:        org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:22:        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:28:        CobolLanguageProvider provider = new CobolLanguageProvider(
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:32:        CobolMcpToolsProvider toolsProvider = new CobolMcpToolsProvider(provider);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:1:package org.shark.renovatio.provider.cobol.domain;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:95:        st.setType(CobolStatement.StatementType.MOVE);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:96:        st.setSourceCode("MOVE A TO B");
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:98:        assertEquals(CobolStatement.StatementType.MOVE, st.getType());
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:99:        assertEquals("MOVE A TO B", st.getSourceCode());
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:48:        String first = projector.nodeId(AnnotatedNodeKind.MOVE_STATEMENT, "/paragraphs/MAIN/statements/0", firstSpan, original);
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:50:        assertNotEquals(first, projector.nodeId(AnnotatedNodeKind.MOVE_STATEMENT,
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:52:        assertNotEquals(first, projector.nodeId(AnnotatedNodeKind.MOVE_STATEMENT,
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:65:        Level88Condition active = new Level88Condition("ACTIVE", "STATUS", List.of(Level88Value.exact("A")));
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:80:                        AnnotatedNodeKind.IF_STATEMENT, AnnotatedNodeKind.MOVE_STATEMENT,
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:81:                        AnnotatedNodeKind.EVALUATE_STATEMENT, AnnotatedNodeKind.EVALUATE_BRANCH,
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:82:                        AnnotatedNodeKind.PERFORM_STATEMENT),
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/domain/SimpleDatasetAdapterTest.java:1:package org.shark.renovatio.provider.cobol.domain;
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:27:                PERFORM PREP-PARA.
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:28:                MOVE 'JOHN' TO CUSTOMER-NAME.
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:30:                    MOVE 'VIP' TO CUSTOMER-NAME
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:32:                    MOVE 'STANDARD' TO CUSTOMER-NAME
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:34:                EVALUATE CUSTOMER-RATING
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:36:                        MOVE 'BRONZE' TO CUSTOMER-NAME
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:38:                        MOVE 'PLATINUM' TO CUSTOMER-NAME
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:39:                END-EVALUATE.
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:43:                MOVE 'INIT' TO CUSTOMER-NAME.
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:97:                    PERFORM PREP-PARA.
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:98:                    MOVE 'READY' TO CUSTOMER-NAME.
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:101:                    MOVE 'INIT' TO CUSTOMER-NAME.
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:135:        assertThat(updated).doesNotContain("PERFORM");
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CobolParsingServiceCicsTest.java:1:package org.shark.renovatio.provider.cobol.service;
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedCobolValidatorTest.java:85:        AnnotationProvenance provenance = new AnnotationProvenance(provisional.provider(), provisional.model(),
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailGateRunnerTest.java:1:package org.shark.renovatio.provider.cobol.guardrail;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/JavaGenerationServiceTest.java:1:package org.shark.renovatio.provider.cobol.service;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/JavaGenerationServiceTest.java:31:        javaGenerationService = new JavaGenerationService(parsing, tmpl, new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService(), new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java:24:                MOVE 'JOHN' TO CUSTOMER-NAME.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java:26:                    MOVE 'VIP' TO CUSTOMER-NAME
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java:28:                    MOVE 'STANDARD' TO CUSTOMER-NAME
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java:1:package org.shark.renovatio.provider.cobol.guardrail;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:1:package org.shark.renovatio.provider.cobol.service;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:4:import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:5:import org.shark.renovatio.provider.cobol.infrastructure.CobolMcpToolsProvider;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:27:        org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:28:        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:34:        CobolLanguageProvider provider = new CobolLanguageProvider(
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:37:        CobolMcpToolsProvider tools = new CobolMcpToolsProvider(provider);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:1:package org.shark.renovatio.provider.cobol.guardrail;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:5:import com.networknt.schema.JsonSchema;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:6:import com.networknt.schema.JsonSchemaFactory;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:7:import com.networknt.schema.SpecVersion;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:8:import com.networknt.schema.ValidationMessage;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:71:        assertThat(validateFixture(schema, "/fixtures/annotated-ir/valid-domain-naming.annotated.json")).isEmpty();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:72:        assertThat(validateFixture(schema, "/fixtures/annotated-ir/invalid-unknown-property.annotated.json")).isNotEmpty();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:73:        assertThat(validateFixture(schema, "/fixtures/annotated-ir/invalid-review-state.annotated.json")).isNotEmpty();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:74:        assertThat(validateFixture(schema, "/fixtures/annotated-ir/invalid-family-payload.annotated.json")).isNotEmpty();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:79:            assertThat(input).as("fixture %s", resource).isNotNull();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:1:package org.shark.renovatio.provider.cobol.guardrail;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:37:                .isEqualTo("characterization");
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:27:                    MOVE 'X' TO WS-TXT.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:33:                    EVALUATE WS-NUM
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:35:                            MOVE 'ZERO' TO WS-TXT
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:37:                            MOVE 'NZ' TO WS-TXT
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:38:                    END-EVALUATE.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:39:                    PERFORM PARA-2 THRU PARA-3.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:46:                    COMPUTE WS-NUM = WS-NUM + 1.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:54:                    MOVE 'A' TO WS-TXT.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:56:                    MOVE 'B' TO WS-TXT.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:95:        // Control flow edges due to PERFORM and THRU
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:107:                    COMPUTE BAD.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:132:                    MOVE 'X' TO ARG1.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:134:                    MOVE 'SHOULD-NOT-BE-HERE' TO ARG1.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:136:                    MOVE 'Y' TO ARG1.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:174:                    MOVE 'X' TO VAR.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemIdsTest.java:1:package org.shark.renovatio.provider.cobol.guardrail;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CobolNqlParsingServiceTest.java:1:package org.shark.renovatio.provider.cobol.service;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:1:package org.shark.renovatio.provider.cobol.service;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:8:import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:65:                           PERFORM READ-SALES.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:66:                           MOVE WS-REGION TO WS-PREV-REGION.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:67:                           MOVE WS-CUSTOMER-ID TO WS-SAVE-CUSTOMER.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:69:                           PERFORM PROCESS-RECORD UNTIL END-OF-FILE.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:71:                           PERFORM REGION-BREAK.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:72:                           PERFORM FINAL-TOTALS.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:78:                               PERFORM REGION-BREAK
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:81:                               PERFORM CUSTOMER-BREAK
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:85:                           PERFORM READ-SALES.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:91:                           PERFORM CUSTOMER-BREAK.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:93:                           MOVE ZEROS TO WS-TOTAL-REGION.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:94:                           MOVE WS-REGION TO WS-PREV-REGION.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:98:                           MOVE ZEROS TO WS-TOTAL-CUSTOMER.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:99:                           MOVE WS-CUSTOMER-ID TO WS-SAVE-CUSTOMER.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:137:                "Should extract business rules from COMPUTE/MOVE statements");
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:165:                           PERFORM PROCESS-PARA UNTIL END-OF-FILE.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:171:                               PERFORM BREAK-PARA
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:177:                           MOVE WS-KEY TO WS-PREV-KEY.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:178:                           MOVE ZEROS TO WS-TOTAL-SUM.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:259:                           MOVE WS-CATEGORY TO WS-SAVE-CATEGORY.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:260:                           PERFORM PROCESS-ITEMS UNTIL END-OF-FILE.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:266:                               PERFORM CATEGORY-BREAK
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:273:                           MOVE WS-CATEGORY TO WS-SAVE-CATEGORY.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:274:                           MOVE ZEROS TO WS-TOTAL-AMOUNT.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:275:                           MOVE ZEROS TO WS-COUNT-ITEMS.
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:6:import org.shark.renovatio.cobol.ir.model.Level88Condition;
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:7:import org.shark.renovatio.cobol.ir.model.Level88Value;
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:19:    void parse_shouldAttachRichPicTypesAndLevel88ConditionsToTheirParents() {
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:52:        assertEquals(Level88Value.exact("A"), status.level88Conditions().get(0).values().get(0));
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:54:        assertEquals(Level88Value.exact("C"), status.level88Conditions().get(1).values().get(0));
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:55:        assertEquals(Level88Value.exact("X"), status.level88Conditions().get(1).values().get(1));
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:56:        assertEquals(Level88Value.range("A", "C"), status.level88Conditions().get(2).values().get(0));
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:57:        assertEquals(Level88Value.range("B", "Z"), status.level88Conditions().get(3).values().get(0));
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:59:        Level88Condition overlapping = status.level88Conditions().get(3);
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:66:    void parse_shouldTreatCommasAsLevel88SeparatorsRatherThanValues() {
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:81:                Level88Value.exact("1"), Level88Value.exact("2"), Level88Value.exact("3")), values);
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:94:        assertThrows(NullPointerException.class, () -> Level88Value.exact(null));
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:95:        assertThrows(NullPointerException.class, () -> Level88Value.range("A", null));
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/Db2MigrationToolTest.java:1:package org.shark.renovatio.provider.cobol.service;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/Db2MigrationToolTest.java:4:import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/Db2MigrationToolTest.java:5:import org.shark.renovatio.provider.cobol.infrastructure.CobolMcpToolsProvider;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/Db2MigrationToolTest.java:34:        org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/Db2MigrationToolTest.java:35:        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.shark.renovatio.provider.java.OpenRewriteRunner()));
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/Db2MigrationToolTest.java:41:        CobolLanguageProvider provider = new CobolLanguageProvider(
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/Db2MigrationToolTest.java:44:        CobolMcpToolsProvider tools = new CobolMcpToolsProvider(provider);
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CalculatorGenerationTest.java:1:package org.shark.renovatio.provider.cobol.service;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CalculatorGenerationTest.java:6:import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CalculatorGenerationTest.java:7:import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CalculatorGenerationTest.java:8:import org.shark.renovatio.provider.java.OpenRewriteRunner;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java:1:package org.shark.renovatio.provider.cobol.translation;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java:12:import org.shark.renovatio.provider.java.OpenRewriteRunResult;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java:13:import org.shark.renovatio.provider.java.OpenRewriteRunner;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java:30:                MOVE 'JOHN' TO CUSTOMER-NAME.
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CobolParsingServiceDialectTest.java:1:package org.shark.renovatio.provider.cobol.service;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ArithmeticMigrationTest.java:1:package org.shark.renovatio.provider.cobol.service;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ArithmeticMigrationTest.java:5:import org.shark.renovatio.provider.cobol.translation.CobolIntermediateModelService;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ArithmeticMigrationTest.java:6:import org.shark.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ArithmeticMigrationTest.java:7:import org.shark.renovatio.provider.java.OpenRewriteRunner;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/test/CobolAnalysisTest.java:3:import org.modernash.renovatio.provider.cobol.service.CobolParsingService;
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java:30:                new Level88ConditionReference("account-open", SPAN),
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java:35:        assertEquals("ACCOUNT-OPEN", ((Level88ConditionReference)
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java:46:                () -> new Level88ConditionReference("", SPAN));
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java:51:        CobolDiagnostic later = diagnostic("COBOL-PERFORM-002", 20);
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java:59:                "Unsupported deterministic form", new SourceSpan("sample.cob", line, 1, line, 20));
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:1:package org.modernash.renovatio.provider.cobol;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:6:import org.modernash.renovatio.provider.cobol.service.*;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:23:    private CobolLanguageProvider provider;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:31:        org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:32:        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.modernash.renovatio.provider.java.OpenRewriteRunner()));
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:39:        provider = new CobolLanguageProvider(
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:80:        assertEquals("cobol", provider.language());
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:85:        var capabilities = provider.capabilities();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:102:        AnalyzeResult result = provider.analyze(query, testWorkspace);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:118:        PlanResult result = provider.plan(query, scope, testWorkspace);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:133:        var result = provider.generateStubs(query, testWorkspace);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:144:        MetricsResult result = provider.metrics(scope, testWorkspace);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:153:        ApplyResult result = provider.apply("invalid-plan-id", true, testWorkspace);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java:162:        DiffResult result = provider.diff("invalid-run-id", testWorkspace);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:1:package org.modernash.renovatio.provider.cobol.infrastructure;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:4:import org.modernash.renovatio.provider.cobol.CobolLanguageProvider;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:5:import org.modernash.renovatio.provider.cobol.domain.CobolMcpTool;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:6:import org.modernash.renovatio.provider.cobol.service.*;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:18:        // Build a minimal provider
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:21:        org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:22:        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.modernash.renovatio.provider.java.OpenRewriteRunner()));
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:28:        CobolLanguageProvider provider = new CobolLanguageProvider(
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java:32:        CobolMcpToolsProvider toolsProvider = new CobolMcpToolsProvider(provider);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:1:package org.modernash.renovatio.provider.cobol.domain;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:95:        st.setType(CobolStatement.StatementType.MOVE);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:96:        st.setSourceCode("MOVE A TO B");
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:98:        assertEquals(CobolStatement.StatementType.MOVE, st.getType());
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/domain/CobolDomainPojoTest.java:99:        assertEquals("MOVE A TO B", st.getSourceCode());
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:48:        String first = projector.nodeId(AnnotatedNodeKind.MOVE_STATEMENT, "/paragraphs/MAIN/statements/0", firstSpan, original);
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:50:        assertNotEquals(first, projector.nodeId(AnnotatedNodeKind.MOVE_STATEMENT,
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:52:        assertNotEquals(first, projector.nodeId(AnnotatedNodeKind.MOVE_STATEMENT,
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:65:        Level88Condition active = new Level88Condition("ACTIVE", "STATUS", List.of(Level88Value.exact("A")));
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:80:                        AnnotatedNodeKind.IF_STATEMENT, AnnotatedNodeKind.MOVE_STATEMENT,
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:81:                        AnnotatedNodeKind.EVALUATE_STATEMENT, AnnotatedNodeKind.EVALUATE_BRANCH,
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java:82:                        AnnotatedNodeKind.PERFORM_STATEMENT),
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/domain/SimpleDatasetAdapterTest.java:1:package org.modernash.renovatio.provider.cobol.domain;
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:27:                PERFORM PREP-PARA.
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:28:                MOVE 'JOHN' TO CUSTOMER-NAME.
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:30:                    MOVE 'VIP' TO CUSTOMER-NAME
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:32:                    MOVE 'STANDARD' TO CUSTOMER-NAME
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:34:                EVALUATE CUSTOMER-RATING
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:36:                        MOVE 'BRONZE' TO CUSTOMER-NAME
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:38:                        MOVE 'PLATINUM' TO CUSTOMER-NAME
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:39:                END-EVALUATE.
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:43:                MOVE 'INIT' TO CUSTOMER-NAME.
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:97:                    PERFORM PREP-PARA.
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:98:                    MOVE 'READY' TO CUSTOMER-NAME.
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:101:                    MOVE 'INIT' TO CUSTOMER-NAME.
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:135:        assertThat(updated).doesNotContain("PERFORM");
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CobolParsingServiceCicsTest.java:1:package org.modernash.renovatio.provider.cobol.service;
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedCobolValidatorTest.java:85:        AnnotationProvenance provenance = new AnnotationProvenance(provisional.provider(), provisional.model(),
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailGateRunnerTest.java:1:package org.modernash.renovatio.provider.cobol.guardrail;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationServiceTest.java:1:package org.modernash.renovatio.provider.cobol.service;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationServiceTest.java:31:        javaGenerationService = new JavaGenerationService(parsing, tmpl, new org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService(), new org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.modernash.renovatio.provider.java.OpenRewriteRunner()));
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java:24:                MOVE 'JOHN' TO CUSTOMER-NAME.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java:26:                    MOVE 'VIP' TO CUSTOMER-NAME
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java:28:                    MOVE 'STANDARD' TO CUSTOMER-NAME
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java:1:package org.modernash.renovatio.provider.cobol.guardrail;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:1:package org.modernash.renovatio.provider.cobol.service;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:4:import org.modernash.renovatio.provider.cobol.CobolLanguageProvider;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:5:import org.modernash.renovatio.provider.cobol.infrastructure.CobolMcpToolsProvider;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:27:        org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:28:        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.modernash.renovatio.provider.java.OpenRewriteRunner()));
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:34:        CobolLanguageProvider provider = new CobolLanguageProvider(
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CopybookMigrationToolTest.java:37:        CobolMcpToolsProvider tools = new CobolMcpToolsProvider(provider);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:1:package org.modernash.renovatio.provider.cobol.guardrail;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:5:import com.networknt.schema.JsonSchema;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:6:import com.networknt.schema.JsonSchemaFactory;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:7:import com.networknt.schema.SpecVersion;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:8:import com.networknt.schema.ValidationMessage;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:71:        assertThat(validateFixture(schema, "/fixtures/annotated-ir/valid-domain-naming.annotated.json")).isEmpty();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:72:        assertThat(validateFixture(schema, "/fixtures/annotated-ir/invalid-unknown-property.annotated.json")).isNotEmpty();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:73:        assertThat(validateFixture(schema, "/fixtures/annotated-ir/invalid-review-state.annotated.json")).isNotEmpty();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:74:        assertThat(validateFixture(schema, "/fixtures/annotated-ir/invalid-family-payload.annotated.json")).isNotEmpty();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:79:            assertThat(input).as("fixture %s", resource).isNotNull();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:1:package org.modernash.renovatio.provider.cobol.guardrail;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:37:                .isEqualTo("characterization");
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:27:                    MOVE 'X' TO WS-TXT.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:33:                    EVALUATE WS-NUM
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:35:                            MOVE 'ZERO' TO WS-TXT
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:37:                            MOVE 'NZ' TO WS-TXT
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:38:                    END-EVALUATE.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:39:                    PERFORM PARA-2 THRU PARA-3.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:46:                    COMPUTE WS-NUM = WS-NUM + 1.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:54:                    MOVE 'A' TO WS-TXT.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:56:                    MOVE 'B' TO WS-TXT.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:95:        // Control flow edges due to PERFORM and THRU
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:107:                    COMPUTE BAD.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:132:                    MOVE 'X' TO ARG1.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:134:                    MOVE 'SHOULD-NOT-BE-HERE' TO ARG1.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:136:                    MOVE 'Y' TO ARG1.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java:174:                    MOVE 'X' TO VAR.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemIdsTest.java:1:package org.modernash.renovatio.provider.cobol.guardrail;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CobolNqlParsingServiceTest.java:1:package org.modernash.renovatio.provider.cobol.service;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:1:package org.modernash.renovatio.provider.cobol.service;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:8:import org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:65:                           PERFORM READ-SALES.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:66:                           MOVE WS-REGION TO WS-PREV-REGION.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:67:                           MOVE WS-CUSTOMER-ID TO WS-SAVE-CUSTOMER.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:69:                           PERFORM PROCESS-RECORD UNTIL END-OF-FILE.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:71:                           PERFORM REGION-BREAK.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:72:                           PERFORM FINAL-TOTALS.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:78:                               PERFORM REGION-BREAK
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:81:                               PERFORM CUSTOMER-BREAK
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:85:                           PERFORM READ-SALES.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:91:                           PERFORM CUSTOMER-BREAK.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:93:                           MOVE ZEROS TO WS-TOTAL-REGION.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:94:                           MOVE WS-REGION TO WS-PREV-REGION.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:98:                           MOVE ZEROS TO WS-TOTAL-CUSTOMER.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:99:                           MOVE WS-CUSTOMER-ID TO WS-SAVE-CUSTOMER.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:137:                "Should extract business rules from COMPUTE/MOVE statements");
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:165:                           PERFORM PROCESS-PARA UNTIL END-OF-FILE.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:171:                               PERFORM BREAK-PARA
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:177:                           MOVE WS-KEY TO WS-PREV-KEY.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:178:                           MOVE ZEROS TO WS-TOTAL-SUM.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:259:                           MOVE WS-CATEGORY TO WS-SAVE-CATEGORY.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:260:                           PERFORM PROCESS-ITEMS UNTIL END-OF-FILE.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:266:                               PERFORM CATEGORY-BREAK
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:273:                           MOVE WS-CATEGORY TO WS-SAVE-CATEGORY.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:274:                           MOVE ZEROS TO WS-TOTAL-AMOUNT.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java:275:                           MOVE ZEROS TO WS-COUNT-ITEMS.
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:6:import org.modernash.renovatio.cobol.ir.model.Level88Condition;
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:7:import org.modernash.renovatio.cobol.ir.model.Level88Value;
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:19:    void parse_shouldAttachRichPicTypesAndLevel88ConditionsToTheirParents() {
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:52:        assertEquals(Level88Value.exact("A"), status.level88Conditions().get(0).values().get(0));
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:54:        assertEquals(Level88Value.exact("C"), status.level88Conditions().get(1).values().get(0));
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:55:        assertEquals(Level88Value.exact("X"), status.level88Conditions().get(1).values().get(1));
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:56:        assertEquals(Level88Value.range("A", "C"), status.level88Conditions().get(2).values().get(0));
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:57:        assertEquals(Level88Value.range("B", "Z"), status.level88Conditions().get(3).values().get(0));
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:59:        Level88Condition overlapping = status.level88Conditions().get(3);
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:66:    void parse_shouldTreatCommasAsLevel88SeparatorsRatherThanValues() {
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:81:                Level88Value.exact("1"), Level88Value.exact("2"), Level88Value.exact("3")), values);
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:94:        assertThrows(NullPointerException.class, () -> Level88Value.exact(null));
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java:95:        assertThrows(NullPointerException.class, () -> Level88Value.range("A", null));
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/Db2MigrationToolTest.java:1:package org.modernash.renovatio.provider.cobol.service;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/Db2MigrationToolTest.java:4:import org.modernash.renovatio.provider.cobol.CobolLanguageProvider;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/Db2MigrationToolTest.java:5:import org.modernash.renovatio.provider.cobol.infrastructure.CobolMcpToolsProvider;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/Db2MigrationToolTest.java:34:        org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService irService = new org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/Db2MigrationToolTest.java:35:        JavaGenerationService javaGenerationService = new JavaGenerationService(parsingService, templateService, irService, new org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspiler(new org.modernash.renovatio.provider.java.OpenRewriteRunner()));
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/Db2MigrationToolTest.java:41:        CobolLanguageProvider provider = new CobolLanguageProvider(
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/Db2MigrationToolTest.java:44:        CobolMcpToolsProvider tools = new CobolMcpToolsProvider(provider);
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CalculatorGenerationTest.java:1:package org.modernash.renovatio.provider.cobol.service;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CalculatorGenerationTest.java:6:import org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CalculatorGenerationTest.java:7:import org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CalculatorGenerationTest.java:8:import org.modernash.renovatio.provider.java.OpenRewriteRunner;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java:1:package org.modernash.renovatio.provider.cobol.translation;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java:12:import org.modernash.renovatio.provider.java.OpenRewriteRunResult;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java:13:import org.modernash.renovatio.provider.java.OpenRewriteRunner;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java:30:                MOVE 'JOHN' TO CUSTOMER-NAME.
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CobolParsingServiceDialectTest.java:1:package org.modernash.renovatio.provider.cobol.service;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ArithmeticMigrationTest.java:1:package org.modernash.renovatio.provider.cobol.service;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ArithmeticMigrationTest.java:5:import org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ArithmeticMigrationTest.java:6:import org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ArithmeticMigrationTest.java:7:import org.modernash.renovatio.provider.java.OpenRewriteRunner;
     
     exec
     /usr/bin/zsh -lc "rg --files renovatio-cobol-runtime renovatio-cobol-ir cobol-openrewrite-recipes renovatio-provider-cobol | rg '(src/test|fixtures|pom.xml)'" in /home/faguero/dev/renovatio
@@ -2298,45 +2298,45 @@ termination-reason: null
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/invalid-family-payload.annotated.json
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/invalid-review-state.annotated.json
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/valid-domain-naming.annotated.json
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/CobolDecimalTest.java
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/EbcdicCollatorTest.java
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/PicClauseTest.java
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/CobolAlphanumericTest.java
-    renovatio-cobol-runtime/src/test/java/org/shark/renovatio/cobol/runtime/CobolMoveTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/JavaTemplateSupportTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/TypedSemanticModelTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/model/ModelClassesTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CobolParsingServiceCicsTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/JavaGenerationServiceTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CopybookMigrationToolTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CalculatorGenerationTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/ArithmeticMigrationTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CobolNqlParsingServiceTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/Db2MigrationToolTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/service/CobolParsingServiceDialectTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedCobolModelTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedCobolValidatorTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedIdentityTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/CobolLanguageProviderTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/domain/CobolDomainPojoTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/domain/SimpleDatasetAdapterTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/CobolExpressionParserTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/context/CobolExecutionContextTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailGateRunnerTest.java
-    renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/context/CobolTypeMapperTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemIdsTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/test/CobolAnalysisTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/CobolDecimalTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/EbcdicCollatorTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/PicClauseTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/CobolAlphanumericTest.java
+    renovatio-cobol-runtime/src/test/java/org/modernash/renovatio/cobol/runtime/CobolMoveTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/infrastructure/CobolMcpToolsProviderTest.java
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/JavaTemplateSupportTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/TypedSemanticModelTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/model/ModelClassesTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CobolParsingServiceCicsTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/JavaGenerationServiceTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CopybookMigrationToolTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ControlBreakDecompositionServiceTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CalculatorGenerationTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/ArithmeticMigrationTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CobolNqlParsingServiceTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/Db2MigrationToolTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/service/CobolParsingServiceDialectTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedCobolModelTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjectorTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedCobolValidatorTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedIdentityTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/CobolLanguageProviderTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/domain/CobolDomainPojoTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/domain/SimpleDatasetAdapterTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/CobolExpressionParserTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/context/CobolExecutionContextTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailGateRunnerTest.java
+    renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/context/CobolTypeMapperTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemIdsTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/test/CobolAnalysisTest.java
     cobol-openrewrite-recipes/pom.xml
     renovatio-cobol-ir/pom.xml
     renovatio-cobol-runtime/pom.xml
@@ -2498,15 +2498,15 @@ termination-reason: null
      44 files changed, 1758 insertions(+), 22 deletions(-)
     
     exec
-    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java\"" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java\"" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.cobol.ir.parser;
+    package org.modernash.renovatio.cobol.ir.parser;
     
     import org.apache.commons.lang3.StringUtils;
-    import org.shark.renovatio.cobol.ir.context.CobolExecutionContext;
-    import org.shark.renovatio.cobol.ir.context.CobolTypeMapper;
-    import org.shark.renovatio.cobol.ir.flow.ControlFlowGraph;
-    import org.shark.renovatio.cobol.ir.model.*;
+    import org.modernash.renovatio.cobol.ir.context.CobolExecutionContext;
+    import org.modernash.renovatio.cobol.ir.context.CobolTypeMapper;
+    import org.modernash.renovatio.cobol.ir.flow.ControlFlowGraph;
+    import org.modernash.renovatio.cobol.ir.model.*;
     import org.slf4j.Logger;
     import org.slf4j.LoggerFactory;
     
@@ -2862,16 +2862,16 @@ termination-reason: null
                     if (currentHeader != null) currentBody.append(rawLine).append(Symbols.NEWLINE_CHAR);
     
     exec
-    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java\"" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java\"" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.cobol.ir.parser;
+    package org.modernash.renovatio.cobol.ir.parser;
     
     import org.junit.jupiter.api.Test;
-    import org.shark.renovatio.cobol.ir.model.CobolDataItem;
-    import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-    import org.shark.renovatio.cobol.ir.model.Level88Condition;
-    import org.shark.renovatio.cobol.ir.model.Level88Value;
-    import org.shark.renovatio.cobol.runtime.PicType;
+    import org.modernash.renovatio.cobol.ir.model.CobolDataItem;
+    import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+    import org.modernash.renovatio.cobol.ir.model.Level88Condition;
+    import org.modernash.renovatio.cobol.ir.model.Level88Value;
+    import org.modernash.renovatio.cobol.runtime.PicType;
     
     import java.util.Map;
     import java.util.function.Function;
@@ -2988,21 +2988,21 @@ termination-reason: null
     }
     
     exec
-    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/model/CobolStatement.java\"" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/model/CobolStatement.java\"" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.cobol.ir.model;
+    package org.modernash.renovatio.cobol.ir.model;
     
     public interface CobolStatement {
     }
     
     exec
-    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java\"" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java\"" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.cobol.ir.parser;
+    package org.modernash.renovatio.cobol.ir.parser;
     
     import org.junit.jupiter.api.Test;
-    import org.shark.renovatio.cobol.ir.flow.ControlFlowGraph;
-    import org.shark.renovatio.cobol.ir.model.*;
+    import org.modernash.renovatio.cobol.ir.flow.ControlFlowGraph;
+    import org.modernash.renovatio.cobol.ir.model.*;
     
     import java.nio.file.Files;
     import java.nio.file.Path;
@@ -3206,21 +3206,21 @@ termination-reason: null
     }
     
     exec
-    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java\"" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,360p' \"renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/translation/CobolSemanticTranspilerTest.java\"" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.provider.cobol.translation;
+    package org.modernash.renovatio.provider.cobol.translation;
     
     import org.junit.jupiter.api.Test;
     import org.openrewrite.ExecutionContext;
     import org.openrewrite.Recipe;
     import org.openrewrite.SourceFile;
-    import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
-    import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
-    import org.shark.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
-    import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-    import org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipe;
-    import org.shark.renovatio.provider.java.OpenRewriteRunResult;
-    import org.shark.renovatio.provider.java.OpenRewriteRunner;
+    import org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
+    import org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolModel;
+    import org.modernash.renovatio.cobol.ir.annotated.CobolIrIdentityProjector;
+    import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+    import org.modernash.renovatio.cobol.recipes.PopulateCobolProcessRecipe;
+    import org.modernash.renovatio.provider.java.OpenRewriteRunResult;
+    import org.modernash.renovatio.provider.java.OpenRewriteRunner;
     
     import java.util.List;
     
@@ -3312,9 +3312,9 @@ termination-reason: null
     }
     
     exec
-    /usr/bin/zsh -lc "sed -n '1,360p' \"cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java\"" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,360p' \"cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java\"" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.cobol.recipes;
+    package org.modernash.renovatio.cobol.recipes;
     
     import org.junit.jupiter.api.Test;
     import org.openrewrite.ExecutionContext;
@@ -3322,8 +3322,8 @@ termination-reason: null
     import org.openrewrite.Result;
     import org.openrewrite.java.JavaParser;
     import org.openrewrite.java.tree.J;
-    import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-    import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+    import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+    import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
     
     import java.util.List;
     
@@ -3453,9 +3453,9 @@ termination-reason: null
     }
     
     exec
-    /usr/bin/zsh -lc "sed -n '1,360p' \"cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java\"" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,360p' \"cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java\"" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.cobol.recipes;
+    package org.modernash.renovatio.cobol.recipes;
     
     import org.openrewrite.ExecutionContext;
     import org.openrewrite.Option;
@@ -3465,8 +3465,8 @@ termination-reason: null
     import org.openrewrite.internal.lang.Nullable;
     import org.openrewrite.java.JavaIsoVisitor;
     import org.openrewrite.java.tree.J;
-    import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
-    import org.shark.renovatio.cobol.ir.model.*;
+    import org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
+    import org.modernash.renovatio.cobol.ir.model.*;
     
     import java.util.*;
     
@@ -3818,13 +3818,13 @@ termination-reason: null
     
     2026-08-31T01:16:27.494056Z ERROR codex_models_manager::manager: failed to renew cache TTL: missing field `base_instructions` at line 97 column 5
     exec
-    /usr/bin/zsh -lc "sed -n '1,280p' renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,280p' renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserAdvancedTest.java" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.cobol.ir.parser;
+    package org.modernash.renovatio.cobol.ir.parser;
     
     import org.junit.jupiter.api.Test;
-    import org.shark.renovatio.cobol.ir.flow.ControlFlowGraph;
-    import org.shark.renovatio.cobol.ir.model.*;
+    import org.modernash.renovatio.cobol.ir.flow.ControlFlowGraph;
+    import org.modernash.renovatio.cobol.ir.model.*;
     
     import java.nio.file.Files;
     import java.nio.file.Path;
@@ -4028,7 +4028,7 @@ termination-reason: null
     }
     
     exec
-    /usr/bin/zsh -lc "sed -n '280,760p' renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '280,760p' renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java" in /home/faguero/dev/renovatio
      succeeded in 0ms:
                     column++;
                 }
@@ -4513,9 +4513,9 @@ termination-reason: null
         }
     
     exec
-    /usr/bin/zsh -lc "sed -n '1,520p' cobol-openrewrite-recipes/src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,520p' cobol-openrewrite-recipes/src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.cobol.recipes;
+    package org.modernash.renovatio.cobol.recipes;
     
     import org.openrewrite.ExecutionContext;
     import org.openrewrite.Option;
@@ -4525,8 +4525,8 @@ termination-reason: null
     import org.openrewrite.internal.lang.Nullable;
     import org.openrewrite.java.JavaIsoVisitor;
     import org.openrewrite.java.tree.J;
-    import org.shark.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
-    import org.shark.renovatio.cobol.ir.model.*;
+    import org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
+    import org.modernash.renovatio.cobol.ir.model.*;
     
     import java.util.*;
     
@@ -5022,16 +5022,16 @@ termination-reason: null
     }
     
     exec
-    /usr/bin/zsh -lc "sed -n '1,220p' renovatio-cobol-ir/src/test/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java" in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc "sed -n '1,220p' renovatio-cobol-ir/src/test/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParserDataModelTest.java" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    package org.shark.renovatio.cobol.ir.parser;
+    package org.modernash.renovatio.cobol.ir.parser;
     
     import org.junit.jupiter.api.Test;
-    import org.shark.renovatio.cobol.ir.model.CobolDataItem;
-    import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-    import org.shark.renovatio.cobol.ir.model.Level88Condition;
-    import org.shark.renovatio.cobol.ir.model.Level88Value;
-    import org.shark.renovatio.cobol.runtime.PicType;
+    import org.modernash.renovatio.cobol.ir.model.CobolDataItem;
+    import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+    import org.modernash.renovatio.cobol.ir.model.Level88Condition;
+    import org.modernash.renovatio.cobol.ir.model.Level88Value;
+    import org.modernash.renovatio.cobol.runtime.PicType;
     
     import java.util.Map;
     import java.util.function.Function;
@@ -5159,23 +5159,23 @@ termination-reason: null
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/invalid-family-payload.annotated.json
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/invalid-review-state.annotated.json
     renovatio-provider-cobol/src/test/resources/fixtures/annotated-ir/valid-domain-naming.annotated.json
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailGateRunnerTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemIdsTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailRunResult.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriter.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailGate.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalog.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/GateCheck.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/SensitiveValueRedactor.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/GateCheckResult.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionReviewStatus.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailGateRunner.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemIds.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItem.java
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionSeverity.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailGateRunnerTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemIdsTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailRunResult.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriter.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailGate.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalog.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/GateCheck.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/SensitiveValueRedactor.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/GateCheckResult.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionReviewStatus.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailGateRunner.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemIds.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItem.java
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionSeverity.java
     docs/test-plans/characterization-guardrails.md
     docs/specs/characterization-guardrails.md
     docs/plans/characterization-guardrails.md
@@ -5560,24 +5560,24 @@ termination-reason: null
     exec
     /usr/bin/zsh -lc "rg -n \"CobolIntermediateModel|ObjectMapper|canonical\" renovatio-provider-cobol/src/main renovatio-provider-cobol/src/test renovatio-cobol-ir/src/main | rg 'writeValue|Json|ObjectMapper|serialize|canonical' | sed -n '1,240p'" in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:3:import com.fasterxml.jackson.databind.ObjectMapper;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:20:    private final GuardrailSchemaCatalog catalog = new GuardrailSchemaCatalog(new ObjectMapper());
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:80:            return schema.validate(new ObjectMapper().readTree(input));
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java:3:import com.fasterxml.jackson.databind.ObjectMapper;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java:10:    private final ObjectMapper objectMapper = new ObjectMapper();
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:4:import com.fasterxml.jackson.databind.ObjectMapper;
-    renovatio-provider-cobol/src/test/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:19:    private final ObjectMapper objectMapper = new ObjectMapper();
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriter.java:4:import com.fasterxml.jackson.databind.ObjectMapper;
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriter.java:24:    private final ObjectMapper objectMapper;
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/ManualActionItemWriter.java:27:    public ManualActionItemWriter(ObjectMapper objectMapper) {
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalog.java:4:import com.fasterxml.jackson.databind.ObjectMapper;
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalog.java:19:    private final ObjectMapper objectMapper;
-    renovatio-provider-cobol/src/main/java/org/shark/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalog.java:21:    public GuardrailSchemaCatalog(ObjectMapper objectMapper) {
-    renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedCobolValidator.java:37:                        root + "/annotationId", "Annotation identity does not match its canonical projection");
-    renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/AnnotatedIdentity.java:34:    static String canonical(Object projection) {
-    renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:14:/** Builds the closed canonical identity envelopes for a schema-valid {@code cobol-ir.v1} projection. */
-    renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/CanonicalJson.java:43:            throw new IllegalArgumentException("Unsupported canonical JSON value: " + value.getClass().getName());
-    renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/annotated/CanonicalJson.java:88:            throw new IllegalArgumentException("Unsupported canonical JSON number: " + number.getClass().getName());
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:3:import com.fasterxml.jackson.databind.ObjectMapper;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:20:    private final GuardrailSchemaCatalog catalog = new GuardrailSchemaCatalog(new ObjectMapper());
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalogTest.java:80:            return schema.validate(new ObjectMapper().readTree(input));
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java:3:import com.fasterxml.jackson.databind.ObjectMapper;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemTypeTest.java:10:    private final ObjectMapper objectMapper = new ObjectMapper();
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:4:import com.fasterxml.jackson.databind.ObjectMapper;
+    renovatio-provider-cobol/src/test/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriterTest.java:19:    private final ObjectMapper objectMapper = new ObjectMapper();
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriter.java:4:import com.fasterxml.jackson.databind.ObjectMapper;
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriter.java:24:    private final ObjectMapper objectMapper;
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/ManualActionItemWriter.java:27:    public ManualActionItemWriter(ObjectMapper objectMapper) {
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalog.java:4:import com.fasterxml.jackson.databind.ObjectMapper;
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalog.java:19:    private final ObjectMapper objectMapper;
+    renovatio-provider-cobol/src/main/java/org/modernash/renovatio/provider/cobol/guardrail/GuardrailSchemaCatalog.java:21:    public GuardrailSchemaCatalog(ObjectMapper objectMapper) {
+    renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedCobolValidator.java:37:                        root + "/annotationId", "Annotation identity does not match its canonical projection");
+    renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/AnnotatedIdentity.java:34:    static String canonical(Object projection) {
+    renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/CobolIrIdentityProjector.java:14:/** Builds the closed canonical identity envelopes for a schema-valid {@code cobol-ir.v1} projection. */
+    renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/CanonicalJson.java:43:            throw new IllegalArgumentException("Unsupported canonical JSON value: " + value.getClass().getName());
+    renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/annotated/CanonicalJson.java:88:            throw new IllegalArgumentException("Unsupported canonical JSON number: " + number.getClass().getName());
     
     2026-08-31T01:16:55.383100Z ERROR codex_models_manager::manager: failed to renew cache TTL: missing field `base_instructions` at line 97 column 5
     exec
@@ -5679,14 +5679,14 @@ termination-reason: null
     The accepted #123 plan allows a focused implementation checkpoint before the lifecycle transition. I’m adding an executable recipe-boundary test that proves independent runs are byte-identical and that the recipe module has no provider, prompt, credential, HTTP, or network dependency in its production source/POM. This is the self-contained portion of the missing evidence; the full fixture harness remains owned by the active #122 dependency.
     apply patch
     patch: completed
-    /home/faguero/dev/renovatio/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    /home/faguero/dev/renovatio/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -5777,11 +5777,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -5796,13 +5796,13 @@ termination-reason: null
     +    }
      }
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -5893,11 +5893,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -5914,15 +5914,15 @@ termination-reason: null
     
     2026-08-31T01:17:44.249962Z ERROR codex_models_manager::manager: failed to renew cache TTL: missing field `base_instructions` at line 97 column 5
     exec
-    /usr/bin/zsh -lc 'git diff -- cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java' in /home/faguero/dev/renovatio
+    /usr/bin/zsh -lc 'git diff -- cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java' in /home/faguero/dev/renovatio
      succeeded in 0ms:
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7c..19013a0 100644
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@ import org.openrewrite.java.tree.J;
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -6013,11 +6013,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -6032,13 +6032,13 @@ termination-reason: null
     +    }
      }
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -6129,11 +6129,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -6162,12 +6162,12 @@ termination-reason: null
     [INFO] Renovatio COBOL Intermediate Representation                        [jar]
     [INFO] Renovatio COBOL OpenRewrite Recipes                                [jar]
     [INFO] 
-    [INFO] ----------------< org.shark.renovatio:renovatio-parent >----------------
+    [INFO] ----------------< org.modernash.renovatio:renovatio-parent >----------------
     [INFO] Building Renovatio - Multi-Language Refactoring Platform 0.0.1-SNAPSHOT [1/5]
     [INFO]   from pom.xml
     [INFO] --------------------------------[ pom ]---------------------------------
     [INFO] 
-    [INFO] ----------------< org.shark.renovatio:renovatio-shared >----------------
+    [INFO] ----------------< org.modernash.renovatio:renovatio-shared >----------------
     [INFO] Building Renovatio Shared 0.0.1-SNAPSHOT                           [2/5]
     [INFO]   from renovatio-shared/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -6205,7 +6205,7 @@ termination-reason: null
     [INFO] Loading execution data file /home/faguero/dev/renovatio/renovatio-shared/target/jacoco.exec
     [INFO] Analyzed bundle 'Renovatio Shared' with 20 classes
     [INFO] 
-    [INFO] ------------< org.shark.renovatio:renovatio-cobol-runtime >-------------
+    [INFO] ------------< org.modernash.renovatio:renovatio-cobol-runtime >-------------
     [INFO] Building Renovatio COBOL Runtime 0.0.1-SNAPSHOT                    [3/5]
     [INFO]   from renovatio-cobol-runtime/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -6225,7 +6225,7 @@ termination-reason: null
     [INFO] 
     [INFO] --- surefire:3.1.2:test (default-test) @ renovatio-cobol-runtime ---
     [INFO] 
-    [INFO] ---------------< org.shark.renovatio:renovatio-cobol-ir >---------------
+    [INFO] ---------------< org.modernash.renovatio:renovatio-cobol-ir >---------------
     [INFO] Building Renovatio COBOL Intermediate Representation 0.0.1-SNAPSHOT [4/5]
     [INFO]   from renovatio-cobol-ir/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -6254,7 +6254,7 @@ termination-reason: null
     [INFO] Loading execution data file /home/faguero/dev/renovatio/renovatio-cobol-ir/target/jacoco.exec
     [INFO] Analyzed bundle 'Renovatio COBOL Intermediate Representation' with 84 classes
     [INFO] 
-    [INFO] -----------< org.shark.renovatio:cobol-openrewrite-recipes >------------
+    [INFO] -----------< org.modernash.renovatio:cobol-openrewrite-recipes >------------
     [INFO] Building Renovatio COBOL OpenRewrite Recipes 0.0.1-SNAPSHOT        [5/5]
     [INFO]   from cobol-openrewrite-recipes/pom.xml
     [INFO] --------------------------------[ jar ]---------------------------------
@@ -6293,8 +6293,8 @@ termination-reason: null
     [INFO] -------------------------------------------------------
     [INFO]  T E S T S
     [INFO] -------------------------------------------------------
-    [INFO] Running org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipeTest
-    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.211 s -- in org.shark.renovatio.cobol.recipes.PopulateCobolProcessRecipeTest
+    [INFO] Running org.modernash.renovatio.cobol.recipes.PopulateCobolProcessRecipeTest
+    [INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.211 s -- in org.modernash.renovatio.cobol.recipes.PopulateCobolProcessRecipeTest
     [INFO] 
     [INFO] Results:
     [INFO] 
@@ -6319,13 +6319,13 @@ termination-reason: null
     [INFO] Finished at: 2026-08-30T22:17:59-03:00
     [INFO] ------------------------------------------------------------------------
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -6416,11 +6416,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -6511,13 +6511,13 @@ termination-reason: null
       --environment ENVIRONMENT
       --dedupe-key DEDUPE_KEY
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -6608,11 +6608,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -6630,13 +6630,13 @@ termination-reason: null
     apply patch
     patch: completed
     /home/faguero/dev/renovatio/docs/reports/deterministic-semantic-core-recipe-boundary-20260831.md
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -6727,11 +6727,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -6794,13 +6794,13 @@ termination-reason: null
     +harness and offline characterization gates referenced by the accepted #123 specification, plus
     +the complete construct-to-test matrix for the deterministic semantic subset.
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -6891,11 +6891,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -6993,13 +6993,13 @@ termination-reason: null
     
     This record contains invocation metadata, not credentials. Authentication is resolved by the external executable and its environment.
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -7090,11 +7090,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -7158,13 +7158,13 @@ termination-reason: null
     +the complete construct-to-test matrix for the deterministic semantic subset.
     
     2026-08-31T01:18:36.971539Z ERROR codex_models_manager::manager: failed to renew cache TTL: missing field `base_instructions` at line 97 column 5
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -7255,11 +7255,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -7387,13 +7387,13 @@ termination-reason: null
       "revision": 1
     }
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -7484,11 +7484,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -7615,13 +7615,13 @@ termination-reason: null
       "revision": 1
     }
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -7712,11 +7712,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -7794,13 +7794,13 @@ termination-reason: null
       --reason REASON
       --id ID
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -7891,11 +7891,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -7978,13 +7978,13 @@ termination-reason: null
       "path": "/home/faguero/dev/renovatio/.agora/swarms/002-ai-modernization/work/deterministic-semantic-core/status-changes/change-20260831t011906815880z/STATUS.md"
     }
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -8075,11 +8075,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -8150,13 +8150,13 @@ termination-reason: null
     AGORA 02 XX  command.finish       Agora could not complete the command | error=ValueError
     Session progress summary cannot exceed 240 characters
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -8247,11 +8247,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -8329,13 +8329,13 @@ termination-reason: null
       "path": "/home/faguero/dev/renovatio/.agora/sessions/issue-123-coverage/PROGRESS.md"
     }
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -8426,11 +8426,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -8534,7 +8534,7 @@ termination-reason: null
      M .agora/swarms/002-ai-modernization/work/deterministic-semantic-core/artifacts.md
      M .agora/swarms/002-ai-modernization/work/deterministic-semantic-core/events.md
      M .agora/swarms/002-ai-modernization/work/deterministic-semantic-core/evidence.md
-     M cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+     M cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     ?? .agora/sessions/issue-123-coverage/
     ?? .agora/sessions/issue-123-verification-retry-20260831t01081788149339z/
     ?? .agora/sessions/issue-123-verification/
@@ -8606,13 +8606,13 @@ termination-reason: null
       "revision": 1
     }
     
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -8703,11 +8703,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);
@@ -8774,20 +8774,20 @@ termination-reason: null
     codex
     Completed the permitted implementation checkpoint and stopped at the authority boundary.
     
-    - Added byte-stability and network/LLM dependency-boundary tests in [PopulateCobolProcessRecipeTest.java](/home/faguero/dev/renovatio/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:146).
+    - Added byte-stability and network/LLM dependency-boundary tests in [PopulateCobolProcessRecipeTest.java](/home/faguero/dev/renovatio/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java:146).
     - Java 17 verification passed: 4 tests, 0 failures.
     - Registered the [test report](/home/faguero/dev/renovatio/docs/reports/deterministic-semantic-core-recipe-boundary-20260831.md) and successful evidence through Agora.
     - Work remains `implementing` and is durably `blocked`: `.git/index.lock` is read-only, preventing the required governed commit.
     - Verification also remains gated by the #122 characterization harness and offline lane.
     
     No criterion stages or approvals were claimed. Resume requires repository-write authority and completion of the #122 dependency.
-    diff --git a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    diff --git a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     index 805ee7cb415969ac752d02eaa0dee41b64823d7c..19013a0595dad060d630ef22097505f9596c97e4
-    --- a/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
-    +++ b/cobol-openrewrite-recipes/src/test/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    --- a/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
+    +++ b/cobol-openrewrite-recipes/src/test/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipeTest.java
     @@ -9,7 +9,16 @@
-     import org.shark.renovatio.cobol.ir.model.CobolIntermediateModel;
-     import org.shark.renovatio.cobol.ir.parser.SimpleCobolIrParser;
+     import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+     import org.modernash.renovatio.cobol.ir.parser.SimpleCobolIrParser;
      
     +import java.io.IOException;
     +import java.nio.charset.StandardCharsets;
@@ -8878,11 +8878,11 @@ termination-reason: null
     +
     +    private static Path locateModuleRoot() {
     +        Path workingDirectory = Path.of("").toAbsolutePath().normalize();
-    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(workingDirectory.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return workingDirectory;
     +        }
     +        Path childModule = workingDirectory.resolve("cobol-openrewrite-recipes");
-    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/shark/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
+    +        if (Files.isRegularFile(childModule.resolve("src/main/java/org/modernash/renovatio/cobol/recipes/PopulateCobolProcessRecipe.java"))) {
     +            return childModule;
     +        }
     +        throw new IllegalStateException("Cannot locate cobol-openrewrite-recipes module from " + workingDirectory);

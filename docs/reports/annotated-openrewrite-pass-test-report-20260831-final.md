@@ -46,7 +46,7 @@ mvn -q -pl cobol-openrewrite-recipes verify -o -DskipTests=false -Djacoco.skip=t
 ```
 
 The boundary test was mutation-checked by temporarily introducing a forbidden
-`org.shark.renovatio.provider` reference in the annotations module: the test failed, and passed again
+`org.modernash.renovatio.provider` reference in the annotations module: the test failed, and passed again
 after the probe was removed.
 
 ## Acceptance evidence

@@ -10,7 +10,7 @@ artifact-content-sha256: {"repo://docs/reports/issue-233-test-report.md":"36b75b
 produced-by: "project:agent"
 timestamp: "2026-09-11T17:19:55.941171Z"
 tested-commit: "9b5f1ede087630ea90a892255a004999be650b35"
-command: ["mvn -q -pl renovatio-jcl dependency:tree -Dincludes=org.shark.renovatio:renovatio-llm"]
+command: ["mvn -q -pl renovatio-jcl dependency:tree -Dincludes=org.modernash.renovatio:renovatio-llm"]
 exit-code: 0
 tests-total: null
 tests-passed: null

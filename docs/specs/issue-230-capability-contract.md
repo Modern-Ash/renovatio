@@ -2,7 +2,7 @@
 
 The canonical Java contract lives in:
 
-- `renovatio-application/src/main/java/org/shark/renovatio/application/capability/SurfaceCapabilityRegistry.java`
+- `renovatio-application/src/main/java/org/modernash/renovatio/application/capability/SurfaceCapabilityRegistry.java`
 
 Required top-level fields:
 

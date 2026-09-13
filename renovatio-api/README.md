@@ -87,9 +87,9 @@ create the SQLite target once, then normalize temporal values before running
 the API:
 
 ```bash
-mvn -pl renovatio-api -Dexec.mainClass=org.shark.renovatio.api.migration.H2ToSqliteMigrator \
+mvn -pl renovatio-api -Dexec.mainClass=org.modernash.renovatio.api.migration.H2ToSqliteMigrator \
   -Dexec.args='jdbc:h2:file:./data/renovatio-db;AUTO_SERVER=TRUE data/renovatio.db' exec:java
-mvn -pl renovatio-api -Dexec.mainClass=org.shark.renovatio.api.migration.H2ToSqliteMigrator \
+mvn -pl renovatio-api -Dexec.mainClass=org.modernash.renovatio.api.migration.H2ToSqliteMigrator \
   -Dexec.args='--normalize-sqlite-timestamps data/renovatio.db' exec:java
 ```
 

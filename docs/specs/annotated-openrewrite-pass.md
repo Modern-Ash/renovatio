@@ -155,7 +155,7 @@ optionally with eligible renames and markers applied; it is never left partially
 ## 7. Purity and determinism
 
 - `AnnotationApplicator` and every helper live in `cobol-openrewrite-recipes` and import nothing
-  from `org.shark.renovatio.provider.*`, no HTTP client, no credential resolver, and no prompt
+  from `org.modernash.renovatio.provider.*`, no HTTP client, no credential resolver, and no prompt
   catalog. The existing recipe-boundary architecture test and Maven Enforcer rule are extended to
   assert this for the new code and the `renovatio-cobol-annotations` dependency.
 - Applying the same base model and the same validated sidecar twice produces byte-identical Java.

@@ -123,7 +123,7 @@ No production source was changed by this spike.
 | `CobolSemanticTranspiler` / OpenRewrite runtime | Constructor collaborator | Consumes generated Java, IR, optional annotated context, Java parser/runtime classpath, recipe results, validation errors, and dropped-annotation outcomes. |
 | Action-item redaction/serialization policy | `ManualActionItemWriter` + `SensitiveValueRedactor` | Sorts items/map entries, emits schema `manual-action-item.v1`, and redacts authorization, bearer, API-key, token, secret, password, and `sk-...` patterns before persistence. |
 | Writable filesystem and replacement semantics | Ambient/static | Creates output directories/files and `build/reports/renovatio/manual-action-items.json`; the report is written to a same-directory temporary file, atomically moved with replacement, and the temporary file is deleted in `finally`. Generated Java files use direct replacement writes. Failures affect returned output text or overall generation. |
-| Hard-coded Java choices | Static code | Package `org.shark.renovatio.generated.cobol`, Spring `@Service`, interface+implementation+DTO layout, JavaPoet formatting, and fallback naming are unconditional inputs to output. |
+| Hard-coded Java choices | Static code | Package `org.modernash.renovatio.generated.cobol`, Spring `@Service`, interface+implementation+DTO layout, JavaPoet formatting, and fallback naming are unconditional inputs to output. |
 | Locale, filesystem existence, standard streams | Ambient | `Locale.ROOT` normalizes names/PIC clauses; file existence selects path-vs-source IR parsing; `System.out/err` receives diagnostics. |
 
 Project `javaPackage`, `javaArchitecture`, target language, persistence strategy,

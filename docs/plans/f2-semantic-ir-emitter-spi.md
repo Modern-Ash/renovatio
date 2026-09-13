@@ -59,7 +59,7 @@ Write failing unit/property tests for:
 - equality of two independently constructed equivalent programs.
 
 Implement the small Java 17 record/enumeration surface under
-`org.shark.renovatio.semantic.ir`: provenance/span, node header/identity,
+`org.modernash.renovatio.semantic.ir`: provenance/span, node header/identity,
 semantic types, neutral data intents, effects, I/O, CFG, residual accesses,
 and the program root. Use no serialization framework in the domain.
 

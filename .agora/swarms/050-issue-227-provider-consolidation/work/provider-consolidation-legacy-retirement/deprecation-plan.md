@@ -2,7 +2,7 @@
 
 ## Compatibility boundary
 
-`org.shark.renovatio.core.service.TargetEmitterRegistry` remains only as a deprecated adapter over `org.shark.renovatio.shared.emission.TargetEmitterRegistry`. No provider depends on the adapter.
+`org.modernash.renovatio.core.service.TargetEmitterRegistry` remains only as a deprecated adapter over `org.modernash.renovatio.shared.emission.TargetEmitterRegistry`. No provider depends on the adapter.
 
 ## Removal
 

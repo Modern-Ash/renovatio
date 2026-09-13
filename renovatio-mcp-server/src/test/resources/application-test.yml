@@ -23,7 +23,7 @@ management:
 # Logging Configuration for Tests
 logging:
   level:
-    org.shark.renovatio: INFO
+    org.modernash.renovatio: INFO
     org.springframework.web: INFO
     io.restassured: WARN
 

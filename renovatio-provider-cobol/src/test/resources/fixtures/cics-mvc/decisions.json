@@ -4,7 +4,7 @@
   "description": "Programa CICS con EXEC CICS SEND/RECEIVE y COPYBOOK CUSTOMER.cpy",
   "sourceLanguage": "COBOL",
   "targetLanguage": "Java",
-  "package": "org.shark.renovatio.generated.cobol",
+  "package": "org.modernash.renovatio.generated.cobol",
   "className": "Cics001Controller",
   "decisions": {
     "outputDirectory": "generated-java-stubs",

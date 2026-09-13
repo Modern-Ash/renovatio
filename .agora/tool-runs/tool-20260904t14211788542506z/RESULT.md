@@ -58,8 +58,8 @@ result-kind: "repository-change"
      create mode 100644 docs/reports/epic-cli-gaps-verification.md
      create mode 100644 docs/specs/epic-cli-gaps-plan.md
      create mode 100644 docs/specs/epic-cli-gaps.md
-     create mode 100644 renovatio-cli/src/main/java/org/shark/renovatio/cli/command/GenerateCommand.java
-     create mode 100644 renovatio-cli/src/test/java/org/shark/renovatio/cli/command/GenerateCommandTest.java
+     create mode 100644 renovatio-cli/src/main/java/org/modernash/renovatio/cli/command/GenerateCommand.java
+     create mode 100644 renovatio-cli/src/test/java/org/modernash/renovatio/cli/command/GenerateCommandTest.java
 
 ## Standard error
 

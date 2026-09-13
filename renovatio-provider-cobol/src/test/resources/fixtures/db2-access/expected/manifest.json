@@ -14,11 +14,11 @@
   },
   "output": {
     "language": "Java",
-    "package": "org.shark.renovatio.generated.cobol",
+    "package": "org.modernash.renovatio.generated.cobol",
     "files": [
-      "src/main/java/org/shark/renovatio/generated/cobol/Db2001DTO.java",
-      "src/main/java/org/shark/renovatio/generated/cobol/Db2001Service.java",
-      "src/main/java/org/shark/renovatio/generated/cobol/Db2001ServiceImpl.java"
+      "src/main/java/org/modernash/renovatio/generated/cobol/Db2001DTO.java",
+      "src/main/java/org/modernash/renovatio/generated/cobol/Db2001Service.java",
+      "src/main/java/org/modernash/renovatio/generated/cobol/Db2001ServiceImpl.java"
     ]
   },
   "mappings": {

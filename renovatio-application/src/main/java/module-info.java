@@ -1,6 +1,6 @@
-module org.shark.renovatio.application {
-    exports org.shark.renovatio.application;
-    exports org.shark.renovatio.application.model;
-    exports org.shark.renovatio.application.port;
-    exports org.shark.renovatio.application.spi;
+module org.modernash.renovatio.application {
+    exports org.modernash.renovatio.application;
+    exports org.modernash.renovatio.application.model;
+    exports org.modernash.renovatio.application.port;
+    exports org.modernash.renovatio.application.spi;
 }

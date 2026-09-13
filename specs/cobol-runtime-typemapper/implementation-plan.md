@@ -62,8 +62,8 @@ claimed by this slice's acceptance criteria.
 
 - `renovatio-cobol-runtime/**` (new)
 - `renovatio-cobol-ir/pom.xml` — add runtime dep
-- `renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/context/CobolTypeMapper.java`
-- `renovatio-cobol-ir/src/main/java/org/shark/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:214` — call site (unchanged behaviour)
+- `renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/context/CobolTypeMapper.java`
+- `renovatio-cobol-ir/src/main/java/org/modernash/renovatio/cobol/ir/parser/SimpleCobolIrParser.java:214` — call site (unchanged behaviour)
 - root `pom.xml` `<modules>`
 
 ## Verification

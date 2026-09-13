@@ -103,7 +103,7 @@ F2 expressly does not deliver:
 
 ### 5.1 Module boundary
 
-The public package is rooted at `org.shark.renovatio.semantic.ir`. The model is
+The public package is rooted at `org.modernash.renovatio.semantic.ir`. The model is
 source-language-neutral and target-language-neutral. It may use Java 17 value
 types such as records, enums, `String`, numeric primitives, collections, and
 `Optional`; “no Java types” in this specification means no Java-*target*
@@ -326,7 +326,7 @@ duplicate paths rather than allowing last-write-wins.
 ## 8. `CobolDataIntent` compatibility projection
 
 The annotation remains
-`org.shark.renovatio.cobol.annotations.CobolDataIntent`, with runtime retention,
+`org.modernash.renovatio.cobol.annotations.CobolDataIntent`, with runtime retention,
 `FIELD`/`TYPE` targets, and members in the existing declaration order:
 
 ```text

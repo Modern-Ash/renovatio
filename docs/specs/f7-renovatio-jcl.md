@@ -82,7 +82,7 @@ F7 does **not** deliver:
 
 ```
 renovatio-jcl/
-  src/main/java/org/shark/renovatio/jcl/
+  src/main/java/org/modernash/renovatio/jcl/
     parse/     JclParser, JclJob, JclStep, DdStatement, CondClause, JclLexer
     ir/        BatchJobProjection  (JclJob + profile -> BatchJob)
     classify/  StepClassifier, UtilityCatalog
