@@ -1,4 +1,5 @@
 import { existsSync, rmSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { build, context } from 'esbuild';
 
 const watch = process.argv.includes('--watch');
@@ -24,6 +25,14 @@ const webviewConfig = {
   platform: 'browser',
   sourcemap: true,
   outfile: 'dist/webview.js',
+  alias: {
+    '@xyflow/react': resolve('node_modules/@xyflow/react'),
+    react: resolve('node_modules/react'),
+    'react-dom': resolve('node_modules/react-dom'),
+    'react-dom/client': resolve('node_modules/react-dom/client.js'),
+    'react/jsx-runtime': resolve('node_modules/react/jsx-runtime.js'),
+    'react/jsx-dev-runtime': resolve('node_modules/react/jsx-dev-runtime.js')
+  },
   loader: {
     '.css': 'css'
   }

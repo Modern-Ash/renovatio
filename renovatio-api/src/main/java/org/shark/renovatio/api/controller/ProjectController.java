@@ -35,7 +35,7 @@ public class ProjectController {
         try {
             ProjectDto created = projectService.createProject(project);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | SecurityException e) {
             return ResponseEntity.badRequest().build();
         }
     }

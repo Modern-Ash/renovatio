@@ -39,6 +39,7 @@ var require_legacyExtension = __commonJS({
   "src/legacyExtension.js"(exports2, module2) {
     "use strict";
     var vscode2 = require("vscode");
+    var fs = require("fs");
     var http = require("http");
     var https = require("https");
     var os = require("os");
@@ -441,7 +442,8 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       return "cancel";
     }
     async function createProjectFromCobolRoots(selectedPaths) {
-      const primaryRoot = selectedPaths[0];
+      const resolvedPaths = await Promise.all(selectedPaths.map(resolveRealPath));
+      const primaryRoot = resolvedPaths[0];
       if (!primaryRoot) return;
       const defaultName = path.basename(primaryRoot) || "renovatio-project";
       const name = await vscode2.window.showInputBox({
@@ -462,7 +464,7 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
         });
         rememberProject(created);
         await activateProject(created, { openWorkspace: true });
-        await updateWorkspaceSetting("cobolRoots", selectedPaths, workspacePath, { optional: true });
+        await updateWorkspaceSetting("cobolRoots", resolvedPaths, workspacePath, { optional: true });
         await refresh();
         vscode2.window.showInformationMessage(`Created Renovatio project "${created.name || name}" for ${primaryRoot}.`);
         projectsProvider.refresh();
@@ -470,6 +472,13 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
         await refreshVisiblePanels();
       } catch (error) {
         showError("Could not create Renovatio project for the selected COBOL path", error);
+      }
+    }
+    async function resolveRealPath(fsPath) {
+      try {
+        return await fs.promises.realpath(fsPath);
+      } catch {
+        return fsPath;
       }
     }
     async function confirmExternalScanRoot(project, scanRoot, workspaceRoot) {

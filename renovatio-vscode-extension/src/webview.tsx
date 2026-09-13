@@ -17,6 +17,8 @@ type DocumentKind = 'domain' | 'architecture' | 'diagram';
 interface WebviewState {
     documentKind: DocumentKind;
     model: DiagramModel;
+    ready: boolean;
+    error?: string;
 }
 
 const vscode = acquireVsCodeApi();
@@ -40,7 +42,8 @@ const vscode = acquireVsCodeApi();
 function App(): React.ReactElement {
     const [state, setState] = useState<WebviewState>({
         documentKind: 'diagram',
-        model: { nodes: [], edges: [] }
+        model: { nodes: [], edges: [] },
+        ready: false
     });
 
     useEffect(() => {
@@ -48,14 +51,21 @@ function App(): React.ReactElement {
             if (event.data?.type === 'setModel') {
                 const documentKind: DocumentKind = event.data.documentKind;
                 const model: DiagramModel = event.data.model;
-                setState({ documentKind, model: withMissingLayout(model, autoArrange(model.nodes, model.edges, documentKind)) });
+                setState({
+                    documentKind,
+                    model: withMissingLayout(model, autoArrange(model.nodes, model.edges, documentKind)),
+                    ready: true
+                });
             }
         };
         const errorListener = (event: ErrorEvent): void => {
+            setState(current => ({ ...current, ready: true, error: event.message }));
             vscode.postMessage({ type: 'error', message: event.message });
         };
         const rejectionListener = (event: PromiseRejectionEvent): void => {
-            vscode.postMessage({ type: 'error', message: String(event.reason) });
+            const detail = String(event.reason);
+            setState(current => ({ ...current, ready: true, error: detail }));
+            vscode.postMessage({ type: 'error', message: detail });
         };
         window.addEventListener('message', listener);
         window.addEventListener('error', errorListener);
@@ -91,16 +101,27 @@ function App(): React.ReactElement {
                 </div>
             </div>
             <section className='renovatio-vscode-canvas'>
-                <DiagramCanvas
-                    model={state.model}
-                    onEvent={handleEvent}
-                    nodeTypes={nodeTypes}
-                    nodeTypeFor={() => 'renovatio'}
-                    edgeStyleFor={edgeStyle}
-                    enablePrune
-                    pruneLabel='Exclude selected'
-                    className='renovatio-vscode-flow'
-                />
+                {state.error ? (
+                    <div className='renovatio-vscode-message is-error'>
+                        <strong>Diagram renderer failed</strong>
+                        <code>{state.error}</code>
+                    </div>
+                ) : !state.ready ? (
+                    <div className='renovatio-vscode-message'>Loading diagram...</div>
+                ) : state.model.nodes.length === 0 ? (
+                    <div className='renovatio-vscode-message'>No diagram nodes found in this artifact.</div>
+                ) : (
+                    <DiagramCanvas
+                        model={state.model}
+                        onEvent={handleEvent}
+                        nodeTypes={nodeTypes}
+                        nodeTypeFor={() => 'renovatio'}
+                        edgeStyleFor={edgeStyle}
+                        enablePrune
+                        pruneLabel='Exclude selected'
+                        className='renovatio-vscode-flow'
+                    />
+                )}
             </section>
         </main>
     );

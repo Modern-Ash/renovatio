@@ -1,4 +1,5 @@
 const vscode = require('vscode');
+const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const os = require('os');
@@ -423,7 +424,8 @@ async function chooseCobolImportMode(project, settings, selectedPaths) {
 }
 
 async function createProjectFromCobolRoots(selectedPaths) {
-  const primaryRoot = selectedPaths[0];
+  const resolvedPaths = await Promise.all(selectedPaths.map(resolveRealPath));
+  const primaryRoot = resolvedPaths[0];
   if (!primaryRoot) return;
   const defaultName = path.basename(primaryRoot) || 'renovatio-project';
   const name = await vscode.window.showInputBox({
@@ -444,7 +446,7 @@ async function createProjectFromCobolRoots(selectedPaths) {
     });
     rememberProject(created);
     await activateProject(created, { openWorkspace: true });
-    await updateWorkspaceSetting('cobolRoots', selectedPaths, workspacePath, { optional: true });
+    await updateWorkspaceSetting('cobolRoots', resolvedPaths, workspacePath, { optional: true });
     await refresh();
     vscode.window.showInformationMessage(`Created Renovatio project "${created.name || name}" for ${primaryRoot}.`);
     projectsProvider.refresh();
@@ -452,6 +454,14 @@ async function createProjectFromCobolRoots(selectedPaths) {
     await refreshVisiblePanels();
   } catch (error) {
     showError('Could not create Renovatio project for the selected COBOL path', error);
+  }
+}
+
+async function resolveRealPath(fsPath) {
+  try {
+    return await fs.promises.realpath(fsPath);
+  } catch {
+    return fsPath;
   }
 }
 

@@ -5,6 +5,8 @@ import org.shark.renovatio.api.dto.ProjectDto;
 import org.shark.renovatio.api.dto.JobDto;
 import org.shark.renovatio.api.entity.JobEntity;
 import org.shark.renovatio.api.repository.JobRepository;
+import org.shark.renovatio.domain.model.DomainModel;
+import org.shark.renovatio.domain.model.SemanticDomainProjector;
 import org.shark.renovatio.provider.cobol.CobolLanguageProvider;
 import org.shark.renovatio.shared.domain.AnalyzeResult;
 import org.shark.renovatio.shared.domain.Workspace;
@@ -45,6 +47,8 @@ public class JobService {
     private final CobolLanguageProvider cobolLanguageProvider;
     private final DecisionLayerService decisionLayerService;
     private final DataAccessService dataAccessService;
+    private final WorkbenchDomainModelService domainModelService;
+    private final SemanticDomainProjector domainProjector = new SemanticDomainProjector();
 
     public JobService(JobRepository jobRepo,
                       SseEventCollector eventCollector,
@@ -54,6 +58,7 @@ public class JobService {
                       CobolLanguageProvider cobolLanguageProvider,
                       DecisionLayerService decisionLayerService,
                       DataAccessService dataAccessService,
+                      WorkbenchDomainModelService domainModelService,
                       @org.springframework.beans.factory.annotation.Qualifier("jobExecutor") Executor jobExecutor) {
         this.jobRepo = jobRepo;
         this.eventCollector = eventCollector;
@@ -63,6 +68,7 @@ public class JobService {
         this.cobolLanguageProvider = cobolLanguageProvider;
         this.decisionLayerService = decisionLayerService;
         this.dataAccessService = dataAccessService;
+        this.domainModelService = domainModelService;
         this.jobExecutor = jobExecutor;
     }
 
@@ -238,6 +244,7 @@ public class JobService {
         List<org.shark.renovatio.api.dto.DataAccessDto> dataAccesses =
                 dataAccessService.classifyFromPrograms(semanticPrograms,
                         decisionLayerService.effective(entity.getProjectId()));
+        WorkbenchDomainModelDtoSeed domainSeed = seedDomainModel(entity.getProjectId(), semanticPrograms);
 
         Map<String, Object> response = new java.util.LinkedHashMap<>();
         response.put("status", "completed");
@@ -251,6 +258,12 @@ public class JobService {
         response.put("analysis", result.getData());
         response.put("decisions", decisionSummary);
         response.put("dataAccesses", dataAccesses);
+        response.put("domainModel", Map.of(
+                "seeded", domainSeed.seeded(),
+                "revision", domainSeed.revision(),
+                "nodes", domainSeed.nodes(),
+                "relations", domainSeed.relations()
+        ));
         response.put(
                 "message",
                 String.format(
@@ -270,6 +283,25 @@ public class JobService {
         }
         return response;
     }
+
+    private WorkbenchDomainModelDtoSeed seedDomainModel(
+            String projectId,
+            List<org.shark.renovatio.semantic.ir.SemanticProgram> semanticPrograms) {
+        var current = domainModelService.read(projectId);
+        if (!current.model().nodes().isEmpty() || !current.model().relations().isEmpty()) {
+            return new WorkbenchDomainModelDtoSeed(false, current.revision(),
+                    current.model().nodes().size(), current.model().relations().size());
+        }
+        DomainModel projected = domainProjector.project(projectId, semanticPrograms);
+        if (projected.nodes().isEmpty() && projected.relations().isEmpty()) {
+            return new WorkbenchDomainModelDtoSeed(false, current.revision(), 0, 0);
+        }
+        var seeded = domainModelService.save(projectId, current.revision(), projected);
+        return new WorkbenchDomainModelDtoSeed(true, seeded.revision(),
+                seeded.model().nodes().size(), seeded.model().relations().size());
+    }
+
+    private record WorkbenchDomainModelDtoSeed(boolean seeded, long revision, int nodes, int relations) {}
 
     private Object executePlan(JobEntity entity) {
         Map<String, Object> params = parseParams(entity.getParamsJson());
