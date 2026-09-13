@@ -24,7 +24,7 @@
   ],
   "scripts": {
     "clean": "npm run clean --workspaces --if-present",
-    "build:extension": "npm run build --workspace @renovatio/core-ui",
+    "build:extension": "npm run build --workspace @renovatio/diagram-canvas && npm run build --workspace @renovatio/core-ui",
     "build:application": "npm run build --workspace @renovatio/workbench-browser",
     "build": "npm run build:extension && npm run build:application",
     "test": "npm run test --workspace @renovatio/core-ui",

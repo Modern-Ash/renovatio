@@ -7,6 +7,7 @@ RUN apt-get update \
 WORKDIR /workspace
 COPY package.json package-lock.json .npmrc ./
 COPY applications/browser/package.json applications/browser/package.json
+COPY extensions/renovatio-diagram-canvas/package.json extensions/renovatio-diagram-canvas/package.json
 COPY extensions/renovatio-core-ui/package.json extensions/renovatio-core-ui/package.json
 RUN npm ci
 
