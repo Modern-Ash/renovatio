@@ -45,16 +45,12 @@ public final class CobolSemanticProjector {
     private static final Pattern STRING_LITERAL = Pattern.compile("'[^']*'|\"[^\"]*\"");
     private static final Pattern CICS_COMMAND = Pattern.compile("EXEC\\s+CICS\\s+([A-Z0-9-]+)",
             Pattern.CASE_INSENSITIVE);
-    private static final Pattern SQL_FROM = Pattern.compile("\\bFROM\\s+([A-Z0-9_.$#@-]+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern SQL_INSERT_INTO = Pattern.compile("\\bINSERT\\s+INTO\\s+([A-Z0-9_.$#@-]+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern SQL_UPDATE = Pattern.compile("\\bUPDATE\\s+([A-Z0-9_.$#@-]+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern SQL_DELETE_FROM = Pattern.compile("\\bDELETE\\s+FROM\\s+([A-Z0-9_.$#@-]+)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern SQL_MERGE_INTO = Pattern.compile("\\bMERGE\\s+INTO\\s+([A-Z0-9_.$#@-]+)", Pattern.CASE_INSENSITIVE);
     private static final Set<String> EXPRESSION_KEYWORDS = Set.of(
             "AND", "OR", "NOT", "IS", "EQUAL", "GREATER", "LESS", "THAN", "TO", "ZERO",
             "ZEROS", "ZEROES", "SPACE", "SPACES", "HIGH-VALUE", "LOW-VALUE", "TRUE", "FALSE",
             "IN", "OF");
     private final CobolIrIdentityProjector identities = new CobolIrIdentityProjector();
+    private final Db2SqlResourceExtractor db2Resources = new Db2SqlResourceExtractor();
 
     public SemanticProgram project(CobolIntermediateModel model, String sourcePath, byte[] sourceBytes,
                                    Optional<String> dialect, Optional<AnnotatedCobolContext> annotatedContext) {
@@ -187,7 +183,7 @@ public final class CobolSemanticProjector {
                 SemanticProgram.Direction direction = databaseDirection(operation);
                 io.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.IO_OPERATION, "database:" + role, span),
-                        SemanticProgram.IoKind.DATABASE, operation, databaseResourceReference(operation, db2.sql()),
+                        SemanticProgram.IoKind.DATABASE, operation, db2Resources.physicalResource(operation, db2.sql()),
                         direction, List.of()));
             } else if (statement instanceof CallStatement call) {
                 effects.add(new SemanticProgram.SideEffect(SemanticProgram.Header.create(programId,
@@ -232,26 +228,6 @@ public final class CobolSemanticProjector {
             case "INSERT", "UPDATE", "DELETE", "MERGE" -> SemanticProgram.Direction.WRITE;
             default -> SemanticProgram.Direction.UNKNOWN;
         };
-    }
-
-    private static Optional<String> databaseResourceReference(String operation, String sql) {
-        Pattern pattern = switch (operation) {
-            case "SELECT" -> SQL_FROM;
-            case "INSERT" -> SQL_INSERT_INTO;
-            case "UPDATE" -> SQL_UPDATE;
-            case "DELETE" -> SQL_DELETE_FROM;
-            case "MERGE" -> SQL_MERGE_INTO;
-            default -> null;
-        };
-        if (pattern == null || sql == null || sql.isBlank()) return Optional.empty();
-        Matcher matcher = pattern.matcher(sql);
-        if (!matcher.find()) return Optional.empty();
-        String resource = cleanSqlIdentifier(matcher.group(1));
-        return resource.isBlank() ? Optional.empty() : Optional.of(resource);
-    }
-
-    private static String cleanSqlIdentifier(String value) {
-        return value == null ? "" : value.strip().replaceAll("[,;)]$", "");
     }
 
     private void recordExpressionReads(String programId, String expression, SourceSpan span,

@@ -222,9 +222,11 @@ class CobolSemanticProjectorTest {
                 PROCEDURE DIVISION.
                 MAIN.
                     EXEC SQL SELECT COL FROM CUSTOMER_TABLE END-EXEC.
+                    EXEC SQL SELECT COL INTO :HOST-VALUE FROM ACCOUNT_TABLE WHERE ID = :HOST-ID END-EXEC.
                     EXEC SQL INSERT INTO POLICY_TABLE (COL) VALUES (1) END-EXEC.
                     EXEC SQL UPDATE CLAIM_TABLE SET COL = 1 END-EXEC.
                     EXEC SQL DELETE FROM PAYMENT_TABLE WHERE COL = 1 END-EXEC.
+                    EXEC SQL DECLARE CURSOR-A CURSOR FOR SELECT COL FROM CURSOR_TABLE END-EXEC.
                     EXEC SQL FETCH CURSOR-A INTO :VALUE-A END-EXEC.
                     EXEC SQL OPEN CURSOR-A END-EXEC.
                     EXEC SQL CLOSE CURSOR-A END-EXEC.
@@ -238,9 +240,11 @@ class CobolSemanticProjectorTest {
                         Collectors.mapping(SemanticProgram.IoOperation::resourceReference, Collectors.toList())));
 
         assertTrue(resources.get("SELECT").contains(Optional.of("CUSTOMER_TABLE")));
+        assertTrue(resources.get("SELECT").contains(Optional.of("ACCOUNT_TABLE")));
         assertTrue(resources.get("INSERT").contains(Optional.of("POLICY_TABLE")));
         assertTrue(resources.get("UPDATE").contains(Optional.of("CLAIM_TABLE")));
         assertTrue(resources.get("DELETE").contains(Optional.of("PAYMENT_TABLE")));
+        assertTrue(resources.get("DECLARE").contains(Optional.of("CURSOR_TABLE")));
         assertEquals(List.of(Optional.empty()), resources.get("FETCH"));
         assertEquals(List.of(Optional.empty()), resources.get("OPEN"));
         assertEquals(List.of(Optional.empty()), resources.get("CLOSE"));
