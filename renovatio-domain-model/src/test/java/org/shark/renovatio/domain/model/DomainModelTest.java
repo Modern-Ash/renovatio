@@ -48,6 +48,29 @@ class DomainModelTest {
     }
 
     @Test
+    void physicalDataMappingMetadataParticipatesInCanonicalHash() {
+        var evidence = new DomainModel.Evidence("src/CUSTCOPY.cpy:4", "COBOL", "CUSTOMER-ID");
+        var mapped = new DomainModel.DomainNode("customer", DomainModel.Kind.ENTITY, "Customer",
+                List.of(new DomainModel.Property("id", "string", true, List.of(evidence),
+                        true, "CUSTOMER_ID", "CUST-ID", "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS")),
+                List.of(evidence), DomainModel.Origin.HUMAN, 1.0,
+                "customers", "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS");
+        var account = node("account", DomainModel.Kind.AGGREGATE);
+        var relation = new DomainModel.DomainRelation("customer-account", "account", "customer",
+                DomainModel.RelationKind.MAPS_TO, DomainModel.Cardinality.ZERO_OR_MORE,
+                DomainModel.Cardinality.ONE, new DomainModel.ForeignKey("customerId", "id"));
+        var model = new DomainModel("1", "p1", List.of(mapped, account), List.of(relation), List.of());
+
+        assertEquals("customers", model.nodes().stream().filter(node -> node.id().equals("customer"))
+                .findFirst().orElseThrow().tableName());
+        assertTrue(model.nodes().stream().flatMap(node -> node.properties().stream())
+                .anyMatch(property -> property.isKey() && "CUST-ID".equals(property.sourceColumn())));
+        assertNotEquals(new DomainModel("1", "p1",
+                List.of(node("customer", DomainModel.Kind.ENTITY), account), List.of(relation), List.of()).canonicalHash(),
+                model.canonicalHash());
+    }
+
+    @Test
     void rejectsDuplicatePropertiesAndInvariantIds() {
         assertThrows(IllegalArgumentException.class, () -> new DomainModel.DomainNode(
                 "customer", DomainModel.Kind.ENTITY, "Customer",

@@ -24,10 +24,15 @@ public record WorkbenchArchitectureCanvasDto(
             Map<String, String> packageRoots,
             Map<String, String> suffixes,
             Map<String, String> classNames,
-            List<DependencyRule> dependencyRules) { }
+            List<DependencyRule> dependencyRules,
+            Map<String, LayoutPosition> layout,
+            List<ExcludedNode> excludedNodeIds) { }
 
     public record CanvasNode(String id, String layer, String kind, String label,
-                             String packageName, String className, String componentId) { }
+                             String packageName, String className, String componentId,
+                             boolean excluded, String exclusionReason) { }
+    public record LayoutPosition(double x, double y) { }
+    public record ExcludedNode(String id, String reason) { }
     public record DependencyRule(String fromLayer, String toLayer, boolean allowed, String reason) { }
     public record DependencyDiagnostic(String severity, String code, String fromLayer,
                                        String toLayer, String message) { }

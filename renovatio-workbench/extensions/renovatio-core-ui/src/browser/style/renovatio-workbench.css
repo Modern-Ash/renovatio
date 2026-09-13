@@ -670,6 +670,18 @@
     position: relative;
 }
 
+.renovatio-diagram-prune-selection {
+    background: var(--renovatio-hazard);
+    border: 1px solid rgba(7, 16, 18, 0.4);
+    color: #071012;
+    cursor: pointer;
+    font: 700 10px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    z-index: 6;
+}
+
 .renovatio-domain-class-node {
     background: #071012;
     border: 1px solid rgba(238, 248, 245, 0.28);
@@ -683,6 +695,12 @@
     box-shadow: 0 0 0 1px var(--renovatio-accent);
 }
 
+.renovatio-domain-class-node.is-excluded {
+    border-color: rgba(238, 248, 245, 0.3);
+    border-style: dashed;
+    opacity: 0.52;
+}
+
 .renovatio-domain-class-node header {
     border-bottom: 1px solid rgba(238, 248, 245, 0.18);
     display: grid;
@@ -694,6 +712,77 @@
     color: var(--renovatio-accent);
     font-size: 9px;
     letter-spacing: 0.08em;
+}
+
+.renovatio-domain-suggestion-badge {
+    align-self: start;
+    background: #f5c542;
+    border-radius: 999px;
+    color: #181200;
+    font-size: 10px;
+    font-weight: 800;
+    justify-self: end;
+    min-width: 18px;
+    padding: 1px 5px;
+    text-align: center;
+}
+
+.renovatio-architecture-suggestion-badge {
+    background: #f5c542;
+    border-radius: 999px;
+    color: #181200;
+    font-style: normal;
+    min-width: 18px;
+    padding: 1px 5px;
+    text-align: center;
+}
+
+.renovatio-llm-selected {
+    border: 1px solid rgba(245, 197, 66, 0.28);
+    display: grid;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 8px;
+}
+
+.renovatio-llm-selected h4 {
+    font-size: 11px;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+.renovatio-llm-proposals {
+    display: grid;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.renovatio-llm-proposals > li {
+    border-left: 3px solid #f5c542;
+    display: grid;
+    gap: 5px;
+    padding-left: 8px;
+}
+
+.renovatio-llm-proposals ul {
+    margin: 0;
+    padding-left: 16px;
+}
+
+.renovatio-llm-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.renovatio-domain-class-storage {
+    border-bottom: 1px solid rgba(238, 248, 245, 0.12);
+    color: var(--renovatio-muted);
+    display: grid;
+    gap: 2px;
+    padding: 5px 8px;
 }
 
 .renovatio-domain-class-properties {
@@ -713,6 +802,64 @@
 .renovatio-domain-class-empty {
     color: var(--renovatio-muted);
     font-style: italic;
+}
+
+/* Issue #266: DER table-box node, a distinct projection from the UML
+   class box above but sharing the same excluded/selected/suggestion-badge
+   language so the two modes feel like one system. */
+.renovatio-domain-er-node {
+    background: #071012;
+    border: 1px solid rgba(238, 248, 245, 0.28);
+    color: var(--renovatio-ink);
+    font: 11px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    min-width: 200px;
+}
+
+.renovatio-domain-er-node.is-selected {
+    border-color: var(--renovatio-accent);
+    box-shadow: 0 0 0 1px var(--renovatio-accent);
+}
+
+.renovatio-domain-er-node.is-excluded {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+.renovatio-domain-er-node header {
+    align-items: baseline;
+    border-bottom: 1px solid rgba(238, 248, 245, 0.18);
+    display: flex;
+    gap: 6px;
+    padding: 6px 8px;
+}
+
+.renovatio-domain-er-node header small {
+    color: var(--renovatio-muted);
+}
+
+.renovatio-domain-er-columns {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.renovatio-domain-er-columns td {
+    border-top: 1px solid rgba(238, 248, 245, 0.1);
+    padding: 3px 8px;
+}
+
+.renovatio-domain-er-key {
+    color: var(--renovatio-hazard);
+    font-weight: 700;
+    width: 20px;
+}
+
+.renovatio-domain-er-type {
+    color: var(--renovatio-muted);
+    text-align: right;
+}
+
+.renovatio-domain-er-columns tr.is-key .renovatio-domain-er-column {
+    font-weight: 700;
 }
 
 .renovatio-domain-add button {
@@ -833,6 +980,40 @@
 .renovatio-domain-empty {
     color: var(--renovatio-muted);
     font: 600 10px/1.4 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.renovatio-data-migration-preview {
+    margin: 6px 0;
+}
+
+.renovatio-data-migration-preview summary {
+    color: var(--renovatio-accent);
+    cursor: pointer;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+}
+
+.renovatio-data-migration-preview-table {
+    border-collapse: collapse;
+    font-size: 10px;
+    margin-top: 6px;
+    width: 100%;
+}
+
+.renovatio-data-migration-preview-table th,
+.renovatio-data-migration-preview-table td {
+    border-top: 1px solid rgba(238, 248, 245, 0.1);
+    overflow-wrap: anywhere;
+    padding: 3px 6px;
+    text-align: left;
+}
+
+.renovatio-data-migration-preview-table th {
+    color: var(--renovatio-muted);
+}
+
+.renovatio-data-migration-preview-table td.is-transformed {
+    color: var(--renovatio-hazard);
 }
 
 .renovatio-domain-links {
@@ -1026,6 +1207,21 @@
     overflow: auto;
 }
 
+.renovatio-architecture-inspector details {
+    border-top: 1px solid rgba(238, 248, 245, 0.14);
+    margin-top: 12px;
+    padding-top: 10px;
+}
+
+.renovatio-architecture-inspector summary {
+    align-items: center;
+    color: var(--renovatio-ink);
+    cursor: pointer;
+    display: flex;
+    gap: 8px;
+    justify-content: space-between;
+}
+
 .renovatio-architecture-inspector li {
     background: rgba(238, 248, 245, 0.035);
     border-left: 2px solid rgba(238, 248, 245, 0.22);
@@ -1045,6 +1241,128 @@
 .renovatio-architecture-inspector .renovatio-checkbox input {
     accent-color: var(--renovatio-hazard);
     width: auto;
+}
+
+.renovatio-architecture-diagram-stage {
+    display: grid;
+    gap: 10px;
+    grid-template-rows: auto minmax(430px, 1fr) auto;
+}
+
+.renovatio-architecture-diagram-toolbar {
+    display: flex;
+    gap: 6px;
+}
+
+.renovatio-architecture-diagram-toolbar button[aria-pressed='true'] {
+    background: rgba(45, 225, 194, 0.12);
+    border-color: var(--renovatio-accent);
+}
+
+.renovatio-architecture-flow-surface {
+    background:
+        linear-gradient(90deg, rgba(238, 248, 245, 0.035) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(238, 248, 245, 0.035) 1px, transparent 1px),
+        #071012;
+    background-size: 36px 36px;
+    border: 1px solid rgba(238, 248, 245, 0.18);
+    min-height: 430px;
+}
+
+.renovatio-architecture-flow-surface .react-flow__edge-textbg {
+    fill: #071012;
+    fill-opacity: 0.88;
+}
+
+.renovatio-architecture-flow-surface .react-flow__edge-text {
+    fill: var(--renovatio-ink);
+    font: 600 10px/1.2 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.renovatio-architecture-flow-node {
+    background: rgba(4, 13, 15, 0.95);
+    border: 1px solid rgba(238, 248, 245, 0.28);
+    color: var(--renovatio-ink);
+    display: grid;
+    gap: 5px;
+    min-height: 76px;
+    padding: 10px;
+    width: 190px;
+}
+
+.renovatio-architecture-flow-node.is-layer {
+    background: rgba(255, 180, 0, 0.13);
+    border-color: var(--renovatio-hazard);
+    width: 210px;
+}
+
+.renovatio-architecture-flow-node.has-diagnostics {
+    border-color: #ff6b5f;
+    border-style: dashed;
+    box-shadow: 0 0 0 2px rgba(255, 107, 95, 0.14);
+}
+
+.renovatio-architecture-flow-node.is-excluded {
+    border-color: rgba(238, 248, 245, 0.3);
+    border-style: dashed;
+    opacity: 0.52;
+}
+
+.renovatio-architecture-flow-node.is-selected {
+    box-shadow: 0 0 0 2px var(--renovatio-accent);
+}
+
+.renovatio-architecture-flow-node header {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    justify-content: space-between;
+}
+
+.renovatio-architecture-flow-node span,
+.renovatio-architecture-flow-node em,
+.renovatio-architecture-flow-node small,
+.renovatio-architecture-diagnostics p {
+    font: 600 10px/1.35 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+}
+
+.renovatio-architecture-flow-node span {
+    color: var(--renovatio-accent);
+}
+
+.renovatio-architecture-flow-node em {
+    color: var(--renovatio-hazard);
+    font-style: normal;
+}
+
+.renovatio-architecture-flow-node strong,
+.renovatio-architecture-flow-node p,
+.renovatio-architecture-flow-node small {
+    overflow-wrap: anywhere;
+}
+
+.renovatio-architecture-flow-node p {
+    color: var(--renovatio-muted);
+    margin: 0;
+}
+
+.renovatio-architecture-diagnostics {
+    border-top: 1px solid rgba(238, 248, 245, 0.14);
+    display: grid;
+    gap: 6px;
+    padding-top: 10px;
+}
+
+.renovatio-architecture-diagnostics p {
+    margin: 0;
+}
+
+.renovatio-architecture-diagnostics .severity-error {
+    color: #ffb4ad;
+}
+
+.renovatio-architecture-diagnostics .severity-warning {
+    color: var(--renovatio-hazard);
 }
 
 .renovatio-shadow-impact {

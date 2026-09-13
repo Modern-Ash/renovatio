@@ -29,10 +29,12 @@ test('Theia guides COBOL source scan through modeling, architecture, shadow revi
     const domainEditor = page.getByRole('region', { name: 'Business DomainModel editor' });
     await expect(domainEditor).toContainText('Employee Payroll');
     await expect(page.getByLabel('Domain provenance and history')).toContainText('src/PAYROLL.CBL#EMPLOYEE-RECORD');
+    await domainEditor.getByRole('button', { name: 'List' }).click();
     await expect(domainEditor).toContainText('Net pay equals gross pay minus tax withholding.');
 
     await activityRail.getByRole('button', { name: /Architecture/ }).click();
     await expect(page.getByLabel('Architecture Canvas editor')).toContainText('HEXAGONAL');
+    await page.getByRole('button', { name: 'Table' }).click();
     await expect(page.getByLabel('Artifact and package manifest preview')).toContainText('PayrollService.java');
     await expect(page.getByLabel('Architecture profile inspector').getByLabel('Reason').nth(1)).toHaveValue('Domain cannot depend on adapters.');
 
@@ -69,11 +71,12 @@ test('Theia previews Java manifests for every supported COBOL target architectur
     await activityRail.getByRole('button', { name: /Architecture/ }).click();
 
     const architectureCanvas = page.getByLabel('Architecture Canvas editor');
-    const architectureStage = page.getByLabel('Editable architecture canvas');
     const styleSelector = page.getByRole('group', { name: 'Architecture style' });
-    const manifestPreview = page.getByLabel('Artifact and package manifest preview');
 
     await expect(architectureCanvas).toContainText('HEXAGONAL');
+    await page.getByRole('button', { name: 'Table' }).click();
+    const architectureStage = page.getByLabel('Editable architecture canvas');
+    const manifestPreview = page.getByLabel('Artifact and package manifest preview');
 
     for (const scenario of architectureScenarios) {
         const styleButton = styleSelector.getByRole('button', { name: scenario.label, exact: true });

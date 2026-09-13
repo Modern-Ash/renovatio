@@ -1,0 +1,52 @@
+{
+  "profile": {
+    "packageRoots": {
+      "controller": "com.example.booking.controller",
+      "service": "com.example.booking.service",
+      "model": "com.example.booking.model"
+    },
+    "suffixes": {
+      "controller": "Controller",
+      "service": "Service",
+      "model": ""
+    },
+    "dependencyRules": [
+      { "fromLayer": "controller", "toLayer": "service", "allowed": true, "reason": "Controllers call services" },
+      { "fromLayer": "service", "toLayer": "model", "allowed": true, "reason": "Services own domain persistence" },
+      { "fromLayer": "model", "toLayer": "controller", "allowed": false, "reason": "Domain must not depend on controllers" }
+    ],
+    "layout": {
+      "booking-controller": { "x": 360, "y": 80 },
+      "booking-service": { "x": 360, "y": 270 },
+      "booking": { "x": 360, "y": 460 }
+    },
+    "excludedNodeIds": []
+  },
+  "canvas": [
+    {
+      "id": "booking-controller",
+      "layer": "controller",
+      "kind": "COMPONENT",
+      "label": "BookingController",
+      "packageName": "com.example.booking.controller",
+      "className": "BookingController"
+    },
+    {
+      "id": "booking-service",
+      "layer": "service",
+      "kind": "COMPONENT",
+      "label": "BookingService",
+      "packageName": "com.example.booking.service",
+      "className": "BookingService"
+    },
+    {
+      "id": "booking",
+      "layer": "model",
+      "kind": "COMPONENT",
+      "label": "Booking",
+      "packageName": "com.example.booking.model",
+      "className": "Booking"
+    }
+  ],
+  "dependencyDiagnostics": []
+}
