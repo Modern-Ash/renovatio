@@ -1,0 +1,13 @@
+{
+  "scopeName": "source.cobol",
+  "patterns": [
+    { "match": "^.{6}\\*.*$", "name": "comment.line.cobol" },
+    { "match": "\\b(IDENTIFICATION|ENVIRONMENT|DATA|PROCEDURE)\\s+DIVISION\\b", "name": "keyword.control.division.cobol" },
+    { "match": "\\b(CONFIGURATION|INPUT-OUTPUT|FILE|WORKING-STORAGE|LOCAL-STORAGE|LINKAGE)\\s+SECTION\\b", "name": "keyword.control.section.cobol" },
+    { "match": "\\b(PROGRAM-ID|SELECT|ASSIGN|FD|SD|PIC|PICTURE|VALUE|OCCURS|REDEFINES|COPY|REPLACING)\\b", "name": "storage.type.cobol" },
+    { "match": "\\b(ACCEPT|ADD|CALL|CLOSE|COMPUTE|CONTINUE|DELETE|DISPLAY|DIVIDE|EVALUATE|EXIT|GO|IF|INITIALIZE|INSPECT|MOVE|MULTIPLY|OPEN|PERFORM|READ|RETURN|REWRITE|SEARCH|SET|SORT|START|STOP|STRING|SUBTRACT|UNSTRING|WHEN|WRITE|END-IF|END-EVALUATE|END-PERFORM)\\b", "name": "keyword.control.cobol" },
+    { "match": "\\b\\d+(\\.\\d+)?\\b", "name": "constant.numeric.cobol" },
+    { "begin": "\"", "end": "\"", "name": "string.quoted.double.cobol" },
+    { "begin": "'", "end": "'", "name": "string.quoted.single.cobol" }
+  ]
+}

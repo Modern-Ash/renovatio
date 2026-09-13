@@ -22,6 +22,21 @@ class WorkbenchProjectAdapterServiceTest {
     }
 
     @Test
+    void generatedDataMigrationArtifactsAreWritableOnlyInDevelopmentMode(@TempDir Path root) throws Exception {
+        WorkbenchProjectAdapterService adapter = new WorkbenchProjectAdapterService(WorkspaceRootPolicy.under(root));
+        assertThrows(SecurityException.class, () -> adapter.write(root,
+                "generated-data-migration/demo/staging-load.sql", "select 1;", false));
+
+        adapter.write(root, "generated-data-migration/demo/README.md", "# Plan\n", true);
+        adapter.write(root, "generated-data-migration/demo/staging-load.sql", "select 1;\n", true);
+        adapter.write(root, "generated-data-migration/demo/dry-run-report.json", "{}\n", true);
+
+        assertEquals("select 1;\n", adapter.read(root, "generated-data-migration/demo/staging-load.sql"));
+        assertThrows(SecurityException.class, () -> adapter.write(root,
+                "evidence/dry-run-report.json", "{}\n", true));
+    }
+
+    @Test
     void traversalIsRejected(@TempDir Path root) {
         WorkbenchProjectAdapterService adapter = new WorkbenchProjectAdapterService(WorkspaceRootPolicy.under(root));
         assertThrows(SecurityException.class, () -> adapter.read(root, "../outside.txt"));

@@ -48,6 +48,29 @@ class DomainModelTest {
     }
 
     @Test
+    void physicalDataMappingMetadataParticipatesInCanonicalHash() {
+        var evidence = new DomainModel.Evidence("src/CUSTCOPY.cpy:4", "COBOL", "CUSTOMER-ID");
+        var mapped = new DomainModel.DomainNode("customer", DomainModel.Kind.ENTITY, "Customer",
+                List.of(new DomainModel.Property("id", "string", true, List.of(evidence),
+                        true, "CUSTOMER_ID", "CUST-ID", "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS")),
+                List.of(evidence), DomainModel.Origin.HUMAN, 1.0,
+                "customers", "AWS.M2.CARDDEMO.CUSTDATA.VSAM.KSDS");
+        var account = node("account", DomainModel.Kind.AGGREGATE);
+        var relation = new DomainModel.DomainRelation("customer-account", "account", "customer",
+                DomainModel.RelationKind.MAPS_TO, DomainModel.Cardinality.ZERO_OR_MORE,
+                DomainModel.Cardinality.ONE, new DomainModel.ForeignKey("customerId", "id"));
+        var model = new DomainModel("1", "p1", List.of(mapped, account), List.of(relation), List.of());
+
+        assertEquals("customers", model.nodes().stream().filter(node -> node.id().equals("customer"))
+                .findFirst().orElseThrow().tableName());
+        assertTrue(model.nodes().stream().flatMap(node -> node.properties().stream())
+                .anyMatch(property -> property.isKey() && "CUST-ID".equals(property.sourceColumn())));
+        assertNotEquals(new DomainModel("1", "p1",
+                List.of(node("customer", DomainModel.Kind.ENTITY), account), List.of(relation), List.of()).canonicalHash(),
+                model.canonicalHash());
+    }
+
+    @Test
     void rejectsDuplicatePropertiesAndInvariantIds() {
         assertThrows(IllegalArgumentException.class, () -> new DomainModel.DomainNode(
                 "customer", DomainModel.Kind.ENTITY, "Customer",
@@ -87,6 +110,43 @@ class DomainModelTest {
         assertEquals(2, model.nodes().size());
         assertTrue(model.nodes().stream().allMatch(node -> !node.evidence().isEmpty()));
         assertEquals(1, model.relations().size());
+    }
+
+    @Test
+    void projectsRepositoriesOnlyForNamedPhysicalResources() {
+        SourceSpan span = new SourceSpan("src/sql.cob", 1, 1, 1, 8);
+        SourceProvenance provenance = new SourceProvenance("src/sql.cob", "a".repeat(64), "COBOL", Optional.empty(), List.of());
+        SemanticProgram.IoOperation selectCustomer = new SemanticProgram.IoOperation(
+                SemanticProgram.Header.create("SQLDEMO", SemanticProgram.NodeKind.IO_OPERATION, "database-select", span),
+                SemanticProgram.IoKind.DATABASE, "SELECT", Optional.of("CUSTOMER_TABLE"),
+                SemanticProgram.Direction.READ, List.of());
+        SemanticProgram.IoOperation fetchCursor = new SemanticProgram.IoOperation(
+                SemanticProgram.Header.create("SQLDEMO", SemanticProgram.NodeKind.IO_OPERATION, "database-fetch", span),
+                SemanticProgram.IoKind.DATABASE, "FETCH", Optional.empty(),
+                SemanticProgram.Direction.READ, List.of());
+        SemanticProgram.IoOperation malformedSelect = new SemanticProgram.IoOperation(
+                SemanticProgram.Header.create("SQLDEMO", SemanticProgram.NodeKind.IO_OPERATION, "database-malformed-select", span),
+                SemanticProgram.IoKind.DATABASE, "SELECT", Optional.of("SELECT"),
+                SemanticProgram.Direction.READ, List.of());
+        SemanticProgram program = new SemanticProgram("1", SemanticProgram.Header.create("SQLDEMO",
+                SemanticProgram.NodeKind.PROGRAM, "program", span), "SQLDEMO", provenance,
+                List.of(), List.of(), List.of(), List.of(selectCustomer, fetchCursor, malformedSelect),
+                new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
+
+        DomainModel model = new SemanticDomainProjector().project("project-1", List.of(program));
+
+        DomainModel.DomainNode repository = model.nodes().stream()
+                .filter(node -> node.name().equals("CUSTOMER_TABLE"))
+                .findFirst().orElseThrow();
+        DomainModel.DomainNode cursorOperation = model.nodes().stream()
+                .filter(node -> node.name().equals("FETCH"))
+                .findFirst().orElseThrow();
+        assertEquals(DomainModel.Kind.REPOSITORY, repository.kind());
+        assertEquals(DomainModel.Kind.EXTERNAL_SYSTEM, cursorOperation.kind());
+        assertFalse(model.nodes().stream().anyMatch(node ->
+                node.kind() == DomainModel.Kind.REPOSITORY && node.name().equals("FETCH")));
+        assertFalse(model.nodes().stream().anyMatch(node ->
+                node.kind() == DomainModel.Kind.REPOSITORY && node.name().equals("SELECT")));
     }
 
     private static DomainModel.DomainNode node(String id, DomainModel.Kind kind) {

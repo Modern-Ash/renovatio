@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.shark.renovatio.api.dto.WorkbenchDomainModelDto.SuggestionRequest;
@@ -73,6 +74,24 @@ class WorkbenchDomainModelServiceTest {
         assertThatThrownBy(() -> service.save(projectId, 1,
                 new DomainModel("1", "another-project", List.of(), List.of(), List.of())))
                 .isInstanceOf(WorkbenchDomainModelService.ValidationException.class);
+    }
+
+    @Test
+    void layoutAndPruneMetadataRoundTripAsVersionedDomainModelChanges() {
+        DomainNode customer = node("customer", "Customer", Origin.DETERMINISTIC);
+        var first = service.save(projectId, 0, model(customer));
+        DomainModel arranged = new DomainModel("1", projectId, first.model().nodes(), first.model().relations(),
+                first.model().invariants(), Map.of("customer", new DomainModel.LayoutPosition(120, 240)),
+                List.of(new DomainModel.ExcludedNode("customer", "Not generated in pilot")));
+
+        var saved = service.save(projectId, 1, arranged);
+
+        assertThat(saved.model().layout()).containsEntry("customer", new DomainModel.LayoutPosition(120, 240));
+        assertThat(saved.model().excludedNodeIds()).containsExactly(new DomainModel.ExcludedNode("customer", "Not generated in pilot"));
+        assertThat(service.read(projectId).model().excludedNodeIds())
+                .containsExactly(new DomainModel.ExcludedNode("customer", "Not generated in pilot"));
+        assertThat(service.compare(projectId, 1, 2).added()).extracting(value -> value.targetType())
+                .contains("layout", "excludedNode");
     }
 
     @Test

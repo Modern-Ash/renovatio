@@ -2,6 +2,14 @@ import { Message, ReactWidget } from '@theia/core/lib/browser';
 import { EnvVariable, EnvVariablesServer } from '@theia/core/lib/common/env-variables';
 import { inject, injectable, postConstruct } from '@theia/core/shared/inversify';
 import React from '@theia/core/shared/react';
+import { DiagramCanvas, type DiagramEdgeVM, type DiagramEvent } from '@renovatio/diagram-canvas/lib/browser';
+import type { CSSProperties } from 'react';
+import { architectureToDiagram } from './architecture-diagram-mapper';
+import { domainModelToDiagram } from './domain-diagram-mapper';
+import { ArchitectureNode } from './architecture-node';
+import { DomainClassNode } from './domain-class-node';
+import { DomainErNode } from './domain-er-node';
+import { DomainErMarkerDefs, markerUrl } from './domain-er-markers';
 
 export type RenovatioAreaId = 'project' | 'analysis' | 'domain' | 'architecture' | 'shadow' | 'ai' | 'changes' | 'equivalence';
 type ShellState = 'loading' | 'ready' | 'empty' | 'permission-denied' | 'error';
@@ -34,34 +42,40 @@ const PROJECT_ASSETS = [
 ] as const;
 type ProjectAssetItem = { id: string; name: string; writable: boolean };
 type ProjectAssetGroup = { group: string; items: ProjectAssetItem[] };
-type WorkbenchProject = { id: string; name: string };
+type WorkbenchProject = { id: string; name: string; workspacePath?: string; cobolScanRoot?: string };
 type SurfaceCapabilities = { id: string; version: string; capabilities: Array<{ id: string; maturity: string }> };
 type WorkbenchAsset = { id: string; name: string; category: string; writable: boolean };
 type WorkbenchContext = { activeArea: RenovatioAreaId | null; selectedAssetId: string | null };
 type WorkbenchAnalysis = { inventory: Record<string, number>; runs: Array<{ runId: string; dryRun: boolean; startedAt: string }> };
+type WorkbenchJob = { id: string; projectId: string; operation: string; status: string; progress: number; result?: unknown; error?: string };
 type ArchitectureStyle = 'TRANSACTION_SCRIPT' | 'LAYERED_MVC' | 'HEXAGONAL' | 'CLEAN' | 'LAYERED';
 type ModuleGrouping = 'BY_PROGRAM' | 'BY_DOMAIN' | 'SINGLE_MODULE';
 type ArchitectureRule = { fromLayer: string; toLayer: string; allowed: boolean; reason: string };
-type ArchitectureProfileDraft = { style: ArchitectureStyle; moduleGrouping: ModuleGrouping; framework: string; persistence: string; packageRoots: Record<string, string>; suffixes: Record<string, string>; classNames: Record<string, string>; dependencyRules: ArchitectureRule[] };
-type ArchitectureCanvasNode = { id: string; layer: string; kind: string; label: string; packageName: string; className: string; componentId: string };
-type ArchitectureDiagnostic = { severity: string; code: string; fromLayer: string; toLayer: string; message: string };
+type DiagramLayoutPosition = { x: number; y: number };
+type ExcludedNode = { id: string; reason: string };
+type ArchitectureProfileDraft = { style: ArchitectureStyle; moduleGrouping: ModuleGrouping; framework: string; persistence: string; packageRoots: Record<string, string>; suffixes: Record<string, string>; classNames: Record<string, string>; dependencyRules: ArchitectureRule[]; layout: Record<string, DiagramLayoutPosition>; excludedNodeIds: ExcludedNode[] };
+type ArchitectureCanvasNode = { id: string; layer: string; kind: string; label: string; packageName: string; className: string; componentId: string; excluded?: boolean; exclusionReason?: string };
+export type ArchitectureDiagnostic = { severity: string; code: string; fromLayer: string; toLayer: string; message: string };
 type ArchitectureManifestEntry = { path: string; role: string; layer: string; className: string; packageName: string; componentId: string };
 type ArchitectureVersion = { revision: number; canonicalHash: string; savedAt: string; style: ArchitectureStyle };
 type ArchitectureComparison = { added: DomainChange[]; removed: DomainChange[]; changed: DomainChange[] };
-type WorkbenchArchitecture = { revision: number; canonicalHash: string; savedAt: string | null; profile: ArchitectureProfileDraft; preview: { modules: unknown[]; components: unknown[]; relations: unknown[]; diagnostics: unknown[]; hasFallback: boolean }; canvas: ArchitectureCanvasNode[]; dependencyRules: ArchitectureRule[]; dependencyDiagnostics: ArchitectureDiagnostic[]; manifest: ArchitectureManifestEntry[] };
+export type WorkbenchArchitecture = { revision: number; canonicalHash: string; savedAt: string | null; profile: ArchitectureProfileDraft; preview: { modules: unknown[]; components: unknown[]; relations: unknown[]; diagnostics: unknown[]; hasFallback: boolean }; canvas: ArchitectureCanvasNode[]; dependencyRules: ArchitectureRule[]; dependencyDiagnostics: ArchitectureDiagnostic[]; manifest: ArchitectureManifestEntry[] };
 type WorkbenchAiAgent = { id: string; name: string; purpose: string; promptId: string; promptVersion: string; slashCommands: string[]; contextScopes: string[] };
 type WorkbenchAiPrompt = { id: string; version: string; agentId: string; variables: string[]; guardrails: string[] };
 type WorkbenchAiCommand = { command: string; agentId: string; description: string; toolCall: string; mutates: boolean; humanConfirmationRequired: boolean };
 type WorkbenchAiContextSource = { scope: string; reference: string; hash: string; itemCount: number; status: string };
 type WorkbenchAiContext = { projectId: string; canonicalHash: string; sources: WorkbenchAiContextSource[] };
 type WorkbenchAiPolicy = { directFileWritesAllowed: boolean; mutationsRequireHumanConfirmation: boolean; allowedReadTools: string[]; mutatingTools: string[] };
-type WorkbenchAiItem = { id: string; category: string; source: string; status: string; confidence: number; evidenceCount: number; llmFailed: boolean; promptId: string; promptVersion: string; question: string; chosenOption: string; rationale: string; evidence: string[]; reviewActions: string[]; approvalStatus: string };
+type WorkbenchAiItem = { id: string; category: string; source: string; status: string; confidence: number; evidenceCount: number; llmFailed: boolean; promptId: string; promptVersion: string; question: string; chosenOption: string; rationale: string; evidence: string[]; reviewActions: string[]; approvalStatus: string; targetType?: string; targetId?: string; options: string[]; defaultOption: string; revision: number };
 type WorkbenchAiAudit = { id: string; suggestionId: string; model: string; promptId: string; promptVersion: string; contextHash: string; responseHash: string; toolCalls: string[]; status: string; approvalRequired: boolean; approvalStatus: string };
 type WorkbenchAi = { agents: WorkbenchAiAgent[]; prompts: WorkbenchAiPrompt[]; slashCommands: WorkbenchAiCommand[]; context: WorkbenchAiContext; toolPolicy: WorkbenchAiPolicy; items: WorkbenchAiItem[]; auditTrail: WorkbenchAiAudit[]; limits: string[] };
 type ChangeSetFile = { path: string; action: string; beforeHash: string; afterHash: string; proposedContent: string };
 type ChangeSetDiff = { summary: string; requiredBeforeApproval: string[]; files: Array<{ path: string; action: string; beforeHash: string; afterHash: string; preview: string }> };
 type ChangeSetAudit = { actor: string; action: string; at: string; reason: string; manifestHash: string };
 type WorkbenchChangeSet = { id: string; projectId: string; title: string; state: string; dangerous: boolean; manifestHash: string; approvedManifestHash: string | null; files: ChangeSetFile[]; decisions: string[]; evidence: string[]; diff: ChangeSetDiff; history: ChangeSetAudit[] };
+type DataMigrationColumn = { property: string; targetColumn: string; sourceColumn: string | null; sourceDataset: string | null; sourceType: string; targetType: string; key: boolean; transformation: string };
+type DataMigrationTable = { domainNodeId: string; targetTable: string; sourceDataset: string | null; state: string; columns: DataMigrationColumn[]; transformations: Array<{ column: string; kind: string; description: string }>; risks: string[] };
+type WorkbenchDataMigration = { projectId: string; status: string; tables: DataMigrationTable[]; dryRun: { status: string; sampledRows: number; previewRows: Array<{ table: string; cells: Array<{ column: string; sourceValue: string; transformedValue: string }> }>; warnings: string[] }; gaps: string[]; evidence: string[] };
 type EquivalenceFixture = { id: string; name: string; sourceId: string; baselineId: string; candidateId: string; inputs: { fields: Record<string, string>; sequentialFiles: Array<{ ddName: string; contentHash: string; preview: string }>; db2Responses: Array<{ statementId: string; sqlState: string; rows: Record<string, string>[] }> }; evidenceRefs: string[]; reproducibilityHash: string };
 type EquivalenceDivergence = { id: string; kind: string; severity: string; evidenceRef: string; summary: string; triageStatus: string; triageReason: string };
 type EquivalenceRun = { id: string; fixtureId: string; state: string; progress: number; startedAt: string; finishedAt: string | null; baselineHash: string; candidateHash: string; commit: string; profileHash: string; changeSetId: string; logs: string[]; comparison: { state: string; outputsMatch: boolean; filesMatch: boolean; sqlMatches: boolean; comparedArtifacts: string[] }; divergences: EquivalenceDivergence[]; reportHash: string };
@@ -77,13 +91,13 @@ type SourceDiagnostic = { severity: string; message: string; line: number };
 type SourceFile = { id: string; name: string; kind: string; path: string; hash: string; encoding: string; analysisStatus: string; symbols: SourceSymbol[]; diagnostics: SourceDiagnostic[] };
 type SourceExplorer = { files: SourceFile[]; datasets: Array<{ id: string; name: string; referencedBy: string[] }> };
 type AreaState = 'idle' | 'loading' | 'ready' | 'empty' | 'permission-denied' | 'error';
-type DomainEvidence = { sourceRef: string; provenance: string; rationale: string };
-type DomainProperty = { name: string; type: string; required: boolean; evidence: DomainEvidence[] };
-type DomainNode = { id: string; kind: string; name: string; properties: DomainProperty[]; evidence: DomainEvidence[]; origin: string; confidence: number };
-type DomainRelation = { id: string; fromId: string; toId: string; kind: string; sourceCardinality: string; targetCardinality: string };
-type DomainInvariant = { id: string; subjectId: string; expression: string; evidence: DomainEvidence[]; origin: string; confidence: number };
-type DomainModel = { schemaVersion: string; projectId: string; nodes: DomainNode[]; relations: DomainRelation[]; invariants: DomainInvariant[] };
-type DomainDiagnostic = { severity: string; code: string; targetId: string; message: string };
+export type DomainEvidence = { sourceRef: string; provenance: string; rationale: string };
+export type DomainProperty = { name: string; type: string; required: boolean; evidence: DomainEvidence[]; isKey?: boolean; columnName?: string | null; sourceColumn?: string | null; sourceDataset?: string | null };
+export type DomainNode = { id: string; kind: string; name: string; properties: DomainProperty[]; evidence: DomainEvidence[]; origin: string; confidence: number; tableName?: string | null; sourceDataset?: string | null };
+export type DomainRelation = { id: string; fromId: string; toId: string; kind: string; sourceCardinality: string; targetCardinality: string; foreignKey?: { property: string; referencesProperty: string } | null };
+export type DomainInvariant = { id: string; subjectId: string; expression: string; evidence: DomainEvidence[]; origin: string; confidence: number };
+export type DomainModel = { schemaVersion: string; projectId: string; nodes: DomainNode[]; relations: DomainRelation[]; invariants: DomainInvariant[]; layout: Record<string, DiagramLayoutPosition>; excludedNodeIds: ExcludedNode[] };
+export type DomainDiagnostic = { severity: string; code: string; targetId: string; message: string };
 type DomainSuggestion = { id: string; targetType: string; targetId: string; name: string; status: string; decidedRevision: number | null; decidedAt: string | null };
 type DomainModelView = { revision: number; canonicalHash: string; savedAt: string | null; model: DomainModel; diagnostics: DomainDiagnostic[]; suggestions: DomainSuggestion[] };
 type DomainVersion = { revision: number; canonicalHash: string; savedAt: string };
@@ -99,6 +113,18 @@ const MVC_LAYERS = ['controller', 'service', 'model'] as const;
 
 const ACTIVE_AREA_KEY = 'renovatio.workbench.active-area';
 const SELECTED_PROJECT_KEY = 'renovatio.workbench.selected-project';
+
+class DomainDiagramErrorBoundary extends React.Component<{ fallback: React.ReactNode; children: React.ReactNode }, { hasError: boolean }> {
+    state = { hasError: false };
+
+    static getDerivedStateFromError(): { hasError: boolean } {
+        return { hasError: true };
+    }
+
+    override render(): React.ReactNode {
+        return this.state.hasError ? this.props.fallback : this.props.children;
+    }
+}
 
 @injectable()
 export class RenovatioShellWidget extends ReactWidget {
@@ -124,6 +150,10 @@ export class RenovatioShellWidget extends ReactWidget {
     protected shellState: ShellState = 'loading';
     protected analysis?: WorkbenchAnalysis;
     protected analysisState: 'idle' | 'loading' | 'ready' | 'empty' | 'error' = 'idle';
+    protected analysisJob?: WorkbenchJob;
+    protected analysisNotice = '';
+    protected analysisScanRoot = '';
+    protected analysisPollToken = 0;
     protected architecture?: WorkbenchArchitecture;
     protected architectureDraft?: ArchitectureProfileDraft;
     protected architectureState: 'idle' | 'loading' | 'ready' | 'empty' | 'permission-denied' | 'saving' | 'conflict' | 'error' = 'idle';
@@ -132,9 +162,11 @@ export class RenovatioShellWidget extends ReactWidget {
     protected architectureDirty = false;
     protected architectureNotice = '';
     protected selectedArchitectureLayer = 'controller';
+    protected selectedArchitectureNodeId: string | null = null;
     protected architectureCompareFrom = 0;
     protected architectureCompareTo = 0;
     protected architecturePreviewRequest = 0;
+    protected architectureViewMode: 'diagram' | 'table' = 'diagram';
     protected ai?: WorkbenchAi;
     protected aiState: AreaState = 'idle';
     protected changeSets: WorkbenchChangeSet[] = [];
@@ -158,6 +190,17 @@ export class RenovatioShellWidget extends ReactWidget {
     protected selectedDomainType: DomainItemType = 'node';
     protected selectedDomainId: string | null = null;
     protected domainFilter = '';
+    /** 'diagram' shows the DiagramCanvas (UML class boxes); 'list' keeps the
+     * original catalog/form editor from issue #179. See issue #265. */
+    protected domainViewMode: 'diagram' | 'der' | 'list' = 'diagram';
+    protected domainSuggestionsOnly = false;
+    protected architectureSuggestionsOnly = false;
+    protected dataMigration?: WorkbenchDataMigration;
+    protected dataMigrationState: AreaState = 'idle';
+    protected dataMigrationNotice = '';
+    /** In-memory only for now (issue #265 scope) — persisting positions to
+     * the backend DomainModel is issue #268. Lost on reload by design. */
+    protected domainLayoutHints: Record<string, { x: number; y: number }> = {};
     protected domainDirty = false;
     protected domainNotice = '';
     protected compareFrom = 0;
@@ -306,12 +349,14 @@ export class RenovatioShellWidget extends ReactWidget {
             this.selectedArchitectureLayer = this.architectureDraft.dependencyRules[0]?.fromLayer ?? 'controller';
             this.architectureCompareFrom = this.architectureVersions[this.architectureVersions.length - 1]?.revision ?? 0;
             this.architectureCompareTo = this.architectureVersions[0]?.revision ?? 0;
+            void this.loadAi();
         } catch { this.architectureState = 'error'; }
         this.update();
     }
 
     protected cloneArchitectureProfile(profile: ArchitectureProfileDraft): ArchitectureProfileDraft {
-        return JSON.parse(JSON.stringify(profile)) as ArchitectureProfileDraft;
+        const clone = JSON.parse(JSON.stringify(profile)) as ArchitectureProfileDraft;
+        return { ...clone, layout: clone.layout ?? {}, excludedNodeIds: clone.excludedNodeIds ?? [] };
     }
 
     protected markArchitectureChanged(profile: ArchitectureProfileDraft): void {
@@ -430,6 +475,92 @@ export class RenovatioShellWidget extends ReactWidget {
         this.update();
     }
 
+    protected handleArchitectureDiagramEvent = (event: DiagramEvent): void => {
+        if (event.type === 'nodeSelected' && event.id && this.architecture) {
+            this.selectedArchitectureNodeId = event.id.startsWith('architecture-layer:') ? null : event.id;
+            const selectedNode = this.architecture.canvas.find(node => node.id === event.id);
+            const layer = selectedNode?.layer ?? event.id.replace(/^architecture-layer:/, '');
+            if (layer) {
+                this.selectedArchitectureLayer = layer;
+                this.update();
+            }
+            return;
+        }
+        if (event.type === 'nodeMoved' && this.architectureDraft && !event.id.startsWith('architecture-layer:')) {
+            this.markArchitectureChanged({
+                ...this.architectureDraft,
+                layout: { ...(this.architectureDraft.layout ?? {}), [event.id]: { x: event.x, y: event.y } }
+            });
+            return;
+        }
+        if (event.type === 'nodesPruned') {
+            this.toggleArchitecturePrune(event.ids);
+        }
+    };
+
+    protected toggleArchitecturePrune(ids: string[]): void {
+        if (!this.architectureDraft || !this.architecture || !ids.length) return;
+        const canvasIds = new Set(this.architecture.canvas.map(node => node.id));
+        const targetIds = ids.filter(id => canvasIds.has(id));
+        if (!targetIds.length) return;
+        const current = new Map((this.architectureDraft.excludedNodeIds ?? []).map(value => [value.id, value.reason]));
+        const allExcluded = targetIds.every(id => current.has(id));
+        if (allExcluded) {
+            targetIds.forEach(id => current.delete(id));
+        } else {
+            const reason = window.prompt('Reason for excluding selected architecture nodes from generation?', 'Out of generation scope');
+            if (reason === null) return;
+            targetIds.forEach(id => current.set(id, reason.trim() || 'Excluded from generation'));
+        }
+        this.markArchitectureChanged({ ...this.architectureDraft, excludedNodeIds: Array.from(current, ([id, reason]) => ({ id, reason })) });
+    }
+
+    protected async generateArchitectureChangeSet(): Promise<void> {
+        if (!this.architecture || this.architectureDirty || this.architectureState !== 'ready') return;
+        if (this.architecture.dependencyDiagnostics.some(diagnostic => diagnostic.severity === 'error')) {
+            this.architectureNotice = 'Resolve blocking architecture diagnostics before generating.';
+            this.update();
+            return;
+        }
+        if (!window.confirm('Generate a reviewable change set from the saved architecture profile?')) return;
+        this.architectureNotice = 'Generating reviewable change set from architecture profile...';
+        this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/architecture/canvas:generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (response.status === 401 || response.status === 403) {
+                this.architectureState = 'permission-denied';
+                this.architectureNotice = 'You do not have permission to generate change sets.';
+                this.update();
+                return;
+            }
+            if (!response.ok) {
+                const error = await response.json() as { message?: string; diagnostics?: ArchitectureDiagnostic[] };
+                this.architectureNotice = error.diagnostics?.map(item => item.message).join(' · ') || error.message || 'Architecture generation was rejected.';
+                this.update();
+                return;
+            }
+            const changeSet = await response.json() as WorkbenchChangeSet;
+            this.changeSets = [changeSet, ...this.changeSets.filter(candidate => candidate.id !== changeSet.id)];
+            this.changeSetNotice = `Generated change set ${changeSet.id} from architecture profile.`;
+            this.activateArea('changes');
+        } catch {
+            this.architectureNotice = 'Architecture generation failed before a change set was created.';
+            this.update();
+        }
+    }
+
+    protected architectureEdgeStyle = (edge: DiagramEdgeVM): CSSProperties => {
+        const hasDiagnostics = Array.isArray(edge.data?.diagnostics) && edge.data.diagnostics.length > 0;
+        return {
+            stroke: hasDiagnostics ? '#ff6b5f' : edge.kind === 'ALLOWED_DEPENDENCY' ? '#7ee787' : '#ff6b5f',
+            strokeDasharray: hasDiagnostics || edge.kind === 'DENIED_DEPENDENCY' ? '6 5' : undefined,
+            strokeWidth: hasDiagnostics ? 3 : 2
+        };
+    };
+
     protected async loadAi(): Promise<void> {
         if (!this.projects.some(project => project.id === this.selectedProject)) return;
         this.aiState = 'loading'; this.update();
@@ -440,6 +571,30 @@ export class RenovatioShellWidget extends ReactWidget {
             this.ai = await response.json() as WorkbenchAi;
             this.aiState = this.ai.agents.length || this.ai.items.length ? 'ready' : 'empty';
         } catch { this.aiState = 'error'; }
+        this.update();
+    }
+
+    protected async decideAiItem(item: WorkbenchAiItem, action: 'accept' | 'reject' | 'fallback' | 'edit', option?: string): Promise<void> {
+        if (!window.confirm(`Record ${action} for this governed AI suggestion?`)) return;
+        this.aiState = 'loading';
+        this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/ai/items/${encodeURIComponent(item.id)}:decide`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action, option, revision: item.revision })
+            });
+            if (response.status === 401 || response.status === 403) { this.aiState = 'permission-denied'; this.update(); return; }
+            if (!response.ok) throw new Error(`AI decision rejected ${response.status}`);
+            this.ai = await response.json() as WorkbenchAi;
+            this.aiState = this.ai.agents.length || this.ai.items.length ? 'ready' : 'empty';
+            this.architectureNotice = action === 'accept'
+                ? 'AI suggestion accepted as a governed decision. Architecture profile edits remain explicit.'
+                : `AI suggestion recorded as ${action}.`;
+        } catch {
+            this.aiState = 'error';
+            this.architectureNotice = 'The governed AI decision could not be recorded.';
+        }
         this.update();
     }
 
@@ -567,6 +722,89 @@ export class RenovatioShellWidget extends ReactWidget {
         this.update();
     }
 
+    protected async loadProjectDetails(): Promise<WorkbenchProject | undefined> {
+        const current = this.projects.find(project => project.id === this.selectedProject);
+        try {
+            const response = await fetch(`${this.backendUrl}/api/workbench/projects/${encodeURIComponent(this.selectedProject)}`);
+            if (!response.ok) return current;
+            const project = await response.json() as WorkbenchProject;
+            this.projects = this.projects.map(candidate => candidate.id === project.id ? { ...candidate, ...project } : candidate);
+            return { ...current, ...project };
+        } catch {
+            return current;
+        }
+    }
+
+    protected async resolveAnalysisScanRoot(): Promise<string> {
+        const project = await this.loadProjectDetails();
+        const scanRoot = project?.cobolScanRoot || project?.workspacePath || '';
+        this.analysisScanRoot = scanRoot;
+        return scanRoot;
+    }
+
+    protected async startAnalysis(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        const workspacePath = await this.resolveAnalysisScanRoot();
+        if (!workspacePath) {
+            this.analysisState = 'error';
+            this.analysisNotice = 'Configure a COBOL scan root before running analysis.';
+            this.update();
+            return;
+        }
+        this.analysisState = 'loading';
+        this.analysisNotice = 'Starting analysis...';
+        this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/workbench/projects/${encodeURIComponent(this.selectedProject)}/jobs`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ operation: 'analyze', params: { workspacePath } })
+            });
+            if (!response.ok) throw new Error(`Analyze job returned ${response.status}`);
+            this.analysisJob = await response.json() as WorkbenchJob;
+            this.analysisNotice = 'Analysis queued.';
+            this.update();
+            void this.pollAnalysisJob(this.analysisJob.id);
+        } catch {
+            this.analysisState = 'error';
+            this.analysisNotice = 'Analysis could not be started. Check the scan root and API status.';
+            this.update();
+        }
+    }
+
+    protected async pollAnalysisJob(jobId: string): Promise<void> {
+        const pollToken = ++this.analysisPollToken;
+        let attempt = 0;
+        while (pollToken === this.analysisPollToken) {
+            await this.delay(attempt++ < 3 ? 1000 : 2500);
+            try {
+                const response = await fetch(`${this.backendUrl}/api/workbench/jobs/${encodeURIComponent(jobId)}`);
+                if (!response.ok) throw new Error(`Job adapter returned ${response.status}`);
+                this.analysisJob = await response.json() as WorkbenchJob;
+                const status = this.analysisJob.status.toUpperCase();
+                if (status === 'COMPLETED' || status === 'FAILED' || status === 'CANCELLED') {
+                    this.analysisNotice = status === 'COMPLETED'
+                        ? 'Analysis completed.'
+                        : `Analysis ${status.toLowerCase()}${this.analysisJob.error ? `: ${this.analysisJob.error}` : '.'}`;
+                    await this.loadAnalysis();
+                    this.update();
+                    return;
+                }
+                this.analysisNotice = `Analysis ${this.analysisJob.status.toLowerCase()} · ${Math.round((this.analysisJob.progress ?? 0) * 100)}%.`;
+                this.update();
+            } catch {
+                if (pollToken === this.analysisPollToken) {
+                    this.analysisNotice = 'Analysis was queued, but status polling is unavailable.';
+                    this.update();
+                }
+            }
+        }
+    }
+
+    protected delay(ms: number): Promise<void> {
+        return new Promise(resolve => window.setTimeout(resolve, ms));
+    }
+
     protected exportShadowImpact(): void {
         if (!this.shadowImpact) return;
         const blob = new Blob([JSON.stringify(this.shadowImpact.report, null, 2)], { type: 'application/json' });
@@ -619,7 +857,8 @@ export class RenovatioShellWidget extends ReactWidget {
     }
 
     protected cloneDomainModel(model: DomainModel): DomainModel {
-        return JSON.parse(JSON.stringify(model)) as DomainModel;
+        const clone = JSON.parse(JSON.stringify(model)) as DomainModel;
+        return { ...clone, layout: clone.layout ?? {}, excludedNodeIds: clone.excludedNodeIds ?? [] };
     }
 
     protected async loadDomainModel(): Promise<void> {
@@ -651,10 +890,65 @@ export class RenovatioShellWidget extends ReactWidget {
             }
             this.compareFrom = this.domainVersions[this.domainVersions.length - 1]?.revision ?? 0;
             this.compareTo = this.domainVersions[0]?.revision ?? 0;
+            void this.loadAi();
+            void this.loadDataMigration();
         } catch {
             this.domainState = 'error';
         }
         this.update();
+    }
+
+    protected async loadDataMigration(): Promise<void> {
+        if (!this.projects.some(project => project.id === this.selectedProject)) return;
+        this.dataMigrationState = 'loading';
+        this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/data-migration`);
+            if (response.status === 401 || response.status === 403) { this.dataMigrationState = 'permission-denied'; this.update(); return; }
+            if (!response.ok) throw new Error(`Data migration adapter returned ${response.status}`);
+            this.dataMigration = await response.json() as WorkbenchDataMigration;
+            this.dataMigrationState = this.dataMigration.tables.length ? 'ready' : 'empty';
+            this.dataMigrationNotice = this.dataMigration.gaps.length
+                ? `${this.dataMigration.gaps.length} mapping gap(s) before dry-run can pass.`
+                : 'Data migration dry-run is ready for review.';
+        } catch {
+            this.dataMigrationState = 'error';
+            this.dataMigrationNotice = 'Data migration plan is unavailable.';
+        }
+        this.update();
+    }
+
+    protected async generateDataMigrationChangeSet(): Promise<void> {
+        if (!this.dataMigration?.tables.length) return;
+        if (!window.confirm('Generate a dangerous reviewable data-migration dry-run change set?')) return;
+        this.dataMigrationNotice = 'Generating data migration change set...';
+        this.update();
+        try {
+            const response = await fetch(`${this.backendUrl}/api/projects/${encodeURIComponent(this.selectedProject)}/workbench/data-migration:generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (response.status === 401 || response.status === 403) {
+                this.dataMigrationState = 'permission-denied';
+                this.dataMigrationNotice = 'You do not have permission to generate data migration change sets.';
+                this.update();
+                return;
+            }
+            if (!response.ok) {
+                const error = await response.json() as { message?: string };
+                this.dataMigrationNotice = error.message || 'Data migration generation was rejected.';
+                this.update();
+                return;
+            }
+            const changeSet = await response.json() as WorkbenchChangeSet;
+            this.changeSets = [changeSet, ...this.changeSets.filter(candidate => candidate.id !== changeSet.id)];
+            this.changeSetNotice = `Generated data migration change set ${changeSet.id}.`;
+            this.activateArea('changes');
+        } catch {
+            this.dataMigrationState = 'error';
+            this.dataMigrationNotice = 'Data migration generation failed before a change set was created.';
+            this.update();
+        }
     }
 
     protected async refreshDomainVersions(): Promise<void> {
@@ -686,6 +980,16 @@ export class RenovatioShellWidget extends ReactWidget {
         this.markDomainChanged({ ...this.domainDraft, relations: this.domainDraft.relations.map(relation => relation.id === id ? { ...relation, ...patch } : relation) });
     }
 
+    protected relationForeignKey(
+        relation: DomainRelation,
+        patch: Partial<{ property: string; referencesProperty: string }>
+    ): DomainRelation['foreignKey'] {
+        const next = { property: relation.foreignKey?.property ?? '', referencesProperty: relation.foreignKey?.referencesProperty ?? '', ...patch };
+        const property = next.property.trim();
+        const referencesProperty = next.referencesProperty.trim();
+        return property || referencesProperty ? { property, referencesProperty } : null;
+    }
+
     protected updateDomainInvariant(id: string, patch: Partial<DomainInvariant>): void {
         if (!this.domainDraft) return;
         this.markDomainChanged({ ...this.domainDraft, invariants: this.domainDraft.invariants.map(invariant => invariant.id === id ? { ...invariant, ...patch } : invariant) });
@@ -711,6 +1015,65 @@ export class RenovatioShellWidget extends ReactWidget {
         this.selectedDomainId = id;
     }
 
+    /** Bound once so React Flow's props identity stays stable across renders
+     * (an inline arrow in JSX would remount the canvas's memoized callbacks
+     * every update). Handles every DiagramEvent the canvas can emit. */
+    protected handleDomainDiagramEvent = (event: DiagramEvent): void => {
+        if (event.type === 'nodeSelected') {
+            if (event.id) {
+                this.selectDomainItem('node', event.id);
+            } else {
+                this.selectedDomainId = null;
+                this.update();
+            }
+            return;
+        }
+        if (event.type === 'nodeMoved') {
+            this.domainLayoutHints = { ...this.domainLayoutHints, [event.id]: { x: event.x, y: event.y } };
+            if (this.domainDraft) {
+                this.markDomainChanged({ ...this.domainDraft, layout: { ...(this.domainDraft.layout ?? {}), [event.id]: { x: event.x, y: event.y } } });
+            } else {
+                this.update();
+            }
+            return;
+        }
+        if (event.type === 'edgeCreated') {
+            this.createDomainRelationFromDrag(event.source, event.target);
+            return;
+        }
+        if (event.type === 'nodesPruned') {
+            this.toggleDomainPrune(event.ids);
+        }
+    };
+
+    protected toggleDomainPrune(ids: string[]): void {
+        if (!this.domainDraft || !ids.length) return;
+        const nodeIds = new Set(this.domainDraft.nodes.map(node => node.id));
+        const targetIds = ids.filter(id => nodeIds.has(id));
+        if (!targetIds.length) return;
+        const current = new Map((this.domainDraft.excludedNodeIds ?? []).map(value => [value.id, value.reason]));
+        const allExcluded = targetIds.every(id => current.has(id));
+        if (allExcluded) {
+            targetIds.forEach(id => current.delete(id));
+        } else {
+            const reason = window.prompt('Reason for excluding selected nodes from generation?', 'Out of generation scope');
+            if (reason === null) return;
+            targetIds.forEach(id => current.set(id, reason.trim() || 'Excluded from generation'));
+        }
+        this.markDomainChanged({ ...this.domainDraft, excludedNodeIds: Array.from(current, ([id, reason]) => ({ id, reason })) });
+    }
+
+    protected createDomainRelationFromDrag(fromId: string, toId: string): void {
+        if (!this.domainDraft) return;
+        const allIds = new Set([...this.domainDraft.nodes, ...this.domainDraft.relations, ...this.domainDraft.invariants].map(item => item.id));
+        let suffix = 1;
+        while (allIds.has(`relation-${suffix}`)) suffix++;
+        const id = `relation-${suffix}`;
+        this.markDomainChanged({ ...this.domainDraft, relations: [...this.domainDraft.relations, { id, fromId, toId, kind: 'ASSOCIATES_WITH', sourceCardinality: 'ONE', targetCardinality: 'ONE' }] });
+        this.selectedDomainType = 'relation';
+        this.selectedDomainId = id;
+    }
+
     protected removeSelectedDomainItem(): void {
         if (!this.domainDraft || !this.selectedDomainId) return;
         const id = this.selectedDomainId;
@@ -718,7 +1081,13 @@ export class RenovatioShellWidget extends ReactWidget {
             const referenced = this.domainDraft.relations.some(relation => relation.fromId === id || relation.toId === id)
                 || this.domainDraft.invariants.some(invariant => invariant.subjectId === id);
             if (referenced) { this.domainNotice = 'Remove relations and invariants that reference this element first.'; this.update(); return; }
-            this.markDomainChanged({ ...this.domainDraft, nodes: this.domainDraft.nodes.filter(node => node.id !== id) });
+            const { [id]: _removed, ...layout } = this.domainDraft.layout ?? {};
+            this.markDomainChanged({
+                ...this.domainDraft,
+                nodes: this.domainDraft.nodes.filter(node => node.id !== id),
+                layout,
+                excludedNodeIds: (this.domainDraft.excludedNodeIds ?? []).filter(node => node.id !== id)
+            });
         } else if (this.selectedDomainType === 'relation') {
             this.markDomainChanged({ ...this.domainDraft, relations: this.domainDraft.relations.filter(relation => relation.id !== id) });
         } else {
@@ -821,6 +1190,88 @@ export class RenovatioShellWidget extends ReactWidget {
             await this.refreshDomainVersions();
         } catch { this.domainState = 'error'; this.domainNotice = 'The suggestion decision could not be recorded.'; }
         this.update();
+    }
+
+    protected aiItemsForTargetIds(targetIds: readonly string[]): WorkbenchAiItem[] {
+        const ids = new Set(targetIds.filter(Boolean));
+        return (this.ai?.items ?? []).filter(item => item.targetId && ids.has(item.targetId));
+    }
+
+    protected aiAuditForItem(item: WorkbenchAiItem): WorkbenchAiAudit | undefined {
+        return this.ai?.auditTrail.find(event => event.suggestionId === item.id);
+    }
+
+    protected isPendingAiItem(item: WorkbenchAiItem): boolean {
+        return !['CONFIRMED', 'confirmed', 'OVERRIDDEN', 'overridden', 'approved'].includes(item.status)
+            && item.approvalStatus !== 'approved';
+    }
+
+    protected renderAiProposalDetails(items: readonly WorkbenchAiItem[]): React.ReactNode {
+        const visible = items.filter(item => this.isPendingAiItem(item));
+        if (!visible.length) return <p>No governed LLM proposal is attached to this selection.</p>;
+        return <ol className='renovatio-llm-proposals'>{visible.map(item => {
+            const audit = this.aiAuditForItem(item);
+            return <li key={item.id}>
+                <strong>{item.category} · {item.status}</strong>
+                <span>{item.question}</span>
+                <p>{item.chosenOption}</p>
+                <small>{item.source} · confidence {(item.confidence * 100).toFixed(0)}% · evidence {item.evidenceCount} · approval {item.approvalStatus}</small>
+                <p>{item.rationale || 'No rationale recorded.'}</p>
+                {item.evidence.length ? <ul>{item.evidence.slice(0, 4).map((evidence, index) => <li key={`${item.id}:evidence:${index}`}>{evidence}</li>)}</ul> : <small>No evidence references recorded.</small>}
+                {audit && <small>prompt {audit.promptId}@{audit.promptVersion} · context {audit.contextHash.slice(0, 24)}… · response {audit.responseHash.slice(0, 24)}…</small>}
+                <div className='renovatio-llm-actions'>
+                    <button type='button' disabled={!this.isPendingAiItem(item)} onClick={() => void this.decideAiItem(item, 'accept')}>Accept</button>
+                    <button type='button' disabled={!this.isPendingAiItem(item)} onClick={() => void this.decideAiItem(item, 'fallback')}>Fallback</button>
+                    <button type='button' disabled={!this.isPendingAiItem(item)} onClick={() => void this.decideAiItem(item, 'reject')}>Reject</button>
+                    {item.options.filter(option => option !== item.chosenOption && option !== item.defaultOption).map(option =>
+                        <button key={`${item.id}:${option}`} type='button' disabled={!this.isPendingAiItem(item)} onClick={() => void this.decideAiItem(item, 'edit', option)}>Use {option}</button>)}
+                </div>
+            </li>;
+        })}</ol>;
+    }
+
+    protected renderDomainSuggestionActions(suggestion: DomainSuggestion): React.ReactNode {
+        if (suggestion.status !== 'pending') return null;
+        const isSelected = this.selectedDomainId === suggestion.targetId;
+        return <div className='renovatio-llm-actions'>
+            <button type='button' disabled={this.domainDirty} onClick={() => void this.decideDomainSuggestion(suggestion, 'accepted')}>Accept</button>
+            <button type='button' disabled={!this.domainDirty || !isSelected} onClick={() => void this.decideDomainSuggestion(suggestion, 'edited')}>Fallback / keep edits</button>
+            <button type='button' disabled={this.domainDirty} onClick={() => void this.decideDomainSuggestion(suggestion, 'rejected')}>Reject</button>
+        </div>;
+    }
+
+    protected renderSelectedDomainSuggestions(): React.ReactNode {
+        if (!this.selectedDomainId) return <p>Select a node or invariant to inspect governed suggestions.</p>;
+        const suggestions = (this.domain?.suggestions ?? []).filter(suggestion =>
+            suggestion.targetId === this.selectedDomainId && suggestion.targetType === this.selectedDomainType);
+        const aiItems = this.aiItemsForTargetIds([this.selectedDomainId]);
+        if (!suggestions.length && !aiItems.length) return <p>No governed LLM proposal is attached to this selection.</p>;
+        return <>
+            {this.renderAiProposalDetails(aiItems)}
+            {suggestions.length ? <ol className='renovatio-llm-proposals'>{suggestions.map(suggestion => <li key={suggestion.id}>
+                <strong>{suggestion.name}</strong>
+                <span>{suggestion.targetType} · {suggestion.status}</span>
+                <small>target {suggestion.targetId} · decided revision {suggestion.decidedRevision ?? 'pending'}</small>
+                {this.renderDomainSuggestionActions(suggestion)}
+            </li>)}</ol> : null}
+        </>;
+    }
+
+    protected renderSelectedArchitectureSuggestions(view: WorkbenchArchitecture): React.ReactNode {
+        const selectedNode = this.selectedArchitectureNodeId
+            ? view.canvas.find(node => node.id === this.selectedArchitectureNodeId)
+            : undefined;
+        const targetIds = [
+            this.selectedArchitectureNodeId ?? '',
+            selectedNode?.componentId ?? '',
+            selectedNode?.layer ?? this.selectedArchitectureLayer,
+            `architecture-layer:${this.selectedArchitectureLayer}`
+        ];
+        const items = this.aiItemsForTargetIds(targetIds);
+        return <section><span className='renovatio-coordinate'>LLM REVIEW</span><h3>Canvas suggestions</h3>
+            {this.renderAiProposalDetails(items)}
+            {items.some(item => this.isPendingAiItem(item)) && <p className='renovatio-domain-diff'>Accept/reject/fallback records the governed decision; concrete profile edits remain explicit and versioned through the Architecture controls.</p>}
+        </section>;
     }
 
     protected navigateToSource(sourceRef: string): void {
@@ -1088,17 +1539,17 @@ export class RenovatioShellWidget extends ReactWidget {
         const selectedRelation = this.selectedDomainType === 'relation' ? draft?.relations.find(relation => relation.id === this.selectedDomainId) : undefined;
         const selectedInvariant = this.selectedDomainType === 'invariant' ? draft?.invariants.find(invariant => invariant.id === this.selectedDomainId) : undefined;
         const selectedEvidence = selectedNode?.evidence ?? selectedInvariant?.evidence ?? [];
-        const term = this.domainFilter.trim().toLowerCase();
-        const matches = (value: string): boolean => !term || value.toLowerCase().includes(term);
-        const nodes = draft?.nodes.filter(node => matches(`${node.id} ${node.kind} ${node.name}`)) ?? [];
-        const relations = draft?.relations.filter(relation => matches(`${relation.id} ${relation.kind} ${relation.fromId} ${relation.toId}`)) ?? [];
-        const invariants = draft?.invariants.filter(invariant => matches(`${invariant.id} ${invariant.subjectId} ${invariant.expression}`)) ?? [];
         const controlDisabled = this.domainState === 'loading' || this.domainState === 'saving' || !draft || draftDiagnostics.some(diagnostic => diagnostic.severity === 'error');
-        return <section className='renovatio-domain-editor' aria-label='Business DomainModel editor'>
+        return <section className='renovatio-domain-editor' role='region' aria-label='Business DomainModel editor'>
             <header className='renovatio-domain-toolbar'>
                 <div>
                     <span className='renovatio-coordinate'>DOMAIN.MODEL / SCHEMA {draft?.schemaVersion ?? '1'}</span>
                     <strong>REV {this.domain?.revision ?? 0} · {this.domain?.canonicalHash?.slice(0, 22) ?? 'UNSAVED'}</strong>
+                </div>
+                <div className='renovatio-segmented' role='group' aria-label='Domain view mode'>
+                    <button type='button' aria-pressed={this.domainViewMode === 'diagram'} onClick={() => { this.domainViewMode = 'diagram'; this.update(); }}>UML</button>
+                    <button type='button' aria-pressed={this.domainViewMode === 'der'} onClick={() => { this.domainViewMode = 'der'; this.update(); }}>DER</button>
+                    <button type='button' aria-pressed={this.domainViewMode === 'list'} onClick={() => { this.domainViewMode = 'list'; this.update(); }}>List</button>
                 </div>
                 <div className='renovatio-domain-actions'>
                     <button type='button' onClick={() => void this.loadDomainModel()} disabled={this.domainState === 'loading' || this.domainState === 'saving'}>Reload</button>
@@ -1112,91 +1563,221 @@ export class RenovatioShellWidget extends ReactWidget {
             {this.domainState === 'error' && !draft && <p>The DomainModel adapter is unavailable. Reload to retry.</p>}
             {this.domainState === 'conflict' && <p>Reload the latest revision, then reapply the intended correction. No newer data was overwritten.</p>}
             {draft && <div className='renovatio-domain-grid'>
-                <aside className='renovatio-domain-catalog' aria-label='Domain elements'>
-                    <label>Filter model
-                        <input type='search' value={this.domainFilter} onChange={event => { this.domainFilter = event.target.value; this.update(); }} />
-                    </label>
-                    <div className='renovatio-domain-add' role='group' aria-label='Add model element'>
-                        <button type='button' onClick={() => this.addDomainItem('node')}>+ Element</button>
-                        <button type='button' onClick={() => this.addDomainItem('relation')}>+ Relation</button>
-                        <button type='button' onClick={() => this.addDomainItem('invariant')}>+ Invariant</button>
-                    </div>
-                    <section><h3>Elements <span>{nodes.length}</span></h3><ul>
-                        {nodes.map(node => <li key={node.id}><button type='button' aria-current={this.selectedDomainType === 'node' && this.selectedDomainId === node.id ? 'true' : undefined} onClick={() => this.selectDomainItem('node', node.id)}><span>{node.kind}</span>{node.name}<small>{node.id}</small></button></li>)}
-                    </ul></section>
-                    <section><h3>Relations <span>{relations.length}</span></h3><ul>
-                        {relations.map(relation => <li key={relation.id}><button type='button' aria-current={this.selectedDomainType === 'relation' && this.selectedDomainId === relation.id ? 'true' : undefined} onClick={() => this.selectDomainItem('relation', relation.id)}><span>{relation.kind}</span>{relation.fromId} → {relation.toId}<small>{relation.id}</small></button></li>)}
-                    </ul></section>
-                    <section><h3>Invariants <span>{invariants.length}</span></h3><ul>
-                        {invariants.map(invariant => <li key={invariant.id}><button type='button' aria-current={this.selectedDomainType === 'invariant' && this.selectedDomainId === invariant.id ? 'true' : undefined} onClick={() => this.selectDomainItem('invariant', invariant.id)}><span>RULE</span>{invariant.expression}<small>{invariant.id}</small></button></li>)}
-                    </ul></section>
-                    {!nodes.length && !relations.length && !invariants.length && <p className='renovatio-domain-empty'>No matching domain elements.</p>}
-                </aside>
-                <section className='renovatio-domain-form' aria-label='Selected domain element editor'>
-                    <div className='renovatio-domain-section-heading'><div><span className='renovatio-coordinate'>STRUCTURED EDITOR</span><h3>{this.selectedDomainId ?? 'No selection'}</h3></div>
-                        {this.selectedDomainId && <button type='button' className='is-danger' onClick={() => this.removeSelectedDomainItem()}>Remove</button>}
-                    </div>
-                    {selectedNode && <>
-                        <div className='renovatio-domain-fields'>
-                            <label>Stable id<input value={selectedNode.id} readOnly aria-readonly='true' /></label>
-                            <label>Kind<select value={selectedNode.kind} onChange={event => this.updateDomainNode(selectedNode.id, { kind: event.target.value })}>{DOMAIN_KINDS.map(kind => <option key={kind}>{kind}</option>)}</select></label>
-                            <label className='is-wide'>Name<input value={selectedNode.name} onChange={event => this.updateDomainNode(selectedNode.id, { name: event.target.value })} /></label>
-                            <label>Origin<input value={selectedNode.origin} readOnly aria-readonly='true' /></label>
-                            <label>Confidence<input type='number' min='0' max='1' step='0.01' value={selectedNode.confidence} onChange={event => this.updateDomainNode(selectedNode.id, { confidence: Number(event.target.value) })} /></label>
-                        </div>
-                        <div className='renovatio-domain-properties'><div><h4>Properties</h4><button type='button' onClick={() => this.addDomainProperty(selectedNode)}>+ Property</button></div>
-                            {selectedNode.properties.length ? <ol>{selectedNode.properties.map((property, index) => <li key={`${property.name}:${index}`}>
-                                <label>Name<input value={property.name} onChange={event => this.updateDomainProperty(selectedNode, index, { name: event.target.value })} /></label>
-                                <label>Type<input value={property.type} onChange={event => this.updateDomainProperty(selectedNode, index, { type: event.target.value })} /></label>
-                                <label className='renovatio-checkbox'><input type='checkbox' checked={property.required} onChange={event => this.updateDomainProperty(selectedNode, index, { required: event.target.checked })} />Required</label>
-                                <button type='button' aria-label={`Remove property ${property.name}`} onClick={() => this.updateDomainNode(selectedNode.id, { properties: selectedNode.properties.filter((_, candidate) => candidate !== index) })}>×</button>
-                                <div className='renovatio-property-evidence'>Evidence · {property.evidence.length || 'none'}{property.evidence.map(evidence => <button type='button' key={evidence.sourceRef} onClick={() => this.navigateToSource(evidence.sourceRef)}>{evidence.sourceRef}</button>)}</div>
-                            </li>)}</ol> : <p>No structured properties.</p>}
-                        </div>
-                    </>}
-                    {selectedRelation && <div className='renovatio-domain-fields'>
-                        <label>Stable id<input value={selectedRelation.id} readOnly aria-readonly='true' /></label>
-                        <label>Kind<select value={selectedRelation.kind} onChange={event => this.updateDomainRelation(selectedRelation.id, { kind: event.target.value })}>{RELATION_KINDS.map(kind => <option key={kind}>{kind}</option>)}</select></label>
-                        <label>From<select value={selectedRelation.fromId} onChange={event => this.updateDomainRelation(selectedRelation.id, { fromId: event.target.value })}>{draft.nodes.map(node => <option key={node.id} value={node.id}>{node.name} · {node.id}</option>)}</select></label>
-                        <label>To<select value={selectedRelation.toId} onChange={event => this.updateDomainRelation(selectedRelation.id, { toId: event.target.value })}>{draft.nodes.map(node => <option key={node.id} value={node.id}>{node.name} · {node.id}</option>)}</select></label>
-                        <label>Source cardinality<select value={selectedRelation.sourceCardinality} onChange={event => this.updateDomainRelation(selectedRelation.id, { sourceCardinality: event.target.value })}>{CARDINALITIES.map(value => <option key={value}>{value}</option>)}</select></label>
-                        <label>Target cardinality<select value={selectedRelation.targetCardinality} onChange={event => this.updateDomainRelation(selectedRelation.id, { targetCardinality: event.target.value })}>{CARDINALITIES.map(value => <option key={value}>{value}</option>)}</select></label>
-                    </div>}
-                    {selectedInvariant && <div className='renovatio-domain-fields'>
-                        <label>Stable id<input value={selectedInvariant.id} readOnly aria-readonly='true' /></label>
-                        <label>Subject<select value={selectedInvariant.subjectId} onChange={event => this.updateDomainInvariant(selectedInvariant.id, { subjectId: event.target.value })}>{draft.nodes.map(node => <option key={node.id} value={node.id}>{node.name} · {node.id}</option>)}</select></label>
-                        <label className='is-wide'>Business rule<textarea value={selectedInvariant.expression} onChange={event => this.updateDomainInvariant(selectedInvariant.id, { expression: event.target.value })} /></label>
-                        <label>Origin<input value={selectedInvariant.origin} readOnly aria-readonly='true' /></label>
-                        <label>Confidence<input type='number' min='0' max='1' step='0.01' value={selectedInvariant.confidence} onChange={event => this.updateDomainInvariant(selectedInvariant.id, { confidence: Number(event.target.value) })} /></label>
-                    </div>}
-                    {!selectedNode && !selectedRelation && !selectedInvariant && <div className='renovatio-domain-placeholder'><strong>Select or create an element.</strong><p>Stable ids and evidence references remain immutable; names, kinds, properties and cardinalities are editable.</p></div>}
-                </section>
-                <aside className='renovatio-domain-inspector' aria-label='Domain provenance and history'>
-                    <section><span className='renovatio-coordinate'>PROVENANCE</span><h3>Source evidence</h3>
-                        {selectedEvidence.length ? <ul>{selectedEvidence.map((evidence, index) => {
-                            const ref = evidence.sourceRef.split('#')[0].replace(/:\d+$/, '');
-                            const source = this.sourceExplorer?.files.find(file => file.id === ref || file.path === ref || file.name === ref);
-                            return <li key={`${evidence.sourceRef}:${index}`}><button type='button' onClick={() => this.navigateToSource(evidence.sourceRef)}>{evidence.sourceRef}</button><span>{evidence.provenance}</span><p>{evidence.rationale || 'No rationale recorded.'}</p>{source && <><span>{source.kind} · {source.encoding}</span><small>sha256 · {source.hash}</small></>}</li>;
-                        })}</ul> : <p>No source evidence recorded for this selection.</p>}
-                    </section>
-                    <section><span className='renovatio-coordinate'>VALIDATION</span><h3>Diagnostics</h3>
-                        {draftDiagnostics.length ? <ul>{draftDiagnostics.map((diagnostic, index) => <li key={`${diagnostic.code}:${diagnostic.targetId}:${index}`} className={`severity-${diagnostic.severity}`}><strong>{diagnostic.code}</strong><span>{diagnostic.targetId}</span><p>{diagnostic.message}</p></li>)}</ul> : <p>No draft diagnostics.</p>}
-                    </section>
-                    <section><span className='renovatio-coordinate'>LLM REVIEW</span><h3>Suggestion queue</h3>
-                        {this.domain?.suggestions.length ? <ul>{this.domain.suggestions.map(suggestion => <li key={suggestion.id}><button type='button' onClick={() => this.selectDomainItem(suggestion.targetType as DomainItemType, suggestion.targetId)}>{suggestion.name}</button><span>{suggestion.targetType} · {suggestion.status}</span>{suggestion.status === 'pending' && <div>
-                            <button type='button' disabled={this.domainDirty} onClick={() => void this.decideDomainSuggestion(suggestion, 'accepted')}>Accept</button>
-                            <button type='button' disabled={!this.domainDirty || this.selectedDomainId !== suggestion.targetId} onClick={() => void this.decideDomainSuggestion(suggestion, 'edited')}>Accept edits</button>
-                            <button type='button' disabled={this.domainDirty} onClick={() => void this.decideDomainSuggestion(suggestion, 'rejected')}>Reject</button>
-                        </div>}</li>)}</ul> : <p>No LLM-origin suggestions await review.</p>}
-                    </section>
-                    <section><span className='renovatio-coordinate'>VERSIONS</span><h3>Immutable history</h3>
-                        {this.domainVersions.length ? <><ul>{this.domainVersions.map(version => <li key={version.revision}><strong>REV {version.revision}</strong><span>{version.savedAt}</span><small>{version.canonicalHash.slice(0, 22)}</small><button type='button' onClick={() => void this.restoreDomainVersion(version.revision)} disabled={version.revision === this.domain?.revision}>Restore</button></li>)}</ul>
-                            <div className='renovatio-domain-compare'><label>From<select value={this.compareFrom} onChange={event => { this.compareFrom = Number(event.target.value); this.update(); }}>{this.domainVersions.map(version => <option key={version.revision} value={version.revision}>REV {version.revision}</option>)}</select></label><label>To<select value={this.compareTo} onChange={event => { this.compareTo = Number(event.target.value); this.update(); }}>{this.domainVersions.map(version => <option key={version.revision} value={version.revision}>REV {version.revision}</option>)}</select></label><button type='button' onClick={() => void this.compareDomainVersions()}>Compare</button></div>
-                            {this.domainComparison && <p className='renovatio-domain-diff'>Added {this.domainComparison.added.length} · Removed {this.domainComparison.removed.length} · Changed {this.domainComparison.changed.length}</p>}</> : <p>No persisted revisions yet.</p>}
-                    </section>
-                </aside>
+                {this.domainViewMode === 'diagram'
+                    ? <DomainDiagramErrorBoundary fallback={this.renderDomainCatalog(draft)}>{this.renderDomainDiagramSurface(draft)}</DomainDiagramErrorBoundary>
+                    : this.domainViewMode === 'der'
+                        ? <DomainDiagramErrorBoundary fallback={this.renderDomainCatalog(draft)}>{this.renderDomainDerSurface(draft)}</DomainDiagramErrorBoundary>
+                        : this.renderDomainCatalog(draft)}
+                {this.renderDomainForm(draft, selectedNode, selectedRelation, selectedInvariant)}
+                {this.renderDomainInspector(draftDiagnostics, selectedEvidence)}
             </div>}
         </section>;
+    }
+
+    /** The original catalog/list column from issue #179, unchanged — kept
+     * behind the 'list' toggle (issue #265) for anyone who prefers it or
+     * needs it while the diagram view is still bedding in. */
+    protected renderDomainCatalog(draft: DomainModel): React.ReactNode {
+        const term = this.domainFilter.trim().toLowerCase();
+        const matches = (value: string): boolean => !term || value.toLowerCase().includes(term);
+        const nodes = draft.nodes.filter(node => matches(`${node.id} ${node.kind} ${node.name}`));
+        const relations = draft.relations.filter(relation => matches(`${relation.id} ${relation.kind} ${relation.fromId} ${relation.toId}`));
+        const invariants = draft.invariants.filter(invariant => matches(`${invariant.id} ${invariant.subjectId} ${invariant.expression}`));
+        return <aside className='renovatio-domain-catalog' aria-label='Domain elements'>
+            <label>Filter model
+                <input type='search' value={this.domainFilter} onChange={event => { this.domainFilter = event.target.value; this.update(); }} />
+            </label>
+            <div className='renovatio-domain-add' role='group' aria-label='Add model element'>
+                <button type='button' onClick={() => this.addDomainItem('node')}>+ Element</button>
+                <button type='button' onClick={() => this.addDomainItem('relation')}>+ Relation</button>
+                <button type='button' onClick={() => this.addDomainItem('invariant')}>+ Invariant</button>
+            </div>
+            <section><h3>Elements <span>{nodes.length}</span></h3><ul>
+                {nodes.map(node => <li key={node.id}><button type='button' aria-current={this.selectedDomainType === 'node' && this.selectedDomainId === node.id ? 'true' : undefined} onClick={() => this.selectDomainItem('node', node.id)}><span>{node.kind}</span>{node.name}<small>{node.id}</small></button></li>)}
+            </ul></section>
+            <section><h3>Relations <span>{relations.length}</span></h3><ul>
+                {relations.map(relation => <li key={relation.id}><button type='button' aria-current={this.selectedDomainType === 'relation' && this.selectedDomainId === relation.id ? 'true' : undefined} onClick={() => this.selectDomainItem('relation', relation.id)}><span>{relation.kind}</span>{relation.fromId} → {relation.toId}<small>{relation.id}</small></button></li>)}
+            </ul></section>
+            <section><h3>Invariants <span>{invariants.length}</span></h3><ul>
+                {invariants.map(invariant => <li key={invariant.id}><button type='button' aria-current={this.selectedDomainType === 'invariant' && this.selectedDomainId === invariant.id ? 'true' : undefined} onClick={() => this.selectDomainItem('invariant', invariant.id)}><span>RULE</span>{invariant.expression}<small>{invariant.id}</small></button></li>)}
+            </ul></section>
+            {!nodes.length && !relations.length && !invariants.length && <p className='renovatio-domain-empty'>No matching domain elements.</p>}
+        </aside>;
+    }
+
+    /** Shared by both diagram surfaces (UML #265 and DER #266): applies the
+     * "Suggestions only" filter so it behaves identically in either mode. */
+    protected domainVisibleDiagramModel(draft: DomainModel): ReturnType<typeof domainModelToDiagram> {
+        const model = domainModelToDiagram(draft, this.domainLayoutHints, this.domain?.suggestions ?? []);
+        if (!this.domainSuggestionsOnly) return model;
+        const nodes = model.nodes.filter(node => Number(node.data?.pendingSuggestionCount ?? 0) > 0);
+        const ids = new Set(nodes.map(node => node.id));
+        return { nodes, edges: model.edges.filter(edge => ids.has(edge.source) && ids.has(edge.target)) };
+    }
+
+    protected renderDomainViewToolbar(): React.ReactNode {
+        return <div className='renovatio-domain-add' role='group' aria-label='Add model element'>
+            <button type='button' onClick={() => this.addDomainItem('node')}>+ Element</button>
+            <button type='button' aria-pressed={this.domainSuggestionsOnly} onClick={() => { this.domainSuggestionsOnly = !this.domainSuggestionsOnly; this.update(); }}>Suggestions</button>
+        </div>;
+    }
+
+    /** Issue #265: the DiagramCanvas (UML class boxes) replacing the catalog
+     * column when domainViewMode === 'diagram'. Adding an element still uses
+     * the same addDomainItem the list view uses — the diagram view has no
+     * separate "add" affordance of its own yet beyond drag-to-connect. */
+    protected renderDomainDiagramSurface(draft: DomainModel): React.ReactNode {
+        const visibleModel = this.domainVisibleDiagramModel(draft);
+        return <div className='renovatio-domain-diagram' aria-label='Domain diagram canvas'>
+            {this.renderDomainViewToolbar()}
+            <div className='renovatio-domain-diagram-surface'>
+                <DiagramCanvas
+                    model={visibleModel}
+                    onEvent={this.handleDomainDiagramEvent}
+                    nodeTypes={{ domainClass: DomainClassNode }}
+                    nodeTypeFor={() => 'domainClass'}
+                    enablePrune
+                />
+            </div>
+        </div>;
+    }
+
+    /** Issue #266: the DER projection of the same DomainModel — table boxes
+     * (DomainErNode) with PK markers and crow's-foot cardinality glyphs on
+     * every edge (source/target markers from domainErEdgeMarker below).
+     * Relations carrying a `foreignKey` render as a solid FK line; plain
+     * domain associations without one render dashed, so the two concepts
+     * (structural FK vs. domain association) stay visually distinct. */
+    protected renderDomainDerSurface(draft: DomainModel): React.ReactNode {
+        const visibleModel = this.domainVisibleDiagramModel(draft);
+        return <div className='renovatio-domain-diagram renovatio-domain-der' aria-label='Domain DER canvas'>
+            {this.renderDomainViewToolbar()}
+            <div className='renovatio-domain-diagram-surface'>
+                <DiagramCanvas
+                    model={visibleModel}
+                    onEvent={this.handleDomainDiagramEvent}
+                    nodeTypes={{ domainClass: DomainErNode }}
+                    nodeTypeFor={() => 'domainClass'}
+                    defs={<DomainErMarkerDefs />}
+                    edgeMarkerFor={edge => ({
+                        markerStart: markerUrl(edge.data?.sourceCardinality as string | undefined),
+                        markerEnd: markerUrl(edge.data?.targetCardinality as string | undefined)
+                    })}
+                    edgeStyleFor={edge => edge.data?.foreignKey ? {} : { strokeDasharray: '4 3' }}
+                    enablePrune
+                />
+            </div>
+        </div>;
+    }
+
+    protected renderDomainForm(
+        draft: DomainModel,
+        selectedNode: DomainNode | undefined,
+        selectedRelation: DomainRelation | undefined,
+        selectedInvariant: DomainInvariant | undefined
+    ): React.ReactNode {
+        return <section className='renovatio-domain-form' aria-label='Selected domain element editor'>
+            <div className='renovatio-domain-section-heading'><div><span className='renovatio-coordinate'>STRUCTURED EDITOR</span><h3>{this.selectedDomainId ?? 'No selection'}</h3></div>
+                {this.selectedDomainId && <button type='button' className='is-danger' onClick={() => this.removeSelectedDomainItem()}>Remove</button>}
+            </div>
+            {selectedNode && <>
+                <div className='renovatio-domain-fields'>
+                    <label>Stable id<input value={selectedNode.id} readOnly aria-readonly='true' /></label>
+                    <label>Kind<select value={selectedNode.kind} onChange={event => this.updateDomainNode(selectedNode.id, { kind: event.target.value })}>{DOMAIN_KINDS.map(kind => <option key={kind}>{kind}</option>)}</select></label>
+                    <label className='is-wide'>Name<input value={selectedNode.name} onChange={event => this.updateDomainNode(selectedNode.id, { name: event.target.value })} /></label>
+                    <label>Table<input value={selectedNode.tableName ?? ''} onChange={event => this.updateDomainNode(selectedNode.id, { tableName: event.target.value || null })} /></label>
+                    <label>Source dataset<input value={selectedNode.sourceDataset ?? ''} onChange={event => this.updateDomainNode(selectedNode.id, { sourceDataset: event.target.value || null })} /></label>
+                    <label>Origin<input value={selectedNode.origin} readOnly aria-readonly='true' /></label>
+                    <label>Confidence<input type='number' min='0' max='1' step='0.01' value={selectedNode.confidence} onChange={event => this.updateDomainNode(selectedNode.id, { confidence: Number(event.target.value) })} /></label>
+                </div>
+                <div className='renovatio-domain-properties'><div><h4>Properties</h4><button type='button' onClick={() => this.addDomainProperty(selectedNode)}>+ Property</button></div>
+                    {selectedNode.properties.length ? <ol>{selectedNode.properties.map((property, index) => <li key={`${property.name}:${index}`}>
+                        <label>Name<input value={property.name} onChange={event => this.updateDomainProperty(selectedNode, index, { name: event.target.value })} /></label>
+                        <label>Type<input value={property.type} onChange={event => this.updateDomainProperty(selectedNode, index, { type: event.target.value })} /></label>
+                        <label>Column<input value={property.columnName ?? ''} onChange={event => this.updateDomainProperty(selectedNode, index, { columnName: event.target.value || null })} /></label>
+                        <label>Source column<input value={property.sourceColumn ?? ''} onChange={event => this.updateDomainProperty(selectedNode, index, { sourceColumn: event.target.value || null })} /></label>
+                        <label>Source dataset<input value={property.sourceDataset ?? ''} onChange={event => this.updateDomainProperty(selectedNode, index, { sourceDataset: event.target.value || null })} /></label>
+                        <label className='renovatio-checkbox'><input type='checkbox' checked={property.required} onChange={event => this.updateDomainProperty(selectedNode, index, { required: event.target.checked })} />Required</label>
+                        <label className='renovatio-checkbox'><input type='checkbox' checked={Boolean(property.isKey)} onChange={event => this.updateDomainProperty(selectedNode, index, { isKey: event.target.checked })} />Key</label>
+                        <button type='button' aria-label={`Remove property ${property.name}`} onClick={() => this.updateDomainNode(selectedNode.id, { properties: selectedNode.properties.filter((_, candidate) => candidate !== index) })}>×</button>
+                        <div className='renovatio-property-evidence'>Evidence · {property.evidence.length || 'none'}{property.evidence.map(evidence => <button type='button' key={evidence.sourceRef} onClick={() => this.navigateToSource(evidence.sourceRef)}>{evidence.sourceRef}</button>)}</div>
+                    </li>)}</ol> : <p>No structured properties.</p>}
+                </div>
+            </>}
+            {selectedRelation && <div className='renovatio-domain-fields'>
+                <label>Stable id<input value={selectedRelation.id} readOnly aria-readonly='true' /></label>
+                <label>Kind<select value={selectedRelation.kind} onChange={event => this.updateDomainRelation(selectedRelation.id, { kind: event.target.value })}>{RELATION_KINDS.map(kind => <option key={kind}>{kind}</option>)}</select></label>
+                <label>From<select value={selectedRelation.fromId} onChange={event => this.updateDomainRelation(selectedRelation.id, { fromId: event.target.value })}>{draft.nodes.map(node => <option key={node.id} value={node.id}>{node.name} · {node.id}</option>)}</select></label>
+                <label>To<select value={selectedRelation.toId} onChange={event => this.updateDomainRelation(selectedRelation.id, { toId: event.target.value })}>{draft.nodes.map(node => <option key={node.id} value={node.id}>{node.name} · {node.id}</option>)}</select></label>
+                <label>Source cardinality<select value={selectedRelation.sourceCardinality} onChange={event => this.updateDomainRelation(selectedRelation.id, { sourceCardinality: event.target.value })}>{CARDINALITIES.map(value => <option key={value}>{value}</option>)}</select></label>
+                <label>Target cardinality<select value={selectedRelation.targetCardinality} onChange={event => this.updateDomainRelation(selectedRelation.id, { targetCardinality: event.target.value })}>{CARDINALITIES.map(value => <option key={value}>{value}</option>)}</select></label>
+                <label>FK property<input value={selectedRelation.foreignKey?.property ?? ''} onChange={event => this.updateDomainRelation(selectedRelation.id, { foreignKey: this.relationForeignKey(selectedRelation, { property: event.target.value }) })} /></label>
+                <label>References property<input value={selectedRelation.foreignKey?.referencesProperty ?? ''} onChange={event => this.updateDomainRelation(selectedRelation.id, { foreignKey: this.relationForeignKey(selectedRelation, { referencesProperty: event.target.value }) })} /></label>
+            </div>}
+            {selectedInvariant && <div className='renovatio-domain-fields'>
+                <label>Stable id<input value={selectedInvariant.id} readOnly aria-readonly='true' /></label>
+                <label>Subject<select value={selectedInvariant.subjectId} onChange={event => this.updateDomainInvariant(selectedInvariant.id, { subjectId: event.target.value })}>{draft.nodes.map(node => <option key={node.id} value={node.id}>{node.name} · {node.id}</option>)}</select></label>
+                <label className='is-wide'>Business rule<textarea value={selectedInvariant.expression} onChange={event => this.updateDomainInvariant(selectedInvariant.id, { expression: event.target.value })} /></label>
+                <label>Origin<input value={selectedInvariant.origin} readOnly aria-readonly='true' /></label>
+                <label>Confidence<input type='number' min='0' max='1' step='0.01' value={selectedInvariant.confidence} onChange={event => this.updateDomainInvariant(selectedInvariant.id, { confidence: Number(event.target.value) })} /></label>
+            </div>}
+            {!selectedNode && !selectedRelation && !selectedInvariant && <div className='renovatio-domain-placeholder'><strong>Select or create an element.</strong><p>Stable ids and evidence references remain immutable; names, kinds, properties and cardinalities are editable.</p></div>}
+        </section>;
+    }
+
+    protected renderDomainInspector(draftDiagnostics: DomainDiagnostic[], selectedEvidence: DomainEvidence[]): React.ReactNode {
+        return <aside className='renovatio-domain-inspector' aria-label='Domain provenance and history'>
+            <section><span className='renovatio-coordinate'>PROVENANCE</span><h3>Source evidence</h3>
+                {selectedEvidence.length ? <ul>{selectedEvidence.map((evidence, index) => {
+                    const ref = evidence.sourceRef.split('#')[0].replace(/:\d+$/, '');
+                    const source = this.sourceExplorer?.files.find(file => file.id === ref || file.path === ref || file.name === ref);
+                    return <li key={`${evidence.sourceRef}:${index}`}><button type='button' onClick={() => this.navigateToSource(evidence.sourceRef)}>{evidence.sourceRef}</button><span>{evidence.provenance}</span><p>{evidence.rationale || 'No rationale recorded.'}</p>{source && <><span>{source.kind} · {source.encoding}</span><small>sha256 · {source.hash}</small></>}</li>;
+                })}</ul> : <p>No source evidence recorded for this selection.</p>}
+            </section>
+            <section><span className='renovatio-coordinate'>VALIDATION</span><h3>Diagnostics</h3>
+                {draftDiagnostics.length ? <ul>{draftDiagnostics.map((diagnostic, index) => <li key={`${diagnostic.code}:${diagnostic.targetId}:${index}`} className={`severity-${diagnostic.severity}`}><strong>{diagnostic.code}</strong><span>{diagnostic.targetId}</span><p>{diagnostic.message}</p></li>)}</ul> : <p>No draft diagnostics.</p>}
+            </section>
+            <section><span className='renovatio-coordinate'>LLM REVIEW</span><h3>Suggestion queue</h3>
+                <div className='renovatio-llm-selected'>
+                    <h4>Selected item</h4>
+                    {this.renderSelectedDomainSuggestions()}
+                </div>
+                {this.domain?.suggestions.length ? <ul>{this.domain.suggestions.map(suggestion => <li key={suggestion.id}><button type='button' onClick={() => this.selectDomainItem(suggestion.targetType as DomainItemType, suggestion.targetId)}>{suggestion.name}</button><span>{suggestion.targetType} · {suggestion.status}</span>{suggestion.status === 'pending' && <div>
+                    {this.renderDomainSuggestionActions(suggestion)}
+                </div>}</li>)}</ul> : <p>No LLM-origin suggestions await review.</p>}
+            </section>
+            <section><span className='renovatio-coordinate'>DATA MIGRATION</span><h3>Source to target plan</h3>
+                <p>{this.dataMigrationNotice || `Data migration plan is ${this.dataMigrationState}.`}</p>
+                {this.dataMigration?.tables.length ? <><ul>{this.dataMigration.tables.map(table => <li key={table.domainNodeId}>
+                    <button type='button' onClick={() => this.selectDomainItem('node', table.domainNodeId)}>{table.targetTable}</button>
+                    <span>{table.sourceDataset || 'missing source'} · {table.state}</span>
+                    <p>{table.columns.length} column mappings · {table.transformations.length} transformations · {table.risks.length} risks</p>
+                </li>)}</ul>
+                    {this.dataMigration.gaps.length ? <p className='renovatio-domain-diff'>Gaps: {this.dataMigration.gaps.slice(0, 3).join(' · ')}{this.dataMigration.gaps.length > 3 ? ' · ...' : ''}</p> : <p className='renovatio-domain-diff'>Dry-run {this.dataMigration.dryRun.status} · {this.dataMigration.dryRun.sampledRows} preview row(s)</p>}
+                    {this.dataMigration.dryRun.previewRows.length > 0 && <details className='renovatio-data-migration-preview' open>
+                        <summary>Dry-run preview ({this.dataMigration.dryRun.previewRows.length} row(s))</summary>
+                        {this.dataMigration.dryRun.warnings.length > 0 && <p className='renovatio-domain-diff'>Warnings: {this.dataMigration.dryRun.warnings.join(' · ')}</p>}
+                        <table className='renovatio-data-migration-preview-table'>
+                            <thead><tr><th>Table</th><th>Column</th><th>Source value</th><th>Transformed value</th></tr></thead>
+                            <tbody>{this.dataMigration.dryRun.previewRows.flatMap(row => row.cells.map((cell, index) => (
+                                <tr key={`${row.table}:${cell.column}:${index}`}>
+                                    <td>{row.table}</td>
+                                    <td>{cell.column}</td>
+                                    <td>{cell.sourceValue}</td>
+                                    <td className={cell.sourceValue !== cell.transformedValue ? 'is-transformed' : undefined}>{cell.transformedValue}</td>
+                                </tr>
+                            )))}</tbody>
+                        </table>
+                    </details>}
+                    <button type='button' disabled={this.domainDirty || this.dataMigrationState === 'loading'} onClick={() => void this.generateDataMigrationChangeSet()}>Generate data migration</button>
+                </> : <p>Add table/source metadata to Domain nodes and properties to build a migration plan.</p>}
+            </section>
+            <section><span className='renovatio-coordinate'>VERSIONS</span><h3>Immutable history</h3>
+                {this.domainVersions.length ? <><ul>{this.domainVersions.map(version => <li key={version.revision}><strong>REV {version.revision}</strong><span>{version.savedAt}</span><small>{version.canonicalHash.slice(0, 22)}</small><button type='button' onClick={() => void this.restoreDomainVersion(version.revision)} disabled={version.revision === this.domain?.revision}>Restore</button></li>)}</ul>
+                    <div className='renovatio-domain-compare'><label>From<select value={this.compareFrom} onChange={event => { this.compareFrom = Number(event.target.value); this.update(); }}>{this.domainVersions.map(version => <option key={version.revision} value={version.revision}>REV {version.revision}</option>)}</select></label><label>To<select value={this.compareTo} onChange={event => { this.compareTo = Number(event.target.value); this.update(); }}>{this.domainVersions.map(version => <option key={version.revision} value={version.revision}>REV {version.revision}</option>)}</select></label><button type='button' onClick={() => void this.compareDomainVersions()}>Compare</button></div>
+                    {this.domainComparison && <p className='renovatio-domain-diff'>Added {this.domainComparison.added.length} · Removed {this.domainComparison.removed.length} · Changed {this.domainComparison.changed.length}</p>}</> : <p>No persisted revisions yet.</p>}
+            </section>
+        </aside>;
     }
 
     protected renderArchitectureCanvas(): React.ReactNode {
@@ -1204,13 +1785,20 @@ export class RenovatioShellWidget extends ReactWidget {
         const view = this.architecture;
         const layers = profile ? Array.from(new Set([...Object.keys(profile.packageRoots), ...Object.keys(profile.suffixes),
             ...profile.dependencyRules.flatMap(rule => [rule.fromLayer, rule.toLayer]), ...MVC_LAYERS])) : MVC_LAYERS;
-        const layerNodes = view?.canvas.filter(node => node.layer === this.selectedArchitectureLayer) ?? [];
+        const nodesBySelectedLayer = view?.canvas.filter(node => node.layer === this.selectedArchitectureLayer) ?? [];
         const rules = profile?.dependencyRules ?? [];
+        const hasBlockingDiagnostics = Boolean(view?.dependencyDiagnostics.some(diagnostic => diagnostic.severity === 'error'));
+        const canGenerate = Boolean(view && view.revision > 0 && !this.architectureDirty && this.architectureState === 'ready' && !hasBlockingDiagnostics);
         return <section className='renovatio-architecture-canvas' aria-label='Architecture Canvas editor' aria-live='polite'>
             <div className='renovatio-architecture-toolbar'>
                 <div><span className='renovatio-coordinate'>ARCH.CANVAS</span><strong>REV {view?.revision ?? 0} · {view?.canonicalHash?.slice(0, 22) ?? 'sha256:pending'}</strong></div>
+                <div className='renovatio-segmented' role='group' aria-label='Architecture view mode'>
+                    <button type='button' aria-pressed={this.architectureViewMode === 'diagram'} onClick={() => { this.architectureViewMode = 'diagram'; this.update(); }}>Diagram</button>
+                    <button type='button' aria-pressed={this.architectureViewMode === 'table'} onClick={() => { this.architectureViewMode = 'table'; this.update(); }}>Table</button>
+                </div>
                 <div className='renovatio-architecture-actions'>
                     <button type='button' onClick={() => void this.loadArchitecture()}>Reload</button>
+                    <button type='button' disabled={!canGenerate} onClick={() => void this.generateArchitectureChangeSet()}>Generate</button>
                     <button type='button' className='is-primary' disabled={!this.architectureDirty || this.architectureState === 'saving'} onClick={() => void this.saveArchitectureProfile()}>Save profile</button>
                 </div>
             </div>
@@ -1229,26 +1817,22 @@ export class RenovatioShellWidget extends ReactWidget {
                         {['IN_MEMORY', 'JPA', 'SPRING_DATA_JDBC', 'PRISMA'].map(value => <option key={value}>{value}</option>)}
                     </select></label></section>
                     <section><h3>Layers <span>{layers.length}</span></h3><ul>
-                        {layers.map(layer => <li key={layer}><button type='button' aria-current={this.selectedArchitectureLayer === layer ? 'true' : undefined} onClick={() => { this.selectedArchitectureLayer = layer; this.update(); }}><span>{layer.toUpperCase()}</span>{profile.packageRoots[layer] ?? profile.packageRoots.base}<small>{layerNodes.length && layer === this.selectedArchitectureLayer ? `${layerNodes.length} nodes` : profile.suffixes[layer] ?? 'no suffix'}</small></button></li>)}
+                        {layers.map(layer => {
+                            const layerNodes = view.canvas.filter(node => node.layer === layer);
+                            return <li key={layer}><button type='button' aria-current={this.selectedArchitectureLayer === layer ? 'true' : undefined} onClick={() => { this.selectedArchitectureLayer = layer; this.selectedArchitectureNodeId = null; this.update(); }}><span>{layer.toUpperCase()}</span>{profile.packageRoots[layer] ?? profile.packageRoots.base}<small>{layerNodes.length ? `${layerNodes.length} nodes` : profile.suffixes[layer] ?? 'no suffix'}</small></button></li>;
+                        })}
                     </ul></section>
                 </aside>
-                <section className='renovatio-architecture-stage' aria-label='Editable architecture canvas'>
-                    <div className='renovatio-architecture-rail'>
-                        {layers.map(layer => <article key={layer} className={this.selectedArchitectureLayer === layer ? 'is-selected' : undefined}>
-                            <button type='button' onClick={() => { this.selectedArchitectureLayer = layer; this.update(); }} aria-selected={this.selectedArchitectureLayer === layer}><span>{layer}</span><strong>{profile.suffixes[layer] ?? 'Component'}</strong></button>
-                            {(view.canvas.filter(node => node.layer === layer).slice(0, 5)).map(node => <div key={node.id} className='renovatio-architecture-node'><span>{node.kind}</span>{node.className}<small>{node.packageName}</small></div>)}
-                        </article>)}
-                    </div>
-                    <div className='renovatio-architecture-manifest' aria-label='Artifact and package manifest preview'><h3>Manifest preview</h3>
-                        {view.manifest.length ? <ol>{view.manifest.slice(0, 12).map(entry => <li key={entry.path}><code>{entry.path}</code><span>{entry.role} · {entry.layer}</span></li>)}</ol> : <p>No artifact manifest is available for this profile.</p>}
-                    </div>
-                </section>
+                {this.architectureViewMode === 'diagram'
+                    ? this.renderArchitectureDiagramStage(view)
+                    : this.renderArchitectureTableStage(view, profile, layers)}
                 <aside className='renovatio-architecture-inspector' aria-label='Architecture profile inspector'>
-                    <section><span className='renovatio-coordinate'>NAMING</span><h3>{this.selectedArchitectureLayer}</h3>
+                    <details open><summary><span className='renovatio-coordinate'>ADVANCED MAPPING</span><strong>{this.selectedArchitectureLayer}</strong></summary>
                         <label>Package<input value={profile.packageRoots[this.selectedArchitectureLayer] ?? ''} onChange={event => this.updateArchitectureMap('packageRoots', this.selectedArchitectureLayer, event.target.value)} /></label>
                         <label>Suffix<input value={profile.suffixes[this.selectedArchitectureLayer] ?? ''} onChange={event => this.updateArchitectureMap('suffixes', this.selectedArchitectureLayer, event.target.value)} /></label>
                         <label>Class override key<input value={profile.classNames[this.selectedArchitectureLayer] ?? ''} onChange={event => this.updateArchitectureMap('classNames', this.selectedArchitectureLayer, event.target.value)} /></label>
-                    </section>
+                        <p className='renovatio-domain-diff'>{nodesBySelectedLayer.length} canvas nodes in this layer.</p>
+                    </details>
                     <section><span className='renovatio-coordinate'>DEPENDENCIES</span><h3>Rules</h3>
                         <ul>{rules.map((rule, index) => <li key={`${rule.fromLayer}:${rule.toLayer}:${index}`} className={rule.allowed ? 'severity-warning' : 'severity-error'}>
                             <label>From<input value={rule.fromLayer} onChange={event => this.updateArchitectureRule(index, { fromLayer: event.target.value })} /></label>
@@ -1258,6 +1842,7 @@ export class RenovatioShellWidget extends ReactWidget {
                         </li>)}</ul>
                         {view.dependencyDiagnostics.length ? <p className='renovatio-domain-diff'>{view.dependencyDiagnostics.length} illegal dependencies visible before generate.</p> : <p>No illegal dependency diagnostics.</p>}
                     </section>
+                    {this.renderSelectedArchitectureSuggestions(view)}
                     <section><span className='renovatio-coordinate'>VERSIONS</span><h3>Profile history</h3>
                         {this.architectureVersions.length ? <><ul>{this.architectureVersions.map(version => <li key={version.revision}><strong>REV {version.revision}</strong><span>{version.style}</span><small>{version.canonicalHash.slice(0, 22)}</small><button type='button' onClick={() => void this.restoreArchitectureVersion(version.revision)} disabled={version.revision === view.revision}>Restore</button></li>)}</ul>
                             <div className='renovatio-domain-compare'><label>From<select value={this.architectureCompareFrom} onChange={event => { this.architectureCompareFrom = Number(event.target.value); this.update(); }}>{this.architectureVersions.map(version => <option key={version.revision} value={version.revision}>REV {version.revision}</option>)}</select></label><label>To<select value={this.architectureCompareTo} onChange={event => { this.architectureCompareTo = Number(event.target.value); this.update(); }}>{this.architectureVersions.map(version => <option key={version.revision} value={version.revision}>REV {version.revision}</option>)}</select></label><button type='button' onClick={() => void this.compareArchitectureVersions()}>Compare</button></div>
@@ -1268,6 +1853,51 @@ export class RenovatioShellWidget extends ReactWidget {
             {this.architectureState === 'empty' && <p>No architecture canvas is available for this project.</p>}
             {this.architectureState === 'permission-denied' && <p>You do not have permission to inspect this architecture profile.</p>}
             {this.architectureState === 'error' && <p>Architecture canvas is unavailable; project navigation remains available.</p>}
+        </section>;
+    }
+
+    protected renderArchitectureDiagramStage(view: WorkbenchArchitecture): React.ReactNode {
+        const model = architectureToDiagram(view, this.ai?.items ?? []);
+        const visibleModel = this.architectureSuggestionsOnly
+            ? (() => {
+                const nodes = model.nodes.filter(node => Number(node.data?.pendingSuggestionCount ?? 0) > 0);
+                const ids = new Set(nodes.map(node => node.id));
+                return { nodes, edges: model.edges.filter(edge => ids.has(edge.source) && ids.has(edge.target)) };
+            })()
+            : model;
+        return <section className='renovatio-architecture-stage renovatio-architecture-diagram-stage' aria-label='Editable architecture canvas'>
+            <div className='renovatio-architecture-diagram-toolbar' role='group' aria-label='Architecture diagram filters'>
+                <button type='button' aria-pressed={this.architectureSuggestionsOnly} onClick={() => { this.architectureSuggestionsOnly = !this.architectureSuggestionsOnly; this.update(); }}>Suggestions</button>
+            </div>
+            <div className='renovatio-architecture-flow-surface' aria-label='Architecture layer graph'>
+                <DiagramCanvas
+                    model={visibleModel}
+                    onEvent={this.handleArchitectureDiagramEvent}
+                    nodeTypes={{ architectureNode: ArchitectureNode }}
+                    nodeTypeFor={() => 'architectureNode'}
+                    edgeStyleFor={this.architectureEdgeStyle}
+                    enablePrune
+                />
+            </div>
+            <div className='renovatio-architecture-diagnostics' aria-label='Architecture dependency diagnostics'>
+                {view.dependencyDiagnostics.length
+                    ? view.dependencyDiagnostics.map((diagnostic, index) => <p key={`${diagnostic.code}:${index}`} className={`severity-${diagnostic.severity}`}>{diagnostic.fromLayer} → {diagnostic.toLayer}: {diagnostic.message}</p>)
+                    : <p>No dependency diagnostics on the current graph.</p>}
+            </div>
+        </section>;
+    }
+
+    protected renderArchitectureTableStage(view: WorkbenchArchitecture, profile: ArchitectureProfileDraft, layers: readonly string[]): React.ReactNode {
+        return <section className='renovatio-architecture-stage' aria-label='Editable architecture canvas'>
+            <div className='renovatio-architecture-rail'>
+                {layers.map(layer => <article key={layer} className={this.selectedArchitectureLayer === layer ? 'is-selected' : undefined}>
+                    <button type='button' onClick={() => { this.selectedArchitectureLayer = layer; this.selectedArchitectureNodeId = null; this.update(); }} aria-selected={this.selectedArchitectureLayer === layer}><span>{layer}</span><strong>{profile.suffixes[layer] ?? 'Component'}</strong></button>
+                    {(view.canvas.filter(node => node.layer === layer).slice(0, 5)).map(node => <div key={node.id} className='renovatio-architecture-node'><span>{node.kind}</span>{node.className}<small>{node.packageName}</small></div>)}
+                </article>)}
+            </div>
+            <div className='renovatio-architecture-manifest' aria-label='Artifact and package manifest preview'><h3>Manifest preview</h3>
+                {view.manifest.length ? <ol>{view.manifest.slice(0, 12).map(entry => <li key={entry.path}><code>{entry.path}</code><span>{entry.role} · {entry.layer}</span></li>)}</ol> : <p>No artifact manifest is available for this profile.</p>}
+            </div>
         </section>;
     }
 
@@ -1370,7 +2000,9 @@ export class RenovatioShellWidget extends ReactWidget {
                         <small>{item.source} · confidence {(item.confidence * 100).toFixed(0)}% · evidence {item.evidenceCount} · approval {item.approvalStatus}</small>
                         <p>{item.rationale}</p>
                         <div>
-                            {item.reviewActions.map(action => <button key={`${item.id}:${action}`} type='button' disabled>{action}</button>)}
+                            <button type='button' disabled={!this.isPendingAiItem(item)} onClick={() => void this.decideAiItem(item, 'accept')}>accept</button>
+                            <button type='button' disabled={!this.isPendingAiItem(item)} onClick={() => void this.decideAiItem(item, 'fallback')}>fallback</button>
+                            <button type='button' disabled={!this.isPendingAiItem(item)} onClick={() => void this.decideAiItem(item, 'reject')}>reject</button>
                         </div>
                     </li>)}</ol> : <p>No governed suggestions are available for this project.</p>}
                     <p className='renovatio-domain-diff'>AI never writes final files directly; accepted, edited or rejected suggestions must go through the human review controls in the owning workbench area.</p>
@@ -1535,8 +2167,8 @@ export class RenovatioShellWidget extends ReactWidget {
         return <section className='renovatio-area-content' aria-labelledby='renovatio-area-heading'>
             <span className='renovatio-coordinate'>{area.coordinate}</span>
             <h2 id='renovatio-area-heading'>{this.activeArea === 'project' ? 'Project navigation' : area.label}</h2>
-            <p>{area.summary}</p>
-            <article className='renovatio-asset-preview' aria-label='Selected shell context'>
+            {this.activeArea !== 'analysis' && <p>{area.summary}</p>}
+            {this.activeArea !== 'analysis' && <article className='renovatio-asset-preview' aria-label='Selected shell context'>
                 <span>{this.activeArea === 'project' ? 'SELECTED ASSET' : 'WORKBENCH AREA'}</span>
                 <strong>{this.activeArea === 'project' ? this.selectedAsset : this.activeArea === 'domain' ? `DOMAINMODEL / REV ${this.domain?.revision ?? 0}` : this.activeArea === 'architecture' && this.architecture ? `ARCHITECTURE / REV ${this.architecture.revision}` : this.activeArea === 'shadow' && this.shadowImpact ? `SHADOW / ${this.shadowImpact.canonicalHash.slice(0, 22)}` : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? `EQUIVALENCE LAB / GATE ${this.equivalence?.gate.status.toUpperCase() ?? 'UNKNOWN'}` : `${area.label.toUpperCase()} / READY FOR ADAPTER`}</strong>
                 <p>{this.activeArea === 'project'
@@ -1545,7 +2177,7 @@ export class RenovatioShellWidget extends ReactWidget {
                         : this.activeArea === 'shadow' && this.shadowImpact ? 'Read-only impact report links planned artifacts back to source evidence before generation.'
                         : this.activeArea === 'equivalence' && this.equivalenceState === 'ready' ? 'Equivalence Lab can execute, repeat, cancel, triage divergences and export audited runs through the governed backend contract.'
                             : 'UI boundary is available; live data remains governed by the existing backend contract.'}</p>
-            </article>
+            </article>}
             {this.activeArea === 'project' && <section className='renovatio-asset-editor' aria-label='Selected asset content'>
                 <div><span>ADAPTER CONTENT · {this.assetContentState.toUpperCase()}</span>{this.selectedAssetWritable && <button type='button' onClick={() => void this.saveAsset()} disabled={this.assetContentState === 'saving'}>Save development target</button>}</div>
                 <textarea value={this.assetContent} readOnly={!this.selectedAssetWritable} onChange={event => this.updateAssetContent(event)} aria-label={`${this.selectedAsset} content`} spellCheck={false} />
@@ -1553,13 +2185,36 @@ export class RenovatioShellWidget extends ReactWidget {
             </section>}
             {this.activeArea === 'project' && this.renderSourceExplorer()}
             {this.activeArea === 'domain' && this.renderDomainEditor()}
-            {this.activeArea === 'analysis' && <section className='renovatio-asset-editor' aria-label='Analysis inventory'>
-                <div><span>ANALYSIS ADAPTER · {this.analysisState.toUpperCase()}</span></div>
-                {this.analysisState === 'ready' && <><p>{Object.entries(this.analysis?.inventory ?? {}).map(([category, count]) => `${category}: ${count}`).join(' · ')}</p>
-                    <p>{this.analysis?.runs.length ? `Runs: ${this.analysis.runs.map(run => run.runId).join(', ')}` : 'No persisted runs for this project.'}</p></>}
-                {this.analysisState === 'empty' && <p>No inventory or persisted runs are available.</p>}
-                {this.analysisState === 'error' && <p>Analysis data is unavailable; project navigation remains available.</p>}
-            </section>}
+            {this.activeArea === 'analysis' && (() => {
+                const activeProject = this.projects.find(project => project.id === this.selectedProject);
+                const scanRoot = this.analysisScanRoot || activeProject?.cobolScanRoot || activeProject?.workspacePath || '';
+                const inventory = this.analysis?.inventory ?? {};
+                const inventoryEntries = Object.entries(inventory);
+                const inventoryTotal = inventoryEntries.reduce((total, [, count]) => total + Number(count), 0);
+                const lastJob = this.analysisJob;
+                const jobDone = lastJob && ['COMPLETED', 'FAILED', 'CANCELLED'].includes(lastJob.status.toUpperCase());
+                return <section className='renovatio-asset-editor renovatio-analysis-panel' aria-label='Analysis inventory'>
+                    <div className='renovatio-analysis-header'>
+                        <span>{this.analysisState === 'loading' ? 'ANALYSIS RUNNING' : 'ANALYSIS'}</span>
+                        <button type='button' className='is-primary' onClick={() => void this.startAnalysis()} disabled={this.analysisState === 'loading'}>
+                            {this.analysisState === 'loading' ? 'Analyzing...' : 'Analyze'}
+                        </button>
+                    </div>
+                    <dl className='renovatio-analysis-meta'>
+                        <div><dt>COBOL scan root</dt><dd><code>{scanRoot || 'Not configured'}</code></dd></div>
+                        {lastJob && <div><dt>Last run</dt><dd>{lastJob.status} · {Math.round((lastJob.progress ?? 0) * 100)}%</dd></div>}
+                    </dl>
+                    {this.analysisNotice && <p role='status'>{this.analysisNotice}</p>}
+                    {this.analysisState === 'ready' && <div className='renovatio-analysis-results'>
+                        {inventoryEntries.length ? <dl>{inventoryEntries.map(([category, count]) => <div key={category}><dt>{category}: </dt><dd>{count}</dd></div>)}</dl> : <p>No inventory categories were returned.</p>}
+                        <p>{this.analysis?.runs.length ? `Persisted runs: ${this.analysis.runs.map(run => run.runId).join(', ')}` : 'No persisted runs for this project yet.'}</p>
+                    </div>}
+                    {this.analysisState === 'empty' && <p>{jobDone && inventoryTotal === 0
+                        ? 'Analysis completed but found 0 COBOL programs, copybooks or JCL files. Check that the scan root points to the folder that contains your sources.'
+                        : 'Run Analyze to inventory COBOL programs, copybooks and JCL from the configured scan root.'}</p>}
+                    {this.analysisState === 'error' && <p>Analysis is unavailable. Check the scan root and API status.</p>}
+                </section>;
+            })()}
             {this.activeArea === 'architecture' && this.renderArchitectureCanvas()}
             {this.activeArea === 'shadow' && this.renderShadowImpact()}
             {this.activeArea === 'ai' && this.renderGovernedAi()}
@@ -1569,6 +2224,7 @@ export class RenovatioShellWidget extends ReactWidget {
     }
 
     protected render(): React.ReactNode {
+        const showProjectExplorer = this.activeArea === 'project';
         return <main className='renovatio-surface renovatio-shell' aria-labelledby='renovatio-workbench-heading'>
             <header className='renovatio-header renovatio-shell-header'>
                 <span className='renovatio-kicker'>IDE SHELL · THEIA WORKBENCH</span>
@@ -1576,12 +2232,12 @@ export class RenovatioShellWidget extends ReactWidget {
                 <p>Navigate governed modernization evidence without leaving the Theia workbench.</p>
                 <a className='renovatio-dashboard-link' href={this.dashboardUrl} target='_blank' rel='noreferrer'>Open administrative dashboard</a>
             </header>
-            <div className='renovatio-shell-grid'>
+            <div className={showProjectExplorer ? 'renovatio-shell-grid' : 'renovatio-shell-grid is-focused-area'}>
                 <nav className='renovatio-activity-rail' aria-label='Renovatio activity areas'>
                     {AREAS.map(area => <button type='button' key={area.id} className={this.activeArea === area.id ? 'is-active' : undefined}
                         aria-pressed={this.activeArea === area.id} onClick={() => this.activateArea(area.id)}><span>{area.coordinate}</span>{area.label}</button>)}
                 </nav>
-                {this.renderProjectExplorer()}
+                {showProjectExplorer && this.renderProjectExplorer()}
                 {this.renderArea()}
             </div>
             <section className='renovatio-bottom-panel' aria-label='Workbench status panel'>

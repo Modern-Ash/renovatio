@@ -33,6 +33,7 @@
         <antlr4.version>4.11.1</antlr4.version>
         <mustache.version>0.9.10</mustache.version>
         <picocli.version>4.7.6</picocli.version>
+        <jsqlparser.version>5.3</jsqlparser.version>
         <!-- Lombok for boilerplate reduction -->
         <lombok.version>1.18.34</lombok.version>
     </properties>
@@ -280,6 +281,11 @@
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4</artifactId>
                 <version>${antlr4.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.jsqlparser</groupId>
+                <artifactId>jsqlparser</artifactId>
+                <version>${jsqlparser.version}</version>
             </dependency>
 
             <!-- Lombok for boilerplate code generation -->

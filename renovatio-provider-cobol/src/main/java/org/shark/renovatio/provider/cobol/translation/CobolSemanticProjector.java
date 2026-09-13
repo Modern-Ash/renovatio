@@ -50,6 +50,7 @@ public final class CobolSemanticProjector {
             "ZEROS", "ZEROES", "SPACE", "SPACES", "HIGH-VALUE", "LOW-VALUE", "TRUE", "FALSE",
             "IN", "OF");
     private final CobolIrIdentityProjector identities = new CobolIrIdentityProjector();
+    private final Db2SqlResourceExtractor db2Resources = new Db2SqlResourceExtractor();
 
     public SemanticProgram project(CobolIntermediateModel model, String sourcePath, byte[] sourceBytes,
                                    Optional<String> dialect, Optional<AnnotatedCobolContext> annotatedContext) {
@@ -115,7 +116,7 @@ public final class CobolSemanticProjector {
             String command = matcher.group(1).toUpperCase(Locale.ROOT);
             target.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
                     SemanticProgram.NodeKind.IO_OPERATION, "cics:" + ordinal++, span),
-                    SemanticProgram.IoKind.TRANSACTION, command, Optional.of(command),
+                    SemanticProgram.IoKind.TRANSACTION, command, Optional.empty(),
                     SemanticProgram.Direction.UNKNOWN, List.of()));
         }
     }
@@ -182,7 +183,8 @@ public final class CobolSemanticProjector {
                 SemanticProgram.Direction direction = databaseDirection(operation);
                 io.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.IO_OPERATION, "database:" + role, span),
-                        SemanticProgram.IoKind.DATABASE, operation, Optional.empty(), direction, List.of()));
+                        SemanticProgram.IoKind.DATABASE, operation, db2Resources.physicalResource(operation, db2.sql()),
+                        direction, List.of()));
             } else if (statement instanceof CallStatement call) {
                 effects.add(new SemanticProgram.SideEffect(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.SIDE_EFFECT, "external-call:" + role, span),

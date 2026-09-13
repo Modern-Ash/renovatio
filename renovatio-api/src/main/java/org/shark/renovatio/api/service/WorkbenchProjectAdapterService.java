@@ -14,6 +14,7 @@ import java.util.Locale;
 public class WorkbenchProjectAdapterService {
     private static final List<String> LEGACY = List.of(".cbl", ".cob", ".cpy", ".jcl");
     private static final List<String> TARGET = List.of(".java", ".py", ".js", ".ts", ".mjs", ".cjs");
+    private static final List<String> DATA_MIGRATION_ARTIFACT = List.of(".md", ".sql", ".json");
     private final WorkspaceRootPolicy workspaceRootPolicy;
 
     public WorkbenchProjectAdapterService(WorkspaceRootPolicy workspaceRootPolicy) {
@@ -43,7 +44,16 @@ public class WorkbenchProjectAdapterService {
         return new WorkbenchAssetDto(id, asset.getFileName().toString(), category(asset), devWriteEnabled && isTarget(asset));
     }
 
-    private boolean isTarget(Path path) { return TARGET.contains(extension(path)); }
+    private boolean isTarget(Path path) {
+        return TARGET.contains(extension(path)) || isGeneratedDataMigrationArtifact(path);
+    }
+
+    private boolean isGeneratedDataMigrationArtifact(Path path) {
+        Path normalized = path.normalize();
+        return normalized.getNameCount() >= 3
+                && "generated-data-migration".equals(normalized.getName(normalized.getNameCount() - 3).toString())
+                && DATA_MIGRATION_ARTIFACT.contains(extension(normalized));
+    }
     private String category(Path path) {
         String ext = extension(path);
         if (LEGACY.contains(ext)) return ext.equals(".cpy") ? "Copybooks" : ext.equals(".jcl") ? "JCL" : "COBOL sources";

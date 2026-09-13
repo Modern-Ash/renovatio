@@ -32,10 +32,13 @@ public final class SemanticDomainProjector {
             }
             for (SemanticProgram.IoOperation io : program.ioOperations()) {
                 String id = "boundary:" + program.programId() + ":" + io.header().id();
-                Kind kind = io.ioKind() == SemanticProgram.IoKind.DATABASE || io.ioKind() == SemanticProgram.IoKind.FILE
-                        ? Kind.REPOSITORY : Kind.EXTERNAL_SYSTEM;
-                nodes.add(new DomainNode(id, kind, io.operation(), List.of(evidence(program, io.operation())),
-                        Origin.DETERMINISTIC, 0.7));
+                String resource = io.resourceReference().orElse("");
+                boolean persistentResource = (io.ioKind() == SemanticProgram.IoKind.DATABASE
+                        || io.ioKind() == SemanticProgram.IoKind.FILE) && isPhysicalResourceName(resource, io.operation());
+                Kind kind = persistentResource ? Kind.REPOSITORY : Kind.EXTERNAL_SYSTEM;
+                String name = io.resourceReference().orElse(io.operation());
+                nodes.add(new DomainNode(id, kind, name, List.of(evidence(program, io.operation())),
+                        Origin.DETERMINISTIC, persistentResource ? 0.8 : 0.5));
                 relations.add(new DomainRelation("relation:" + useCaseId + ":" + id, useCaseId, id, RelationKind.USES));
             }
             for (SemanticProgram.UnclassifiedDataAccess access : program.unclassifiedDataAccesses()) {
@@ -66,6 +69,11 @@ public final class SemanticDomainProjector {
             }
         }
         return new DomainModel(DomainModel.SCHEMA_VERSION, projectId, nodes, List.of(), List.of());
+    }
+
+    private boolean isPhysicalResourceName(String value, String operation) {
+        if (value == null || value.isBlank()) return false;
+        return operation == null || !value.strip().equalsIgnoreCase(operation.strip());
     }
 
     private Evidence evidence(SemanticProgram program, String rationale) {

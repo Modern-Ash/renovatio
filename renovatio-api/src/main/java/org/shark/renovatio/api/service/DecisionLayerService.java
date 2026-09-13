@@ -66,6 +66,18 @@ public class DecisionLayerService implements EffectiveProfileResolver {
         DecisionPoint current = decisions.findById(projectId, id).orElseThrow(ResourceNotFoundException::new);
         return decisions.save(projectId, DecisionTransitions.patch(current, option, revision, Instant.now()));
     }
+    /** Removes a decision point from the active/pending queue without endorsing
+     * any option as user-chosen — the governed-review "Reject" action. Distinct
+     * from patch(): patch always selects an option (CONFIRMED/OVERRIDDEN),
+     * which is correct for Accept/Fallback but wrong for Reject, where the
+     * suggestion must simply stop being active. */
+    @Transactional
+    public DecisionPoint reject(String projectId, String id, long revision) {
+        requireProject(projectId);
+        DecisionPoint current = decisions.findById(projectId, id).orElseThrow(ResourceNotFoundException::new);
+        if (revision != current.revision()) throw new DecisionTransitions.StaleDecisionException();
+        return decisions.save(projectId, DecisionTransitions.retire(current, Instant.now()));
+    }
     @Transactional
     public DecisionTransitions.BulkResult bulkConfirm(String projectId, BigDecimal threshold) {
         requireProject(projectId);
