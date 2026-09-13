@@ -217,7 +217,7 @@ var require_legacyExtension = __commonJS({
         const project = state.projects.find((candidate) => candidate.id === projectId);
         if (project) {
           const hydrated2 = await hydrateProject(project);
-          await activateProject(hydrated2, { openWorkspace: true });
+          await activateProject(hydrated2, { openWorkspace: false });
           await refreshAnalysis();
           await refreshDomainModel();
           analysisProvider.refresh();
@@ -234,7 +234,7 @@ var require_legacyExtension = __commonJS({
       const selected = await vscode2.window.showQuickPick(picks, { placeHolder: "Select Renovatio project" });
       if (!selected) return;
       const hydrated = await hydrateProject(selected.project);
-      await activateProject(hydrated, { openWorkspace: true });
+      await activateProject(hydrated, { openWorkspace: false });
       await refreshAnalysis();
       await refreshDomainModel();
       analysisProvider.refresh();
@@ -303,7 +303,7 @@ var require_legacyExtension = __commonJS({
     async function runAnalysis(project, scanRoot, workspaceRoot) {
       const settings = workspaceSettings(project, workspaceRoot);
       const generatedRoot = settings.generatedRoot || project.javaOutputPath || null;
-      const apiWorkspace = apiWorkspacePath(project, workspaceRoot);
+      const apiWorkspace = analysisWorkspacePath(project, scanRoot, workspaceRoot);
       await vscode2.window.withProgress({ location: vscode2.ProgressLocation.Notification, title: "Renovatio analysis", cancellable: false }, async (progress) => {
         progress.report({ message: `Using ${scanRoot}` });
         let jobProject = project;
@@ -455,15 +455,9 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       if (!name) return;
       const workspacePath = primaryRoot;
       try {
-        const created = await request("POST", "/api/projects", {
-          name,
-          workspacePath,
-          javaOutputPath: path.join(workspacePath, "generated-java-stubs"),
-          javaPackage: workspaceSettings().targetPackage,
-          javaArchitecture: "layered"
-        });
+        const created = await createBackendProject(name, workspacePath);
         rememberProject(created);
-        await activateProject(created, { openWorkspace: true });
+        await activateProject(created, { openWorkspace: false });
         await updateWorkspaceSetting("cobolRoots", resolvedPaths, workspacePath, { optional: true });
         await refresh();
         vscode2.window.showInformationMessage(`Created Renovatio project "${created.name || name}" for ${primaryRoot}.`);
@@ -473,6 +467,31 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       } catch (error) {
         showError("Could not create Renovatio project for the selected COBOL path", error);
       }
+    }
+    async function createBackendProject(name, workspacePath) {
+      const targetPackage = workspaceSettings().targetPackage;
+      try {
+        return await request("POST", "/api/projects", {
+          name,
+          workspacePath,
+          javaOutputPath: path.join(workspacePath, "generated-java-stubs"),
+          javaPackage: targetPackage,
+          javaArchitecture: "layered"
+        });
+      } catch (error) {
+        output.appendLine(`Project creation at selected path failed; retrying with managed Renovatio workspace: ${message(error)}`);
+        return request("POST", "/api/projects", {
+          name,
+          workspacePath: managedWorkspaceName(name, workspacePath),
+          javaOutputPath: "generated-java-stubs",
+          javaPackage: targetPackage,
+          javaArchitecture: "layered"
+        });
+      }
+    }
+    function managedWorkspaceName(name, workspacePath) {
+      const base = path.basename(workspacePath) || name || "renovatio-project";
+      return `vscode-${base}`.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "vscode-renovatio-project";
     }
     async function resolveRealPath(fsPath) {
       try {
@@ -725,6 +744,17 @@ ${knownRoots.join("\n")}` },
     }
     function apiWorkspacePath(project, fallbackWorkspaceRoot) {
       return project?.workspacePath || fallbackWorkspaceRoot;
+    }
+    function analysisWorkspacePath(project, scanRoot, fallbackWorkspaceRoot) {
+      if (scanRoot) {
+        try {
+          const stat = fs.statSync(scanRoot);
+          return stat.isDirectory() ? scanRoot : path.dirname(scanRoot);
+        } catch {
+          return scanRoot;
+        }
+      }
+      return apiWorkspacePath(project, fallbackWorkspaceRoot);
     }
     function generatedRootConflict(generatedRoot, cobolRoots) {
       if (!generatedRoot || !cobolRoots.length) return "";
