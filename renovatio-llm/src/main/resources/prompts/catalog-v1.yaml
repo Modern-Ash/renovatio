@@ -12,3 +12,4 @@ prompts:
   - prompts/decision.naming.v1.yaml
   - prompts/decision.architecture.v1.yaml
   - prompts/decision.batch.v1.yaml
+  - prompts/cobol.domain.entities.v1.yaml

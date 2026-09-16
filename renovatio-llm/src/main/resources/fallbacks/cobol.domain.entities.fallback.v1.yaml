@@ -1,0 +1,4 @@
+fallbackVersion: renovatio-llm-fallback.v1
+type: MANUAL_ACTION
+diagnosticCode: LLM_MANUAL_DOMAIN_ENTITIES_REQUIRED
+manualAction: Retain the deterministic SemanticDomainProjector entity/relation output and request domain-owner review of the unmatched facts.
