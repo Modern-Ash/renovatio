@@ -10,6 +10,7 @@ import { RenovatioWorkspaceManifestService } from './workspaceManifest';
 import { RenovatioBackendControlCenter } from './backendControl';
 import { MigrationMapService } from './migrationMap';
 import { MigrationNavigationService } from './navigation';
+import { RenovatioArtifactDiagnosticsService } from './diagnostics';
 
 const DOMAIN_VIEW_TYPE = 'renovatio.diagram.domain';
 const ARCHITECTURE_VIEW_TYPE = 'renovatio.diagram.architecture';
@@ -24,6 +25,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const backendControl = new RenovatioBackendControlCenter(manifestService, backendOutput);
     const migrationMapService = new MigrationMapService(manifestService, output);
     const migrationNavigation = new MigrationNavigationService(manifestService);
+    const artifactDiagnostics = new RenovatioArtifactDiagnosticsService(output);
     backendControl.register(context);
     migrationNavigation.register(context);
     context.subscriptions.push(
@@ -33,6 +35,7 @@ export function activate(context: vscode.ExtensionContext): void {
         backendControl,
         migrationMapService,
         migrationNavigation,
+        artifactDiagnostics,
         vscode.window.registerCustomEditorProvider(DOMAIN_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.window.registerCustomEditorProvider(ARCHITECTURE_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.commands.registerCommand('renovatio.initializeWorkspace', () => manifestService.initializeWorkspace()),
@@ -47,6 +50,7 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand('renovatio.openArchitectureSample', () => openSample(context, 'sample.renovatio-arch.json'))
     );
     void manifestService.validateWorkspace();
+    void artifactDiagnostics.refreshAll();
 }
 
 export function deactivate(): void {

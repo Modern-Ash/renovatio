@@ -125,6 +125,28 @@ Useful commands:
 
 Migration map paths are workspace-relative. Validation reports malformed entries and missing source or target files in VS Code Problems.
 
+## Artifact Diagnostics
+
+Renovatio publishes workspace-aware diagnostics to VS Code Problems for the manifest, migration map and mapped files.
+
+Manifest diagnostics cover:
+
+- required project, source, target, artifact, backend and LLM fields.
+- unsupported source or target languages.
+- duplicate target roots and paths outside the workspace.
+- invalid backend URLs and unsafe local process control outside local/dev environments.
+- missing LLM provider, model or prompt profile configuration.
+
+Migration map diagnostics cover:
+
+- duplicate entry ids, unknown statuses and invalid ranges.
+- missing source, target or evidence files.
+- generated or accepted entries without target output.
+- generated entries without evidence.
+- missing hashes that prevent freshness checks.
+
+When an entry records `source.hash` or `target.hash`, the extension compares it with the current file content. Changed source or target files get stale-state warnings directly in the editor, and the migration map points to the affected entry so users can reconcile the two-way trace.
+
 ## Editor Navigation
 
 When `.renovatio/migration-map.renovatio.json` exists, COBOL/JCL and generated Java/Python/Node editors get native Renovatio navigation:
