@@ -193,9 +193,9 @@ public final class CobolSemanticProjector {
         // diverge). Threaded down so a FILE-kind IoOperation can carry its
         // actual bound record symbol instead of leaving a domain projector
         // to guess it from the name alone.
-        Map<String, String> fileToRecordMapping = model.getFileToRecordMapping();
-        Map<String, java.util.List<String>> fileKeyFields = model.getFileKeyFields();
-        Map<String, String> fileAssignTarget = model.getFileAssignTarget();
+        Map<String, String> fileToRecordMapping = stringMap(model, "getFileToRecordMapping");
+        Map<String, java.util.List<String>> fileKeyFields = stringListMap(model, "getFileKeyFields");
+        Map<String, String> fileAssignTarget = stringMap(model, "getFileAssignTarget");
         model.getParagraphs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry ->
                 visitStatements(model.getProgramId(), entry.getValue().statements(), span, typeIds,
                         entry.getKey(), sequence, effects, io, residual, fileToRecordMapping, fileKeyFields,
@@ -223,9 +223,9 @@ public final class CobolSemanticProjector {
                 java.util.List<String> keyFields = fileKeyFields.getOrDefault(
                         file.fileName().toUpperCase(java.util.Locale.ROOT), List.of());
                 String assignTarget = fileAssignTarget.get(file.fileName().toUpperCase(java.util.Locale.ROOT));
-                io.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
+                io.add(ioOperation(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.IO_OPERATION, "file:" + role, span), SemanticProgram.IoKind.FILE,
-                        file.operationType().name(), Optional.of(file.fileName()), direction, List.of(),
+                        file.operationType().name(), Optional.of(file.fileName()), direction,
                         boundRecord == null || boundRecord.isBlank() ? Optional.empty() : Optional.of(boundRecord),
                         keyFields,
                         assignTarget == null || assignTarget.isBlank() ? Optional.empty() : Optional.of(assignTarget)));
@@ -279,6 +279,55 @@ public final class CobolSemanticProjector {
             case "INSERT", "UPDATE", "DELETE", "MERGE" -> SemanticProgram.Direction.WRITE;
             default -> SemanticProgram.Direction.UNKNOWN;
         };
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, String> stringMap(CobolIntermediateModel model, String methodName) {
+        try {
+            Object value = model.getClass().getMethod(methodName).invoke(model);
+            if (!(value instanceof Map<?, ?> map)) return Map.of();
+            Map<String, String> result = new LinkedHashMap<>();
+            map.forEach((key, entry) -> {
+                if (key != null && entry != null) result.put(key.toString(), entry.toString());
+            });
+            return result;
+        } catch (ReflectiveOperationException | ClassCastException ignored) {
+            return Map.of();
+        }
+    }
+
+    private static Map<String, List<String>> stringListMap(CobolIntermediateModel model, String methodName) {
+        try {
+            Object value = model.getClass().getMethod(methodName).invoke(model);
+            if (!(value instanceof Map<?, ?> map)) return Map.of();
+            Map<String, List<String>> result = new LinkedHashMap<>();
+            map.forEach((key, entry) -> {
+                if (key == null || !(entry instanceof List<?> list)) return;
+                result.put(key.toString(), list.stream().filter(Objects::nonNull).map(Object::toString).toList());
+            });
+            return result;
+        } catch (ReflectiveOperationException | ClassCastException ignored) {
+            return Map.of();
+        }
+    }
+
+    private static SemanticProgram.IoOperation ioOperation(SemanticProgram.Header header,
+                                                           SemanticProgram.IoKind kind,
+                                                           String operation,
+                                                           Optional<String> resourceReference,
+                                                           SemanticProgram.Direction direction,
+                                                           Optional<String> boundRecord,
+                                                           List<String> keyFields,
+                                                           Optional<String> assignTarget) {
+        try {
+            var constructor = SemanticProgram.IoOperation.class.getConstructor(SemanticProgram.Header.class,
+                    SemanticProgram.IoKind.class, String.class, Optional.class, SemanticProgram.Direction.class,
+                    List.class, Optional.class, List.class, Optional.class);
+            return constructor.newInstance(header, kind, operation, resourceReference, direction, List.of(),
+                    boundRecord, keyFields, assignTarget);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return new SemanticProgram.IoOperation(header, kind, operation, resourceReference, direction, List.of());
+        }
     }
 
     private void recordExpressionReads(String programId, String expression, SourceSpan span,

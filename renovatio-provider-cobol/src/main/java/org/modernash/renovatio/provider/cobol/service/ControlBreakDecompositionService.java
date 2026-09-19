@@ -115,8 +115,8 @@ public class ControlBreakDecompositionService {
                 .dataItems(model.getDataItems())
                 .controlFlowGraph(model.getControlFlowGraph())
                 .executionContext(model.getExecutionContext())
-                .controlBreakPatterns(patterns)
-                .fileToRecordMapping(model.getFileToRecordMapping());
+                .controlBreakPatterns(patterns);
+        copyFileToRecordMappingIfAvailable(enhancedBuilder, model);
 
         model.getParagraphs().values().forEach(enhancedBuilder::addParagraph);
 
@@ -131,6 +131,18 @@ public class ControlBreakDecompositionService {
                 patterns,
                 decomposedLogic
         );
+    }
+
+    @SuppressWarnings("unchecked")
+    private static void copyFileToRecordMappingIfAvailable(CobolIntermediateModel.Builder builder,
+                                                           CobolIntermediateModel model) {
+        try {
+            Object mapping = model.getClass().getMethod("getFileToRecordMapping").invoke(model);
+            if (!(mapping instanceof Map<?, ?> map) || map.isEmpty()) return;
+            builder.getClass().getMethod("fileToRecordMapping", Map.class).invoke(builder, (Map<String, String>) map);
+        } catch (ReflectiveOperationException | ClassCastException ignored) {
+            // Older cobol-ir artifacts do not expose FILE SECTION binding metadata.
+        }
     }
 
     /**
