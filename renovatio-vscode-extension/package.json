@@ -73,6 +73,8 @@
     "onCommand:renovatio.applyApprovedChanges",
     "onCommand:renovatio.reconcileGeneratedCode",
     "onCommand:renovatio.exportEvidenceBundle",
+    "onCommand:renovatio.openLatestEvidenceBundle",
+    "onCommand:renovatio.copyEvidenceSummary",
     "onCommand:renovatio.openDomainSample",
     "onCommand:renovatio.openArchitectureSample",
     "onCustomEditor:renovatio.diagram.domain",
@@ -390,6 +392,16 @@
         "command": "renovatio.exportEvidenceBundle",
         "title": "Renovatio: Export Evidence Bundle",
         "icon": "$(package)"
+      },
+      {
+        "command": "renovatio.openLatestEvidenceBundle",
+        "title": "Renovatio: Open Latest Evidence Bundle",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "renovatio.copyEvidenceSummary",
+        "title": "Renovatio: Copy Evidence Summary",
+        "icon": "$(copy)"
       },
       {
         "command": "renovatio.openDomainSample",

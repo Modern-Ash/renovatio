@@ -177,6 +177,27 @@ The workflow is approval-gated:
 
 Generated code is never applied from preview alone. Every write goes through explicit approval and VS Code workspace file APIs.
 
+## Evidence Bundles
+
+`Renovatio: Export Evidence Bundle` writes an auditable bundle under:
+
+```text
+.renovatio/evidence-bundles/
+```
+
+Each bundle includes:
+
+- `manifest.json` with backend, LLM, artifact, warning, risk and summary metadata.
+- `workspace.renovatio.json`.
+- `migration-map.renovatio.json` when present.
+- domain, persistence and architecture model artifacts when present.
+- persisted change sets and diffs from `.renovatio/changesets/`.
+- evidence files referenced by the migration map or stored under the manifest evidence directory.
+- `checksums.txt` for every included file.
+- `summary.md` for reviewers and handoff.
+
+Missing optional artifacts are listed as warnings. Missing required artifacts block export unless the user explicitly chooses a partial bundle. `Renovatio: Open Latest Evidence Bundle` opens the latest summary, and `Renovatio: Copy Evidence Summary` copies `summary.md` to the clipboard.
+
 ## Build
 
 ```sh
