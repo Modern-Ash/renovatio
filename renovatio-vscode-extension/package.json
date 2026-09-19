@@ -75,6 +75,11 @@
     "onCommand:renovatio.exportEvidenceBundle",
     "onCommand:renovatio.openLatestEvidenceBundle",
     "onCommand:renovatio.copyEvidenceSummary",
+    "onCommand:renovatio.syncStatus",
+    "onCommand:renovatio.pullFromBackend",
+    "onCommand:renovatio.pushToBackend",
+    "onCommand:renovatio.compareLocalAndBackend",
+    "onCommand:renovatio.resolveSyncConflict",
     "onCommand:renovatio.openDomainSample",
     "onCommand:renovatio.openArchitectureSample",
     "onCustomEditor:renovatio.diagram.domain",
@@ -404,6 +409,31 @@
         "icon": "$(copy)"
       },
       {
+        "command": "renovatio.syncStatus",
+        "title": "Renovatio: Sync Status",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "renovatio.pullFromBackend",
+        "title": "Renovatio: Pull Artifact From Backend",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "renovatio.pushToBackend",
+        "title": "Renovatio: Push Artifact To Backend",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "renovatio.compareLocalAndBackend",
+        "title": "Renovatio: Compare Local And Backend Artifact",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "renovatio.resolveSyncConflict",
+        "title": "Renovatio: Resolve Sync Conflict",
+        "icon": "$(merge)"
+      },
+      {
         "command": "renovatio.openDomainSample",
         "title": "Renovatio: Open Domain Diagram Sample",
         "category": "Renovatio"
@@ -605,6 +635,21 @@
           "command": "renovatio.exportEvidenceBundle"
         },
         {
+          "command": "renovatio.syncStatus"
+        },
+        {
+          "command": "renovatio.pullFromBackend"
+        },
+        {
+          "command": "renovatio.pushToBackend"
+        },
+        {
+          "command": "renovatio.compareLocalAndBackend"
+        },
+        {
+          "command": "renovatio.resolveSyncConflict"
+        },
+        {
           "command": "renovatio.openDomainSample"
         },
         {
@@ -645,6 +690,11 @@
           "command": "renovatio.testBackendConnection",
           "when": "view == renovatio.backend",
           "group": "navigation@2"
+        },
+        {
+          "command": "renovatio.syncStatus",
+          "when": "view == renovatio.backend || view == renovatio.models || view == renovatio.migration",
+          "group": "navigation@2.1"
         },
         {
           "command": "renovatio.openMigrationMap",

@@ -45,6 +45,14 @@ export interface RenovatioWorkspaceManifest {
         promptProfile: string;
         fallbackModel: string | null;
     };
+    sync?: {
+        enabled: boolean;
+        mode: 'manual' | 'pull-on-open' | 'push-on-save';
+        lastSyncedAt: string | null;
+        lastSyncedRevision: string | null;
+        artifacts: Array<'domainModel' | 'persistenceModel' | 'architecture' | 'migrationMap'>;
+        conflictPolicy: 'prompt' | 'prefer-local' | 'prefer-remote';
+    };
 }
 
 interface RenovatioTarget {
@@ -283,6 +291,14 @@ export class RenovatioWorkspaceManifestService implements vscode.Disposable {
                 cacheEnabled: true,
                 promptProfile: 'cobol.domain.entities.v1',
                 fallbackModel: null
+            },
+            sync: {
+                enabled: false,
+                mode: 'manual',
+                lastSyncedAt: null,
+                lastSyncedRevision: null,
+                artifacts: ['domainModel', 'persistenceModel', 'architecture', 'migrationMap'],
+                conflictPolicy: 'prompt'
             }
         };
     }
@@ -391,6 +407,19 @@ function validateManifest(value: unknown): string[] {
             issues.push('llm.fallbackModel must be a string or null.');
         }
     }
+    if (value.sync !== undefined) {
+        const sync = requireObject(value, 'sync', issues);
+        if (sync) {
+            if (typeof sync.enabled !== 'boolean') {
+                issues.push('sync.enabled must be a boolean.');
+            }
+            requireString(sync, 'mode', issues, ['manual', 'pull-on-open', 'push-on-save']);
+            requireNullableString(sync, 'lastSyncedAt', issues);
+            requireNullableString(sync, 'lastSyncedRevision', issues);
+            requireStringArray(sync, 'artifacts', issues, ['domainModel', 'persistenceModel', 'architecture', 'migrationMap']);
+            requireString(sync, 'conflictPolicy', issues, ['prompt', 'prefer-local', 'prefer-remote']);
+        }
+    }
     return issues;
 }
 
@@ -420,10 +449,21 @@ function requireNumber(target: Record<string, unknown>, key: string, issues: str
     }
 }
 
-function requireStringArray(target: Record<string, unknown>, key: string, issues: string[]): void {
+function requireNullableString(target: Record<string, unknown>, key: string, issues: string[]): void {
+    const value = target[key];
+    if (value !== null && value !== undefined && typeof value !== 'string') {
+        issues.push(`${key} must be a string or null.`);
+    }
+}
+
+function requireStringArray(target: Record<string, unknown>, key: string, issues: string[], allowed?: string[]): void {
     const value = target[key];
     if (!Array.isArray(value) || value.some(entry => typeof entry !== 'string' || entry.trim() === '')) {
         issues.push(`${key} must be an array of non-empty strings.`);
+        return;
+    }
+    if (allowed && value.some(entry => !allowed.includes(entry))) {
+        issues.push(`${key} must contain only: ${allowed.join(', ')}.`);
     }
 }
 

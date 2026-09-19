@@ -55,5 +55,18 @@
     "cacheEnabled": true,
     "promptProfile": "cobol.domain.entities.v1",
     "fallbackModel": null
+  },
+  "sync": {
+    "enabled": false,
+    "mode": "manual",
+    "lastSyncedAt": null,
+    "lastSyncedRevision": null,
+    "artifacts": [
+      "domainModel",
+      "persistenceModel",
+      "architecture",
+      "migrationMap"
+    ],
+    "conflictPolicy": "prompt"
   }
 }

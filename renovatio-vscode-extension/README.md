@@ -80,6 +80,33 @@ Process-control commands are safety gated:
 
 Backend commands may be configured in the manifest under `backend.commands`. Missing backend endpoints are reported as unsupported instead of faking success.
 
+## Optional Backend Sync
+
+Workspace artifacts remain local-first. Backend synchronization is opt-in through the manifest `sync` block and is disabled by default.
+
+When enabled, the plugin tracks local and backend revisions for:
+
+- `domainModel`
+- `persistenceModel`
+- `architecture`
+- `migrationMap`
+
+Supported sync modes:
+
+- `manual`: users run explicit status, compare, pull or push commands.
+- `pull-on-open`: opening a synced artifact checks backend state and prompts before replacing local content.
+- `push-on-save`: saving a synced artifact pushes with an expected-revision guard and refuses stale overwrites.
+
+Conflict states are surfaced in the status bar, Command Palette and `Renovatio Sync` output channel: `clean`, `local-changed`, `remote-changed`, `both-changed`, `remote-unavailable` and `schema-mismatch`. Pulls create backups under `.renovatio/backups/`; compares write temporary remote snapshots under `.renovatio/sync-preview/`.
+
+Useful commands:
+
+- `Renovatio: Sync Status`
+- `Renovatio: Compare Local And Backend Artifact`
+- `Renovatio: Pull Artifact From Backend`
+- `Renovatio: Push Artifact To Backend`
+- `Renovatio: Resolve Sync Conflict`
+
 ## Migration Map
 
 Run `Renovatio: Create Migration Map` after initializing a workspace to create the manifest-defined artifact, usually:

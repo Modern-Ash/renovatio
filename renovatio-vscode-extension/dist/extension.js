@@ -38,7 +38,7 @@ var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: tru
 var require_legacyExtension = __commonJS({
   "src/legacyExtension.js"(exports2, module2) {
     "use strict";
-    var vscode10 = require("vscode");
+    var vscode11 = require("vscode");
     var fs = require("fs");
     var http = require("http");
     var https = require("https");
@@ -69,8 +69,8 @@ var require_legacyExtension = __commonJS({
     var welcomeOpenedThisSession = false;
     function activate3(context) {
       extensionContext = context;
-      output = vscode10.window.createOutputChannel("Renovatio");
-      statusItem = vscode10.window.createStatusBarItem(vscode10.StatusBarAlignment.Left, 80);
+      output = vscode11.window.createOutputChannel("Renovatio");
+      statusItem = vscode11.window.createStatusBarItem(vscode11.StatusBarAlignment.Left, 80);
       statusItem.command = "renovatio.selectProject";
       statusItem.show();
       projectsProvider = new ProjectsProvider();
@@ -81,33 +81,33 @@ var require_legacyExtension = __commonJS({
       context.subscriptions.push(
         output,
         statusItem,
-        vscode10.window.registerTreeDataProvider("renovatio.workspace", projectsProvider),
-        vscode10.window.registerTreeDataProvider("renovatio.discovery", analysisProvider),
-        vscode10.window.registerTreeDataProvider("renovatio.models", domainModelProvider),
-        vscode10.window.registerTreeDataProvider("renovatio.migration", migrationProvider),
-        vscode10.window.registerTreeDataProvider("renovatio.evidence", evidenceProvider),
-        vscode10.commands.registerCommand("renovatio.refresh", refresh),
-        vscode10.commands.registerCommand("renovatio.openWelcome", openWelcome),
-        vscode10.commands.registerCommand("renovatio.selectProject", selectProject),
-        vscode10.commands.registerCommand("renovatio.createProject", createProject),
-        vscode10.commands.registerCommand("renovatio.analyzeSelectedPath", analyzeSelectedPath),
-        vscode10.commands.registerCommand("renovatio.analyzeCobolSources", analyzeCobolSources),
-        vscode10.commands.registerCommand("renovatio.analyzeWorkspace", analyzeWorkspace),
-        vscode10.commands.registerCommand("renovatio.addCobolSourceRoot", addCobolSourceRoot),
-        vscode10.commands.registerCommand("renovatio.removeCobolSourceRoot", removeCobolSourceRoot),
-        vscode10.commands.registerCommand("renovatio.selectGeneratedOutputFolder", selectGeneratedOutputFolder),
-        vscode10.commands.registerCommand("renovatio.openControlDeck", openControlDeck),
-        vscode10.commands.registerCommand("renovatio.openDomainModel", openDomainModel),
-        vscode10.commands.registerCommand("renovatio.openNativeDomainDiagram", openNativeDomainDiagram),
-        vscode10.commands.registerCommand("renovatio.openNativePersistenceDiagram", openNativePersistenceDiagram),
-        vscode10.commands.registerCommand("renovatio.openNativeArchitectureDiagram", openNativeArchitectureDiagram),
-        vscode10.commands.registerCommand("renovatio.openPersistenceModel", openPersistenceModel),
-        vscode10.commands.registerCommand("renovatio.openGeneratedCode", openGeneratedCode),
-        vscode10.commands.registerCommand("renovatio.openFile", openFile),
-        vscode10.commands.registerCommand("renovatio.openEvidence", openEvidence),
-        vscode10.commands.registerCommand("renovatio.openDiscoveryOutput", openDiscoveryOutput),
-        vscode10.commands.registerCommand("renovatio.generateMigrationPlan", generateMigrationPlan),
-        vscode10.workspace.onDidChangeConfiguration((event) => {
+        vscode11.window.registerTreeDataProvider("renovatio.workspace", projectsProvider),
+        vscode11.window.registerTreeDataProvider("renovatio.discovery", analysisProvider),
+        vscode11.window.registerTreeDataProvider("renovatio.models", domainModelProvider),
+        vscode11.window.registerTreeDataProvider("renovatio.migration", migrationProvider),
+        vscode11.window.registerTreeDataProvider("renovatio.evidence", evidenceProvider),
+        vscode11.commands.registerCommand("renovatio.refresh", refresh),
+        vscode11.commands.registerCommand("renovatio.openWelcome", openWelcome),
+        vscode11.commands.registerCommand("renovatio.selectProject", selectProject),
+        vscode11.commands.registerCommand("renovatio.createProject", createProject),
+        vscode11.commands.registerCommand("renovatio.analyzeSelectedPath", analyzeSelectedPath),
+        vscode11.commands.registerCommand("renovatio.analyzeCobolSources", analyzeCobolSources),
+        vscode11.commands.registerCommand("renovatio.analyzeWorkspace", analyzeWorkspace),
+        vscode11.commands.registerCommand("renovatio.addCobolSourceRoot", addCobolSourceRoot),
+        vscode11.commands.registerCommand("renovatio.removeCobolSourceRoot", removeCobolSourceRoot),
+        vscode11.commands.registerCommand("renovatio.selectGeneratedOutputFolder", selectGeneratedOutputFolder),
+        vscode11.commands.registerCommand("renovatio.openControlDeck", openControlDeck),
+        vscode11.commands.registerCommand("renovatio.openDomainModel", openDomainModel),
+        vscode11.commands.registerCommand("renovatio.openNativeDomainDiagram", openNativeDomainDiagram),
+        vscode11.commands.registerCommand("renovatio.openNativePersistenceDiagram", openNativePersistenceDiagram),
+        vscode11.commands.registerCommand("renovatio.openNativeArchitectureDiagram", openNativeArchitectureDiagram),
+        vscode11.commands.registerCommand("renovatio.openPersistenceModel", openPersistenceModel),
+        vscode11.commands.registerCommand("renovatio.openGeneratedCode", openGeneratedCode),
+        vscode11.commands.registerCommand("renovatio.openFile", openFile),
+        vscode11.commands.registerCommand("renovatio.openEvidence", openEvidence),
+        vscode11.commands.registerCommand("renovatio.openDiscoveryOutput", openDiscoveryOutput),
+        vscode11.commands.registerCommand("renovatio.generateMigrationPlan", generateMigrationPlan),
+        vscode11.workspace.onDidChangeConfiguration((event) => {
           if (event.affectsConfiguration("renovatio")) {
             updateStatus();
             projectsProvider.refresh();
@@ -118,7 +118,7 @@ var require_legacyExtension = __commonJS({
             void refreshVisiblePanels();
           }
         }),
-        vscode10.workspace.onDidChangeWorkspaceFolders(async () => {
+        vscode11.workspace.onDidChangeWorkspaceFolders(async () => {
           await syncActiveProjectWithWorkspace();
           await refresh();
         })
@@ -130,7 +130,7 @@ var require_legacyExtension = __commonJS({
     function deactivate2() {
     }
     function config() {
-      const cfg = vscode10.workspace.getConfiguration("renovatio");
+      const cfg = vscode11.workspace.getConfiguration("renovatio");
       return {
         backendUrl: String(cfg.get("backendUrl") || "http://127.0.0.1:8081").replace(/\/$/, ""),
         role: String(cfg.get("role") || "ADMIN")
@@ -245,7 +245,7 @@ var require_legacyExtension = __commonJS({
         description: project.workspacePath || project.cobolScanRoot || project.id,
         project
       }));
-      const selected = await vscode10.window.showQuickPick(picks, { placeHolder: "Select Renovatio project" });
+      const selected = await vscode11.window.showQuickPick(picks, { placeHolder: "Select Renovatio project" });
       if (!selected) return;
       const hydrated = await hydrateProject(selected.project);
       await activateProject(hydrated, { openWorkspace: false });
@@ -268,21 +268,21 @@ var require_legacyExtension = __commonJS({
     }
     async function ensureProjectWorkspaceFolder(project) {
       if (!project.workspacePath) return;
-      const uri = vscode10.Uri.file(project.workspacePath);
-      const current = vscode10.workspace.workspaceFolders || [];
+      const uri = vscode11.Uri.file(project.workspacePath);
+      const current = vscode11.workspace.workspaceFolders || [];
       if (current.some((folder) => samePath(folder.uri.fsPath, uri.fsPath))) return;
-      vscode10.workspace.updateWorkspaceFolders(current.length, 0, { uri, name: project.name });
+      vscode11.workspace.updateWorkspaceFolders(current.length, 0, { uri, name: project.name });
     }
     async function analyzeSelectedPath(resource) {
-      const resourceUri = resource instanceof vscode10.Uri ? resource : void 0;
+      const resourceUri = resource instanceof vscode11.Uri ? resource : void 0;
       const project = await ensureActiveProject(resourceUri);
       if (!project) return;
-      const scanRoot = resourceUri?.fsPath || vscode10.window.activeTextEditor?.document.uri.fsPath || await selectWorkspaceFolderPath();
+      const scanRoot = resourceUri?.fsPath || vscode11.window.activeTextEditor?.document.uri.fsPath || await selectWorkspaceFolderPath();
       if (!scanRoot) {
-        vscode10.window.showWarningMessage("Select a folder or file in Explorer before running Renovatio analysis.");
+        vscode11.window.showWarningMessage("Select a folder or file in Explorer before running Renovatio analysis.");
         return;
       }
-      const workspaceRoot = workspaceFolderPathFor(vscode10.Uri.file(scanRoot)) || project.workspacePath || scanRoot;
+      const workspaceRoot = workspaceFolderPathFor(vscode11.Uri.file(scanRoot)) || project.workspacePath || scanRoot;
       const ok = await confirmExternalScanRoot(project, scanRoot, workspaceRoot);
       if (!ok) return;
       await runAnalysis(project, scanRoot, workspaceRoot);
@@ -313,7 +313,7 @@ var require_legacyExtension = __commonJS({
       }
       const workspacePath = await selectWorkspaceFolderPath();
       if (!workspacePath) {
-        vscode10.window.showWarningMessage("Open or select a Renovatio workspace before analyzing.");
+        vscode11.window.showWarningMessage("Open or select a Renovatio workspace before analyzing.");
         return;
       }
       await runAnalysis(project, workspacePath, workspacePath);
@@ -322,7 +322,7 @@ var require_legacyExtension = __commonJS({
       const settings = workspaceSettings(project, workspaceRoot);
       const generatedRoot = settings.generatedRoot || project.javaOutputPath || null;
       const apiWorkspace = analysisWorkspacePath(project, scanRoot, workspaceRoot);
-      await vscode10.window.withProgress({ location: vscode10.ProgressLocation.Notification, title: "Renovatio analysis", cancellable: false }, async (progress) => {
+      await vscode11.window.withProgress({ location: vscode11.ProgressLocation.Notification, title: "Renovatio analysis", cancellable: false }, async (progress) => {
         progress.report({ message: `Using ${scanRoot}` });
         await activateProject(project, { openWorkspace: false });
         progress.report({ message: "Starting analyzer job" });
@@ -343,7 +343,7 @@ var require_legacyExtension = __commonJS({
         await openAnalysisPanel(scanRoot);
         const completed = await waitForJob(job.id, progress, scanRoot);
         state.latestJob = completed;
-        vscode10.window.showInformationMessage(`Renovatio analyze ${completed.status || "completed"}: ${completed.id}`);
+        vscode11.window.showInformationMessage(`Renovatio analyze ${completed.status || "completed"}: ${completed.id}`);
         await refreshAnalysis();
         await refreshDomainModel();
         await openAnalysisPanel(scanRoot);
@@ -358,18 +358,18 @@ var require_legacyExtension = __commonJS({
       });
     }
     async function addCobolSourceRoot(resource) {
-      const resourceUri = resource instanceof vscode10.Uri ? resource : void 0;
+      const resourceUri = resource instanceof vscode11.Uri ? resource : void 0;
       const project = state.projects.length ? await ensureActiveProject(resourceUri) : void 0;
       const workspaceRoot = workspaceFolderPathFor(resourceUri) || workspaceSettings(project).workspaceFolderPath || void 0;
       let selectedUris = [];
       if (resourceUri) {
         selectedUris = [await directoryUriFor(resourceUri)];
       } else {
-        selectedUris = await vscode10.window.showOpenDialog({
+        selectedUris = await vscode11.window.showOpenDialog({
           canSelectFiles: false,
           canSelectFolders: true,
           canSelectMany: true,
-          defaultUri: vscode10.Uri.file(workspaceRoot || os.homedir()),
+          defaultUri: vscode11.Uri.file(workspaceRoot || os.homedir()),
           openLabel: "Add COBOL source root",
           title: "Select COBOL source root"
         }) || [];
@@ -397,24 +397,24 @@ var require_legacyExtension = __commonJS({
         await updateWorkspaceSetting("generatedRoots", uniqueStrings2(destinationRoots), void 0, { target: "workspace" });
         await updateWorkspaceSetting("generatedRoot", destinationRoots[0], void 0, { target: "workspace" });
       }
-      vscode10.window.showInformationMessage(`${mode === "replace" ? "Replaced" : "Configured"} ${next.length} COBOL source root(s).`);
+      vscode11.window.showInformationMessage(`${mode === "replace" ? "Replaced" : "Configured"} ${next.length} COBOL source root(s).`);
       projectsProvider.refresh();
       analysisProvider.refresh();
       migrationProvider.refresh();
       await refreshVisiblePanels();
     }
     async function createProject(resource) {
-      const resourceUri = resource instanceof vscode10.Uri ? resource : void 0;
+      const resourceUri = resource instanceof vscode11.Uri ? resource : void 0;
       const workspaceRoot = workspaceFolderPathFor(resourceUri) || await selectWorkspaceFolderPath();
       let selectedUris = [];
       if (resourceUri) {
         selectedUris = [await directoryUriFor(resourceUri)];
       } else {
-        selectedUris = await vscode10.window.showOpenDialog({
+        selectedUris = await vscode11.window.showOpenDialog({
           canSelectFiles: false,
           canSelectFolders: true,
           canSelectMany: false,
-          defaultUri: vscode10.Uri.file(workspaceRoot || os.homedir()),
+          defaultUri: vscode11.Uri.file(workspaceRoot || os.homedir()),
           openLabel: "Create project from COBOL root",
           title: "Select COBOL source root for the new Renovatio project"
         }) || [];
@@ -427,10 +427,10 @@ var require_legacyExtension = __commonJS({
       if (!project) return;
       const settings = workspaceSettings(project);
       if (!settings.rawCobolRoots.length) {
-        vscode10.window.showWarningMessage("No configured COBOL source roots to remove.");
+        vscode11.window.showWarningMessage("No configured COBOL source roots to remove.");
         return;
       }
-      const selected = await vscode10.window.showQuickPick(settings.rawCobolRoots.map((root, index) => ({
+      const selected = await vscode11.window.showQuickPick(settings.rawCobolRoots.map((root, index) => ({
         label: root,
         description: settings.cobolRoots[index],
         root
@@ -451,7 +451,7 @@ var require_legacyExtension = __commonJS({
       if (!hasExistingWork) return "add";
       const alreadyKnown = selected.every((candidate) => existing.some((root) => samePath(candidate, root)));
       if (alreadyKnown) return "add";
-      const action2 = await vscode10.window.showWarningMessage(
+      const action2 = await vscode11.window.showWarningMessage(
         `You selected a different COBOL source path for "${project?.name || "the current Renovatio project"}". Keep the current work separate or update this project?`,
         { modal: true, detail: `Selected:
 ${selected.join("\n")}
@@ -466,7 +466,7 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       if (action2 === "Create New Project") return "newProject";
       if (action2 === "Add to Current Project") return "add";
       if (action2 === "Replace Current Roots") {
-        const confirm = await vscode10.window.showWarningMessage(
+        const confirm = await vscode11.window.showWarningMessage(
           "Replace the current COBOL roots for this VS Code workspace? Existing Renovatio backend/domain history is kept, but future analysis will update the active project from the new path.",
           { modal: true },
           "Replace Roots",
@@ -481,7 +481,7 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       const primaryRoot = resolvedPaths[0];
       if (!primaryRoot) return;
       const defaultName = path.basename(primaryRoot) || "renovatio-project";
-      const name = await vscode10.window.showInputBox({
+      const name = await vscode11.window.showInputBox({
         title: "Create Renovatio project",
         prompt: "Name for the new Renovatio project",
         value: defaultName,
@@ -505,7 +505,7 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
         await updateWorkspaceSetting("targetLanguage", settings.targetLanguage, void 0, { target: "workspace" });
         await updateWorkspaceSetting("targetPackage", settings.targetPackage, void 0, { target: "workspace" });
         await refresh();
-        vscode10.window.showInformationMessage(`Created Renovatio project "${created.name || name}" for ${primaryRoot}.`);
+        vscode11.window.showInformationMessage(`Created Renovatio project "${created.name || name}" for ${primaryRoot}.`);
         projectsProvider.refresh();
         analysisProvider.refresh();
         migrationProvider.refresh();
@@ -538,20 +538,20 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       const sources = uniqueStrings2(asArray(sourceRoots).filter(Boolean).map((value2) => path.normalize(value2)));
       const destinations = uniqueStrings2(asArray(destinationRoots).filter(Boolean).map((value2) => path.normalize(value2)));
       for (const destination of destinations) {
-        await vscode10.workspace.fs.createDirectory(vscode10.Uri.file(destination));
+        await vscode11.workspace.fs.createDirectory(vscode11.Uri.file(destination));
       }
       const folders = [...sources.map((root) => ({
-        uri: vscode10.Uri.file(root),
+        uri: vscode11.Uri.file(root),
         name: `source:${path.basename(root) || "cobol"}`
       })), ...destinations.map((root) => ({
-        uri: vscode10.Uri.file(root),
+        uri: vscode11.Uri.file(root),
         name: `dest:${path.basename(root) || "generated"}`
       }))];
       if (!folders.length) return;
-      const current = vscode10.workspace.workspaceFolders || [];
+      const current = vscode11.workspace.workspaceFolders || [];
       const additions = folders.filter((folder) => !current.some((existing) => samePath(existing.uri.fsPath, folder.uri.fsPath)));
       if (!additions.length) return;
-      const ok = vscode10.workspace.updateWorkspaceFolders(current.length, 0, ...additions);
+      const ok = vscode11.workspace.updateWorkspaceFolders(current.length, 0, ...additions);
       if (!ok) {
         throw new Error("VS Code rejected the workspace folder update for Renovatio sources/destinations.");
       }
@@ -559,7 +559,7 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       output.appendLine(`Renovatio workspace folders added for ${project?.name || "project"}: ${additions.map((folder) => folder.uri.fsPath).join(", ")}`);
     }
     async function discoverCobolWorkspaceRoots() {
-      const folders = asArray(vscode10.workspace.workspaceFolders).filter((folder) => !String(folder.name || "").startsWith("dest:"));
+      const folders = asArray(vscode11.workspace.workspaceFolders).filter((folder) => !String(folder.name || "").startsWith("dest:"));
       const roots = [];
       for (const folder of folders) {
         if (await containsCobolArtifacts(folder.uri, 0)) {
@@ -567,9 +567,9 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
         }
       }
       if (!roots.length && folders.length) {
-        const matches = await vscode10.workspace.findFiles("**/*.{cbl,cob,cobol,cpy,copybook,jcl,job,proc}", "**/{node_modules,target,build,dist,out,.git}/**", 200);
+        const matches = await vscode11.workspace.findFiles("**/*.{cbl,cob,cobol,cpy,copybook,jcl,job,proc}", "**/{node_modules,target,build,dist,out,.git}/**", 200);
         for (const match of matches) {
-          const folder = vscode10.workspace.getWorkspaceFolder(match);
+          const folder = vscode11.workspace.getWorkspaceFolder(match);
           if (folder && !String(folder.name || "").startsWith("dest:")) {
             roots.push(path.normalize(folder.uri.fsPath));
           }
@@ -590,11 +590,11 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
         sourceRoots = rememberedLastSourceRoots();
       }
       if (!sourceRoots.length) {
-        const selected = await vscode10.window.showOpenDialog({
+        const selected = await vscode11.window.showOpenDialog({
           canSelectFiles: false,
           canSelectFolders: true,
           canSelectMany: true,
-          defaultUri: vscode10.Uri.file(os.homedir()),
+          defaultUri: vscode11.Uri.file(os.homedir()),
           openLabel: "Use COBOL source root",
           title: `Select COBOL source root for ${project?.name || "Renovatio"}`
         }) || [];
@@ -602,7 +602,7 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       }
       sourceRoots = uniqueStrings2(sourceRoots.map((root) => path.normalize(root)).filter(Boolean));
       if (!sourceRoots.length) {
-        vscode10.window.showWarningMessage("Renovatio needs at least one COBOL source root before analysis.");
+        vscode11.window.showWarningMessage("Renovatio needs at least one COBOL source root before analysis.");
         return [];
       }
       settings = workspaceSettings(project);
@@ -628,7 +628,7 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       ].filter(Boolean).map((value2) => path.normalize(String(value2))));
       const roots = [];
       for (const candidate of candidates) {
-        if (await containsCobolArtifacts(vscode10.Uri.file(candidate), 0)) {
+        if (await containsCobolArtifacts(vscode11.Uri.file(candidate), 0)) {
           roots.push(candidate);
         }
       }
@@ -663,12 +663,12 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       return `renovatio.workspaceContext.${projectId}`;
     }
     function workspaceFoldersByPrefix(prefix) {
-      return asArray(vscode10.workspace.workspaceFolders).filter((folder) => String(folder.name || "").startsWith(prefix)).map((folder) => folder.uri.fsPath);
+      return asArray(vscode11.workspace.workspaceFolders).filter((folder) => String(folder.name || "").startsWith(prefix)).map((folder) => folder.uri.fsPath);
     }
     async function waitForWorkspaceFolders(expectedPaths) {
       const expected = expectedPaths.map((value2) => path.normalize(value2));
       for (let attempt = 0; attempt < 20; attempt += 1) {
-        const current = vscode10.workspace.workspaceFolders || [];
+        const current = vscode11.workspace.workspaceFolders || [];
         if (expected.every((candidate) => current.some((folder) => samePath(folder.uri.fsPath, candidate)))) {
           return;
         }
@@ -693,7 +693,7 @@ ${existing.length ? existing.join("\n") : project?.cobolScanRoot || project?.wor
       if (!knownRoots.length) return true;
       const known = knownRoots.some((root) => samePath(normalized, root) || isInsidePath(normalized, root) || isInsidePath(root, normalized));
       if (known) return true;
-      const action2 = await vscode10.window.showWarningMessage(
+      const action2 = await vscode11.window.showWarningMessage(
         `This path is not configured as a COBOL root for "${project?.name || "the active Renovatio project"}".`,
         { modal: true, detail: `Selected:
 ${normalized}
@@ -727,11 +727,11 @@ ${knownRoots.join("\n")}` },
       if (!project) return;
       const settings = workspaceSettings(project);
       const workspaceRoot = settings.workspaceFolderPath || project.workspacePath || os.homedir();
-      const selected = await vscode10.window.showOpenDialog({
+      const selected = await vscode11.window.showOpenDialog({
         canSelectFiles: false,
         canSelectFolders: true,
         canSelectMany: false,
-        defaultUri: vscode10.Uri.file(settings.generatedRoot || workspaceRoot),
+        defaultUri: vscode11.Uri.file(settings.generatedRoot || workspaceRoot),
         openLabel: "Use future output folder",
         title: "Configure future output folder"
       });
@@ -752,44 +752,44 @@ ${knownRoots.join("\n")}` },
       if (!project) return;
       const generated = await loadGeneratedArtifacts(project);
       if (!generated.exists) {
-        const action2 = await vscode10.window.showWarningMessage(`No future output folder found at ${generated.root}`, "Create Folder");
+        const action2 = await vscode11.window.showWarningMessage(`No future output folder found at ${generated.root}`, "Create Folder");
         if (action2) {
-          const uri = vscode10.Uri.file(generated.root);
-          await vscode10.workspace.fs.createDirectory(uri);
-          await vscode10.commands.executeCommand("revealInExplorer", uri);
+          const uri = vscode11.Uri.file(generated.root);
+          await vscode11.workspace.fs.createDirectory(uri);
+          await vscode11.commands.executeCommand("revealInExplorer", uri);
         }
         await openProjectPanel(project);
         return;
       }
       if (!generated.files.length) {
-        await vscode10.commands.executeCommand("revealInExplorer", vscode10.Uri.file(generated.root));
-        vscode10.window.showInformationMessage(`Future output exists but has no generated source files yet: ${generated.root}`);
+        await vscode11.commands.executeCommand("revealInExplorer", vscode11.Uri.file(generated.root));
+        vscode11.window.showInformationMessage(`Future output exists but has no generated source files yet: ${generated.root}`);
         await openProjectPanel(project);
         return;
       }
       const first = generated.files[0];
-      const document = await vscode10.workspace.openTextDocument(vscode10.Uri.file(path.join(generated.root, first.relativePath)));
-      await vscode10.window.showTextDocument(document, { preview: false });
+      const document = await vscode11.workspace.openTextDocument(vscode11.Uri.file(path.join(generated.root, first.relativePath)));
+      await vscode11.window.showTextDocument(document, { preview: false });
     }
     async function openFile(fsPath) {
       if (!fsPath) return;
-      const document = await vscode10.workspace.openTextDocument(vscode10.Uri.file(String(fsPath)));
-      await vscode10.window.showTextDocument(document, { preview: false });
+      const document = await vscode11.workspace.openTextDocument(vscode11.Uri.file(String(fsPath)));
+      await vscode11.window.showTextDocument(document, { preview: false });
     }
     async function openEvidence(sourceRef) {
       const parsed = parseSourceRef(sourceRef);
       if (!parsed.fsPath) return;
       const resolved = await resolveEvidencePath(parsed.fsPath);
       if (!resolved) {
-        vscode10.window.showWarningMessage(`Could not resolve evidence source: ${parsed.fsPath}`);
+        vscode11.window.showWarningMessage(`Could not resolve evidence source: ${parsed.fsPath}`);
         return;
       }
-      const document = await vscode10.workspace.openTextDocument(vscode10.Uri.file(resolved));
-      const editor = await vscode10.window.showTextDocument(document, { preview: false });
+      const document = await vscode11.workspace.openTextDocument(vscode11.Uri.file(resolved));
+      const editor = await vscode11.window.showTextDocument(document, { preview: false });
       if (parsed.line && parsed.line > 0) {
-        const position = new vscode10.Position(Math.min(parsed.line - 1, document.lineCount - 1), 0);
-        editor.selection = new vscode10.Selection(position, position);
-        editor.revealRange(new vscode10.Range(position, position), vscode10.TextEditorRevealType.InCenter);
+        const position = new vscode11.Position(Math.min(parsed.line - 1, document.lineCount - 1), 0);
+        editor.selection = new vscode11.Selection(position, position);
+        editor.revealRange(new vscode11.Range(position, position), vscode11.TextEditorRevealType.InCenter);
       }
     }
     async function openDiscoveryOutput() {
@@ -799,7 +799,7 @@ ${knownRoots.join("\n")}` },
         await openAnalysisPanel();
         return;
       }
-      const action2 = await vscode10.window.showInformationMessage("No discovery output is loaded yet.", "Analyze Workspace");
+      const action2 = await vscode11.window.showInformationMessage("No discovery output is loaded yet.", "Analyze Workspace");
       if (action2 === "Analyze Workspace") {
         await analyzeCobolSources();
       }
@@ -808,7 +808,7 @@ ${knownRoots.join("\n")}` },
       const project = await ensureActiveProject();
       if (!project) return;
       await openControlDeck();
-      vscode10.window.showInformationMessage("Migration planning is prepared from the migration map, domain model and generated output. The automated plan endpoint is tracked in a sibling Renovatio ticket.");
+      vscode11.window.showInformationMessage("Migration planning is prepared from the migration map, domain model and generated output. The automated plan endpoint is tracked in a sibling Renovatio ticket.");
     }
     function parseSourceRef(sourceRef) {
       const raw = String(sourceRef || "").trim();
@@ -830,7 +830,7 @@ ${knownRoots.join("\n")}` },
         settings.workspaceFolderPath,
         project?.cobolScanRoot,
         project?.workspacePath,
-        ...asArray(vscode10.workspace.workspaceFolders).map((folder) => folder.uri.fsPath)
+        ...asArray(vscode11.workspace.workspaceFolders).map((folder) => folder.uri.fsPath)
       ].filter(Boolean));
       for (const root of roots) {
         const candidate = path.normalize(path.join(root, expanded));
@@ -840,7 +840,7 @@ ${knownRoots.join("\n")}` },
     }
     async function pathExists(fsPath) {
       try {
-        await vscode10.workspace.fs.stat(vscode10.Uri.file(fsPath));
+        await vscode11.workspace.fs.stat(vscode11.Uri.file(fsPath));
         return true;
       } catch {
         return false;
@@ -865,7 +865,7 @@ ${knownRoots.join("\n")}` },
         await selectProject();
         project = state.projects.find((candidate) => candidate.id === state.activeProjectId);
       }
-      if (!project) vscode10.window.showWarningMessage("Create or select a Renovatio project first.");
+      if (!project) vscode11.window.showWarningMessage("Create or select a Renovatio project first.");
       return hydrateProject(project);
     }
     async function hydrateProject(project) {
@@ -887,7 +887,7 @@ ${knownRoots.join("\n")}` },
       await extensionContext.workspaceState.update("renovatio.activeProjectId", project.id);
     }
     function projectForOpenWorkspace() {
-      const folders = vscode10.workspace.workspaceFolders || [];
+      const folders = vscode11.workspace.workspaceFolders || [];
       return state.projects.find((project) => folders.some((folder) => projectMatchesFolder(project, folder.uri.fsPath)));
     }
     function projectForResource(resourceUri) {
@@ -907,18 +907,18 @@ ${knownRoots.join("\n")}` },
     }
     function workspaceFolderPathFor(uri) {
       if (!uri) return void 0;
-      const folder = vscode10.workspace.getWorkspaceFolder(uri);
+      const folder = vscode11.workspace.getWorkspaceFolder(uri);
       return folder?.uri.fsPath;
     }
     async function selectWorkspaceFolderPath() {
-      const folders = vscode10.workspace.workspaceFolders || [];
+      const folders = vscode11.workspace.workspaceFolders || [];
       if (!folders.length) return void 0;
       if (folders.length === 1) return folders[0].uri.fsPath;
-      const selected = await vscode10.window.showWorkspaceFolderPick({ placeHolder: "Select VS Code workspace folder for Renovatio analysis" });
+      const selected = await vscode11.window.showWorkspaceFolderPick({ placeHolder: "Select VS Code workspace folder for Renovatio analysis" });
       return selected?.uri.fsPath;
     }
     function workspaceSettings(project, workspaceRoot) {
-      const folderPath = workspaceRoot || workspaceFolderForProject(project)?.uri.fsPath || vscode10.workspace.workspaceFolders?.[0]?.uri.fsPath || project?.workspacePath;
+      const folderPath = workspaceRoot || workspaceFolderForProject(project)?.uri.fsPath || vscode11.workspace.workspaceFolders?.[0]?.uri.fsPath || project?.workspacePath;
       const cfg = workspaceConfiguration(folderPath);
       const remembered = rememberedWorkspace(project);
       const targetLanguage = String(cfg.get("targetLanguage") || "java");
@@ -979,7 +979,7 @@ ${knownRoots.join("\n")}` },
       return `Configured future output overlaps a COBOL source root: ${conflict}`;
     }
     function workspaceFolderForProject(project) {
-      const folders = vscode10.workspace.workspaceFolders || [];
+      const folders = vscode11.workspace.workspaceFolders || [];
       if (!project) return folders[0];
       return folders.find((folder) => projectMatchesFolder(project, folder.uri.fsPath)) || folders[0];
     }
@@ -1001,49 +1001,49 @@ ${knownRoots.join("\n")}` },
     async function updateWorkspaceSetting(key, value2, workspaceRoot, options = {}) {
       const cfg = workspaceConfiguration(workspaceRoot);
       const folder = workspaceRoot ? workspaceFolderForPath(workspaceRoot) : void 0;
-      if (options.target === "workspace" && vscode10.workspace.workspaceFolders?.length) {
-        await cfg.update(key, value2, vscode10.ConfigurationTarget.Workspace);
+      if (options.target === "workspace" && vscode11.workspace.workspaceFolders?.length) {
+        await cfg.update(key, value2, vscode11.ConfigurationTarget.Workspace);
         return true;
       }
       if (folder) {
-        await cfg.update(key, value2, vscode10.ConfigurationTarget.WorkspaceFolder);
+        await cfg.update(key, value2, vscode11.ConfigurationTarget.WorkspaceFolder);
         return true;
       }
-      if (vscode10.workspace.workspaceFolders?.length) {
-        await cfg.update(key, value2, vscode10.ConfigurationTarget.Workspace);
+      if (vscode11.workspace.workspaceFolders?.length) {
+        await cfg.update(key, value2, vscode11.ConfigurationTarget.Workspace);
         return true;
       }
       if (options.optional) {
         output.appendLine(`Skipped writing renovatio.${key}; no VS Code workspace is open.`);
         return false;
       }
-      const action2 = await vscode10.window.showWarningMessage(
+      const action2 = await vscode11.window.showWarningMessage(
         `Unable to save renovatio.${key} because no VS Code workspace is open.`,
         "Open Folder",
         "Save Globally",
         "Cancel"
       );
       if (action2 === "Open Folder" && workspaceRoot) {
-        vscode10.workspace.updateWorkspaceFolders(0, 0, { uri: vscode10.Uri.file(workspaceRoot), name: path.basename(workspaceRoot) || "Renovatio" });
+        vscode11.workspace.updateWorkspaceFolders(0, 0, { uri: vscode11.Uri.file(workspaceRoot), name: path.basename(workspaceRoot) || "Renovatio" });
         return false;
       }
       if (action2 === "Save Globally") {
-        await cfg.update(key, value2, vscode10.ConfigurationTarget.Global);
+        await cfg.update(key, value2, vscode11.ConfigurationTarget.Global);
         return true;
       }
       return false;
     }
     function workspaceConfiguration(folderPath) {
-      if (!folderPath) return vscode10.workspace.getConfiguration("renovatio");
-      return vscode10.workspace.getConfiguration("renovatio", vscode10.Uri.file(folderPath));
+      if (!folderPath) return vscode11.workspace.getConfiguration("renovatio");
+      return vscode11.workspace.getConfiguration("renovatio", vscode11.Uri.file(folderPath));
     }
     function workspaceFolderForPath(folderPath) {
       if (!folderPath) return void 0;
-      const folders = vscode10.workspace.workspaceFolders || [];
+      const folders = vscode11.workspace.workspaceFolders || [];
       return folders.find((folder) => samePath(folder.uri.fsPath, folderPath) || isInsidePath(folderPath, folder.uri.fsPath));
     }
     async function pickCobolSourceRoot(roots) {
-      const selected = await vscode10.window.showQuickPick(roots.map((root) => ({
+      const selected = await vscode11.window.showQuickPick(roots.map((root) => ({
         label: path.basename(root) || root,
         description: root,
         root
@@ -1052,11 +1052,11 @@ ${knownRoots.join("\n")}` },
     }
     async function directoryUriFor(uri) {
       try {
-        const stat = await vscode10.workspace.fs.stat(uri);
-        if (stat.type === vscode10.FileType.Directory) return uri;
+        const stat = await vscode11.workspace.fs.stat(uri);
+        if (stat.type === vscode11.FileType.Directory) return uri;
       } catch {
       }
-      return vscode10.Uri.file(path.dirname(uri.fsPath));
+      return vscode11.Uri.file(path.dirname(uri.fsPath));
     }
     function uniqueStrings2(values) {
       const seen = /* @__PURE__ */ new Set();
@@ -1112,12 +1112,12 @@ ${knownRoots.join("\n")}` },
     }
     async function openControlDeck() {
       if (!controlDeckPanel) {
-        controlDeckPanel = vscode10.window.createWebviewPanel("renovatioControlDeck", "Renovatio Control Deck", vscode10.ViewColumn.One, { enableCommandUris: true });
+        controlDeckPanel = vscode11.window.createWebviewPanel("renovatioControlDeck", "Renovatio Control Deck", vscode11.ViewColumn.One, { enableCommandUris: true });
         controlDeckPanel.onDidDispose(() => {
           controlDeckPanel = void 0;
         });
       }
-      controlDeckPanel.reveal(vscode10.ViewColumn.One);
+      controlDeckPanel.reveal(vscode11.ViewColumn.One);
       const project = state.projects.find((candidate) => candidate.id === state.activeProjectId);
       const inventory = workbenchInventory(state.analysis, state.latestJob);
       const domainModel = state.domainModel?.model || {};
@@ -1140,12 +1140,12 @@ ${knownRoots.join("\n")}` },
     }
     async function openProjectPanel(project) {
       if (!projectPanel) {
-        projectPanel = vscode10.window.createWebviewPanel("renovatioProject", "Renovatio Project", vscode10.ViewColumn.One, { enableCommandUris: true });
+        projectPanel = vscode11.window.createWebviewPanel("renovatioProject", "Renovatio Project", vscode11.ViewColumn.One, { enableCommandUris: true });
         projectPanel.onDidDispose(() => {
           projectPanel = void 0;
         });
       }
-      projectPanel.reveal(vscode10.ViewColumn.One);
+      projectPanel.reveal(vscode11.ViewColumn.One);
       const inventory = workbenchInventory(state.analysis, state.latestJob);
       const generated = await loadGeneratedArtifacts(project);
       projectPanel.webview.html = renderPanel(project.name, project, `
@@ -1163,12 +1163,12 @@ ${knownRoots.join("\n")}` },
     }
     async function openAnalysisPanel(scanRoot) {
       if (!analysisPanel) {
-        analysisPanel = vscode10.window.createWebviewPanel("renovatioAnalysis", "Renovatio Discovery", vscode10.ViewColumn.One, { enableCommandUris: true });
+        analysisPanel = vscode11.window.createWebviewPanel("renovatioAnalysis", "Renovatio Discovery", vscode11.ViewColumn.One, { enableCommandUris: true });
         analysisPanel.onDidDispose(() => {
           analysisPanel = void 0;
         });
       }
-      analysisPanel.reveal(vscode10.ViewColumn.One);
+      analysisPanel.reveal(vscode11.ViewColumn.One);
       const project = state.projects.find((candidate) => candidate.id === state.activeProjectId);
       const inventory = workbenchInventory(state.analysis, state.latestJob);
       const job = state.latestJob;
@@ -1191,12 +1191,12 @@ ${knownRoots.join("\n")}` },
       if (!project) return;
       await refreshDomainModel();
       if (!domainModelPanel) {
-        domainModelPanel = vscode10.window.createWebviewPanel("renovatioDomainModel", "Renovatio Domain Model", vscode10.ViewColumn.One, { enableCommandUris: true, enableScripts: true });
+        domainModelPanel = vscode11.window.createWebviewPanel("renovatioDomainModel", "Renovatio Domain Model", vscode11.ViewColumn.One, { enableCommandUris: true, enableScripts: true });
         domainModelPanel.onDidDispose(() => {
           domainModelPanel = void 0;
         });
       }
-      domainModelPanel.reveal(vscode10.ViewColumn.One);
+      domainModelPanel.reveal(vscode11.ViewColumn.One);
       const domain = state.domainModel;
       domainModelPanel.webview.html = renderPanel("Domain Model", project, `
     ${renderHero(project, "Domain Model", "Versioned business model projected from COBOL discovery evidence.")}
@@ -1241,14 +1241,14 @@ ${knownRoots.join("\n")}` },
       } catch (error) {
         const detail = message7(error);
         output.appendLine(`Native ${kind} diagram failed: ${detail}`);
-        vscode10.window.showErrorMessage(`Renovatio native ${kind} diagram failed: ${detail}`);
+        vscode11.window.showErrorMessage(`Renovatio native ${kind} diagram failed: ${detail}`);
       }
     }
     async function openNativeDiagramArtifact(artifact, viewType, label) {
       output.appendLine(`Opened ${label}: ${artifact.uri.fsPath}`);
-      await vscode10.commands.executeCommand("vscode.openWith", artifact.uri, viewType, {
+      await vscode11.commands.executeCommand("vscode.openWith", artifact.uri, viewType, {
         preview: false,
-        viewColumn: vscode10.ViewColumn.One
+        viewColumn: vscode11.ViewColumn.One
       });
     }
     async function openPersistenceModel() {
@@ -1256,12 +1256,12 @@ ${knownRoots.join("\n")}` },
       if (!project) return;
       await refreshDomainModel();
       if (!persistencePanel) {
-        persistencePanel = vscode10.window.createWebviewPanel("renovatioPersistenceModel", "Renovatio Persistence Model", vscode10.ViewColumn.One, { enableCommandUris: true, enableScripts: true });
+        persistencePanel = vscode11.window.createWebviewPanel("renovatioPersistenceModel", "Renovatio Persistence Model", vscode11.ViewColumn.One, { enableCommandUris: true, enableScripts: true });
         persistencePanel.onDidDispose(() => {
           persistencePanel = void 0;
         });
       }
-      persistencePanel.reveal(vscode10.ViewColumn.One);
+      persistencePanel.reveal(vscode11.ViewColumn.One);
       const domain = state.domainModel;
       persistencePanel.webview.html = renderPanel("Persistence Model", project, `
     ${renderHero(project, "Inferred Persistence", "ER-style table and file model inferred from COBOL I/O, DB2 access and record evidence.")}
@@ -1281,12 +1281,12 @@ ${knownRoots.join("\n")}` },
       if (options.once && welcomeOpenedThisSession) return;
       welcomeOpenedThisSession = true;
       if (!welcomePanel) {
-        welcomePanel = vscode10.window.createWebviewPanel("renovatioWelcome", "Welcome", vscode10.ViewColumn.One, { enableCommandUris: true });
+        welcomePanel = vscode11.window.createWebviewPanel("renovatioWelcome", "Welcome", vscode11.ViewColumn.One, { enableCommandUris: true });
         welcomePanel.onDidDispose(() => {
           welcomePanel = void 0;
         });
       }
-      welcomePanel.reveal(vscode10.ViewColumn.One);
+      welcomePanel.reveal(vscode11.ViewColumn.One);
       const project = state.projects.find((candidate) => candidate.id === state.activeProjectId);
       welcomePanel.webview.html = renderPanel("Welcome", project, renderWelcome(project));
     }
@@ -2772,15 +2772,15 @@ ${knownRoots.join("\n")}` },
       const next = nativeDomainDocument(domain);
       preserveDiagramLayout(next, previous);
       const text = JSON.stringify(next, null, 2) + "\n";
-      const openDoc = vscode10.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString());
+      const openDoc = vscode11.workspace.textDocuments.find((d) => d.uri.toString() === uri.toString());
       if (openDoc) {
-        const edit = new vscode10.WorkspaceEdit();
-        const fullRange = new vscode10.Range(0, 0, openDoc.lineCount, 0);
+        const edit = new vscode11.WorkspaceEdit();
+        const fullRange = new vscode11.Range(0, 0, openDoc.lineCount, 0);
         edit.replace(uri, fullRange, text);
-        await vscode10.workspace.applyEdit(edit);
+        await vscode11.workspace.applyEdit(edit);
         await openDoc.save();
       } else {
-        await vscode10.workspace.fs.writeFile(uri, Buffer.from(text, "utf8"));
+        await vscode11.workspace.fs.writeFile(uri, Buffer.from(text, "utf8"));
       }
       return { uri };
     }
@@ -2789,7 +2789,7 @@ ${knownRoots.join("\n")}` },
       const previous = await readJsonArtifact(uri);
       const next = nativePersistenceDocument(project, domain);
       preserveDiagramLayout(next, previous);
-      await vscode10.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(next, null, 2) + "\n", "utf8"));
+      await vscode11.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(next, null, 2) + "\n", "utf8"));
       return { uri };
     }
     async function writeNativeArchitectureDiagramArtifact(project, domain) {
@@ -2797,14 +2797,14 @@ ${knownRoots.join("\n")}` },
       const previous = await readJsonArtifact(uri);
       const next = nativeArchitectureDocument(project, domain);
       preserveArchitectureLayout(next, previous);
-      await vscode10.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(next, null, 2) + "\n", "utf8"));
+      await vscode11.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(next, null, 2) + "\n", "utf8"));
       return { uri };
     }
     async function nativeDiagramUri(project, suffix) {
       const rootPath = workspaceSettings(project).workspaceFolderPath || project?.workspacePath || extensionContext.globalStorageUri.fsPath;
-      const diagramsDir = vscode10.Uri.joinPath(vscode10.Uri.file(rootPath), ".renovatio", "diagrams");
-      await vscode10.workspace.fs.createDirectory(diagramsDir);
-      return vscode10.Uri.joinPath(diagramsDir, `${sanitizeFileName(project?.name || "renovatio")}-${suffix}`);
+      const diagramsDir = vscode11.Uri.joinPath(vscode11.Uri.file(rootPath), ".renovatio", "diagrams");
+      await vscode11.workspace.fs.createDirectory(diagramsDir);
+      return vscode11.Uri.joinPath(diagramsDir, `${sanitizeFileName(project?.name || "renovatio")}-${suffix}`);
     }
     function nativeDomainDocument(domain) {
       const discovery = domainDiscovery(domain);
@@ -2922,7 +2922,7 @@ ${knownRoots.join("\n")}` },
     }
     async function readJsonArtifact(uri) {
       try {
-        const bytes = await vscode10.workspace.fs.readFile(uri);
+        const bytes = await vscode11.workspace.fs.readFile(uri);
         return JSON.parse(Buffer.from(bytes).toString("utf8"));
       } catch (error) {
         return void 0;
@@ -3799,10 +3799,10 @@ ${knownRoots.join("\n")}` },
       const root = settings.generatedRoot;
       if (!root) return { root: "", exists: false, files: [] };
       const configurationWarning = settings.generatedRootWarning ? `${settings.generatedRootWarning}. Using ${settings.generatedRoot} instead.` : "";
-      const rootUri = vscode10.Uri.file(root);
+      const rootUri = vscode11.Uri.file(root);
       try {
-        const stat = await vscode10.workspace.fs.stat(rootUri);
-        if (stat.type !== vscode10.FileType.Directory) return { root, exists: false, files: [], notice: configurationWarning };
+        const stat = await vscode11.workspace.fs.stat(rootUri);
+        if (stat.type !== vscode11.FileType.Directory) return { root, exists: false, files: [], notice: configurationWarning };
       } catch {
         return { root, exists: false, files: [], notice: configurationWarning };
       }
@@ -3828,10 +3828,10 @@ ${knownRoots.join("\n")}` },
     }
     async function loadCobolArtifacts(root) {
       if (!root) return { root: "", exists: false, files: [] };
-      const rootUri = vscode10.Uri.file(root);
+      const rootUri = vscode11.Uri.file(root);
       try {
-        const stat = await vscode10.workspace.fs.stat(rootUri);
-        if (stat.type !== vscode10.FileType.Directory) return { root, exists: false, files: [] };
+        const stat = await vscode11.workspace.fs.stat(rootUri);
+        if (stat.type !== vscode11.FileType.Directory) return { root, exists: false, files: [] };
       } catch {
         return { root, exists: false, files: [] };
       }
@@ -3851,18 +3851,18 @@ ${knownRoots.join("\n")}` },
       if (depth > 6 || files.length >= 16) return;
       let entries = [];
       try {
-        entries = await vscode10.workspace.fs.readDirectory(uri);
+        entries = await vscode11.workspace.fs.readDirectory(uri);
       } catch {
         return;
       }
       entries.sort(([leftName, leftType], [rightName, rightType]) => {
-        if (leftType !== rightType) return leftType === vscode10.FileType.Directory ? -1 : 1;
+        if (leftType !== rightType) return leftType === vscode11.FileType.Directory ? -1 : 1;
         return leftName.localeCompare(rightName);
       });
       for (const [name, type] of entries) {
         if (files.length >= 16) break;
-        const child = vscode10.Uri.joinPath(uri, name);
-        if (type === vscode10.FileType.Directory) {
+        const child = vscode11.Uri.joinPath(uri, name);
+        if (type === vscode11.FileType.Directory) {
           if (!shouldSkipPreviewDirectory(name)) {
             await collectGeneratedFiles(child, root, files, depth + 1);
           }
@@ -3875,18 +3875,18 @@ ${knownRoots.join("\n")}` },
       if (depth > 6 || files.length >= 20) return;
       let entries = [];
       try {
-        entries = await vscode10.workspace.fs.readDirectory(uri);
+        entries = await vscode11.workspace.fs.readDirectory(uri);
       } catch {
         return;
       }
       entries.sort(([leftName, leftType], [rightName, rightType]) => {
-        if (leftType !== rightType) return leftType === vscode10.FileType.Directory ? -1 : 1;
+        if (leftType !== rightType) return leftType === vscode11.FileType.Directory ? -1 : 1;
         return leftName.localeCompare(rightName);
       });
       for (const [name, type] of entries) {
         if (files.length >= 20) break;
-        const child = vscode10.Uri.joinPath(uri, name);
-        if (type === vscode10.FileType.Directory) {
+        const child = vscode11.Uri.joinPath(uri, name);
+        if (type === vscode11.FileType.Directory) {
           if (!shouldSkipPreviewDirectory(name)) {
             await collectCobolFiles(child, root, files, depth + 1);
           }
@@ -3899,13 +3899,13 @@ ${knownRoots.join("\n")}` },
       if (depth > 8) return false;
       let entries = [];
       try {
-        entries = await vscode10.workspace.fs.readDirectory(uri);
+        entries = await vscode11.workspace.fs.readDirectory(uri);
       } catch {
         return false;
       }
       for (const [name, type] of entries) {
-        if (type === vscode10.FileType.Directory) {
-          if (!shouldSkipPreviewDirectory(name) && await containsCobolArtifacts(vscode10.Uri.joinPath(uri, name), depth + 1)) {
+        if (type === vscode11.FileType.Directory) {
+          if (!shouldSkipPreviewDirectory(name) && await containsCobolArtifacts(vscode11.Uri.joinPath(uri, name), depth + 1)) {
             return true;
           }
         } else if (isCobolArtifact(name)) {
@@ -3970,7 +3970,7 @@ COBOL roots: ${settings.configuredCobolRoots.length ? settings.configuredCobolRo
     }
     var ProjectsProvider = class {
       constructor() {
-        this._onDidChangeTreeData = new vscode10.EventEmitter();
+        this._onDidChangeTreeData = new vscode11.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
       }
       refresh() {
@@ -3983,67 +3983,67 @@ COBOL roots: ${settings.configuredCobolRoots.length ? settings.configuredCobolRo
         if (item?.children) return item.children;
         const project = state.projects.find((candidate) => candidate.id === state.activeProjectId);
         if (!project) {
-          const create = new vscode10.TreeItem("Create Renovatio project", vscode10.TreeItemCollapsibleState.None);
+          const create = new vscode11.TreeItem("Create Renovatio project", vscode11.TreeItemCollapsibleState.None);
           create.description = "from COBOL source root";
-          create.iconPath = new vscode10.ThemeIcon("new-folder");
+          create.iconPath = new vscode11.ThemeIcon("new-folder");
           create.command = { command: "renovatio.createProject", title: "Create Renovatio Project" };
-          const select = new vscode10.TreeItem("Select Renovatio project", vscode10.TreeItemCollapsibleState.None);
-          select.iconPath = new vscode10.ThemeIcon("folder-active");
+          const select = new vscode11.TreeItem("Select Renovatio project", vscode11.TreeItemCollapsibleState.None);
+          select.iconPath = new vscode11.ThemeIcon("folder-active");
           select.command = { command: "renovatio.selectProject", title: "Select Renovatio Project" };
           return [create, select];
         }
         const settings = workspaceSettings(project);
-        const workspace10 = new vscode10.TreeItem(path.basename(settings.workspaceFolderPath || project.workspacePath || "Workspace"), vscode10.TreeItemCollapsibleState.None);
-        workspace10.description = settings.workspaceFolderPath || project.workspacePath || "";
-        workspace10.iconPath = new vscode10.ThemeIcon("root-folder");
-        workspace10.tooltip = settings.workspaceFolderPath || project.workspacePath || "VS Code workspace";
-        const switchProject = new vscode10.TreeItem("Switch project...", vscode10.TreeItemCollapsibleState.None);
+        const workspace11 = new vscode11.TreeItem(path.basename(settings.workspaceFolderPath || project.workspacePath || "Workspace"), vscode11.TreeItemCollapsibleState.None);
+        workspace11.description = settings.workspaceFolderPath || project.workspacePath || "";
+        workspace11.iconPath = new vscode11.ThemeIcon("root-folder");
+        workspace11.tooltip = settings.workspaceFolderPath || project.workspacePath || "VS Code workspace";
+        const switchProject = new vscode11.TreeItem("Switch project...", vscode11.TreeItemCollapsibleState.None);
         switchProject.description = `${state.projects.length} available`;
-        switchProject.iconPath = new vscode10.ThemeIcon("folder-active");
+        switchProject.iconPath = new vscode11.ThemeIcon("folder-active");
         switchProject.tooltip = "Choose a different Renovatio project";
         switchProject.command = { command: "renovatio.selectProject", title: "Select Renovatio Project" };
-        const projectItem = new vscode10.TreeItem(project.name, vscode10.TreeItemCollapsibleState.None);
+        const projectItem = new vscode11.TreeItem(project.name, vscode11.TreeItemCollapsibleState.None);
         projectItem.description = "Active project";
         projectItem.contextValue = "renovatioProject";
-        projectItem.iconPath = new vscode10.ThemeIcon("repo");
+        projectItem.iconPath = new vscode11.ThemeIcon("repo");
         projectItem.tooltip = 'The currently active Renovatio project \u2014 use "Switch project..." above to change it';
         const sourceRootItems = settings.configuredCobolRoots.map((root) => {
-          const rootItem = new vscode10.TreeItem(path.basename(root) || root, vscode10.TreeItemCollapsibleState.None);
+          const rootItem = new vscode11.TreeItem(path.basename(root) || root, vscode11.TreeItemCollapsibleState.None);
           rootItem.description = root;
-          rootItem.iconPath = new vscode10.ThemeIcon("folder");
+          rootItem.iconPath = new vscode11.ThemeIcon("folder");
           rootItem.tooltip = `Analyze COBOL source root
 ${root}`;
-          rootItem.command = { command: "renovatio.analyzeSelectedPath", title: "Analyze COBOL Source Root", arguments: [vscode10.Uri.file(root)] };
+          rootItem.command = { command: "renovatio.analyzeSelectedPath", title: "Analyze COBOL Source Root", arguments: [vscode11.Uri.file(root)] };
           return rootItem;
         });
-        const addRoot = new vscode10.TreeItem("Add COBOL source root", vscode10.TreeItemCollapsibleState.None);
-        addRoot.iconPath = new vscode10.ThemeIcon("add");
+        const addRoot = new vscode11.TreeItem("Add COBOL source root", vscode11.TreeItemCollapsibleState.None);
+        addRoot.iconPath = new vscode11.ThemeIcon("add");
         addRoot.command = { command: "renovatio.addCobolSourceRoot", title: "Add COBOL Source Root" };
         sourceRootItems.push(addRoot);
         if (settings.rawCobolRoots.length) {
-          const removeRoot = new vscode10.TreeItem("Remove COBOL source root", vscode10.TreeItemCollapsibleState.None);
-          removeRoot.iconPath = new vscode10.ThemeIcon("remove");
+          const removeRoot = new vscode11.TreeItem("Remove COBOL source root", vscode11.TreeItemCollapsibleState.None);
+          removeRoot.iconPath = new vscode11.ThemeIcon("remove");
           removeRoot.command = { command: "renovatio.removeCobolSourceRoot", title: "Remove COBOL Source Root" };
           sourceRootItems.push(removeRoot);
         }
         const sourcesLabel = settings.configuredCobolRoots.length ? `COBOL source roots (${settings.configuredCobolRoots.length})` : "COBOL source roots (workspace fallback)";
-        const sources = new vscode10.TreeItem(sourcesLabel, vscode10.TreeItemCollapsibleState.Expanded);
-        sources.iconPath = new vscode10.ThemeIcon("references");
+        const sources = new vscode11.TreeItem(sourcesLabel, vscode11.TreeItemCollapsibleState.Expanded);
+        sources.iconPath = new vscode11.ThemeIcon("references");
         sources.children = sourceRootItems;
-        const generated = new vscode10.TreeItem(path.basename(settings.generatedRoot || "Future output"), vscode10.TreeItemCollapsibleState.None);
+        const generated = new vscode11.TreeItem(path.basename(settings.generatedRoot || "Future output"), vscode11.TreeItemCollapsibleState.None);
         generated.description = settings.generatedRoot;
-        generated.iconPath = new vscode10.ThemeIcon("file-code");
+        generated.iconPath = new vscode11.ThemeIcon("file-code");
         generated.tooltip = settings.generatedRoot;
         generated.command = { command: "renovatio.selectGeneratedOutputFolder", title: "Configure Future Output Folder" };
-        const target = new vscode10.TreeItem(`${settings.targetLanguage}`, vscode10.TreeItemCollapsibleState.None);
+        const target = new vscode11.TreeItem(`${settings.targetLanguage}`, vscode11.TreeItemCollapsibleState.None);
         target.description = settings.targetPackage;
-        target.iconPath = new vscode10.ThemeIcon("symbol-namespace");
-        return [switchProject, projectItem, workspace10, sources, generated, target];
+        target.iconPath = new vscode11.ThemeIcon("symbol-namespace");
+        return [switchProject, projectItem, workspace11, sources, generated, target];
       }
     };
     var AnalysisProvider = class {
       constructor() {
-        this._onDidChangeTreeData = new vscode10.EventEmitter();
+        this._onDidChangeTreeData = new vscode11.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
       }
       refresh() {
@@ -4059,15 +4059,15 @@ ${root}`;
         const discovery = domainDiscovery(state.domainModel);
         const result = [];
         if (discovery.repositories.length) {
-          const group = new vscode10.TreeItem(`Inferred persistence (${discovery.repositories.length})`, vscode10.TreeItemCollapsibleState.Expanded);
-          group.iconPath = new vscode10.ThemeIcon("database");
+          const group = new vscode11.TreeItem(`Inferred persistence (${discovery.repositories.length})`, vscode11.TreeItemCollapsibleState.Expanded);
+          group.iconPath = new vscode11.ThemeIcon("database");
           group.command = { command: "renovatio.openPersistenceModel", title: "Open Persistence Model" };
           group.children = discovery.repositories.slice(0, 12).map((repository) => {
-            const item2 = new vscode10.TreeItem(repository.name || repository.id, vscode10.TreeItemCollapsibleState.None);
+            const item2 = new vscode11.TreeItem(repository.name || repository.id, vscode11.TreeItemCollapsibleState.None);
             item2.description = `${repository.properties.length} fields`;
             item2.tooltip = `${repository.name || repository.id}
 ${repository.properties.map((property) => property.name).slice(0, 12).join(", ")}`;
-            item2.iconPath = new vscode10.ThemeIcon(persistenceKind(repository) === "DB2 table" ? "database" : "file-binary");
+            item2.iconPath = new vscode11.ThemeIcon(persistenceKind(repository) === "DB2 table" ? "database" : "file-binary");
             item2.command = { command: "renovatio.openPersistenceModel", title: "Open Persistence Model" };
             return item2;
           });
@@ -4075,33 +4075,33 @@ ${repository.properties.map((property) => property.name).slice(0, 12).join(", ")
         }
         const shapedRecords = discovery.recordNodes.filter((node) => asArray(node.properties).length);
         if (shapedRecords.length) {
-          const group = new vscode10.TreeItem(`Data records (${shapedRecords.length})`, vscode10.TreeItemCollapsibleState.Collapsed);
-          group.iconPath = new vscode10.ThemeIcon("symbol-structure");
+          const group = new vscode11.TreeItem(`Data records (${shapedRecords.length})`, vscode11.TreeItemCollapsibleState.Collapsed);
+          group.iconPath = new vscode11.ThemeIcon("symbol-structure");
           group.command = { command: "renovatio.openDomainModel", title: "Open Domain Model" };
           group.children = shapedRecords.slice(0, 12).map((record) => {
-            const item2 = new vscode10.TreeItem(record.name || record.id, vscode10.TreeItemCollapsibleState.None);
+            const item2 = new vscode11.TreeItem(record.name || record.id, vscode11.TreeItemCollapsibleState.None);
             item2.description = `${asArray(record.properties).length} fields`;
             item2.tooltip = `${record.name || record.id}
 ${asArray(record.properties).map((property) => property.name).slice(0, 12).join(", ")}`;
-            item2.iconPath = new vscode10.ThemeIcon("symbol-field");
+            item2.iconPath = new vscode11.ThemeIcon("symbol-field");
             item2.command = { command: "renovatio.openDomainModel", title: "Open Domain Model" };
             return item2;
           });
           result.push(group);
         }
         if (entries.length) {
-          const group = new vscode10.TreeItem(`Parsed inventory (${parsedFileCount(inventory)})`, vscode10.TreeItemCollapsibleState.Collapsed);
-          group.iconPath = new vscode10.ThemeIcon("list-tree");
+          const group = new vscode11.TreeItem(`Parsed inventory (${parsedFileCount(inventory)})`, vscode11.TreeItemCollapsibleState.Collapsed);
+          group.iconPath = new vscode11.ThemeIcon("list-tree");
           group.children = entries.map(([key, value2]) => {
-            const item2 = new vscode10.TreeItem(`${humanize(key)}: ${value2}`, vscode10.TreeItemCollapsibleState.None);
-            item2.iconPath = new vscode10.ThemeIcon(key.toLowerCase().includes("jcl") ? "terminal" : "symbol-file");
+            const item2 = new vscode11.TreeItem(`${humanize(key)}: ${value2}`, vscode11.TreeItemCollapsibleState.None);
+            item2.iconPath = new vscode11.ThemeIcon(key.toLowerCase().includes("jcl") ? "terminal" : "symbol-file");
             return item2;
           });
           result.push(group);
         }
         if (!result.length) {
-          const item2 = new vscode10.TreeItem("No analysis loaded", vscode10.TreeItemCollapsibleState.None);
-          item2.iconPath = new vscode10.ThemeIcon("warning");
+          const item2 = new vscode11.TreeItem("No analysis loaded", vscode11.TreeItemCollapsibleState.None);
+          item2.iconPath = new vscode11.ThemeIcon("warning");
           item2.command = { command: "renovatio.analyzeCobolSources", title: "Analyze COBOL Sources" };
           return [item2];
         }
@@ -4110,7 +4110,7 @@ ${asArray(record.properties).map((property) => property.name).slice(0, 12).join(
     };
     var DomainModelProvider = class {
       constructor() {
-        this._onDidChangeTreeData = new vscode10.EventEmitter();
+        this._onDidChangeTreeData = new vscode11.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
       }
       refresh() {
@@ -4123,15 +4123,15 @@ ${asArray(record.properties).map((property) => property.name).slice(0, 12).join(
         if (item?.children) return item.children;
         const project = state.projects.find((candidate) => candidate.id === state.activeProjectId);
         if (!project) {
-          const select = new vscode10.TreeItem("Select Renovatio project", vscode10.TreeItemCollapsibleState.None);
-          select.iconPath = new vscode10.ThemeIcon("folder-active");
+          const select = new vscode11.TreeItem("Select Renovatio project", vscode11.TreeItemCollapsibleState.None);
+          select.iconPath = new vscode11.ThemeIcon("folder-active");
           select.command = { command: "renovatio.selectProject", title: "Select Renovatio Project" };
           return [select];
         }
         const domain = state.domainModel;
         if (!domain) {
-          const refreshItem = new vscode10.TreeItem("Domain model not loaded", vscode10.TreeItemCollapsibleState.None);
-          refreshItem.iconPath = new vscode10.ThemeIcon("refresh");
+          const refreshItem = new vscode11.TreeItem("Domain model not loaded", vscode11.TreeItemCollapsibleState.None);
+          refreshItem.iconPath = new vscode11.ThemeIcon("refresh");
           refreshItem.command = { command: "renovatio.refresh", title: "Refresh Renovatio" };
           return [refreshItem];
         }
@@ -4141,53 +4141,53 @@ ${asArray(record.properties).map((property) => property.name).slice(0, 12).join(
         const invariants = asArray(model.invariants);
         const suggestions = asArray(domain.suggestions);
         if (!nodes.length && !relations.length && !invariants.length) {
-          const analyze = new vscode10.TreeItem("No DomainModel persisted yet", vscode10.TreeItemCollapsibleState.None);
+          const analyze = new vscode11.TreeItem("No DomainModel persisted yet", vscode11.TreeItemCollapsibleState.None);
           analyze.description = "run discovery";
-          analyze.iconPath = new vscode10.ThemeIcon("symbol-structure");
+          analyze.iconPath = new vscode11.ThemeIcon("symbol-structure");
           analyze.command = { command: "renovatio.analyzeCobolSources", title: "Analyze COBOL Sources" };
           return [analyze];
         }
-        const root = new vscode10.TreeItem(`Revision ${domain.revision || 0}`, vscode10.TreeItemCollapsibleState.None);
+        const root = new vscode11.TreeItem(`Revision ${domain.revision || 0}`, vscode11.TreeItemCollapsibleState.None);
         root.description = `${nodes.length} nodes \xB7 ${relations.length} relations`;
-        root.iconPath = new vscode10.ThemeIcon("repo");
+        root.iconPath = new vscode11.ThemeIcon("repo");
         root.command = { command: "renovatio.openDomainModel", title: "Open Domain Model" };
-        const nodeGroup = new vscode10.TreeItem(`Nodes (${nodes.length})`, vscode10.TreeItemCollapsibleState.Expanded);
-        nodeGroup.iconPath = new vscode10.ThemeIcon("symbol-class");
+        const nodeGroup = new vscode11.TreeItem(`Nodes (${nodes.length})`, vscode11.TreeItemCollapsibleState.Expanded);
+        nodeGroup.iconPath = new vscode11.ThemeIcon("symbol-class");
         nodeGroup.children = nodes.map((node) => {
-          const child = new vscode10.TreeItem(node.name || node.id, vscode10.TreeItemCollapsibleState.None);
+          const child = new vscode11.TreeItem(node.name || node.id, vscode11.TreeItemCollapsibleState.None);
           child.description = node.kind || "";
           child.tooltip = `${node.id}
 ${Math.round(Number(node.confidence || 0) * 100)}% confidence`;
-          child.iconPath = new vscode10.ThemeIcon(domainIconForKind(node.kind));
+          child.iconPath = new vscode11.ThemeIcon(domainIconForKind(node.kind));
           child.command = { command: "renovatio.openDomainModel", title: "Open Domain Model" };
           return child;
         });
-        const relationGroup = new vscode10.TreeItem(`Relations (${relations.length})`, vscode10.TreeItemCollapsibleState.Collapsed);
-        relationGroup.iconPath = new vscode10.ThemeIcon("references");
+        const relationGroup = new vscode11.TreeItem(`Relations (${relations.length})`, vscode11.TreeItemCollapsibleState.Collapsed);
+        relationGroup.iconPath = new vscode11.ThemeIcon("references");
         relationGroup.children = relations.map((relation) => {
-          const child = new vscode10.TreeItem(relation.kind || "relation", vscode10.TreeItemCollapsibleState.None);
+          const child = new vscode11.TreeItem(relation.kind || "relation", vscode11.TreeItemCollapsibleState.None);
           child.description = `${relation.fromId} -> ${relation.toId}`;
-          child.iconPath = new vscode10.ThemeIcon("arrow-right");
+          child.iconPath = new vscode11.ThemeIcon("arrow-right");
           child.command = { command: "renovatio.openDomainModel", title: "Open Domain Model" };
           return child;
         });
-        const invariantGroup = new vscode10.TreeItem(`Invariants (${invariants.length})`, vscode10.TreeItemCollapsibleState.Collapsed);
-        invariantGroup.iconPath = new vscode10.ThemeIcon("shield");
+        const invariantGroup = new vscode11.TreeItem(`Invariants (${invariants.length})`, vscode11.TreeItemCollapsibleState.Collapsed);
+        invariantGroup.iconPath = new vscode11.ThemeIcon("shield");
         invariantGroup.children = invariants.map((invariant) => {
-          const child = new vscode10.TreeItem(invariant.expression || invariant.id, vscode10.TreeItemCollapsibleState.None);
+          const child = new vscode11.TreeItem(invariant.expression || invariant.id, vscode11.TreeItemCollapsibleState.None);
           child.description = invariant.subjectId || "";
-          child.iconPath = new vscode10.ThemeIcon("symbol-boolean");
+          child.iconPath = new vscode11.ThemeIcon("symbol-boolean");
           child.command = { command: "renovatio.openDomainModel", title: "Open Domain Model" };
           return child;
         });
         const result = [root, nodeGroup, relationGroup, invariantGroup];
         if (suggestions.length) {
-          const suggestionGroup = new vscode10.TreeItem(`Suggestions (${suggestions.length})`, vscode10.TreeItemCollapsibleState.Collapsed);
-          suggestionGroup.iconPath = new vscode10.ThemeIcon("sparkle");
+          const suggestionGroup = new vscode11.TreeItem(`Suggestions (${suggestions.length})`, vscode11.TreeItemCollapsibleState.Collapsed);
+          suggestionGroup.iconPath = new vscode11.ThemeIcon("sparkle");
           suggestionGroup.children = suggestions.map((suggestion) => {
-            const child = new vscode10.TreeItem(suggestion.name || suggestion.targetId, vscode10.TreeItemCollapsibleState.None);
+            const child = new vscode11.TreeItem(suggestion.name || suggestion.targetId, vscode11.TreeItemCollapsibleState.None);
             child.description = suggestion.status || "pending";
-            child.iconPath = new vscode10.ThemeIcon("lightbulb");
+            child.iconPath = new vscode11.ThemeIcon("lightbulb");
             child.command = { command: "renovatio.openDomainModel", title: "Open Domain Model" };
             return child;
           });
@@ -4198,7 +4198,7 @@ ${Math.round(Number(node.confidence || 0) * 100)}% confidence`;
     };
     var MigrationProvider = class {
       constructor() {
-        this._onDidChangeTreeData = new vscode10.EventEmitter();
+        this._onDidChangeTreeData = new vscode11.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
       }
       refresh() {
@@ -4218,32 +4218,32 @@ ${Math.round(Number(node.confidence || 0) * 100)}% confidence`;
         }
         const generated = generatedOutputPath(project);
         const discovery = domainDiscovery(state.domainModel);
-        const status = new vscode10.TreeItem("Migration map", vscode10.TreeItemCollapsibleState.Expanded);
-        status.iconPath = new vscode10.ThemeIcon("git-compare");
+        const status = new vscode11.TreeItem("Migration map", vscode11.TreeItemCollapsibleState.Expanded);
+        status.iconPath = new vscode11.ThemeIcon("git-compare");
         status.children = [
           treeAction("Create migration map", "renovatio.createMigrationMap", "legacy to target traceability", "add"),
           treeAction("Open migration map", "renovatio.openMigrationMap", ".renovatio/migration-map.renovatio.json", "references"),
           treeAction("Validate migration map", "renovatio.validateMigrationMap", "schema and file diagnostics", "checklist"),
           treeAction("Format migration map", "renovatio.formatMigrationMap", "stable JSON artifact", "symbol-keyword")
         ];
-        const flow = new vscode10.TreeItem("Workflow", vscode10.TreeItemCollapsibleState.Expanded);
-        flow.iconPath = new vscode10.ThemeIcon("run-all");
+        const flow = new vscode11.TreeItem("Workflow", vscode11.TreeItemCollapsibleState.Expanded);
+        flow.iconPath = new vscode11.ThemeIcon("run-all");
         flow.children = [
           treeAction("Generate plan", "renovatio.generateMigrationPlan", discovery.recordNodes.length ? `${discovery.recordNodes.length} model nodes available` : "run discovery first", "list-tree"),
           treeAction("Preview diff", "renovatio.previewMigrationDiff", generated || "configure target root", "diff"),
           treeAction("Apply approved changes", "renovatio.applyApprovedChanges", "approval-gated", "pass"),
           treeAction("Reconcile generated code", "renovatio.reconcileGeneratedCode", generated || "future output", "sync")
         ];
-        const outputItem = new vscode10.TreeItem("Target output", vscode10.TreeItemCollapsibleState.None);
+        const outputItem = new vscode11.TreeItem("Target output", vscode11.TreeItemCollapsibleState.None);
         outputItem.description = generated || "not configured";
-        outputItem.iconPath = new vscode10.ThemeIcon("file-code");
+        outputItem.iconPath = new vscode11.ThemeIcon("file-code");
         outputItem.command = { command: "renovatio.openGeneratedCode", title: "Open Future Output" };
         return [status, flow, outputItem];
       }
     };
     var EvidenceProvider = class {
       constructor() {
-        this._onDidChangeTreeData = new vscode10.EventEmitter();
+        this._onDidChangeTreeData = new vscode11.EventEmitter();
         this.onDidChangeTreeData = this._onDidChangeTreeData.event;
       }
       refresh() {
@@ -4263,16 +4263,16 @@ ${Math.round(Number(node.confidence || 0) * 100)}% confidence`;
         }
         const inventory = workbenchInventory(state.analysis, state.latestJob);
         const discovery = domainDiscovery(state.domainModel);
-        const summary = new vscode10.TreeItem("Current evidence", vscode10.TreeItemCollapsibleState.Expanded);
-        summary.iconPath = new vscode10.ThemeIcon("shield");
+        const summary = new vscode11.TreeItem("Current evidence", vscode11.TreeItemCollapsibleState.Expanded);
+        summary.iconPath = new vscode11.ThemeIcon("shield");
         summary.children = [
           treeValue("Last analysis job", state.latestJob?.status || "not run", state.latestJob?.id || ""),
           treeValue("Parsed files", String(parsedFileCount(inventory) || 0), "COBOL/JCL inventory"),
           treeValue("Domain revision", String(state.domainModel?.revision || 0), `${discovery.repositories.length} persistence candidates`),
           treeValue("Risks", riskLabel(), "review warnings before export")
         ];
-        const actions = new vscode10.TreeItem("Reports and export", vscode10.TreeItemCollapsibleState.Expanded);
-        actions.iconPath = new vscode10.ThemeIcon("package");
+        const actions = new vscode11.TreeItem("Reports and export", vscode11.TreeItemCollapsibleState.Expanded);
+        actions.iconPath = new vscode11.ThemeIcon("package");
         actions.children = [
           treeAction("Open control deck", "renovatio.openControlDeck", "summary dashboard", "dashboard"),
           treeAction("Open discovery output", "renovatio.openDiscoveryOutput", "inventory and warnings", "list-tree"),
@@ -4283,18 +4283,18 @@ ${Math.round(Number(node.confidence || 0) * 100)}% confidence`;
       }
     };
     function treeAction(label, command, description, icon) {
-      const item = new vscode10.TreeItem(label, vscode10.TreeItemCollapsibleState.None);
+      const item = new vscode11.TreeItem(label, vscode11.TreeItemCollapsibleState.None);
       item.description = description || "";
-      item.iconPath = new vscode10.ThemeIcon(icon || "circle-outline");
+      item.iconPath = new vscode11.ThemeIcon(icon || "circle-outline");
       item.command = { command, title: label };
       item.contextValue = "renovatioAction";
       return item;
     }
     function treeValue(label, description, tooltip, icon) {
-      const item = new vscode10.TreeItem(label, vscode10.TreeItemCollapsibleState.None);
+      const item = new vscode11.TreeItem(label, vscode11.TreeItemCollapsibleState.None);
       item.description = description || "";
       item.tooltip = tooltip || label;
-      item.iconPath = new vscode10.ThemeIcon(icon || "info");
+      item.iconPath = new vscode11.ThemeIcon(icon || "info");
       return item;
     }
     function riskLabel() {
@@ -4317,7 +4317,7 @@ ${Math.round(Number(node.confidence || 0) * 100)}% confidence`;
     function showError(prefix, error) {
       const text = `${prefix}: ${message7(error)}`;
       output.appendLine(text);
-      vscode10.window.showErrorMessage(text);
+      vscode11.window.showErrorMessage(text);
     }
     function message7(error) {
       return error instanceof Error ? error.message : String(error);
@@ -4342,7 +4342,7 @@ __export(extension_exports, {
   deactivate: () => deactivate
 });
 module.exports = __toCommonJS(extension_exports);
-var vscode9 = __toESM(require("vscode"));
+var vscode10 = __toESM(require("vscode"));
 
 // src/model.ts
 var LAYER_NODE_PREFIX = "architecture-layer:";
@@ -5095,6 +5095,14 @@ var RenovatioWorkspaceManifestService = class {
         cacheEnabled: true,
         promptProfile: "cobol.domain.entities.v1",
         fallbackModel: null
+      },
+      sync: {
+        enabled: false,
+        mode: "manual",
+        lastSyncedAt: null,
+        lastSyncedRevision: null,
+        artifacts: ["domainModel", "persistenceModel", "architecture", "migrationMap"],
+        conflictPolicy: "prompt"
       }
     };
   }
@@ -5192,6 +5200,19 @@ function validateManifest(value2) {
       issues.push("llm.fallbackModel must be a string or null.");
     }
   }
+  if (value2.sync !== void 0) {
+    const sync = requireObject(value2, "sync", issues);
+    if (sync) {
+      if (typeof sync.enabled !== "boolean") {
+        issues.push("sync.enabled must be a boolean.");
+      }
+      requireString(sync, "mode", issues, ["manual", "pull-on-open", "push-on-save"]);
+      requireNullableString(sync, "lastSyncedAt", issues);
+      requireNullableString(sync, "lastSyncedRevision", issues);
+      requireStringArray(sync, "artifacts", issues, ["domainModel", "persistenceModel", "architecture", "migrationMap"]);
+      requireString(sync, "conflictPolicy", issues, ["prompt", "prefer-local", "prefer-remote"]);
+    }
+  }
   return issues;
 }
 function requireObject(target, key, issues) {
@@ -5217,10 +5238,20 @@ function requireNumber(target, key, issues) {
     issues.push(`${key} must be a finite number.`);
   }
 }
-function requireStringArray(target, key, issues) {
+function requireNullableString(target, key, issues) {
+  const value2 = target[key];
+  if (value2 !== null && value2 !== void 0 && typeof value2 !== "string") {
+    issues.push(`${key} must be a string or null.`);
+  }
+}
+function requireStringArray(target, key, issues, allowed) {
   const value2 = target[key];
   if (!Array.isArray(value2) || value2.some((entry) => typeof entry !== "string" || entry.trim() === "")) {
     issues.push(`${key} must be an array of non-empty strings.`);
+    return;
+  }
+  if (allowed && value2.some((entry) => !allowed.includes(entry))) {
+    issues.push(`${key} must contain only: ${allowed.join(", ")}.`);
   }
 }
 function requireWorkspaceRelativePath(target, key, issues) {
@@ -7498,13 +7529,536 @@ function looksLikeWorkspaceFile(value2) {
   return value2.includes("/") || value2.includes("\\") || /\.(json|ya?ml|md|txt|log|sarif|xml|html?|diff)$/i.test(value2);
 }
 
+// src/sync.ts
+var vscode9 = __toESM(require("vscode"));
+
+// src/backendClient.ts
+var BackendClientError = class extends Error {
+  constructor(kind, message7) {
+    super(message7);
+    this.kind = kind;
+  }
+  kind;
+};
+var RenovatioBackendArtifactClient = class {
+  constructor(manifest) {
+    this.manifest = manifest;
+  }
+  manifest;
+  async getArtifact(key) {
+    const response = await this.request("GET", this.artifactPath(key));
+    if (response.status === 404 || response.status === 405 || response.status === 501) {
+      throw new BackendClientError("unsupported", `Backend artifact endpoint is unsupported for ${key}.`);
+    }
+    if (!response.ok) {
+      throw new BackendClientError("remote-unavailable", `Backend returned HTTP ${response.status} for ${key}.`);
+    }
+    return this.parseRemoteArtifact(key, await response.text());
+  }
+  async putArtifact(key, content, path, expectedRevision) {
+    const hash = await sha256Text(content);
+    const response = await this.request("PUT", this.artifactPath(key), {
+      content,
+      expectedRevision,
+      hash,
+      path
+    });
+    if (response.status === 409) {
+      throw new BackendClientError("revision-conflict", `Backend revision changed before ${key} could be pushed.`);
+    }
+    if (response.status === 404 || response.status === 405 || response.status === 501) {
+      throw new BackendClientError("unsupported", `Backend artifact endpoint is unsupported for ${key}.`);
+    }
+    if (!response.ok) {
+      throw new BackendClientError("remote-unavailable", `Backend returned HTTP ${response.status} while pushing ${key}.`);
+    }
+    return this.parseRemoteArtifact(key, await response.text(), content, hash);
+  }
+  artifactPath(key) {
+    return `/api/workspaces/${encodeURIComponent(this.manifest.projectId)}/artifacts/${encodeURIComponent(key)}`;
+  }
+  async request(method, path, body) {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8e3);
+    try {
+      return await fetch(joinUrl3(this.manifest.backend.url, path), {
+        method,
+        signal: controller.signal,
+        headers: {
+          "Accept": "application/json",
+          ...body === void 0 ? {} : { "Content-Type": "application/json" }
+        },
+        body: body === void 0 ? void 0 : JSON.stringify(body)
+      });
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new BackendClientError("remote-unavailable", `Backend is unavailable: ${detail}`);
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+  async parseRemoteArtifact(key, text, fallbackContent, fallbackHash) {
+    const trimmed = text.trim();
+    if (trimmed === "" && fallbackContent !== void 0) {
+      return {
+        key,
+        content: fallbackContent,
+        hash: fallbackHash ?? await sha256Text(fallbackContent),
+        revision: null,
+        schemaVersion: null
+      };
+    }
+    let parsed;
+    try {
+      parsed = JSON.parse(trimmed);
+    } catch {
+      throw new BackendClientError("schema-mismatch", `Backend response for ${key} is not JSON.`);
+    }
+    if (!isRecord4(parsed)) {
+      throw new BackendClientError("schema-mismatch", `Backend response for ${key} must be an object.`);
+    }
+    const rawContent = parsed.content;
+    if (rawContent === void 0 && fallbackContent === void 0) {
+      throw new BackendClientError("schema-mismatch", `Backend response for ${key} is missing content.`);
+    }
+    const content = typeof rawContent === "string" ? rawContent : rawContent === void 0 ? fallbackContent ?? "" : `${JSON.stringify(rawContent, null, 2)}
+`;
+    const hash = typeof parsed.hash === "string" && parsed.hash.trim() !== "" ? parsed.hash : fallbackHash ?? await sha256Text(content);
+    return {
+      key,
+      content,
+      hash,
+      revision: typeof parsed.revision === "string" ? parsed.revision : null,
+      schemaVersion: typeof parsed.schemaVersion === "string" ? parsed.schemaVersion : null
+    };
+  }
+};
+function joinUrl3(baseUrl, path) {
+  return `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
+}
+function isRecord4(value2) {
+  return typeof value2 === "object" && value2 !== null && !Array.isArray(value2);
+}
+
+// src/sync.ts
+var SYNC_STATE_PATH = ".renovatio/sync-state.json";
+var SYNC_PREVIEW_ROOT = ".renovatio/sync-preview";
+var BACKUP_ROOT = ".renovatio/backups";
+var SYNC_ARTIFACT_KEYS = ["domainModel", "persistenceModel", "architecture", "migrationMap"];
+var RenovatioSyncService = class {
+  constructor(manifestService, output) {
+    this.manifestService = manifestService;
+    this.output = output;
+    this.statusBar.command = "renovatio.syncStatus";
+    this.statusBar.text = "$(sync) Renovatio sync";
+    this.statusBar.tooltip = "Show Renovatio backend sync status";
+    this.statusBar.show();
+    this.disposables.push(this.statusBar);
+  }
+  manifestService;
+  output;
+  disposables = [];
+  statusBar = vscode9.window.createStatusBarItem(vscode9.StatusBarAlignment.Left, 84);
+  register(context) {
+    this.disposables.push(
+      vscode9.commands.registerCommand("renovatio.syncStatus", () => this.syncStatus()),
+      vscode9.commands.registerCommand("renovatio.pullFromBackend", () => this.pullFromBackend()),
+      vscode9.commands.registerCommand("renovatio.pushToBackend", () => this.pushToBackend()),
+      vscode9.commands.registerCommand("renovatio.compareLocalAndBackend", () => this.compareLocalAndBackend()),
+      vscode9.commands.registerCommand("renovatio.resolveSyncConflict", () => this.resolveSyncConflict()),
+      vscode9.workspace.onDidOpenTextDocument((document) => void this.onDocumentOpened(document)),
+      vscode9.workspace.onDidSaveTextDocument((document) => void this.onDocumentSaved(document))
+    );
+    context.subscriptions.push(...this.disposables);
+    void this.refreshStatusBar();
+  }
+  dispose() {
+    this.disposables.forEach((disposable) => disposable.dispose());
+  }
+  async refreshStatusBar() {
+    const context = await this.loadContext();
+    if (!context) {
+      this.statusBar.text = "$(sync) Renovatio sync";
+      this.statusBar.tooltip = "Initialize a Renovatio workspace to enable sync status";
+      return;
+    }
+    if (!context.manifest.sync?.enabled) {
+      this.statusBar.text = "$(circle-slash) Renovatio sync off";
+      this.statusBar.tooltip = "Backend sync is disabled in the workspace manifest";
+      return;
+    }
+    const statuses = await this.collectStatuses(context);
+    const worst = highestPriorityStatus(statuses);
+    this.statusBar.text = `$(sync) Renovatio ${statusLabel(worst)}`;
+    this.statusBar.tooltip = statuses.map((status) => `${status.key}: ${status.state}`).join("\n");
+  }
+  async syncStatus() {
+    const context = await this.requireSyncContext();
+    if (!context) return;
+    const statuses = await this.collectStatuses(context);
+    this.output.show();
+    this.output.appendLine("");
+    this.output.appendLine(`Renovatio sync status for ${context.manifest.projectId}`);
+    for (const status of statuses) {
+      this.output.appendLine(`- ${status.key}: ${status.state} (${status.detail})`);
+    }
+    const selected = await this.pickStatus(statuses, "Select an artifact to inspect");
+    if (selected) {
+      await this.showArtifactActions(selected);
+    }
+    await this.refreshStatusBar();
+  }
+  async compareLocalAndBackend() {
+    const context = await this.requireSyncContext();
+    if (!context) return;
+    const selected = await this.pickStatus(await this.collectStatuses(context), "Compare local artifact with backend");
+    if (!selected) return;
+    if (!selected.remote) {
+      vscode9.window.showWarningMessage(`No backend artifact is available for ${selected.key}: ${selected.detail}`);
+      return;
+    }
+    const previewUri = workspaceUri2(context.folder, `${SYNC_PREVIEW_ROOT}/${selected.key}.remote.json`);
+    await vscode9.workspace.fs.createDirectory(parentUri5(previewUri));
+    await vscode9.workspace.fs.writeFile(previewUri, encodeText(selected.remote.content));
+    await vscode9.commands.executeCommand("vscode.diff", selected.uri, previewUri, `Renovatio ${selected.key}: Local <> Backend`);
+  }
+  async pullFromBackend() {
+    const context = await this.requireSyncContext();
+    if (!context) return;
+    const selected = await this.pickStatus(await this.collectStatuses(context), "Pull artifact from backend");
+    if (!selected) return;
+    if (!selected.remote) {
+      vscode9.window.showWarningMessage(`Cannot pull ${selected.key}: ${selected.detail}`);
+      return;
+    }
+    const confirm = await vscode9.window.showWarningMessage(
+      `Pull backend ${selected.key} and replace ${selected.path}? A backup will be created first.`,
+      { modal: true },
+      "Pull"
+    );
+    if (confirm !== "Pull") return;
+    if (await exists5(selected.uri)) {
+      const backupUri = workspaceUri2(context.folder, `${BACKUP_ROOT}/${timestampForPath()}/${selected.key}-${basename(selected.path)}`);
+      await vscode9.workspace.fs.createDirectory(parentUri5(backupUri));
+      await vscode9.workspace.fs.copy(selected.uri, backupUri, { overwrite: true });
+      this.output.appendLine(`Backup created: ${relativePath4(context.folder, backupUri)}`);
+    }
+    await vscode9.workspace.fs.createDirectory(parentUri5(selected.uri));
+    await vscode9.workspace.fs.writeFile(selected.uri, encodeText(selected.remote.content));
+    await this.writeBaseline(context, selected.key, await sha256File(selected.uri), selected.remote);
+    await this.markManifestSynced(context, selected.remote.revision);
+    vscode9.window.showInformationMessage(`Pulled ${selected.key} from backend.`);
+    await this.refreshStatusBar();
+  }
+  async pushToBackend() {
+    const context = await this.requireSyncContext();
+    if (!context) return;
+    const selected = await this.pickStatus(await this.collectStatuses(context), "Push artifact to backend");
+    if (!selected) return;
+    if (!await exists5(selected.uri)) {
+      vscode9.window.showWarningMessage(`Cannot push ${selected.key}: local artifact does not exist.`);
+      return;
+    }
+    const confirm = await vscode9.window.showWarningMessage(
+      `Push local ${selected.key} to backend using revision guard?`,
+      { modal: true },
+      "Push"
+    );
+    if (confirm !== "Push") return;
+    const content = decodeBytes4(await vscode9.workspace.fs.readFile(selected.uri));
+    const state = await this.readState(context.folder);
+    const expectedRevision = state.artifacts[selected.key]?.revision ?? context.manifest.sync?.lastSyncedRevision ?? null;
+    try {
+      const remote = await context.client.putArtifact(selected.key, content, selected.path, expectedRevision);
+      await this.writeBaseline(context, selected.key, await sha256File(selected.uri), remote);
+      await this.markManifestSynced(context, remote.revision);
+      vscode9.window.showInformationMessage(`Pushed ${selected.key} to backend.`);
+    } catch (error) {
+      this.reportBackendError(error, selected.key);
+    }
+    await this.refreshStatusBar();
+  }
+  async resolveSyncConflict() {
+    const context = await this.requireSyncContext();
+    if (!context) return;
+    const conflicted = (await this.collectStatuses(context)).filter((status) => status.state !== "clean");
+    const selected = await this.pickStatus(conflicted, "Resolve backend sync conflict");
+    if (!selected) return;
+    const action2 = await vscode9.window.showQuickPick([
+      { label: "Compare Local And Backend", command: "compare" },
+      { label: "Pull From Backend", command: "pull" },
+      { label: "Push To Backend", command: "push" },
+      { label: "Mark Current State As Baseline", command: "baseline" }
+    ], { placeHolder: `Resolve ${selected.key}: ${selected.state}` });
+    if (!action2) return;
+    if (action2.command === "compare") await this.compareSelected(context, selected);
+    if (action2.command === "pull") await this.pullSelected(context, selected);
+    if (action2.command === "push") await this.pushSelected(context, selected);
+    if (action2.command === "baseline") await this.markBaseline(context, selected);
+    await this.refreshStatusBar();
+  }
+  async onDocumentOpened(document) {
+    const context = await this.loadContext();
+    if (!context || context.manifest.sync?.mode !== "pull-on-open" || !context.manifest.sync.enabled) return;
+    const key = artifactKeyForDocument(context.manifest, context.folder, document.uri);
+    if (!key) return;
+    const status = (await this.collectStatuses(context)).find((entry) => entry.key === key);
+    if (status?.state === "remote-changed") {
+      const action2 = await vscode9.window.showInformationMessage(`Backend has a newer ${key}.`, "Compare", "Pull");
+      if (action2 === "Compare") await this.compareSelected(context, status);
+      if (action2 === "Pull") await this.pullSelected(context, status);
+    }
+  }
+  async onDocumentSaved(document) {
+    const context = await this.loadContext();
+    if (!context || context.manifest.sync?.mode !== "push-on-save" || !context.manifest.sync.enabled) return;
+    const key = artifactKeyForDocument(context.manifest, context.folder, document.uri);
+    if (!key) return;
+    const status = (await this.collectStatuses(context)).find((entry) => entry.key === key);
+    if (status && status.state !== "both-changed" && status.state !== "remote-changed") {
+      await this.pushSelected(context, status);
+    }
+  }
+  async collectStatuses(context) {
+    const state = await this.readState(context.folder);
+    const statuses = [];
+    for (const key of configuredArtifactKeys(context.manifest)) {
+      const path = context.manifest.artifacts[key];
+      const uri = workspaceUri2(context.folder, path);
+      const localHash = await exists5(uri) ? await sha256File(uri) : null;
+      const previous = state.artifacts[key];
+      try {
+        const remote = await context.client.getArtifact(key);
+        statuses.push({
+          key,
+          path,
+          uri,
+          state: resolveConflictState(localHash, remote, previous),
+          localHash,
+          remote,
+          detail: `local ${localHash ?? "missing"}, remote ${remote.hash}, revision ${remote.revision ?? "none"}`
+        });
+      } catch (error) {
+        const backendState = error instanceof BackendClientError && error.kind === "schema-mismatch" ? "schema-mismatch" : "remote-unavailable";
+        statuses.push({
+          key,
+          path,
+          uri,
+          state: backendState,
+          localHash,
+          detail: error instanceof Error ? error.message : String(error)
+        });
+      }
+    }
+    return statuses;
+  }
+  async showArtifactActions(status) {
+    const action2 = await vscode9.window.showQuickPick([
+      { label: "Compare Local And Backend", command: "renovatio.compareLocalAndBackend" },
+      { label: "Pull From Backend", command: "renovatio.pullFromBackend" },
+      { label: "Push To Backend", command: "renovatio.pushToBackend" },
+      { label: "Resolve Sync Conflict", command: "renovatio.resolveSyncConflict" }
+    ], { placeHolder: `${status.key}: ${status.state}` });
+    if (action2) await vscode9.commands.executeCommand(action2.command);
+  }
+  async compareSelected(context, status) {
+    if (!status.remote) {
+      vscode9.window.showWarningMessage(`No backend artifact is available for ${status.key}: ${status.detail}`);
+      return;
+    }
+    const previewUri = workspaceUri2(context.folder, `${SYNC_PREVIEW_ROOT}/${status.key}.remote.json`);
+    await vscode9.workspace.fs.createDirectory(parentUri5(previewUri));
+    await vscode9.workspace.fs.writeFile(previewUri, encodeText(status.remote.content));
+    await vscode9.commands.executeCommand("vscode.diff", status.uri, previewUri, `Renovatio ${status.key}: Local <> Backend`);
+  }
+  async pullSelected(context, status) {
+    if (!status.remote) {
+      vscode9.window.showWarningMessage(`Cannot pull ${status.key}: ${status.detail}`);
+      return;
+    }
+    if (await exists5(status.uri)) {
+      const backupUri = workspaceUri2(context.folder, `${BACKUP_ROOT}/${timestampForPath()}/${status.key}-${basename(status.path)}`);
+      await vscode9.workspace.fs.createDirectory(parentUri5(backupUri));
+      await vscode9.workspace.fs.copy(status.uri, backupUri, { overwrite: true });
+    }
+    await vscode9.workspace.fs.createDirectory(parentUri5(status.uri));
+    await vscode9.workspace.fs.writeFile(status.uri, encodeText(status.remote.content));
+    await this.writeBaseline(context, status.key, await sha256File(status.uri), status.remote);
+    await this.markManifestSynced(context, status.remote.revision);
+  }
+  async pushSelected(context, status) {
+    if (!await exists5(status.uri)) return;
+    try {
+      const state = await this.readState(context.folder);
+      const content = decodeBytes4(await vscode9.workspace.fs.readFile(status.uri));
+      const expectedRevision = state.artifacts[status.key]?.revision ?? context.manifest.sync?.lastSyncedRevision ?? null;
+      const remote = await context.client.putArtifact(status.key, content, status.path, expectedRevision);
+      await this.writeBaseline(context, status.key, await sha256File(status.uri), remote);
+      await this.markManifestSynced(context, remote.revision);
+    } catch (error) {
+      this.reportBackendError(error, status.key);
+    }
+  }
+  async markBaseline(context, status) {
+    if (!status.localHash || !status.remote) {
+      vscode9.window.showWarningMessage(`Cannot mark ${status.key} as baseline until local and backend artifacts are available.`);
+      return;
+    }
+    await this.writeBaseline(context, status.key, status.localHash, status.remote);
+    vscode9.window.showInformationMessage(`Marked ${status.key} current local/backend state as the sync baseline.`);
+  }
+  async writeBaseline(context, key, localHash, remote) {
+    const state = await this.readState(context.folder);
+    state.artifacts[key] = {
+      localHash,
+      remoteHash: remote.hash,
+      revision: remote.revision,
+      syncedAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    await this.writeState(context.folder, state);
+  }
+  async markManifestSynced(context, revision) {
+    const syncedAt = (/* @__PURE__ */ new Date()).toISOString();
+    await this.manifestService.update((manifest) => {
+      manifest.sync = manifest.sync ?? defaultSyncConfig();
+      manifest.sync.lastSyncedAt = syncedAt;
+      manifest.sync.lastSyncedRevision = revision;
+    }, context.folder);
+  }
+  async requireSyncContext() {
+    const context = await this.loadContext();
+    if (!context) {
+      vscode9.window.showWarningMessage("Open a Renovatio workspace manifest before using backend sync.");
+      return void 0;
+    }
+    if (!context.manifest.sync?.enabled) {
+      const action2 = await vscode9.window.showInformationMessage(
+        "Renovatio backend sync is disabled in the workspace manifest.",
+        "Open Manifest"
+      );
+      if (action2 === "Open Manifest") await this.manifestService.openWorkspaceManifest(context.folder);
+      return void 0;
+    }
+    return context;
+  }
+  async loadContext() {
+    const folder = vscode9.workspace.workspaceFolders?.[0];
+    if (!folder) return void 0;
+    const manifest = await this.manifestService.load(folder);
+    if (!manifest) return void 0;
+    return { folder, manifest, client: new RenovatioBackendArtifactClient(manifest) };
+  }
+  async readState(folder) {
+    const uri = workspaceUri2(folder, SYNC_STATE_PATH);
+    if (!await exists5(uri)) return { version: "1", artifacts: {} };
+    try {
+      const parsed = JSON.parse(decodeBytes4(await vscode9.workspace.fs.readFile(uri)));
+      return parsed.version === "1" && parsed.artifacts ? parsed : { version: "1", artifacts: {} };
+    } catch {
+      return { version: "1", artifacts: {} };
+    }
+  }
+  async writeState(folder, state) {
+    const uri = workspaceUri2(folder, SYNC_STATE_PATH);
+    await vscode9.workspace.fs.createDirectory(parentUri5(uri));
+    await vscode9.workspace.fs.writeFile(uri, encodeText(`${JSON.stringify(state, null, 2)}
+`));
+  }
+  async pickStatus(statuses, placeHolder) {
+    if (!statuses.length) {
+      vscode9.window.showInformationMessage("No artifacts are configured for backend sync.");
+      return void 0;
+    }
+    const selected = await vscode9.window.showQuickPick(
+      statuses.map((status) => ({
+        label: status.key,
+        description: status.state,
+        detail: status.detail,
+        status
+      })),
+      { placeHolder }
+    );
+    return selected?.status;
+  }
+  reportBackendError(error, key) {
+    const message7 = error instanceof Error ? error.message : String(error);
+    if (error instanceof BackendClientError && error.kind === "revision-conflict") {
+      vscode9.window.showWarningMessage(`Cannot push ${key}: ${message7}`);
+    } else {
+      vscode9.window.showWarningMessage(`Renovatio backend sync for ${key} did not complete: ${message7}`);
+    }
+    this.output.appendLine(`Sync ${key} failed: ${message7}`);
+  }
+};
+function configuredArtifactKeys(manifest) {
+  const configured = manifest.sync?.artifacts ?? SYNC_ARTIFACT_KEYS;
+  return configured.filter((key) => SYNC_ARTIFACT_KEYS.includes(key));
+}
+function resolveConflictState(localHash, remote, previous) {
+  if (!localHash) return "remote-changed";
+  if (localHash === remote.hash) return "clean";
+  if (!previous) return "remote-changed";
+  const localChanged = previous.localHash !== localHash;
+  const remoteChanged = previous.remoteHash !== remote.hash || previous.revision !== remote.revision;
+  if (localChanged && remoteChanged) return "both-changed";
+  if (localChanged) return "local-changed";
+  if (remoteChanged) return "remote-changed";
+  return "clean";
+}
+function highestPriorityStatus(statuses) {
+  const priorities = ["both-changed", "schema-mismatch", "remote-unavailable", "remote-changed", "local-changed", "clean"];
+  return priorities.find((state) => statuses.some((status) => status.state === state)) ?? "clean";
+}
+function statusLabel(state) {
+  switch (state) {
+    case "clean":
+      return "sync clean";
+    case "both-changed":
+      return "sync conflict";
+    case "remote-unavailable":
+      return "sync offline";
+    case "schema-mismatch":
+      return "sync schema";
+    case "local-changed":
+      return "sync local";
+    case "remote-changed":
+      return "sync remote";
+  }
+}
+function artifactKeyForDocument(manifest, folder, uri) {
+  const documentPath = relativePath4(folder, uri);
+  return configuredArtifactKeys(manifest).find((key) => manifest.artifacts[key] === documentPath);
+}
+function defaultSyncConfig() {
+  return {
+    enabled: false,
+    mode: "manual",
+    lastSyncedAt: null,
+    lastSyncedRevision: null,
+    artifacts: SYNC_ARTIFACT_KEYS,
+    conflictPolicy: "prompt"
+  };
+}
+function parentUri5(uri) {
+  const parts = uri.path.split("/");
+  parts.pop();
+  return uri.with({ path: parts.join("/") || "/" });
+}
+function basename(path) {
+  return path.split("/").filter(Boolean).pop() ?? "artifact.json";
+}
+function timestampForPath() {
+  return (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
+}
+
 // src/extension.ts
 var DOMAIN_VIEW_TYPE = "renovatio.diagram.domain";
 var ARCHITECTURE_VIEW_TYPE = "renovatio.diagram.architecture";
 function activate2(context) {
-  const output = vscode9.window.createOutputChannel("Renovatio Diagrams");
-  const backendOutput = vscode9.window.createOutputChannel("Renovatio Backend");
-  const migrationOutput = vscode9.window.createOutputChannel("Renovatio Migration");
+  const output = vscode10.window.createOutputChannel("Renovatio Diagrams");
+  const backendOutput = vscode10.window.createOutputChannel("Renovatio Backend");
+  const migrationOutput = vscode10.window.createOutputChannel("Renovatio Migration");
+  const syncOutput = vscode10.window.createOutputChannel("Renovatio Sync");
   legacyExtension.activate(context);
   const provider = new RenovatioDiagramEditorProvider(context, output);
   const manifestService = new RenovatioWorkspaceManifestService(output);
@@ -7514,14 +8068,17 @@ function activate2(context) {
   const artifactDiagnostics = new RenovatioArtifactDiagnosticsService(output);
   const generationWorkflow = new RenovatioGenerationWorkflow(manifestService, migrationOutput);
   const evidenceBundle = new RenovatioEvidenceBundleService(manifestService, migrationOutput);
+  const syncService = new RenovatioSyncService(manifestService, syncOutput);
   backendControl.register(context);
   migrationNavigation.register(context);
   generationWorkflow.register(context);
   evidenceBundle.register(context);
+  syncService.register(context);
   context.subscriptions.push(
     output,
     backendOutput,
     migrationOutput,
+    syncOutput,
     manifestService,
     backendControl,
     migrationMapService,
@@ -7529,18 +8086,19 @@ function activate2(context) {
     artifactDiagnostics,
     generationWorkflow,
     evidenceBundle,
-    vscode9.window.registerCustomEditorProvider(DOMAIN_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
-    vscode9.window.registerCustomEditorProvider(ARCHITECTURE_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
-    vscode9.commands.registerCommand("renovatio.initializeWorkspace", () => manifestService.initializeWorkspace()),
-    vscode9.commands.registerCommand("renovatio.openWorkspaceManifest", () => manifestService.openWorkspaceManifest()),
-    vscode9.commands.registerCommand("renovatio.validateWorkspace", () => manifestService.validateWorkspace()),
-    vscode9.commands.registerCommand("renovatio.formatArtifacts", () => manifestService.formatArtifacts()),
-    vscode9.commands.registerCommand("renovatio.createMigrationMap", () => migrationMapService.createMigrationMap()),
-    vscode9.commands.registerCommand("renovatio.openMigrationMap", () => migrationMapService.openMigrationMap()),
-    vscode9.commands.registerCommand("renovatio.validateMigrationMap", () => migrationMapService.validateMigrationMap()),
-    vscode9.commands.registerCommand("renovatio.formatMigrationMap", () => migrationMapService.formatMigrationMap()),
-    vscode9.commands.registerCommand("renovatio.openDomainSample", () => openSample(context, "sample.renovatio-domain.json")),
-    vscode9.commands.registerCommand("renovatio.openArchitectureSample", () => openSample(context, "sample.renovatio-arch.json"))
+    syncService,
+    vscode10.window.registerCustomEditorProvider(DOMAIN_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
+    vscode10.window.registerCustomEditorProvider(ARCHITECTURE_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
+    vscode10.commands.registerCommand("renovatio.initializeWorkspace", () => manifestService.initializeWorkspace()),
+    vscode10.commands.registerCommand("renovatio.openWorkspaceManifest", () => manifestService.openWorkspaceManifest()),
+    vscode10.commands.registerCommand("renovatio.validateWorkspace", () => manifestService.validateWorkspace()),
+    vscode10.commands.registerCommand("renovatio.formatArtifacts", () => manifestService.formatArtifacts()),
+    vscode10.commands.registerCommand("renovatio.createMigrationMap", () => migrationMapService.createMigrationMap()),
+    vscode10.commands.registerCommand("renovatio.openMigrationMap", () => migrationMapService.openMigrationMap()),
+    vscode10.commands.registerCommand("renovatio.validateMigrationMap", () => migrationMapService.validateMigrationMap()),
+    vscode10.commands.registerCommand("renovatio.formatMigrationMap", () => migrationMapService.formatMigrationMap()),
+    vscode10.commands.registerCommand("renovatio.openDomainSample", () => openSample(context, "sample.renovatio-domain.json")),
+    vscode10.commands.registerCommand("renovatio.openArchitectureSample", () => openSample(context, "sample.renovatio-arch.json"))
   );
   void manifestService.validateWorkspace();
   void artifactDiagnostics.refreshAll();
@@ -7559,7 +8117,7 @@ var RenovatioDiagramEditorProvider = class {
   async resolveCustomTextEditor(document, webviewPanel, token) {
     webviewPanel.webview.options = {
       enableScripts: true,
-      localResourceRoots: [vscode9.Uri.joinPath(this.context.extensionUri, "dist")]
+      localResourceRoots: [vscode10.Uri.joinPath(this.context.extensionUri, "dist")]
     };
     webviewPanel.webview.html = this.htmlFor(webviewPanel.webview);
     const postModel = () => {
@@ -7575,7 +8133,7 @@ var RenovatioDiagramEditorProvider = class {
         model: parsed.model
       });
     };
-    const changeSubscription = vscode9.workspace.onDidChangeTextDocument((event) => {
+    const changeSubscription = vscode10.workspace.onDidChangeTextDocument((event) => {
       if (event.document.uri.toString() === document.uri.toString()) {
         if (this.isMutatingDocument(document.uri)) {
           return;
@@ -7595,7 +8153,7 @@ var RenovatioDiagramEditorProvider = class {
       if (message7.type === "error") {
         const detail = String(message7.message ?? "Unknown webview error");
         this.output.appendLine(`Webview error in ${document.uri.fsPath}: ${detail}`);
-        vscode9.window.showErrorMessage(`Renovatio diagram webview error: ${detail}`);
+        vscode10.window.showErrorMessage(`Renovatio diagram webview error: ${detail}`);
         return;
       }
       if (message7.type !== "diagramEvent") {
@@ -7647,7 +8205,7 @@ var RenovatioDiagramEditorProvider = class {
         }
       } catch (error) {
         const detail = error instanceof Error ? error.message : String(error);
-        vscode9.window.showErrorMessage(`Unable to update Renovatio diagram: ${detail}`);
+        vscode10.window.showErrorMessage(`Unable to update Renovatio diagram: ${detail}`);
       }
     });
     await this.updateQueue;
@@ -7675,11 +8233,11 @@ var RenovatioDiagramEditorProvider = class {
     if (document.getText() === text) {
       return;
     }
-    const edit = new vscode9.WorkspaceEdit();
-    const start = new vscode9.Position(0, 0);
+    const edit = new vscode10.WorkspaceEdit();
+    const start = new vscode10.Position(0, 0);
     const end = document.lineCount === 0 ? start : document.lineAt(document.lineCount - 1).rangeIncludingLineBreak.end;
-    edit.replace(document.uri, new vscode9.Range(start, end), text);
-    const applied = await vscode9.workspace.applyEdit(edit);
+    edit.replace(document.uri, new vscode10.Range(start, end), text);
+    const applied = await vscode10.workspace.applyEdit(edit);
     if (!applied) {
       throw new Error("VS Code rejected the diagram document edit.");
     }
@@ -7687,8 +8245,8 @@ var RenovatioDiagramEditorProvider = class {
   }
   htmlFor(webview) {
     const nonce = nonceValue();
-    const scriptUri = webview.asWebviewUri(vscode9.Uri.joinPath(this.context.extensionUri, "dist", "webview.js"));
-    const styleUri = webview.asWebviewUri(vscode9.Uri.joinPath(this.context.extensionUri, "dist", "webview.css"));
+    const scriptUri = webview.asWebviewUri(vscode10.Uri.joinPath(this.context.extensionUri, "dist", "webview.js"));
+    const styleUri = webview.asWebviewUri(vscode10.Uri.joinPath(this.context.extensionUri, "dist", "webview.css"));
     const csp = [
       `default-src 'none'`,
       `img-src ${webview.cspSource} data:`,
@@ -7726,10 +8284,10 @@ function isDocumentMutationEvent(event) {
   return type === "nodeMoved" || type === "layoutChanged" || type === "nodesPruned" || type === "edgeCreated" || type === "edgeReconnected" || type === "edgeLabelChanged" || type === "edgesDeleted" || type === "architectureStyleChanged";
 }
 async function openSample(context, fileName) {
-  const uri = vscode9.Uri.joinPath(context.extensionUri, "examples", fileName);
-  const document = await vscode9.workspace.openTextDocument(uri);
-  await vscode9.window.showTextDocument(document, { preview: false });
-  await vscode9.commands.executeCommand(
+  const uri = vscode10.Uri.joinPath(context.extensionUri, "examples", fileName);
+  const document = await vscode10.workspace.openTextDocument(uri);
+  await vscode10.window.showTextDocument(document, { preview: false });
+  await vscode10.commands.executeCommand(
     "vscode.openWith",
     uri,
     fileName.endsWith("arch.json") ? ARCHITECTURE_VIEW_TYPE : DOMAIN_VIEW_TYPE
