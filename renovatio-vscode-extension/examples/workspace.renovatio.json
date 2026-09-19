@@ -36,7 +36,15 @@
   "backend": {
     "url": "http://127.0.0.1:8081",
     "environment": "local",
-    "allowLocalProcessControl": true
+    "healthEndpoint": "/actuator/health",
+    "capabilitiesEndpoint": "/api/capabilities",
+    "allowLocalProcessControl": true,
+    "commands": {
+      "start": "./mvnw -pl renovatio-api spring-boot:run",
+      "stop": "renovatio backend stop",
+      "restart": "renovatio backend restart",
+      "reloadConfig": "curl -X POST http://127.0.0.1:8081/api/admin/reload"
+    }
   },
   "llm": {
     "provider": "ollama",

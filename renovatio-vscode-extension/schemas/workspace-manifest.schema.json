@@ -122,8 +122,38 @@
           "type": "string",
           "enum": ["local", "dev", "staging", "production"]
         },
+        "healthEndpoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capabilitiesEndpoint": {
+          "type": "string",
+          "minLength": 1
+        },
         "allowLocalProcessControl": {
           "type": "boolean"
+        },
+        "commands": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "start": {
+              "type": "string",
+              "minLength": 1
+            },
+            "stop": {
+              "type": "string",
+              "minLength": 1
+            },
+            "restart": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reloadConfig": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         }
       }
     },

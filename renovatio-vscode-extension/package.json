@@ -32,6 +32,18 @@
     "onCommand:renovatio.openWorkspaceManifest",
     "onCommand:renovatio.validateWorkspace",
     "onCommand:renovatio.formatArtifacts",
+    "onCommand:renovatio.openBackendSettings",
+    "onCommand:renovatio.testBackendConnection",
+    "onCommand:renovatio.openBackendLogs",
+    "onCommand:renovatio.startBackend",
+    "onCommand:renovatio.stopBackend",
+    "onCommand:renovatio.restartBackend",
+    "onCommand:renovatio.reloadBackendConfiguration",
+    "onCommand:renovatio.configureLlmModel",
+    "onCommand:renovatio.testLlmReverseEngineering",
+    "onCommand:renovatio.clearLlmCache",
+    "onCommand:renovatio.openPromptProfile",
+    "onCommand:renovatio.compareLlmOutputAgainstGoldenFixture",
     "onCommand:renovatio.selectProject",
     "onCommand:renovatio.createProject",
     "onCommand:renovatio.analyzeSelectedPath",
@@ -143,6 +155,66 @@
         "command": "renovatio.formatArtifacts",
         "title": "Renovatio: Format Artifacts",
         "icon": "$(symbol-keyword)"
+      },
+      {
+        "command": "renovatio.openBackendSettings",
+        "title": "Renovatio: Open Backend Settings",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "renovatio.testBackendConnection",
+        "title": "Renovatio: Test Backend Connection",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "renovatio.openBackendLogs",
+        "title": "Renovatio: Open Backend Logs",
+        "icon": "$(output)"
+      },
+      {
+        "command": "renovatio.startBackend",
+        "title": "Renovatio: Start Backend",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "renovatio.stopBackend",
+        "title": "Renovatio: Stop Backend",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "renovatio.restartBackend",
+        "title": "Renovatio: Restart Backend",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "renovatio.reloadBackendConfiguration",
+        "title": "Renovatio: Reload Backend Configuration",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "renovatio.configureLlmModel",
+        "title": "Renovatio: Configure LLM Model",
+        "icon": "$(hubot)"
+      },
+      {
+        "command": "renovatio.testLlmReverseEngineering",
+        "title": "Renovatio: Test LLM Reverse Engineering",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "renovatio.clearLlmCache",
+        "title": "Renovatio: Clear LLM Cache",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "renovatio.openPromptProfile",
+        "title": "Renovatio: Open Prompt Profile",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "renovatio.compareLlmOutputAgainstGoldenFixture",
+        "title": "Renovatio: Compare LLM Output Against Golden Fixture",
+        "icon": "$(diff)"
       },
       {
         "command": "renovatio.selectProject",
@@ -286,6 +358,42 @@
           "command": "renovatio.formatArtifacts"
         },
         {
+          "command": "renovatio.openBackendSettings"
+        },
+        {
+          "command": "renovatio.testBackendConnection"
+        },
+        {
+          "command": "renovatio.openBackendLogs"
+        },
+        {
+          "command": "renovatio.startBackend"
+        },
+        {
+          "command": "renovatio.stopBackend"
+        },
+        {
+          "command": "renovatio.restartBackend"
+        },
+        {
+          "command": "renovatio.reloadBackendConfiguration"
+        },
+        {
+          "command": "renovatio.configureLlmModel"
+        },
+        {
+          "command": "renovatio.testLlmReverseEngineering"
+        },
+        {
+          "command": "renovatio.clearLlmCache"
+        },
+        {
+          "command": "renovatio.openPromptProfile"
+        },
+        {
+          "command": "renovatio.compareLlmOutputAgainstGoldenFixture"
+        },
+        {
           "command": "renovatio.selectProject"
         },
         {
@@ -355,8 +463,23 @@
         },
         {
           "command": "renovatio.validateWorkspace",
-          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.views.welcome",
+          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.backend || view == renovatio.views.welcome",
           "group": "navigation@1.7"
+        },
+        {
+          "command": "renovatio.testBackendConnection",
+          "when": "view == renovatio.backend",
+          "group": "navigation@2"
+        },
+        {
+          "command": "renovatio.openBackendLogs",
+          "when": "view == renovatio.backend",
+          "group": "navigation@3"
+        },
+        {
+          "command": "renovatio.reloadBackendConfiguration",
+          "when": "view == renovatio.backend",
+          "group": "navigation@4"
         },
         {
           "command": "renovatio.selectProject",
@@ -472,6 +595,10 @@
           "name": "Operations"
         },
         {
+          "id": "renovatio.backend",
+          "name": "Backend"
+        },
+        {
           "id": "renovatio.analysis",
           "name": "Discovery"
         },
@@ -501,6 +628,10 @@
       {
         "view": "renovatio.operations",
         "contents": "Run the Renovatio workflow through native VS Code commands.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Validate Workspace](command:renovatio.validateWorkspace)\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Control Deck](command:renovatio.openControlDeck)"
+      },
+      {
+        "view": "renovatio.backend",
+        "contents": "Configure Renovatio backend and LLM reverse-engineering from the local workspace manifest.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Test Backend Connection](command:renovatio.testBackendConnection)\n[Open Backend Settings](command:renovatio.openBackendSettings)\n[Open Backend Logs](command:renovatio.openBackendLogs)"
       },
       {
         "view": "renovatio.views.welcome",

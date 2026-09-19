@@ -25,7 +25,15 @@ export interface RenovatioWorkspaceManifest {
     backend: {
         url: string;
         environment: string;
+        healthEndpoint?: string;
+        capabilitiesEndpoint?: string;
         allowLocalProcessControl: boolean;
+        commands?: {
+            start?: string;
+            stop?: string;
+            restart?: string;
+            reloadConfig?: string;
+        };
     };
     llm: {
         provider: string;
@@ -174,6 +182,25 @@ export class RenovatioWorkspaceManifestService implements vscode.Disposable {
         return parseJsonc(text) as RenovatioWorkspaceManifest;
     }
 
+    async update(
+        mutator: (manifest: RenovatioWorkspaceManifest) => void,
+        folder?: vscode.WorkspaceFolder
+    ): Promise<RenovatioWorkspaceManifest | undefined> {
+        const targetFolder = folder ?? vscode.workspace.workspaceFolders?.[0];
+        if (!targetFolder) return undefined;
+        const uri = this.manifestUri(targetFolder);
+        if (!await exists(uri)) {
+            await this.initializeWorkspace();
+            if (!await exists(uri)) return undefined;
+        }
+        const manifest = await this.load(targetFolder);
+        if (!manifest) return undefined;
+        mutator(manifest);
+        await vscode.workspace.fs.writeFile(uri, encodeJson(manifest));
+        await this.validateWorkspace(targetFolder);
+        return manifest;
+    }
+
     private async formatDocument(document: vscode.TextDocument, options: { silent?: boolean } = {}): Promise<boolean> {
         try {
             const parsed = parseJsonc(document.getText());
@@ -243,6 +270,8 @@ export class RenovatioWorkspaceManifestService implements vscode.Disposable {
             backend: {
                 url: defaults.backendUrl,
                 environment: 'local',
+                healthEndpoint: '/actuator/health',
+                capabilitiesEndpoint: '/api/capabilities',
                 allowLocalProcessControl: true
             },
             llm: {
@@ -338,6 +367,11 @@ function validateManifest(value: unknown): string[] {
     if (backend) {
         requireString(backend, 'url', issues);
         requireString(backend, 'environment', issues);
+        if (backend.healthEndpoint !== undefined) requireString(backend, 'healthEndpoint', issues);
+        if (backend.capabilitiesEndpoint !== undefined) requireString(backend, 'capabilitiesEndpoint', issues);
+        if (backend.commands !== undefined && !isRecord(backend.commands)) {
+            issues.push('backend.commands must be an object.');
+        }
         if (typeof backend.allowLocalProcessControl !== 'boolean') {
             issues.push('backend.allowLocalProcessControl must be a boolean.');
         }

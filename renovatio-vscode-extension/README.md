@@ -49,6 +49,24 @@ Useful commands:
 - `Renovatio: Validate Workspace`
 - `Renovatio: Format Artifacts`
 
+## Backend And LLM Control
+
+The Renovatio Activity Bar includes a `Backend` view backed by `.renovatio/workspace.renovatio.json`.
+
+It shows:
+
+- Backend URL, environment, last health check, backend version and last error.
+- LLM provider, active model, fallback model, prompt profile, cache state and smoke-test result.
+- Local/dev server control actions.
+
+Process-control commands are safety gated:
+
+- `backend.environment` must be `local` or `dev`.
+- `backend.allowLocalProcessControl` must be `true`.
+- Every command displays the exact shell command and asks for confirmation before execution.
+
+Backend commands may be configured in the manifest under `backend.commands`. Missing backend endpoints are reported as unsupported instead of faking success.
+
 ## Build
 
 ```sh

@@ -7,20 +7,26 @@ import {
 } from './model';
 import * as legacyExtension from './legacyExtension';
 import { RenovatioWorkspaceManifestService } from './workspaceManifest';
+import { RenovatioBackendControlCenter } from './backendControl';
 
 const DOMAIN_VIEW_TYPE = 'renovatio.diagram.domain';
 const ARCHITECTURE_VIEW_TYPE = 'renovatio.diagram.architecture';
 
 export function activate(context: vscode.ExtensionContext): void {
     const output = vscode.window.createOutputChannel('Renovatio Diagrams');
+    const backendOutput = vscode.window.createOutputChannel('Renovatio Backend');
     legacyExtension.activate(context);
 
     const provider = new RenovatioDiagramEditorProvider(context, output);
     const tree = new RenovatioWelcomeTree(context);
     const manifestService = new RenovatioWorkspaceManifestService(output);
+    const backendControl = new RenovatioBackendControlCenter(manifestService, backendOutput);
+    backendControl.register(context);
     context.subscriptions.push(
         output,
+        backendOutput,
         manifestService,
+        backendControl,
         vscode.window.registerCustomEditorProvider(DOMAIN_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.window.registerCustomEditorProvider(ARCHITECTURE_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.window.registerTreeDataProvider('renovatio.views.welcome', tree),
