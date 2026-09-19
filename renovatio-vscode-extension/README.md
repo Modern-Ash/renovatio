@@ -9,6 +9,19 @@ It supports standalone local files:
 
 The local Renovatio artifact files are the source of truth for editor state. The extension can now initialize a workspace manifest at `.renovatio/workspace.renovatio.json`; backend synchronization remains a separate workflow concern.
 
+## Activity Bar Workflow
+
+The Renovatio Activity Bar is organized around the modernization workflow:
+
+- `Workspace`: active project, manifest status, source roots, target roots and setup actions.
+- `Discovery`: COBOL/JCL inventory, inferred datasets and analysis output.
+- `Models`: domain, persistence and architecture model entry points, including native diagrams.
+- `Migration`: migration map status, source-to-target traceability actions and generated-code workflow commands.
+- `Evidence`: current analysis evidence, reports, risks and evidence bundle export entry point.
+- `Backend`: backend health, environment, LLM model configuration and local/dev server controls.
+
+Each section has an actionable empty state so an evaluator can start from an empty workspace, while Renovatio developers still have expert commands in the Command Palette.
+
 ## Workspace Manifest
 
 Run `Renovatio: Initialize Workspace` from the Command Palette to create:

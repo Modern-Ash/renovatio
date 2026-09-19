@@ -19,7 +19,6 @@ export function activate(context: vscode.ExtensionContext): void {
     legacyExtension.activate(context);
 
     const provider = new RenovatioDiagramEditorProvider(context, output);
-    const tree = new RenovatioWelcomeTree(context);
     const manifestService = new RenovatioWorkspaceManifestService(output);
     const backendControl = new RenovatioBackendControlCenter(manifestService, backendOutput);
     const migrationMapService = new MigrationMapService(manifestService, output);
@@ -32,7 +31,6 @@ export function activate(context: vscode.ExtensionContext): void {
         migrationMapService,
         vscode.window.registerCustomEditorProvider(DOMAIN_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.window.registerCustomEditorProvider(ARCHITECTURE_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
-        vscode.window.registerTreeDataProvider('renovatio.views.welcome', tree),
         vscode.commands.registerCommand('renovatio.initializeWorkspace', () => manifestService.initializeWorkspace()),
         vscode.commands.registerCommand('renovatio.openWorkspaceManifest', () => manifestService.openWorkspaceManifest()),
         vscode.commands.registerCommand('renovatio.validateWorkspace', () => manifestService.validateWorkspace()),
@@ -259,43 +257,6 @@ function isDocumentMutationEvent(event: unknown): boolean {
         || type === 'edgeLabelChanged'
         || type === 'edgesDeleted'
         || type === 'architectureStyleChanged';
-}
-
-class RenovatioWelcomeTree implements vscode.TreeDataProvider<RenovatioTreeItem> {
-    constructor(private readonly context: vscode.ExtensionContext) {}
-
-    getTreeItem(element: RenovatioTreeItem): vscode.TreeItem {
-        return element;
-    }
-
-    getChildren(): RenovatioTreeItem[] {
-        return [
-            new RenovatioTreeItem('Initialize Renovatio Workspace', 'renovatio.initializeWorkspace', '.renovatio/workspace.renovatio.json'),
-            new RenovatioTreeItem('Open Workspace Manifest', 'renovatio.openWorkspaceManifest', 'local contract'),
-            new RenovatioTreeItem('Validate Renovatio Workspace', 'renovatio.validateWorkspace', 'schemas and manifest'),
-            new RenovatioTreeItem('Create Migration Map', 'renovatio.createMigrationMap', 'legacy to target traceability'),
-            new RenovatioTreeItem('Open Migration Map', 'renovatio.openMigrationMap', '.renovatio/migration-map.renovatio.json'),
-            new RenovatioTreeItem('Format Renovatio Artifacts', 'renovatio.formatArtifacts', 'JSON/JSONC'),
-            new RenovatioTreeItem('Open Native Domain Diagram', 'renovatio.openNativeDomainDiagram', 'current DomainModel'),
-            new RenovatioTreeItem('Open Native Persistence Diagram', 'renovatio.openNativePersistenceDiagram', 'repositories and records'),
-            new RenovatioTreeItem('Open Native Architecture Diagram', 'renovatio.openNativeArchitectureDiagram', 'target layers'),
-            new RenovatioTreeItem('Open Domain sample', 'renovatio.openDomainSample', 'renovatio-domain.json'),
-            new RenovatioTreeItem('Open Architecture sample', 'renovatio.openArchitectureSample', 'renovatio-arch.json'),
-            new RenovatioTreeItem('Custom editors are active for *.renovatio-domain.json and *.renovatio-arch.json')
-        ];
-    }
-}
-
-class RenovatioTreeItem extends vscode.TreeItem {
-    constructor(label: string, commandId?: string, description?: string) {
-        super(label, vscode.TreeItemCollapsibleState.None);
-        this.description = description;
-        this.tooltip = label;
-        if (commandId) {
-            this.command = { command: commandId, title: label };
-            this.contextValue = 'renovatioAction';
-        }
-    }
 }
 
 async function openSample(context: vscode.ExtensionContext, fileName: string): Promise<void> {
