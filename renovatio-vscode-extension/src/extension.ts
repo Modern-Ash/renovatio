@@ -9,6 +9,7 @@ import * as legacyExtension from './legacyExtension';
 import { RenovatioWorkspaceManifestService } from './workspaceManifest';
 import { RenovatioBackendControlCenter } from './backendControl';
 import { MigrationMapService } from './migrationMap';
+import { MigrationNavigationService } from './navigation';
 
 const DOMAIN_VIEW_TYPE = 'renovatio.diagram.domain';
 const ARCHITECTURE_VIEW_TYPE = 'renovatio.diagram.architecture';
@@ -22,13 +23,16 @@ export function activate(context: vscode.ExtensionContext): void {
     const manifestService = new RenovatioWorkspaceManifestService(output);
     const backendControl = new RenovatioBackendControlCenter(manifestService, backendOutput);
     const migrationMapService = new MigrationMapService(manifestService, output);
+    const migrationNavigation = new MigrationNavigationService(manifestService);
     backendControl.register(context);
+    migrationNavigation.register(context);
     context.subscriptions.push(
         output,
         backendOutput,
         manifestService,
         backendControl,
         migrationMapService,
+        migrationNavigation,
         vscode.window.registerCustomEditorProvider(DOMAIN_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.window.registerCustomEditorProvider(ARCHITECTURE_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.commands.registerCommand('renovatio.initializeWorkspace', () => manifestService.initializeWorkspace()),

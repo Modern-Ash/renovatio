@@ -34,6 +34,12 @@
     "onCommand:renovatio.formatArtifacts",
     "onCommand:renovatio.createMigrationMap",
     "onCommand:renovatio.openMigrationMap",
+    "onCommand:renovatio.openMigrationSource",
+    "onCommand:renovatio.openMigrationTarget",
+    "onCommand:renovatio.showMigrationEvidence",
+    "onCommand:renovatio.openMappedDomainNode",
+    "onCommand:renovatio.markTargetManuallyRefined",
+    "onCommand:renovatio.reconcileTargetChange",
     "onCommand:renovatio.validateMigrationMap",
     "onCommand:renovatio.formatMigrationMap",
     "onCommand:renovatio.openBackendSettings",
@@ -176,6 +182,36 @@
         "command": "renovatio.openMigrationMap",
         "title": "Renovatio: Open Migration Map",
         "icon": "$(references)"
+      },
+      {
+        "command": "renovatio.openMigrationSource",
+        "title": "Renovatio: Open Legacy Source",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "renovatio.openMigrationTarget",
+        "title": "Renovatio: Open Target Code",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "renovatio.showMigrationEvidence",
+        "title": "Renovatio: Show Migration Evidence",
+        "icon": "$(references)"
+      },
+      {
+        "command": "renovatio.openMappedDomainNode",
+        "title": "Renovatio: Open Mapped Domain Node",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "renovatio.markTargetManuallyRefined",
+        "title": "Renovatio: Mark Target Manually Refined",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "renovatio.reconcileTargetChange",
+        "title": "Renovatio: Reconcile Target Change",
+        "icon": "$(sync)"
       },
       {
         "command": "renovatio.validateMigrationMap",
@@ -423,6 +459,24 @@
         },
         {
           "command": "renovatio.openMigrationMap"
+        },
+        {
+          "command": "renovatio.openMigrationSource"
+        },
+        {
+          "command": "renovatio.openMigrationTarget"
+        },
+        {
+          "command": "renovatio.showMigrationEvidence"
+        },
+        {
+          "command": "renovatio.openMappedDomainNode"
+        },
+        {
+          "command": "renovatio.markTargetManuallyRefined"
+        },
+        {
+          "command": "renovatio.reconcileTargetChange"
         },
         {
           "command": "renovatio.validateMigrationMap"

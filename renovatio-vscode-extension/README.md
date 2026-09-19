@@ -125,6 +125,16 @@ Useful commands:
 
 Migration map paths are workspace-relative. Validation reports malformed entries and missing source or target files in VS Code Problems.
 
+## Editor Navigation
+
+When `.renovatio/migration-map.renovatio.json` exists, COBOL/JCL and generated Java/Python/Node editors get native Renovatio navigation:
+
+- source files can open mapped target code, migration evidence, domain nodes and generated diffs from CodeLens.
+- target files can open legacy source, evidence, manual-refinement marking and reconciliation actions from CodeLens.
+- hovers show status, confidence, mapped source/target path, evidence count, last decision and stale warnings.
+
+The first implementation matches exact workspace-relative `source.path` and `target.path` entries. Ranged entries use the mapped range; file-level entries appear on the first line. Missing migration maps stay silent, and missing mapped files offer to open the migration map.
+
 ## Build
 
 ```sh
