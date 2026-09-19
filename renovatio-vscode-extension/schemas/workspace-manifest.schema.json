@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://modern-ash.github.io/renovatio/schemas/workspace-manifest.schema.json",
+  "title": "Renovatio Workspace Manifest",
+  "description": "Local-first Renovatio workspace contract used by the VS Code workbench.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "projectId",
+    "source",
+    "targets",
+    "artifacts",
+    "backend",
+    "llm"
+  ],
+  "properties": {
+    "version": {
+      "const": "1"
+    },
+    "projectId": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9._-]+$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "roots", "include", "exclude"],
+      "properties": {
+        "language": {
+          "type": "string",
+          "enum": ["cobol"]
+        },
+        "roots": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/workspaceRelativePath"
+          },
+          "uniqueItems": true
+        },
+        "include": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "exclude": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["language", "root"],
+        "properties": {
+          "language": {
+            "type": "string",
+            "enum": ["java", "python", "node"]
+          },
+          "root": {
+            "$ref": "#/$defs/workspaceRelativePath"
+          },
+          "package": {
+            "type": "string"
+          },
+          "framework": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "domainModel",
+        "persistenceModel",
+        "architecture",
+        "migrationMap",
+        "evidenceDir"
+      ],
+      "properties": {
+        "domainModel": {
+          "$ref": "#/$defs/workspaceRelativePath"
+        },
+        "persistenceModel": {
+          "$ref": "#/$defs/workspaceRelativePath"
+        },
+        "architecture": {
+          "$ref": "#/$defs/workspaceRelativePath"
+        },
+        "migrationMap": {
+          "$ref": "#/$defs/workspaceRelativePath"
+        },
+        "evidenceDir": {
+          "$ref": "#/$defs/workspaceRelativePath"
+        }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "environment", "allowLocalProcessControl"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "environment": {
+          "type": "string",
+          "enum": ["local", "dev", "staging", "production"]
+        },
+        "allowLocalProcessControl": {
+          "type": "boolean"
+        }
+      }
+    },
+    "llm": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "model",
+        "purpose",
+        "temperature",
+        "maxTokens",
+        "cacheEnabled",
+        "promptProfile",
+        "fallbackModel"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1
+        },
+        "purpose": {
+          "type": "string",
+          "enum": ["cobol-reverse-engineering", "architecture-inference", "migration-assist"]
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "cacheEnabled": {
+          "type": "boolean"
+        },
+        "promptProfile": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fallbackModel": {
+          "type": ["string", "null"]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "workspaceRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^/"
+          },
+          {
+            "pattern": "^[A-Za-z]:[\\\\/]"
+          }
+        ]
+      }
+    }
+  }
+}
