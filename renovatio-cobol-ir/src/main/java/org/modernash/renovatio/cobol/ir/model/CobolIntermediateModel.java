@@ -39,6 +39,9 @@ public final class CobolIntermediateModel {
     private final DecomposedBusinessLogic decomposedLogic;
     private final List<CobolDiagnostic> diagnostics;
     private final Map<String, ParagraphLineRange> paragraphLineRanges;
+    private final Map<String, String> fileToRecordMapping;
+    private final Map<String, List<String>> fileKeyFields;
+    private final Map<String, String> fileAssignTarget;
 
     private CobolIntermediateModel(Builder builder) {
         this.programId = builder.programId;
@@ -50,6 +53,15 @@ public final class CobolIntermediateModel {
         this.decomposedLogic = builder.decomposedLogic;
         this.diagnostics = builder.diagnostics.stream().sorted().toList();
         this.paragraphLineRanges = Collections.unmodifiableMap(new LinkedHashMap<>(builder.paragraphLineRanges));
+        this.fileToRecordMapping = builder.fileToRecordMapping == null
+            ? Collections.emptyMap()
+            : Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileToRecordMapping));
+        this.fileKeyFields = builder.fileKeyFields == null
+            ? Collections.emptyMap()
+            : Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileKeyFields));
+        this.fileAssignTarget = builder.fileAssignTarget == null
+            ? Collections.emptyMap()
+            : Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileAssignTarget));
     }
 
     /**
@@ -91,6 +103,37 @@ public final class CobolIntermediateModel {
         return Optional.ofNullable(paragraphLineRanges.get(name.toUpperCase()));
     }
 
+    /**
+     * Returns the mapping from FD (file definition) names to 01 level record names
+     * in the FILE SECTION. This is used to correctly identify the record structure
+     * associated with each file.
+     */
+    public Map<String, String> getFileToRecordMapping() {
+        return fileToRecordMapping;
+    }
+
+    /**
+     * Returns the mapping from FD (file definition) names to the field
+     * name(s) declared as that file's RECORD KEY / ALTERNATE RECORD KEY in
+     * FILE-CONTROL — the file's actual VSAM/indexed access key(s).
+     */
+    public Map<String, List<String>> getFileKeyFields() {
+        return fileKeyFields;
+    }
+
+    /**
+     * Returns the mapping from SELECT (file-control) name to the physical
+     * dataset name it is {@code ASSIGN TO} — the same physical VSAM/indexed
+     * file is often declared under a different local SELECT name in each
+     * program (e.g. ACCT-FILE, ACCOUNT-FILE, ACCTFILE-FILE all {@code ASSIGN
+     * TO ACCTFILE}). This is real structural evidence those declarations
+     * describe one physical resource, independent of how similar their
+     * local names happen to look.
+     */
+    public Map<String, String> getFileAssignTarget() {
+        return fileAssignTarget;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -105,6 +148,9 @@ public final class CobolIntermediateModel {
         private DecomposedBusinessLogic decomposedLogic;
         private List<CobolDiagnostic> diagnostics = new ArrayList<>();
         private final Map<String, ParagraphLineRange> paragraphLineRanges = new LinkedHashMap<>();
+        private Map<String, String> fileToRecordMapping = new LinkedHashMap<>();
+        private Map<String, List<String>> fileKeyFields = new LinkedHashMap<>();
+        private Map<String, String> fileAssignTarget = new LinkedHashMap<>();
 
         private Builder() {
         }
@@ -175,6 +221,21 @@ public final class CobolIntermediateModel {
             if (ranges != null) {
                 ranges.forEach(this::putParagraphLineRange);
             }
+            return this;
+        }
+
+        public Builder fileToRecordMapping(Map<String, String> mapping) {
+            this.fileToRecordMapping = mapping == null ? new LinkedHashMap<>() : new LinkedHashMap<>(mapping);
+            return this;
+        }
+
+        public Builder fileKeyFields(Map<String, List<String>> keyFields) {
+            this.fileKeyFields = keyFields == null ? new LinkedHashMap<>() : new LinkedHashMap<>(keyFields);
+            return this;
+        }
+
+        public Builder fileAssignTarget(Map<String, String> assignTarget) {
+            this.fileAssignTarget = assignTarget == null ? new LinkedHashMap<>() : new LinkedHashMap<>(assignTarget);
             return this;
         }
 

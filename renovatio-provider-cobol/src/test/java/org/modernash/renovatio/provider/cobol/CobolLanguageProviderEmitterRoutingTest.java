@@ -194,8 +194,14 @@ class CobolLanguageProviderEmitterRoutingTest {
                 new Workspace("test", root.toString(), "main"), nodeProfile());
 
         assertEquals(1, received.size());
-        assertEquals(List.of("BALANCE", "CUSTOMER-NAME"), received.get(0).semanticProgram().types().stream()
-                .map(type -> type.symbol()).sorted().toList());
+        // CUSTOMER-RECORD is the 01-level group header itself — it now
+        // projects as its own GROUP type (previously invisible: a pure
+        // group header with no PIC of its own never matched the data-item
+        // extractor, see SimpleCobolIrParser's GROUP_HEADER_PATTERN),
+        // alongside its two elementary fields.
+        assertEquals(List.of("BALANCE", "CUSTOMER-NAME", "CUSTOMER-RECORD"),
+                received.get(0).semanticProgram().types().stream()
+                        .map(type -> type.symbol()).sorted().toList());
         assertEquals("customer.cpy", received.get(0).sourceProvenance().sourcePath());
         assertEquals("NODE", result.getTargetLanguage());
     }

@@ -9,6 +9,9 @@ system: >-
   file name that was not present in the facts you were given. Do not propose a relation
   between an entity and itself, and do not propose a relation for two facts that describe
   the same physical file under different local names (that is a duplicate, not a relation).
+  For MOVE-derived relations, if the source field belongs to one entity and the target field is
+  a RECORD KEY or declared key of another entity, emit the relation from the source-field entity
+  to the target-key entity and set evidenceField to the source field, not the target key.
 fewShot:
   - input:
       facts:

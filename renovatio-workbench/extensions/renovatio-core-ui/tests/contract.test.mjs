@@ -194,18 +194,25 @@ test('maps Architecture profiles to a layer graph canvas (issue #267)', () => {
     assert.match(architectureMapper, /export function architectureToDiagram/);
     assert.match(architectureMapper, /architecture\.canvas/);
     assert.match(architectureMapper, /ARCHITECTURE_LAYER/);
+    assert.match(architectureMapper, /parentId: layerNodeId\(node\.layer\)/);
+    assert.match(architectureMapper, /width: COMPONENT_WIDTH/);
+    assert.match(architectureMapper, /height: COMPONENT_HEIGHT/);
+    assert.doesNotMatch(architectureMapper, /LAYER_MEMBERSHIP/);
     assert.match(architectureMapper, /ALLOWED_DEPENDENCY/);
     assert.match(architectureMapper, /DENIED_DEPENDENCY/);
     assert.match(architectureMapper, /dependencyDiagnostics/);
     assert.match(architectureNode, /export function ArchitectureNode/);
+    assert.match(architectureNode, /«\{kindLabel\(data\.kind\)\}»/);
     assert.match(architectureNode, /has-diagnostics/);
     assert.match(shell, /architectureViewMode: 'diagram' \| 'table'/);
     assert.match(shell, /architectureToDiagram\(view, this\.ai\?\.items \?\? \[\]\)/);
     assert.match(shell, /nodeTypes=\{\{ architectureNode: ArchitectureNode \}\}/);
     assert.match(shell, /edgeStyleFor=\{this\.architectureEdgeStyle\}/);
+    assert.match(shell, /Architecture UML package diagram/);
     assert.match(shell, /aria-label='Architecture view mode'/);
     assert.match(shell, /ADVANCED MAPPING/);
     assert.match(styles, /renovatio-architecture-flow-surface/);
+    assert.match(styles, /renovatio-architecture-flow-node\.is-layer header/);
     assert.match(styles, /renovatio-architecture-flow-node\.has-diagnostics/);
 });
 
@@ -452,4 +459,16 @@ test('DiagramCanvas exposes edgeMarkerFor/defs generically, with no ER-specific 
     // not itself branch on cardinality values or know what a foreign key is —
     // that logic belongs to the host (domain-er-markers.tsx / domain-diagram-mapper.ts).
     assert.doesNotMatch(diagramCanvas, /ONE_OR_MORE|ZERO_OR_MORE|ZERO_OR_ONE|\.foreignKey/);
+});
+
+test('nests every Architecture component inside its UML package box (reported bug: components floated disconnected)', () => {
+    // architecture.canvas already carries the correct layer/componentId per
+    // component. UML package ownership is visual containment, so components
+    // must name their package as parentId instead of drawing fake membership
+    // arrows between packages and their own classes.
+    assert.match(architectureMapper, /parentId: layerNodeId\(node\.layer\)/);
+    assert.match(architectureMapper, /return \{ nodes: \[\.\.\.layerNodes, \.\.\.componentNodes\], edges \}/);
+    assert.doesNotMatch(architectureMapper, /membershipEdges|LAYER_MEMBERSHIP/);
+    assert.doesNotMatch(shell, /edge\.kind === 'LAYER_MEMBERSHIP'/);
+    assert.match(diagramCanvas, /node\.parentId \? \{ parentId: node\.parentId, extent: 'parent' as const \} : \{\}/);
 });

@@ -23,6 +23,9 @@ import org.modernash.renovatio.llm.provider.AnthropicLlmProvider;
 import org.modernash.renovatio.llm.provider.LlmProvider;
 import org.modernash.renovatio.llm.provider.LlmResponse;
 import org.modernash.renovatio.llm.provider.OfflineFakeProvider;
+import org.modernash.renovatio.llm.provider.OllamaConfiguration;
+import org.modernash.renovatio.llm.provider.OllamaHttpTransport;
+import org.modernash.renovatio.llm.provider.OllamaLlmProvider;
 import org.modernash.renovatio.llm.provider.RetryPolicy;
 import org.modernash.renovatio.llm.residual.ResidualConstruction;
 import org.modernash.renovatio.llm.residual.ResidualEnrichmentCoordinator;
@@ -117,11 +120,19 @@ public final class LlmEnrichmentCli {
             return new OfflineFakeProvider(List.of(new LlmResponse("offline-fake", options.get("model"),
                     request.offlineResponse())));
         }
-        if (!"anthropic".equals(options.get("provider"))) throw new IllegalArgumentException("provider");
-        AnthropicConfiguration configuration = AnthropicConfiguration.from(properties, environment);
-        if (!configuration.model().equals(options.get("model"))) throw new IllegalArgumentException("model");
-        return new AnthropicLlmProvider(configuration, new AnthropicHttpTransport(), new RetryPolicy(),
-                Math::random, delay -> sleep(delay));
+        if ("anthropic".equals(options.get("provider"))) {
+            AnthropicConfiguration configuration = AnthropicConfiguration.from(properties, environment);
+            if (!configuration.model().equals(options.get("model"))) throw new IllegalArgumentException("model");
+            return new AnthropicLlmProvider(configuration, new AnthropicHttpTransport(), new RetryPolicy(),
+                    Math::random, delay -> sleep(delay));
+        }
+        if ("ollama".equals(options.get("provider"))) {
+            OllamaConfiguration configuration = OllamaConfiguration.from(properties, environment);
+            if (!configuration.model().equals(options.get("model"))) throw new IllegalArgumentException("model");
+            return new OllamaLlmProvider(configuration, new OllamaHttpTransport(), new RetryPolicy(),
+                    Math::random, delay -> sleep(delay));
+        }
+        throw new IllegalArgumentException("provider");
     }
 
     private static void sleep(Duration delay) {

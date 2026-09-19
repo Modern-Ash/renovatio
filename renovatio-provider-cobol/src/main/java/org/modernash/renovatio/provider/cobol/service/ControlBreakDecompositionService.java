@@ -115,7 +115,8 @@ public class ControlBreakDecompositionService {
                 .dataItems(model.getDataItems())
                 .controlFlowGraph(model.getControlFlowGraph())
                 .executionContext(model.getExecutionContext())
-                .controlBreakPatterns(patterns);
+                .controlBreakPatterns(patterns)
+                .fileToRecordMapping(model.getFileToRecordMapping());
 
         model.getParagraphs().values().forEach(enhancedBuilder::addParagraph);
 

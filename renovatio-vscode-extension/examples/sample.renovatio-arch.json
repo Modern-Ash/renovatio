@@ -1,5 +1,6 @@
 {
   "profile": {
+    "style": "LAYERED_MVC",
     "packageRoots": {
       "controller": "com.example.booking.controller",
       "service": "com.example.booking.service",
@@ -11,14 +12,50 @@
       "model": ""
     },
     "dependencyRules": [
-      { "fromLayer": "controller", "toLayer": "service", "allowed": true, "reason": "Controllers call services" },
-      { "fromLayer": "service", "toLayer": "model", "allowed": true, "reason": "Services own domain persistence" },
-      { "fromLayer": "model", "toLayer": "controller", "allowed": false, "reason": "Domain must not depend on controllers" }
+      {
+        "fromLayer": "controller",
+        "toLayer": "service",
+        "allowed": true,
+        "reason": "Controllers call services"
+      },
+      {
+        "fromLayer": "service",
+        "toLayer": "model",
+        "allowed": true,
+        "reason": "Services own domain persistence"
+      },
+      {
+        "fromLayer": "model",
+        "toLayer": "controller",
+        "allowed": false,
+        "reason": "Domain must not depend on controllers"
+      }
     ],
     "layout": {
-      "booking-controller": { "x": 360, "y": 80 },
-      "booking-service": { "x": 360, "y": 270 },
-      "booking": { "x": 360, "y": 460 }
+      "booking-controller": {
+        "x": 18,
+        "y": 66
+      },
+      "booking-service": {
+        "x": 0,
+        "y": 0
+      },
+      "booking": {
+        "x": 36,
+        "y": 0
+      },
+      "architecture-layer:controller": {
+        "x": 72,
+        "y": 48
+      },
+      "architecture-layer:service": {
+        "x": 546.42088091354,
+        "y": 119.98694942903751
+      },
+      "architecture-layer:model": {
+        "x": 452.26101141924966,
+        "y": 656.7373572593801
+      }
     },
     "excludedNodeIds": []
   },

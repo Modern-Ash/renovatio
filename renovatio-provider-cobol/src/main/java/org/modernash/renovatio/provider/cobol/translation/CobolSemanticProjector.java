@@ -63,10 +63,44 @@ public final class CobolSemanticProjector {
         List<SemanticProgram.SemanticType> types = new ArrayList<>();
         Map<String, String> typeIdsByName = new HashMap<>();
         Map<String, String> typeIdsBySourceNode = new LinkedHashMap<>();
+        // Two passes: memberIds was never populated here at all — every
+        // SemanticType this projector built passed List.of() regardless of
+        // level, so a GROUP type could never show its own fields even once
+        // it existed. Pass 1 builds each item's header/basic fields and
+        // walks COBOL's level-number nesting (a higher level number is a
+        // child of the most recent lower one — 01 owns the 05s under it,
+        // a 05 owns the 10s under it, etc.) to work out parent -> children
+        // by header id; pass 2 constructs the final immutable SemanticType
+        // list with that hierarchy filled in.
+        record PendingType(SemanticProgram.Header header, CobolDataItem item) { }
+        List<PendingType> pending = new ArrayList<>();
+        Map<String, List<String>> childHeaderIdsByParent = new LinkedHashMap<>();
+        List<String> levelStackIds = new ArrayList<>();
+        List<Integer> levelStackLevels = new ArrayList<>();
         for (int index = 0; index < model.getDataItems().size(); index++) {
             CobolDataItem item = model.getDataItems().get(index);
             String role = "data-item:" + item.name().toUpperCase(Locale.ROOT) + ":" + index;
             var header = SemanticProgram.Header.create(programId, SemanticProgram.NodeKind.TYPE, role, programSpan);
+            pending.add(new PendingType(header, item));
+            typeIdsByName.putIfAbsent(item.name().toUpperCase(Locale.ROOT), header.id());
+            String sourceNodeId = identities.node(item, "/dataItems/" + index).nodeId();
+            if (typeIdsBySourceNode.putIfAbsent(sourceNodeId, header.id()) != null) {
+                throw new IllegalArgumentException("duplicate COBOL data-item node: " + sourceNodeId);
+            }
+
+            while (!levelStackLevels.isEmpty() && levelStackLevels.get(levelStackLevels.size() - 1) >= item.level()) {
+                levelStackLevels.remove(levelStackLevels.size() - 1);
+                levelStackIds.remove(levelStackIds.size() - 1);
+            }
+            if (!levelStackIds.isEmpty()) {
+                childHeaderIdsByParent.computeIfAbsent(levelStackIds.get(levelStackIds.size() - 1),
+                        key -> new ArrayList<>()).add(header.id());
+            }
+            levelStackLevels.add(item.level());
+            levelStackIds.add(header.id());
+        }
+        for (PendingType entry : pending) {
+            CobolDataItem item = entry.item();
             PicType pic = item.picType();
             SemanticProgram.TypeKind kind = typeKind(pic, item.picture());
             SemanticProgram.Signedness signedness = pic == null ? SemanticProgram.Signedness.UNKNOWN
@@ -74,13 +108,9 @@ public final class CobolSemanticProjector {
             OptionalInt precision = pic == null ? OptionalInt.empty() : OptionalInt.of(pic.digits());
             OptionalInt scale = pic == null ? OptionalInt.empty() : OptionalInt.of(pic.scale());
             OptionalInt cardinality = item.occurs() == null ? OptionalInt.empty() : OptionalInt.of(item.occurs());
-            types.add(new SemanticProgram.SemanticType(header, item.name(), kind, signedness, precision, scale,
-                    cardinality, cardinality, List.of()));
-            typeIdsByName.putIfAbsent(item.name().toUpperCase(Locale.ROOT), header.id());
-            String sourceNodeId = identities.node(item, "/dataItems/" + index).nodeId();
-            if (typeIdsBySourceNode.putIfAbsent(sourceNodeId, header.id()) != null) {
-                throw new IllegalArgumentException("duplicate COBOL data-item node: " + sourceNodeId);
-            }
+            List<String> memberIds = childHeaderIdsByParent.getOrDefault(entry.header().id(), List.of());
+            types.add(new SemanticProgram.SemanticType(entry.header(), item.name(), kind, signedness, precision,
+                    scale, cardinality, cardinality, memberIds));
         }
 
         List<CobolAnnotation> contributingAnnotations = contributingAnnotations(model, annotatedContext,
@@ -105,7 +135,7 @@ public final class CobolSemanticProjector {
 
         return new SemanticProgram("1", SemanticProgram.Header.create(programId,
                 SemanticProgram.NodeKind.PROGRAM, "program", programSpan), programId, provenance, types, intents,
-                projection.effects(), ioOperations, controlFlow, projection.unclassified());
+                projection.effects(), ioOperations, controlFlow, projection.unclassified(), projection.fieldFlows());
     }
 
     private static void projectCics(String programId, String source, SourceSpan span,
@@ -155,17 +185,33 @@ public final class CobolSemanticProjector {
         List<SemanticProgram.SideEffect> effects = new ArrayList<>();
         List<SemanticProgram.IoOperation> io = new ArrayList<>();
         List<SemanticProgram.UnclassifiedDataAccess> residual = new ArrayList<>();
+        List<SemanticProgram.FieldFlow> fieldFlows = new ArrayList<>();
         int[] sequence = {0};
+        // FD name -> the 01-level record declared right under it in the
+        // FILE SECTION, parsed structurally (see #280: name-similarity
+        // guessing between a file and its record missed real pairs like
+        // ACCTFILE-FILE/ACCOUNT-RECORD where COBOL naming abbreviations
+        // diverge). Threaded down so a FILE-kind IoOperation can carry its
+        // actual bound record symbol instead of leaving a domain projector
+        // to guess it from the name alone.
+        Map<String, String> fileToRecordMapping = model.getFileToRecordMapping();
+        Map<String, java.util.List<String>> fileKeyFields = model.getFileKeyFields();
+        Map<String, String> fileAssignTarget = model.getFileAssignTarget();
         model.getParagraphs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry ->
                 visitStatements(model.getProgramId(), entry.getValue().statements(), span, typeIds,
-                        entry.getKey(), sequence, effects, io, residual));
-        return new Projection(effects, io, residual);
+                        entry.getKey(), sequence, effects, io, residual, fileToRecordMapping, fileKeyFields,
+                        fileAssignTarget, fieldFlows));
+        return new Projection(effects, io, residual, fieldFlows);
     }
 
     private void visitStatements(String programId, List<CobolStatement> statements, SourceSpan span,
                                  Map<String, String> typeIds, String paragraph, int[] sequence,
                                  List<SemanticProgram.SideEffect> effects, List<SemanticProgram.IoOperation> io,
-                                 List<SemanticProgram.UnclassifiedDataAccess> residual) {
+                                 List<SemanticProgram.UnclassifiedDataAccess> residual,
+                                 Map<String, String> fileToRecordMapping,
+                                 Map<String, java.util.List<String>> fileKeyFields,
+                                 Map<String, String> fileAssignTarget,
+                                 List<SemanticProgram.FieldFlow> fieldFlows) {
         for (CobolStatement statement : statements) {
             int ordinal = sequence[0]++;
             String role = paragraph + ":" + ordinal;
@@ -175,9 +221,16 @@ public final class CobolSemanticProjector {
                     case WRITE, REWRITE, DELETE -> SemanticProgram.Direction.WRITE;
                     case OPEN, CLOSE -> SemanticProgram.Direction.UNKNOWN;
                 };
+                String boundRecord = fileToRecordMapping.get(file.fileName().toUpperCase(java.util.Locale.ROOT));
+                java.util.List<String> keyFields = fileKeyFields.getOrDefault(
+                        file.fileName().toUpperCase(java.util.Locale.ROOT), List.of());
+                String assignTarget = fileAssignTarget.get(file.fileName().toUpperCase(java.util.Locale.ROOT));
                 io.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.IO_OPERATION, "file:" + role, span), SemanticProgram.IoKind.FILE,
-                        file.operationType().name(), Optional.of(file.fileName()), direction, List.of()));
+                        file.operationType().name(), Optional.of(file.fileName()), direction, List.of(),
+                        boundRecord == null || boundRecord.isBlank() ? Optional.empty() : Optional.of(boundRecord),
+                        keyFields,
+                        assignTarget == null || assignTarget.isBlank() ? Optional.empty() : Optional.of(assignTarget)));
             } else if (statement instanceof Db2Statement db2) {
                 String operation = firstToken(db2.sql());
                 SemanticProgram.Direction direction = databaseDirection(operation);
@@ -198,6 +251,15 @@ public final class CobolSemanticProjector {
                         role + ":move-source", effects, residual);
                 recordWrite(programId, move.target(), span, typeIds,
                         role + ":move-target", effects, residual);
+                // The actual join pattern real COBOL programs use: extract
+                // a key from one record and MOVE it into another field
+                // right before a keyed READ. A simple single-field MOVE
+                // whose source and target both resolve to real data items
+                // is real data-flow evidence of a relation between
+                // whatever entities those two fields belong to — the
+                // domain projector uses this instead of guessing from
+                // name similarity.
+                recordFieldFlow(programId, move.source(), move.target(), span, typeIds, fieldFlows);
             } else if (statement instanceof ComputeStatement compute) {
                 recordExpressionReads(programId, compute.expression(), span, typeIds,
                         role + ":compute-expression", effects, residual);
@@ -206,8 +268,8 @@ public final class CobolSemanticProjector {
             } else if (statement instanceof IfStatement branch) {
                 recordExpressionReads(programId, branch.condition(), span, typeIds,
                         role + ":if-condition", effects, residual);
-                visitStatements(programId, branch.thenStatements(), span, typeIds, paragraph, sequence, effects, io, residual);
-                visitStatements(programId, branch.elseStatements(), span, typeIds, paragraph, sequence, effects, io, residual);
+                visitStatements(programId, branch.thenStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget, fieldFlows);
+                visitStatements(programId, branch.elseStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget, fieldFlows);
             } else if (statement instanceof EvaluateStatement evaluate) {
                 recordExpressionReads(programId, evaluate.expression(), span, typeIds,
                         role + ":evaluate-expression", effects, residual);
@@ -216,7 +278,7 @@ public final class CobolSemanticProjector {
                     recordExpressionReads(programId, branch.condition(), span, typeIds,
                             role + ":when-condition:" + index, effects, residual);
                     visitStatements(programId, branch.statements(), span, typeIds,
-                            paragraph, sequence, effects, io, residual);
+                            paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget, fieldFlows);
                 }
             }
         }
@@ -275,6 +337,25 @@ public final class CobolSemanticProjector {
                     SemanticProgram.NodeKind.UNCLASSIFIED_DATA_ACCESS, "unclassified:" + role, span),
                     subject.strip(), operation, "No matching semantic data node", List.of()));
         }
+    }
+
+    // Only a plain "MOVE <single-field> TO <single-field>" is trustworthy
+    // enough to assert a data-flow relation from — a MOVE whose source is
+    // a literal, or whose source/target don't each resolve to exactly one
+    // known data item, carries no reliable field-to-field evidence.
+    private void recordFieldFlow(String programId, String source, String target, SourceSpan span,
+                                 Map<String, String> typeIds, List<SemanticProgram.FieldFlow> fieldFlows) {
+        if (source == null || target == null || isLiteral(source) || isLiteral(target)) return;
+        String sourceTrimmed = source.strip();
+        String targetTrimmed = target.strip();
+        if (!DATA_REFERENCE.matcher(sourceTrimmed).matches() || !DATA_REFERENCE.matcher(targetTrimmed).matches()) return;
+        String sourceTypeId = typeIds.get(sourceTrimmed.toUpperCase(Locale.ROOT));
+        String targetTypeId = typeIds.get(targetTrimmed.toUpperCase(Locale.ROOT));
+        if (sourceTypeId == null || targetTypeId == null || sourceTypeId.equals(targetTypeId)) return;
+        int ordinal = fieldFlows.size();
+        fieldFlows.add(new SemanticProgram.FieldFlow(SemanticProgram.Header.create(programId,
+                SemanticProgram.NodeKind.FIELD_FLOW, "field-flow:" + ordinal + ":" + sourceTrimmed + ":" + targetTrimmed,
+                span), sourceTypeId, targetTypeId));
     }
 
     private static boolean isLiteral(String value) {
@@ -337,5 +418,6 @@ public final class CobolSemanticProjector {
 
     private record Projection(List<SemanticProgram.SideEffect> effects,
                               List<SemanticProgram.IoOperation> io,
-                              List<SemanticProgram.UnclassifiedDataAccess> unclassified) { }
+                              List<SemanticProgram.UnclassifiedDataAccess> unclassified,
+                              List<SemanticProgram.FieldFlow> fieldFlows) { }
 }

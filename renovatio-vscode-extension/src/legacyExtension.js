@@ -26,6 +26,8 @@ let analysisPanel;
 let projectPanel;
 let domainModelPanel;
 let persistencePanel;
+let welcomePanel;
+let welcomeOpenedThisSession = false;
 
 function activate(context) {
   extensionContext = context;
@@ -46,7 +48,9 @@ function activate(context) {
     vscode.window.registerTreeDataProvider('renovatio.analysis', analysisProvider),
     vscode.window.registerTreeDataProvider('renovatio.domainModel', domainModelProvider),
     vscode.commands.registerCommand('renovatio.refresh', refresh),
+    vscode.commands.registerCommand('renovatio.openWelcome', openWelcome),
     vscode.commands.registerCommand('renovatio.selectProject', selectProject),
+    vscode.commands.registerCommand('renovatio.createProject', createProject),
     vscode.commands.registerCommand('renovatio.analyzeSelectedPath', analyzeSelectedPath),
     vscode.commands.registerCommand('renovatio.analyzeCobolSources', analyzeCobolSources),
     vscode.commands.registerCommand('renovatio.analyzeWorkspace', analyzeWorkspace),
@@ -78,6 +82,7 @@ function activate(context) {
 
   state.activeProjectId = context.workspaceState.get('renovatio.activeProjectId');
   void refresh();
+  void openWelcome({ once: true });
 }
 
 function deactivate() {}
@@ -248,15 +253,12 @@ async function analyzeSelectedPath(resource) {
 async function analyzeCobolSources() {
   const project = await ensureActiveProject();
   if (!project) return;
+  const roots = await ensureCobolRootsForProject(project);
+  if (!roots.length) return;
   const settings = workspaceSettings(project);
-  if (!settings.cobolRoots.length) {
-    const action = await vscode.window.showWarningMessage('No COBOL source roots configured for this VS Code workspace.', 'Add COBOL Source Root');
-    if (action) await addCobolSourceRoot();
-    return;
-  }
-  const scanRoot = settings.cobolRoots.length === 1
-    ? settings.cobolRoots[0]
-    : await pickCobolSourceRoot(settings.cobolRoots);
+  const scanRoot = roots.length === 1
+    ? roots[0]
+    : await pickCobolSourceRoot(roots);
   if (!scanRoot) return;
   await runAnalysis(project, scanRoot, settings.workspaceFolderPath || project.workspacePath || scanRoot);
 }
@@ -267,6 +269,12 @@ async function analyzeWorkspace() {
   const settings = workspaceSettings(project);
   if (settings.configuredCobolRoots.length) {
     await analyzeCobolSources();
+    return;
+  }
+  const roots = await ensureCobolRootsForProject(project);
+  if (roots.length) {
+    const scanRoot = roots.length === 1 ? roots[0] : await pickCobolSourceRoot(roots);
+    if (scanRoot) await runAnalysis(project, scanRoot, workspaceSettings(project).workspaceFolderPath || project.workspacePath || scanRoot);
     return;
   }
   const workspacePath = await selectWorkspaceFolderPath();
@@ -283,21 +291,9 @@ async function runAnalysis(project, scanRoot, workspaceRoot) {
   const apiWorkspace = analysisWorkspacePath(project, scanRoot, workspaceRoot);
   await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: 'Renovatio analysis', cancellable: false }, async progress => {
     progress.report({ message: `Using ${scanRoot}` });
-    let jobProject = project;
-    try {
-      const updated = await request('PUT', `/api/projects/${encodeURIComponent(project.id)}`, {
-        workspacePath: apiWorkspace,
-        cobolScanRoot: scanRoot,
-        javaOutputPath: project.javaOutputPath || null
-      });
-      rememberProject(updated);
-      jobProject = updated;
-    } catch (error) {
-      output.appendLine(`Project path sync skipped; using VS Code workspace settings for analysis: ${message(error)}`);
-    }
-    await activateProject(jobProject, { openWorkspace: false });
+    await activateProject(project, { openWorkspace: false });
     progress.report({ message: 'Starting analyzer job' });
-    const job = await request('POST', `/api/projects/${encodeURIComponent(jobProject.id)}/jobs`, {
+    const job = await request('POST', `/api/projects/${encodeURIComponent(project.id)}/jobs`, {
       operation: 'analyze',
       params: {
         workspacePath: apiWorkspace,
@@ -330,12 +326,8 @@ async function runAnalysis(project, scanRoot, workspaceRoot) {
 
 async function addCobolSourceRoot(resource) {
   const resourceUri = resource instanceof vscode.Uri ? resource : undefined;
-  const project = await ensureActiveProject(resourceUri);
-  const workspaceRoot = workspaceFolderPathFor(resourceUri) || workspaceSettings(project).workspaceFolderPath || await selectWorkspaceFolderPath();
-  if (!workspaceRoot) {
-    vscode.window.showWarningMessage('Open a VS Code workspace before adding COBOL source roots.');
-    return;
-  }
+  const project = state.projects.length ? await ensureActiveProject(resourceUri) : undefined;
+  const workspaceRoot = workspaceFolderPathFor(resourceUri) || workspaceSettings(project).workspaceFolderPath || undefined;
   let selectedUris = [];
   if (resourceUri) {
     selectedUris = [await directoryUriFor(resourceUri)];
@@ -344,29 +336,62 @@ async function addCobolSourceRoot(resource) {
       canSelectFiles: false,
       canSelectFolders: true,
       canSelectMany: true,
-      defaultUri: vscode.Uri.file(workspaceRoot),
+      defaultUri: vscode.Uri.file(workspaceRoot || os.homedir()),
       openLabel: 'Add COBOL source root',
       title: 'Select COBOL source root'
     }) || [];
   }
   if (!selectedUris.length) return;
   const settings = workspaceSettings(project, workspaceRoot);
-  const selectedPaths = selectedUris.map(uri => uri.fsPath);
+  const selectedPaths = await Promise.all(selectedUris.map(uri => resolveRealPath(uri.fsPath)));
+  if (!project) {
+    await createProjectFromCobolRoots(selectedPaths);
+    return;
+  }
   const mode = await chooseCobolImportMode(project, settings, selectedPaths);
   if (!mode || mode === 'cancel') return;
   if (mode === 'newProject') {
     await createProjectFromCobolRoots(selectedPaths);
     return;
   }
-  const additions = selectedPaths.map(fsPath => serializePathForWorkspace(fsPath, workspaceRoot));
+  const destinationRoots = settings.generatedRoots.length
+    ? settings.generatedRoots
+    : [defaultDestinationRoot(project, settings.targetLanguage)].filter(Boolean);
+  await ensureRenovatioWorkspaceFolders(selectedPaths, destinationRoots, project);
+  const additions = selectedPaths.map(fsPath => path.normalize(fsPath));
   const next = mode === 'replace'
     ? uniqueStrings(additions)
-    : uniqueStrings([...settings.rawCobolRoots, ...additions]);
-  await updateWorkspaceSetting('cobolRoots', next, workspaceRoot);
+    : uniqueStrings([...settings.configuredCobolRoots, ...additions]);
+  await rememberRenovatioWorkspace(project, next, destinationRoots);
+  await updateWorkspaceSetting('cobolRoots', next, undefined, { target: 'workspace' });
+  if (destinationRoots.length) {
+    await updateWorkspaceSetting('generatedRoots', uniqueStrings(destinationRoots), undefined, { target: 'workspace' });
+    await updateWorkspaceSetting('generatedRoot', destinationRoots[0], undefined, { target: 'workspace' });
+  }
   vscode.window.showInformationMessage(`${mode === 'replace' ? 'Replaced' : 'Configured'} ${next.length} COBOL source root(s).`);
   projectsProvider.refresh();
   operationsProvider.refresh();
   await refreshVisiblePanels();
+}
+
+async function createProject(resource) {
+  const resourceUri = resource instanceof vscode.Uri ? resource : undefined;
+  const workspaceRoot = workspaceFolderPathFor(resourceUri) || await selectWorkspaceFolderPath();
+  let selectedUris = [];
+  if (resourceUri) {
+    selectedUris = [await directoryUriFor(resourceUri)];
+  } else {
+    selectedUris = await vscode.window.showOpenDialog({
+      canSelectFiles: false,
+      canSelectFolders: true,
+      canSelectMany: false,
+      defaultUri: vscode.Uri.file(workspaceRoot || os.homedir()),
+      openLabel: 'Create project from COBOL root',
+      title: 'Select COBOL source root for the new Renovatio project'
+    }) || [];
+  }
+  if (!selectedUris.length) return;
+  await createProjectFromCobolRoots(selectedUris.map(uri => uri.fsPath));
 }
 
 async function removeCobolSourceRoot() {
@@ -435,12 +460,22 @@ async function createProjectFromCobolRoots(selectedPaths) {
     ignoreFocusOut: true
   });
   if (!name) return;
-  const workspacePath = primaryRoot;
   try {
-    const created = await createBackendProject(name, workspacePath);
+    const settings = workspaceSettings();
+    const created = await createBackendProject(name, primaryRoot);
     rememberProject(created);
     await activateProject(created, { openWorkspace: false });
-    await updateWorkspaceSetting('cobolRoots', resolvedPaths, workspacePath, { optional: true });
+    const destinationRoot = defaultDestinationRoot(created, settings.targetLanguage);
+    const destinationRoots = [destinationRoot].filter(Boolean);
+    await ensureRenovatioWorkspaceFolders(resolvedPaths, destinationRoots, created);
+    await rememberRenovatioWorkspace(created, resolvedPaths, destinationRoots);
+    await updateWorkspaceSetting('cobolRoots', resolvedPaths.map(root => path.normalize(root)), undefined, { target: 'workspace' });
+    if (destinationRoots.length) {
+      await updateWorkspaceSetting('generatedRoots', destinationRoots, undefined, { target: 'workspace' });
+      await updateWorkspaceSetting('generatedRoot', destinationRoots[0], undefined, { target: 'workspace' });
+    }
+    await updateWorkspaceSetting('targetLanguage', settings.targetLanguage, undefined, { target: 'workspace' });
+    await updateWorkspaceSetting('targetPackage', settings.targetPackage, undefined, { target: 'workspace' });
     await refresh();
     vscode.window.showInformationMessage(`Created Renovatio project "${created.name || name}" for ${primaryRoot}.`);
     projectsProvider.refresh();
@@ -453,29 +488,183 @@ async function createProjectFromCobolRoots(selectedPaths) {
 
 async function createBackendProject(name, workspacePath) {
   const targetPackage = workspaceSettings().targetPackage;
-  try {
-    return await request('POST', '/api/projects', {
-      name,
-      workspacePath,
-      javaOutputPath: path.join(workspacePath, 'generated-java-stubs'),
-      javaPackage: targetPackage,
-      javaArchitecture: 'layered'
-    });
-  } catch (error) {
-    output.appendLine(`Project creation at selected path failed; retrying with managed Renovatio workspace: ${message(error)}`);
-    return request('POST', '/api/projects', {
-      name,
-      workspacePath: managedWorkspaceName(name, workspacePath),
-      javaOutputPath: 'generated-java-stubs',
-      javaPackage: targetPackage,
-      javaArchitecture: 'layered'
-    });
-  }
+  const targetLanguage = workspaceSettings().targetLanguage;
+  return request('POST', '/api/projects', {
+    name,
+    workspacePath: managedWorkspaceName(name, workspacePath),
+    javaOutputPath: `generated/${targetLanguage}`,
+    javaPackage: targetPackage,
+    javaArchitecture: 'layered'
+  });
 }
 
 function managedWorkspaceName(name, workspacePath) {
   const base = path.basename(workspacePath) || name || 'renovatio-project';
   return `vscode-${base}`.toLowerCase().replace(/[^a-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '') || 'vscode-renovatio-project';
+}
+
+function defaultDestinationRoot(project, targetLanguage = 'java') {
+  if (!project) return '';
+  return path.normalize(project.javaOutputPath || path.join(project.workspacePath || '', 'generated', targetLanguage));
+}
+
+async function ensureRenovatioWorkspaceFolders(sourceRoots, destinationRoots, project) {
+  const sources = uniqueStrings(asArray(sourceRoots).filter(Boolean).map(value => path.normalize(value)));
+  const destinations = uniqueStrings(asArray(destinationRoots).filter(Boolean).map(value => path.normalize(value)));
+  for (const destination of destinations) {
+    await vscode.workspace.fs.createDirectory(vscode.Uri.file(destination));
+  }
+  const folders = [...sources.map(root => ({
+    uri: vscode.Uri.file(root),
+    name: `source:${path.basename(root) || 'cobol'}`
+  })), ...destinations.map(root => ({
+    uri: vscode.Uri.file(root),
+    name: `dest:${path.basename(root) || 'generated'}`
+  }))];
+  if (!folders.length) return;
+  const current = vscode.workspace.workspaceFolders || [];
+  const additions = folders.filter(folder => !current.some(existing => samePath(existing.uri.fsPath, folder.uri.fsPath)));
+  if (!additions.length) return;
+  const ok = vscode.workspace.updateWorkspaceFolders(current.length, 0, ...additions);
+  if (!ok) {
+    throw new Error('VS Code rejected the workspace folder update for Renovatio sources/destinations.');
+  }
+  await waitForWorkspaceFolders(additions.map(folder => folder.uri.fsPath));
+  output.appendLine(`Renovatio workspace folders added for ${project?.name || 'project'}: ${additions.map(folder => folder.uri.fsPath).join(', ')}`);
+}
+
+async function discoverCobolWorkspaceRoots() {
+  const folders = asArray(vscode.workspace.workspaceFolders)
+    .filter(folder => !String(folder.name || '').startsWith('dest:'));
+  const roots = [];
+  for (const folder of folders) {
+    if (await containsCobolArtifacts(folder.uri, 0)) {
+      roots.push(path.normalize(folder.uri.fsPath));
+    }
+  }
+  if (!roots.length && folders.length) {
+    const matches = await vscode.workspace.findFiles('**/*.{cbl,cob,cobol,cpy,copybook,jcl,job,proc}', '**/{node_modules,target,build,dist,out,.git}/**', 200);
+    for (const match of matches) {
+      const folder = vscode.workspace.getWorkspaceFolder(match);
+      if (folder && !String(folder.name || '').startsWith('dest:')) {
+        roots.push(path.normalize(folder.uri.fsPath));
+      }
+    }
+  }
+  return uniqueStrings(roots);
+}
+
+async function ensureCobolRootsForProject(project) {
+  let settings = workspaceSettings(project);
+  if (settings.configuredCobolRoots.length) {
+    return settings.configuredCobolRoots;
+  }
+
+  let sourceRoots = await projectDefaultCobolRoots(project);
+  if (!sourceRoots.length) {
+    sourceRoots = await discoverCobolWorkspaceRoots();
+  }
+  if (!sourceRoots.length) {
+    sourceRoots = rememberedLastSourceRoots();
+  }
+  if (!sourceRoots.length) {
+    const selected = await vscode.window.showOpenDialog({
+      canSelectFiles: false,
+      canSelectFolders: true,
+      canSelectMany: true,
+      defaultUri: vscode.Uri.file(os.homedir()),
+      openLabel: 'Use COBOL source root',
+      title: `Select COBOL source root for ${project?.name || 'Renovatio'}`
+    }) || [];
+    sourceRoots = await Promise.all(selected.map(uri => resolveRealPath(uri.fsPath)));
+  }
+  sourceRoots = uniqueStrings(sourceRoots.map(root => path.normalize(root)).filter(Boolean));
+  if (!sourceRoots.length) {
+    vscode.window.showWarningMessage('Renovatio needs at least one COBOL source root before analysis.');
+    return [];
+  }
+
+  settings = workspaceSettings(project);
+  const destinationRoots = settings.generatedRoots.length
+    ? settings.generatedRoots
+    : [defaultDestinationRoot(project, settings.targetLanguage)].filter(Boolean);
+  await ensureRenovatioWorkspaceFolders(sourceRoots, destinationRoots, project);
+  await rememberRenovatioWorkspace(project, sourceRoots, destinationRoots);
+  await updateWorkspaceSetting('cobolRoots', sourceRoots, undefined, { target: 'workspace' });
+  if (destinationRoots.length) {
+    await updateWorkspaceSetting('generatedRoots', destinationRoots, undefined, { target: 'workspace' });
+    await updateWorkspaceSetting('generatedRoot', destinationRoots[0], undefined, { target: 'workspace' });
+  }
+  projectsProvider.refresh();
+  operationsProvider.refresh();
+  await refreshVisiblePanels();
+  return sourceRoots;
+}
+
+async function projectDefaultCobolRoots(project) {
+  const candidates = uniqueStrings([
+    project?.cobolScanRoot,
+    ...asArray(project?.sourceRoots),
+    ...asArray(project?.cobolRoots)
+  ].filter(Boolean).map(value => path.normalize(String(value))));
+  const roots = [];
+  for (const candidate of candidates) {
+    if (await containsCobolArtifacts(vscode.Uri.file(candidate), 0)) {
+      roots.push(candidate);
+    }
+  }
+  return uniqueStrings(roots);
+}
+
+async function rememberRenovatioWorkspace(project, sourceRoots, destinationRoots) {
+  if (!project?.id) return;
+  const value = {
+    projectId: project.id,
+    sourceRoots: uniqueStrings(asArray(sourceRoots).filter(Boolean).map(value => path.normalize(value))),
+    destinationRoots: uniqueStrings(asArray(destinationRoots).filter(Boolean).map(value => path.normalize(value))),
+    updatedAt: new Date().toISOString()
+  };
+  await extensionContext.workspaceState.update(renovatioWorkspaceKey(project.id), value);
+  await extensionContext.globalState.update(renovatioWorkspaceKey(project.id), value);
+  await extensionContext.globalState.update('renovatio.lastCobolSourceRoots', value.sourceRoots);
+}
+
+function rememberedWorkspace(project) {
+  if (!project?.id || !extensionContext) return { sourceRoots: [], destinationRoots: [] };
+  const key = renovatioWorkspaceKey(project.id);
+  const value = extensionContext.workspaceState.get(key) || extensionContext.globalState.get(key) || {};
+  return {
+    sourceRoots: asArray(value.sourceRoots).map(value => path.normalize(String(value))).filter(Boolean),
+    destinationRoots: asArray(value.destinationRoots).map(value => path.normalize(String(value))).filter(Boolean)
+  };
+}
+
+function rememberedLastSourceRoots() {
+  if (!extensionContext) return [];
+  return asArray(extensionContext.globalState.get('renovatio.lastCobolSourceRoots'))
+    .map(value => path.normalize(String(value)))
+    .filter(Boolean);
+}
+
+function renovatioWorkspaceKey(projectId) {
+  return `renovatio.workspaceContext.${projectId}`;
+}
+
+function workspaceFoldersByPrefix(prefix) {
+  return asArray(vscode.workspace.workspaceFolders)
+    .filter(folder => String(folder.name || '').startsWith(prefix))
+    .map(folder => folder.uri.fsPath);
+}
+
+async function waitForWorkspaceFolders(expectedPaths) {
+  const expected = expectedPaths.map(value => path.normalize(value));
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const current = vscode.workspace.workspaceFolders || [];
+    if (expected.every(candidate => current.some(folder => samePath(folder.uri.fsPath, candidate)))) {
+      return;
+    }
+    await sleep(50);
+  }
 }
 
 async function resolveRealPath(fsPath) {
@@ -506,8 +695,17 @@ async function confirmExternalScanRoot(project, scanRoot, workspaceRoot) {
   );
   if (action === 'Analyze Current Project') return true;
   if (action === 'Add Root First') {
-    const next = uniqueStrings([...settings.rawCobolRoots, serializePathForWorkspace(normalized, workspaceRoot)]);
-    await updateWorkspaceSetting('cobolRoots', next, workspaceRoot);
+    const destinations = settings.generatedRoots.length
+      ? settings.generatedRoots
+      : [defaultDestinationRoot(project, settings.targetLanguage)].filter(Boolean);
+    await ensureRenovatioWorkspaceFolders([normalized], destinations, project);
+    const next = uniqueStrings([...settings.configuredCobolRoots, normalized]);
+    await rememberRenovatioWorkspace(project, next, destinations);
+    await updateWorkspaceSetting('cobolRoots', next, undefined, { target: 'workspace' });
+    if (destinations.length) {
+      await updateWorkspaceSetting('generatedRoots', uniqueStrings(destinations), undefined, { target: 'workspace' });
+      await updateWorkspaceSetting('generatedRoot', destinations[0], undefined, { target: 'workspace' });
+    }
     projectsProvider.refresh();
     operationsProvider.refresh();
     return true;
@@ -519,11 +717,7 @@ async function selectGeneratedOutputFolder() {
   const project = await ensureActiveProject();
   if (!project) return;
   const settings = workspaceSettings(project);
-  const workspaceRoot = settings.workspaceFolderPath || await selectWorkspaceFolderPath();
-  if (!workspaceRoot) {
-    vscode.window.showWarningMessage('Open a VS Code workspace before configuring future output.');
-    return;
-  }
+  const workspaceRoot = settings.workspaceFolderPath || project.workspacePath || os.homedir();
   const selected = await vscode.window.showOpenDialog({
     canSelectFiles: false,
     canSelectFolders: true,
@@ -534,20 +728,12 @@ async function selectGeneratedOutputFolder() {
   });
   const uri = selected?.[0];
   if (!uri) return;
-  const storedPath = serializePathForWorkspace(uri.fsPath, workspaceRoot);
-  await updateWorkspaceSetting('generatedRoot', storedPath, workspaceRoot);
-  try {
-    const current = state.projects.find(candidate => candidate.id === state.activeProjectId) || project;
-    const currentSettings = workspaceSettings(current, workspaceRoot);
-    const updated = await request('PUT', `/api/projects/${encodeURIComponent(current.id)}`, {
-      workspacePath: apiWorkspacePath(current, workspaceRoot),
-      cobolScanRoot: current.cobolScanRoot || currentSettings.cobolRoots[0] || workspaceRoot,
-      javaOutputPath: current.javaOutputPath || null
-    });
-    rememberProject(updated);
-  } catch (error) {
-    output.appendLine(`Future output synced to VS Code settings but not backend: ${message(error)}`);
-  }
+  const destinationRoot = path.normalize(uri.fsPath);
+  await ensureRenovatioWorkspaceFolders(settings.configuredCobolRoots, [destinationRoot], project);
+  const generatedRoots = uniqueStrings([destinationRoot, ...settings.generatedRoots]);
+  await rememberRenovatioWorkspace(project, settings.configuredCobolRoots, generatedRoots);
+  await updateWorkspaceSetting('generatedRoots', generatedRoots, undefined, { target: 'workspace' });
+  await updateWorkspaceSetting('generatedRoot', destinationRoot, undefined, { target: 'workspace' });
   projectsProvider.refresh();
   operationsProvider.refresh();
   await refreshVisiblePanels();
@@ -695,7 +881,13 @@ function projectForResource(resourceUri) {
 }
 
 function projectMatchesFolder(project, folderPath) {
-  const candidates = [project.workspacePath, project.cobolScanRoot].filter(Boolean);
+  const remembered = rememberedWorkspace(project);
+  const candidates = [
+    project.workspacePath,
+    project.cobolScanRoot,
+    ...remembered.sourceRoots,
+    ...remembered.destinationRoots
+  ].filter(Boolean);
   return candidates.some(candidate => samePath(candidate, folderPath) || isInsidePath(candidate, folderPath) || isInsidePath(folderPath, candidate));
 }
 
@@ -716,13 +908,25 @@ async function selectWorkspaceFolderPath() {
 function workspaceSettings(project, workspaceRoot) {
   const folderPath = workspaceRoot || workspaceFolderForProject(project)?.uri.fsPath || vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || project?.workspacePath;
   const cfg = workspaceConfiguration(folderPath);
+  const remembered = rememberedWorkspace(project);
   const targetLanguage = String(cfg.get('targetLanguage') || 'java');
   const targetPackage = String(cfg.get('targetPackage') || 'com.example.modernized');
-  const rawCobolRoots = arraySetting(cfg.get('cobolRoots'));
+  const rawCobolRoots = uniqueStrings([
+    ...arraySetting(cfg.get('cobolRoots')),
+    ...remembered.sourceRoots,
+    ...workspaceFoldersByPrefix('source:')
+  ]);
   const configuredCobolRoots = rawCobolRoots.map(root => resolveConfiguredPath(root, folderPath)).filter(Boolean);
-  const fallbackCobolRoot = project?.cobolScanRoot || project?.workspacePath || folderPath;
+  const fallbackCobolRoot = project?.cobolScanRoot || folderPath || project?.workspacePath;
+  const rawGeneratedRoots = uniqueStrings([
+    ...arraySetting(cfg.get('generatedRoots')),
+    ...remembered.destinationRoots,
+    ...workspaceFoldersByPrefix('dest:')
+  ]);
   const rawGeneratedRoot = String(cfg.get('generatedRoot') || `generated/${targetLanguage}`);
-  const configuredGeneratedRoot = resolveConfiguredPath(rawGeneratedRoot || project?.javaOutputPath || `generated/${targetLanguage}`, folderPath || project?.workspacePath || project?.cobolScanRoot);
+  const configuredGeneratedRoots = rawGeneratedRoots.map(root => resolveConfiguredPath(root, folderPath || project?.workspacePath || project?.cobolScanRoot)).filter(Boolean);
+  const configuredGeneratedRoot = configuredGeneratedRoots[0]
+    || resolveConfiguredPath(rawGeneratedRoot || project?.javaOutputPath || `generated/${targetLanguage}`, folderPath || project?.workspacePath || project?.cobolScanRoot);
   const suggestedGeneratedRoot = resolveConfiguredPath(`generated/${targetLanguage}`, folderPath || project?.workspacePath || project?.cobolScanRoot);
   const generatedRootWarning = generatedRootConflict(configuredGeneratedRoot, configuredCobolRoots);
   const generatedRoot = generatedRootWarning ? suggestedGeneratedRoot : configuredGeneratedRoot;
@@ -731,6 +935,9 @@ function workspaceSettings(project, workspaceRoot) {
     rawCobolRoots,
     configuredCobolRoots,
     cobolRoots: configuredCobolRoots.length ? configuredCobolRoots : [fallbackCobolRoot].filter(Boolean),
+    rawGeneratedRoots,
+    configuredGeneratedRoots,
+    generatedRoots: configuredGeneratedRoots.length ? configuredGeneratedRoots : [generatedRoot].filter(Boolean),
     rawGeneratedRoot,
     configuredGeneratedRoot,
     suggestedGeneratedRoot,
@@ -799,6 +1006,10 @@ function serializePathForWorkspace(fsPath, workspaceRoot) {
 async function updateWorkspaceSetting(key, value, workspaceRoot, options = {}) {
   const cfg = workspaceConfiguration(workspaceRoot);
   const folder = workspaceRoot ? workspaceFolderForPath(workspaceRoot) : undefined;
+  if (options.target === 'workspace' && vscode.workspace.workspaceFolders?.length) {
+    await cfg.update(key, value, vscode.ConfigurationTarget.Workspace);
+    return true;
+  }
   if (folder) {
     await cfg.update(key, value, vscode.ConfigurationTarget.WorkspaceFolder);
     return true;
@@ -922,7 +1133,7 @@ async function openControlDeck() {
   }
   controlDeckPanel.reveal(vscode.ViewColumn.One);
   const project = state.projects.find(candidate => candidate.id === state.activeProjectId);
-  const inventory = state.analysis?.inventory || {};
+  const inventory = workbenchInventory(state.analysis, state.latestJob);
   const domainModel = state.domainModel?.model || {};
   const generated = await loadGeneratedArtifacts(project);
   controlDeckPanel.webview.html = renderPanel('Renovatio', project, `
@@ -948,7 +1159,7 @@ async function openProjectPanel(project) {
     projectPanel.onDidDispose(() => { projectPanel = undefined; });
   }
   projectPanel.reveal(vscode.ViewColumn.One);
-  const inventory = state.analysis?.inventory || {};
+  const inventory = workbenchInventory(state.analysis, state.latestJob);
   const generated = await loadGeneratedArtifacts(project);
   projectPanel.webview.html = renderPanel(project.name, project, `
     ${renderHero(project, 'Project', 'Workspace, COBOL source roots, analysis readiness and future output settings.')}
@@ -971,7 +1182,7 @@ async function openAnalysisPanel(scanRoot) {
   }
   analysisPanel.reveal(vscode.ViewColumn.One);
   const project = state.projects.find(candidate => candidate.id === state.activeProjectId);
-  const inventory = state.analysis?.inventory || {};
+  const inventory = workbenchInventory(state.analysis, state.latestJob);
   const job = state.latestJob;
   const settings = workspaceSettings(project);
   const activeScanRoot = scanRoot || settings.cobolRoots[0] || project?.cobolScanRoot || project?.workspacePath;
@@ -1146,6 +1357,18 @@ async function openPersistenceModel() {
   `);
 }
 
+async function openWelcome(options = {}) {
+  if (options.once && welcomeOpenedThisSession) return;
+  welcomeOpenedThisSession = true;
+  if (!welcomePanel) {
+    welcomePanel = vscode.window.createWebviewPanel('renovatioWelcome', 'Welcome', vscode.ViewColumn.One, { enableCommandUris: true });
+    welcomePanel.onDidDispose(() => { welcomePanel = undefined; });
+  }
+  welcomePanel.reveal(vscode.ViewColumn.One);
+  const project = state.projects.find(candidate => candidate.id === state.activeProjectId);
+  welcomePanel.webview.html = renderPanel('Welcome', project, renderWelcome(project));
+}
+
 function renderPanel(title, project, body) {
   return `<!doctype html>
 <html>
@@ -1179,6 +1402,108 @@ function renderPanel(title, project, body) {
   }
   .hero h1 { margin: 8px 0 6px; font-size: 30px; line-height: 1.15; }
   .hero p, .muted { color: var(--vscode-descriptionForeground); }
+  .welcomeHero {
+    min-height: 120px;
+    display: grid;
+    align-content: end;
+    padding: 52px 0 24px;
+  }
+  .welcomeHero h1 {
+    margin: 0;
+    font-size: 32px;
+    line-height: 1.1;
+  }
+  .welcomeHero p {
+    margin: 8px 0 0;
+    color: var(--vscode-descriptionForeground);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .welcomeGrid {
+    display: grid;
+    grid-template-columns: minmax(260px, 420px) minmax(320px, 1fr);
+    gap: clamp(32px, 8vw, 120px);
+    align-items: start;
+  }
+  .welcomeColumn h2 {
+    margin: 0 0 12px;
+    font-size: 18px;
+  }
+  .welcomeStart {
+    display: grid;
+    gap: 10px;
+  }
+  .welcomeStart a {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 9px;
+    align-items: center;
+    width: fit-content;
+    font-weight: 500;
+  }
+  .welcomeIcon {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    color: var(--vscode-textLink-foreground);
+    font-size: 16px;
+    font-weight: 700;
+  }
+  .recentList {
+    display: grid;
+    gap: 8px;
+    margin-top: 28px;
+  }
+  .recentRow {
+    display: grid;
+    grid-template-columns: minmax(120px, auto) 1fr;
+    gap: 12px;
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+  }
+  .welcomeCards {
+    display: grid;
+    gap: 16px;
+  }
+  .welcomeCard {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 12px;
+    padding: 13px 14px;
+    border-radius: 4px;
+    border: 1px solid var(--vscode-panel-border);
+    background: var(--vscode-list-inactiveSelectionBackground, var(--vscode-sideBar-background));
+    color: var(--vscode-foreground);
+  }
+  .welcomeCard:hover {
+    border-color: var(--vscode-focusBorder);
+    background: var(--vscode-list-hoverBackground, var(--vscode-sideBar-background));
+    text-decoration: none;
+  }
+  .welcomeCard strong {
+    display: block;
+    margin-bottom: 4px;
+  }
+  .welcomeCard span {
+    display: block;
+    color: var(--vscode-descriptionForeground);
+    font-weight: 400;
+    line-height: 1.45;
+  }
+  .welcomeStatus {
+    margin-top: 22px;
+    display: grid;
+    gap: 8px;
+  }
+  .welcomeStatus .kv {
+    margin: 0;
+    grid-template-columns: minmax(90px, 130px) 1fr;
+  }
+  @media (max-width: 760px) {
+    .welcomeGrid { grid-template-columns: 1fr; gap: 30px; }
+    .welcomeHero { padding-top: 24px; }
+    .recentRow { grid-template-columns: 1fr; gap: 2px; }
+  }
   .panel {
     margin-top: 18px;
     padding: 16px;
@@ -1815,6 +2140,71 @@ function renderHero(project, title, subtitle) {
   </section>`;
 }
 
+function renderWelcome(project) {
+  const settings = workspaceSettings(project);
+  const backendUrl = config().backendUrl;
+  const projectName = project?.name || 'No project selected';
+  const workspacePath = settings.workspaceFolderPath || project?.workspacePath || 'Open a folder or create a project';
+  const roots = settings.configuredCobolRoots.length
+    ? settings.configuredCobolRoots.join(', ')
+    : 'Choose a COBOL source root';
+  const destinationRoots = settings.generatedRoots.length
+    ? settings.generatedRoots.join(', ')
+    : 'Choose a future output root';
+  return `
+    <section class="welcomeHero" aria-labelledby="renovatio-welcome-title">
+      <div>
+        <h1 id="renovatio-welcome-title">Renovatio Modernization</h1>
+        <p>COBOL discovery, domain modeling and governed migration from VS Code</p>
+      </div>
+    </section>
+    <section class="welcomeGrid">
+      <div class="welcomeColumn">
+        <h2>Start</h2>
+        <div class="welcomeStart">
+          ${welcomeAction('renovatio.createProject', 'Create Project...', '＋')}
+          ${welcomeAction('renovatio.addCobolSourceRoot', 'Choose COBOL Source...', '▣')}
+          ${welcomeAction('renovatio.analyzeCobolSources', 'Analyze COBOL Sources...', '▷')}
+          ${welcomeAction('renovatio.selectProject', 'Select Existing Project...', '◇')}
+          ${welcomeAction('renovatio.refresh', 'Refresh Backend State', '↻')}
+        </div>
+        <div class="recentList" aria-label="Current Renovatio context">
+          <h2>Current</h2>
+          <div class="recentRow"><a href="command:renovatio.selectProject">${escapeHtml(projectName)}</a><span>${escapeHtml(workspacePath)}</span></div>
+          <div class="recentRow"><a href="command:renovatio.addCobolSourceRoot">COBOL roots</a><span>${escapeHtml(roots)}</span></div>
+          <div class="recentRow"><a href="command:renovatio.selectGeneratedOutputFolder">Future outputs</a><span>${escapeHtml(destinationRoots)}</span></div>
+        </div>
+      </div>
+      <div class="welcomeColumn">
+        <h2>Workflow</h2>
+        <div class="welcomeCards">
+          ${welcomeCard('renovatio.createProject', 'Create a project from COBOL', 'Pick the source directory first; Renovatio creates the backend project and stores that root in VS Code settings.', '1')}
+          ${welcomeCard('renovatio.analyzeCobolSources', 'Run discovery', 'Parse COBOL, copybooks and JCL, then build inventory and domain evidence.', '2')}
+          ${welcomeCard('renovatio.openDomainModel', 'Inspect the domain model', 'Review inferred use cases, repositories, records, relations and governance evidence.', '3')}
+          ${welcomeCard('renovatio.openNativeArchitectureDiagram', 'Open native diagrams', 'Use the built-in diagram editor for domain, persistence and target architecture views.', '4')}
+        </div>
+        <div class="panel compact welcomeStatus">
+          <div class="sectionTitle">Backend</div>
+          <div class="kv"><span>API URL</span><code>${escapeHtml(backendUrl)}</code></div>
+          <div class="kv"><span>Role</span><code>${escapeHtml(config().role)}</code></div>
+          <div class="kv"><span>Expected port</span><code>${escapeHtml(new URL(backendUrl).port || '80')}</code></div>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function welcomeAction(command, label, icon) {
+  return `<a href="command:${command}"><span class="welcomeIcon">${escapeHtml(icon)}</span><span>${escapeHtml(label)}</span></a>`;
+}
+
+function welcomeCard(command, title, description, icon) {
+  return `<a class="welcomeCard" href="command:${command}">
+    <span class="welcomeIcon">${escapeHtml(icon)}</span>
+    <span><strong>${escapeHtml(title)}</strong><span>${escapeHtml(description)}</span></span>
+  </a>`;
+}
+
 function renderNativeDiagramActions() {
   return `<section class="panel">
     <div class="sectionTitle">Native diagrams</div>
@@ -1829,15 +2219,18 @@ function renderNativeDiagramActions() {
 
 function renderPaths(project, generated) {
   const settings = workspaceSettings(project);
-  const roots = settings.cobolRoots.length
-    ? `${settings.cobolRoots.map(root => `<code>${escapeHtml(root)}</code>`).join('')}${settings.configuredCobolRoots.length ? '' : '<span class="muted">Using workspace fallback until a COBOL source root is configured.</span>'}`
+  const roots = settings.configuredCobolRoots.length
+    ? settings.configuredCobolRoots.map(root => `<code>${escapeHtml(root)}</code>`).join('')
+    : '<code>Not configured</code>';
+  const destinationRoots = settings.generatedRoots.length
+    ? settings.generatedRoots.map(root => `<code>${escapeHtml(root)}</code>`).join('')
     : '<code>Not configured</code>';
   return `<section class="panel">
     <div class="sectionTitle">Paths</div>
     <div class="paths">
       <div class="kv"><span>VS Code workspace</span><code>${escapeHtml(settings.workspaceFolderPath || project?.workspacePath || 'Not configured')}</code></div>
       <div class="kv"><span>COBOL source roots</span><div class="stack">${roots}</div></div>
-      <div class="kv"><span>Future output root</span><code>${escapeHtml(generated.root || 'Not configured')}</code></div>
+      <div class="kv"><span>Future output roots</span><div class="stack">${destinationRoots}</div></div>
       <div class="kv"><span>Target</span><div class="stack inline"><code>${escapeHtml(settings.targetLanguage)}</code><code>${escapeHtml(settings.targetPackage)}</code></div></div>
     </div>
   </section>`;
@@ -2348,12 +2741,59 @@ function persistenceKind(repository) {
   return 'Repository';
 }
 
+function domainDisplayName(node, fallbackKind) {
+  const raw = String(node?.name || node?.label || node?.id || '').trim();
+  const kind = String(node?.kind || fallbackKind || '').toUpperCase();
+  if (!raw || kind === 'USE_CASE' || kind === 'DOMAIN_SERVICE' || kind === 'SERVICE') return raw;
+  const normalized = raw
+    .replace(/^DB2\s+table\s+/i, '')
+    .replace(/^file\s+record\s+/i, '')
+    .replace(/^(FD|WS|LS)-/i, '')
+    .replace(/-(FD|WS|LS)$/i, '')
+    .replace(/-(FILE|RECORD|REC|TABLE|DATA|IN|OUT|INPUT|OUTPUT)$/ig, '')
+    .replace(/^(FILE|RECORD|REC|TABLE|DATA|IN|OUT|INPUT|OUTPUT)-/ig, '')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-|-$/g, '')
+    .trim();
+  return titleCaseDomainName(normalized || raw);
+}
+
+function titleCaseDomainName(value) {
+  return String(value || '')
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map(token => {
+      const lower = token.toLowerCase();
+      if (/^[A-Z0-9]{2,}$/.test(token) && token.length <= 4) return token;
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
+    })
+    .join(' ');
+}
+
 function parsedFileCount(inventory) {
   const source = Number(inventory?.sourceFiles ?? inventory?.programs ?? 0) || 0;
   const copybooks = Number(inventory?.copybooks ?? 0) || 0;
   const jcl = Number(inventory?.jcl ?? inventory?.jclFiles ?? 0) || 0;
   const total = source + copybooks + jcl;
   return total || sumInventory(inventory);
+}
+
+function workbenchInventory(analysis, job) {
+  return {
+    ...(analysis?.inventory || {}),
+    ...jobInventory(job)
+  };
+}
+
+function jobInventory(job) {
+  const result = job?.result || {};
+  const summary = result.summary || result.analysis?.summary || {};
+  const inventory = {};
+  for (const key of ['sourceFiles', 'programs', 'copybooks', 'jcl', 'jclFiles']) {
+    const value = Number(summary[key]);
+    if (Number.isFinite(value) && value > 0) inventory[key] = value;
+  }
+  return inventory;
 }
 
 function renderInventory(inventory) {
@@ -2561,19 +3001,38 @@ async function writeDrawioPersistenceErdArtifact(project, domain) {
 
 async function writeNativeDomainDiagramArtifact(project, domain) {
   const uri = await nativeDiagramUri(project, 'domain-model.renovatio-domain.json');
-  await vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(nativeDomainDocument(domain), null, 2) + '\n', 'utf8'));
+  const previous = await readJsonArtifact(uri);
+  const next = nativeDomainDocument(domain);
+  preserveDiagramLayout(next, previous);
+  const text = JSON.stringify(next, null, 2) + '\n';
+  const openDoc = vscode.workspace.textDocuments.find(d => d.uri.toString() === uri.toString());
+  if (openDoc) {
+    const edit = new vscode.WorkspaceEdit();
+    const fullRange = new vscode.Range(0, 0, openDoc.lineCount, 0);
+    edit.replace(uri, fullRange, text);
+    await vscode.workspace.applyEdit(edit);
+    await openDoc.save();
+  } else {
+    await vscode.workspace.fs.writeFile(uri, Buffer.from(text, 'utf8'));
+  }
   return { uri };
 }
 
 async function writeNativePersistenceDiagramArtifact(project, domain) {
   const uri = await nativeDiagramUri(project, 'persistence-model.renovatio-domain.json');
-  await vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(nativePersistenceDocument(domain), null, 2) + '\n', 'utf8'));
+  const previous = await readJsonArtifact(uri);
+  const next = nativePersistenceDocument(project, domain);
+  preserveDiagramLayout(next, previous);
+  await vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(next, null, 2) + '\n', 'utf8'));
   return { uri };
 }
 
 async function writeNativeArchitectureDiagramArtifact(project, domain) {
   const uri = await nativeDiagramUri(project, 'architecture.renovatio-arch.json');
-  await vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(nativeArchitectureDocument(project, domain), null, 2) + '\n', 'utf8'));
+  const previous = await readJsonArtifact(uri);
+  const next = nativeArchitectureDocument(project, domain);
+  preserveArchitectureLayout(next, previous);
+  await vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(next, null, 2) + '\n', 'utf8'));
   return { uri };
 }
 
@@ -2585,135 +3044,643 @@ async function nativeDiagramUri(project, suffix) {
 }
 
 function nativeDomainDocument(domain) {
-  const model = domain?.model || {};
-  const allNodes = asArray(model.nodes);
-  const selectedIds = new Set();
-  const selectedNodes = [];
-  const addNode = node => {
-    if (!node?.id || selectedIds.has(node.id)) return;
-    selectedIds.add(node.id);
-    selectedNodes.push(node);
-  };
-  allNodes
-    .filter(node => sameKind(node.kind, 'USE_CASE') || sameKind(node.kind, 'SERVICE'))
-    .slice(0, 80)
-    .forEach(addNode);
-  allNodes
-    .filter(node => sameKind(node.kind, 'AGGREGATE') || sameKind(node.kind, 'ENTITY') || sameKind(node.kind, 'VALUE_OBJECT'))
-    .sort((left, right) => asArray(right.properties).length - asArray(left.properties).length
-      || String(left.name || left.id).localeCompare(String(right.name || right.id)))
-    .slice(0, 140)
-    .forEach(addNode);
-  allNodes
-    .filter(node => sameKind(node.kind, 'REPOSITORY'))
-    .slice(0, 80)
-    .forEach(addNode);
-  if (!selectedNodes.length) {
-    allNodes.slice(0, 260).forEach(addNode);
+  // buildDomainDiagram() was written for the old cramped 3-column static
+  // HTML summary panel and caps repositories/use-cases/records to 8 of
+  // each, ranked by property/connection count — anything outside that
+  // top-8 is silently dropped. That's fine for a fixed-size preview panel,
+  // but wrong for the native, pannable/zoomable React Flow canvas: any
+  // project with more than 8 repositories (i.e. almost any real COBOL
+  // project) would lose entities on every regenerate, and a low-property
+  // node the user just repositioned could fall out of the ranking and
+  // "disappear" for good on the next open — reported bug (#280 follow-up).
+  // Build the native artifact straight from domainDiscovery() instead,
+  // uncapped, and let the canvas's own auto-layout/grid wrapping (#280)
+  // handle however many nodes that turns out to be.
+  const discovery = domainDiscovery(domain);
+  if (discovery.repositories.length || discovery.recordNodes.length) {
+    const nodes = [];
+    const nodeIds = new Set();
+    const addNode = (n, fallbackKind) => {
+      const src = n?.source || n;
+      const id = src?.logicalId || src?.id;
+      if (!id || nodeIds.has(id)) return;
+      nodeIds.add(id);
+      nodes.push({
+        id,
+        kind: src.kind || fallbackKind,
+        name: domainDisplayName(src, fallbackKind),
+        physicalName: src.name || src.label || id,
+        properties: asArray(src.properties),
+        tableName: src.tableName,
+        sourceDataset: src.sourceDataset,
+        confidence: src.confidence,
+        origin: src.origin,
+        evidence: asArray(src.evidence)
+      });
+    };
+
+    const useCases = uniqueNodes(discovery.repositories.flatMap(repository => asArray(repository.users)))
+      .filter(node => sameKind(node.kind, 'USE_CASE') || String(node.id || '').startsWith('use-case:'));
+    // Used to also pull in every property-bearing ENTITY across all 44
+    // programs (discovery.recordNodes) — with the backend's file/record
+    // merge now populating real properties broadly, that meant hundreds of
+    // working-storage groups unrelated to any repository each got their
+    // own box (reported: 201 nodes in the native Domain diagram for a
+    // project with 24 repositories and 44 use cases). Scoped to records a
+    // repository actually maps to instead — this also surfaces, correctly
+    // and narrowly, the few file/record pairs the backend genuinely
+    // couldn't merge (a COPY-based record, no inline 01 to bind to) as
+    // still-separate boxes, rather than burying that signal in noise.
+    const records = uniqueNodes(discovery.repositories.flatMap(repository => asArray(repository.mappedNodes)));
+
+    useCases.forEach(n => addNode(n, "USE_CASE"));
+    discovery.repositories.forEach(n => addNode(n, "REPOSITORY"));
+    records.forEach(n => addNode(n, "ENTITY"));
+
+    const relations = [];
+    const relKeys = new Set();
+    const addRelation = (fromId, toId, kind, label) => {
+      if (!fromId || !toId || fromId === toId || !nodeIds.has(fromId) || !nodeIds.has(toId)) return;
+      const key = `${fromId}->${toId}:${kind}`;
+      if (relKeys.has(key)) return;
+      relKeys.add(key);
+      relations.push({ id: `rel:${key}`, fromId, toId, kind, label });
+    };
+    for (const repository of discovery.repositories) {
+      const repositoryId = repository.logicalId || repository.id;
+      for (const user of asArray(repository.users)) {
+        addRelation(user.id, repositoryId, 'USES', 'uses');
+      }
+      for (const record of asArray(repository.mappedNodes)) {
+        addRelation(repositoryId, record.id, 'MAPS_TO', 'maps');
+      }
+    }
+
+    return {
+      diagramKind: "domain",
+      projection: "domain",
+      revision: domain?.revision || 0,
+      savedAt: domain?.savedAt,
+      nodes,
+      relations,
+      invariants: asArray(domain?.model?.invariants),
+      layout: {},
+      excludedNodeIds: []
+    };
   }
-  const relations = asArray(model.relations)
-    .filter(relation => selectedIds.has(relation.fromId) && selectedIds.has(relation.toId))
-    .slice(0, 420);
+
+  const repositories = discovery.repositories;
+  const useCases = uniqueNodes([
+    ...repositories.flatMap(r => asArray(r.users)),
+    ...discovery.nodes.filter(n => sameKind(n.kind, "USE_CASE") || sameKind(n.kind, "SERVICE"))
+  ]);
+  const records = uniqueNodes([
+    ...repositories.flatMap(r => asArray(r.mappedNodes)),
+    ...discovery.recordNodes.filter(n => sameKind(n.kind, "ENTITY") || asArray(n.properties).length > 0)
+  ]);
+
+  const nodes = [];
+  const nodeIds = new Set();
+  const addNode = node => {
+    const id = node?.logicalId || node?.id;
+    if (!id || nodeIds.has(id)) return;
+    nodeIds.add(id);
+    nodes.push({
+      ...node,
+      id,
+      name: domainDisplayName(node),
+      physicalName: node.name || node.label || id,
+      properties: asArray(node.properties),
+      evidence: asArray(node.evidence)
+    });
+  };
+
+  useCases.forEach(addNode);
+  repositories.forEach(addNode);
+  records.forEach(addNode);
+
   return {
+    diagramKind: "domain",
+    projection: "domain",
     revision: domain?.revision || 0,
     savedAt: domain?.savedAt,
-    nodes: selectedNodes,
-    relations,
-    invariants: asArray(model.invariants),
-    layout: nativeLayoutForNodes(selectedNodes, 280, 160),
+    nodes,
+    relations: [],
+    invariants: asArray(domain?.model?.invariants),
+    layout: {},
     excludedNodeIds: []
   };
 }
 
-function nativePersistenceDocument(domain) {
+function nativePersistenceDocument(project, domain) {
   const discovery = domainDiscovery(domain);
-  const repositories = discovery.repositories.slice(0, 80).map(repository => ({
-    id: String(repository.logicalId || repository.id || repository.name),
-    kind: 'REPOSITORY',
-    name: repository.name || repository.id,
-    properties: asArray(repository.properties),
-    confidence: repository.confidence,
-    origin: repository.origin,
-    evidence: repository.evidence
-  }));
-  const records = uniqueNodes(discovery.repositories.flatMap(repository => asArray(repository.mappedNodes))).slice(0, 80);
-  const nodes = [...repositories, ...records];
-  const relations = [];
-  const relationIds = new Set();
-  for (const repository of discovery.repositories) {
-    const repositoryId = String(repository.logicalId || repository.id || repository.name);
-    for (const record of asArray(repository.mappedNodes)) {
-      const id = `maps:${repositoryId}->${record.id}`;
-      if (relationIds.has(id)) continue;
-      relationIds.add(id);
-      relations.push({
-        id,
-        fromId: repositoryId,
-        toId: record.id,
-        kind: 'MAPS_TO',
-        sourceCardinality: 'ONE',
-        targetCardinality: 'ONE'
-      });
-    }
-  }
+  const sqlFacts = collectPersistenceSqlFacts(project, discovery);
+  // No cap here either (was .slice(0, 80)) — same class of bug as the
+  // domain/architecture caps above: any project with more than 80
+  // persistence resources would silently lose the rest on every regenerate.
+  const nodes = persistenceNodes(discovery, sqlFacts);
+  const relations = persistenceRelations(discovery, nodes, sqlFacts);
   return {
+    diagramKind: 'persistence',
+    projection: 'persistence',
     revision: domain?.revision || 0,
     savedAt: domain?.savedAt,
     nodes,
     relations,
     invariants: [],
-    layout: nativeLayoutForNodes(nodes, 320, 150),
+    layout: {},
     excludedNodeIds: []
   };
 }
 
+async function readJsonArtifact(uri) {
+  try {
+    const bytes = await vscode.workspace.fs.readFile(uri);
+    return JSON.parse(Buffer.from(bytes).toString('utf8'));
+  } catch (error) {
+    return undefined;
+  }
+}
+
+function preserveDiagramLayout(next, previous) {
+  if (!previous || !previous.layout || typeof previous.layout !== 'object') return;
+  const nodeIds = new Set(asArray(next.nodes).map(node => String(node.id)));
+  const layout = {};
+  for (const [id, position] of Object.entries(previous.layout)) {
+    if (!nodeIds.has(String(id))) continue;
+    const x = Number(position?.x);
+    const y = Number(position?.y);
+    if (Number.isFinite(x) && Number.isFinite(y)) layout[id] = { x, y };
+  }
+  if (Object.keys(layout).length) next.layout = layout;
+}
+
+function preserveArchitectureLayout(next, previous) {
+  const previousLayout = previous?.profile?.layout || previous?.layout;
+  if (!previousLayout || typeof previousLayout !== 'object') return;
+  const nodeIds = new Set([
+    ...asArray(next.canvas).map(node => String(node.id)),
+    ...Object.keys(next.profile?.packageRoots || {}).map(layer => `architecture-layer:${layer}`)
+  ]);
+  const layout = {};
+  for (const [id, position] of Object.entries(previousLayout)) {
+    if (!nodeIds.has(String(id))) continue;
+    const x = Number(position?.x);
+    const y = Number(position?.y);
+    if (Number.isFinite(x) && Number.isFinite(y)) layout[id] = { x, y };
+  }
+  if (Object.keys(layout).length) {
+    next.profile = next.profile || {};
+    next.profile.layout = layout;
+  }
+}
+
+// discovery.repositories mixes real file/DB2 repositories with plain
+// CICS FILE-CONTROL verbs and embedded-SQL statement keywords the COBOL/SQL
+// analyzer occasionally surfaces as their own "repository" — a node
+// literally named CLOSE, OPEN, SELECT, INSERT, UPDATE, DELETE, FETCH or SET
+// — instead of the actual table the statement targets. Those carry no
+// table name and no columns because they aren't a persistence resource at
+// all; that's an upstream analysis gap (the SQL/CICS parser isn't yet
+// resolving the real table name out of the statement), not something this
+// view can recover on its own. Requiring hasPersistenceShape (like
+// recordNodes below) dropped those, but also dropped genuine file
+// repositories that just don't have inferred columns *yet* (e.g. a flat
+// file whose record layout wasn't resolved) — those still deserve to show
+// up as a table even without columns, so only the known verb/keyword names
+// are excluded here.
+const NON_PERSISTENCE_VERB_NAMES = new Set([
+    // CICS FILE-CONTROL verbs
+    'OPEN', 'CLOSE', 'READ', 'WRITE', 'REWRITE', 'DELETE', 'START', 'UNLOCK', 'BROWSE', 'ENDBR', 'RESETBR',
+    // Embedded SQL statement verbs
+    'SELECT', 'INSERT', 'UPDATE', 'FETCH', 'SET', 'DECLARE', 'EXEC'
+]);
+
+function isFileControlVerbStub(node) {
+  if (hasPersistenceShape(node)) return false;
+  const name = String(node?.name ?? node?.id ?? '').trim().toUpperCase();
+  return !name || NON_PERSISTENCE_VERB_NAMES.has(name);
+}
+
+function persistenceNodes(discovery, sqlFacts) {
+  const candidates = [
+    ...asArray(discovery.repositories).filter(node => !isFileControlVerbStub(node)),
+    ...asArray(discovery.recordNodes).filter(node => hasPersistenceShape(node)),
+    ...asArray(discovery.repositories).flatMap(repository => asArray(repository.mappedNodes)).filter(node => hasPersistenceShape(node)),
+    ...[...sqlFacts.tables.keys()].map(table => ({ id: `table:${table}`, kind: 'REPOSITORY', name: table, tableName: table }))
+  ];
+  const byTable = new Map();
+  for (const candidate of candidates) {
+    const id = String(candidate.logicalId || candidate.id || candidate.name);
+    if (!id) continue;
+    const tableName = candidate.tableName || persistenceTableName(candidate);
+    const key = normalizeName(tableName || candidate.name || id);
+    const existing = byTable.get(key);
+    const node = {
+      id,
+      kind: 'TABLE',
+      name: tableName || candidate.name || id,
+      tableName,
+      sourceDataset: candidate.sourceDataset,
+      properties: persistenceProperties(candidate, sqlFacts),
+      confidence: candidate.confidence,
+      origin: candidate.origin,
+      evidence: candidate.evidence
+    };
+    if (!existing) {
+      byTable.set(key, node);
+      continue;
+    }
+    byTable.set(key, {
+      ...existing,
+      properties: mergeProperties([...asArray(existing.properties), ...asArray(node.properties)]),
+      evidence: mergedEvidence([existing, node]),
+      confidence: Math.max(Number(existing.confidence || 0), Number(node.confidence || 0))
+    });
+  }
+  return [...byTable.values()].sort((left, right) =>
+    String(left.tableName || left.name || left.id).localeCompare(String(right.tableName || right.name || right.id)));
+}
+
+function hasPersistenceShape(node) {
+  return Boolean(node?.tableName || node?.sourceDataset || asArray(node?.properties).some(property =>
+    property?.columnName || property?.sourceColumn || property?.sourceDataset || property?.isKey));
+}
+
+function persistenceTableName(node) {
+  if (node?.tableName) return node.tableName;
+  const name = String(node?.name || node?.id || '');
+  return name.replace(/^DB2 table\s+/i, '').replace(/^file record\s+/i, '').trim();
+}
+
+function persistenceProperties(node, sqlFacts) {
+  const tableName = persistenceTableName(node);
+  const explicit = asArray(node?.properties).map(property => ({
+    ...property,
+    columnName: property.columnName || property.sourceColumn || property.name,
+    isKey: Boolean(property.isKey || looksLikePrimaryKey(property, tableName, node?.name))
+  }));
+  const existing = new Set(explicit.map(property => normalizeName(property.columnName || property.name)));
+  const inferred = asArray(sqlFacts.tables.get(normalizeName(tableName))).filter(column => !existing.has(normalizeName(column))).map(column => ({
+    name: column,
+    type: 'unknown',
+    required: false,
+    evidence: [],
+    columnName: column,
+    isKey: looksLikePrimaryKey({ name: column, columnName: column }, tableName, node?.name)
+  }));
+  return mergeProperties([...explicit, ...inferred]);
+}
+
+function looksLikePrimaryKey(property, tableName, nodeName) {
+  const name = normalizeName(property?.columnName || property?.sourceColumn || property?.name);
+  const table = normalizeSingular(tableName || nodeName);
+  if (!name) return false;
+  return name === 'ID'
+    || name === `${table}ID`
+    || name === `${table}KEY`
+    || name === `${table}NO`
+    || name === `${table}NUMBER`
+    || name.endsWith('ID') && table && name === `${table}ID`;
+}
+
+function persistenceRelations(discovery, nodes, sqlFacts) {
+  const nodeIds = new Set(nodes.map(node => String(node.id)));
+  const relationIds = new Set();
+  const relations = [];
+  for (const relation of asArray(discovery.relations)) {
+    if (!relation || !nodeIds.has(String(relation.fromId)) || !nodeIds.has(String(relation.toId))) continue;
+    // A relation.foreignKey payload (column-level property mapping) used
+    // to be required to draw anything here, but the backend's MAPS_TO
+    // inference (repository -> the record it reads, matched by name —
+    // see SemanticDomainProjector) doesn't have column-level detail to
+    // offer, only "these two are related". Requiring foreignKey meant
+    // that relation was silently dropped and the Persistence diagram
+    // never had a line to draw even once the backend started producing
+    // MAPS_TO. Draw it as a plain association when there's no FK detail,
+    // instead of discarding a real backend signal.
+    if (!relation.foreignKey && relation.kind !== 'MAPS_TO' && relation.kind !== 'ASSOCIATES_WITH') continue;
+    const id = relation.foreignKey
+      ? String(`fk:${relation.fromId}:${relation.foreignKey.property}->${relation.toId}:${relation.foreignKey.referencesProperty}`)
+      : String(`rel:${relation.fromId}->${relation.toId}:${relation.kind}`);
+    if (relationIds.has(id)) continue;
+    relationIds.add(id);
+    relations.push({
+      id,
+      fromId: relation.fromId,
+      toId: relation.toId,
+      kind: relation.kind || 'ASSOCIATES_WITH',
+      sourceCardinality: relation.sourceCardinality || 'ZERO_OR_MORE',
+      targetCardinality: relation.targetCardinality || 'ONE',
+      foreignKey: relation.foreignKey
+    });
+  }
+  for (const relation of inferForeignKeyRelations(nodes, sqlFacts)) {
+    const key = normalizedForeignKeyRelationKey(relation);
+    if (relationIds.has(key)) continue;
+    relationIds.add(key);
+    relations.push(relation);
+  }
+  return relations;
+}
+
+function inferForeignKeyRelations(nodes, sqlFacts) {
+  const relations = [];
+  const nodeByTable = new Map(nodes.map(node => [normalizeName(node.tableName || node.name), node]));
+  const sqlRelatedNodeIds = new Set();
+  for (const join of sqlFacts.joins) {
+    const left = nodeByTable.get(normalizeName(join.leftTable));
+    const right = nodeByTable.get(normalizeName(join.rightTable));
+    if (!left || !right || left.id === right.id) continue;
+    sqlRelatedNodeIds.add(left.id);
+    sqlRelatedNodeIds.add(right.id);
+    const leftKey = primaryKeyProperty(left);
+    const rightKey = primaryKeyProperty(right);
+    const leftIsPrimary = leftKey && normalizeName(leftKey.columnName || leftKey.name) === normalizeName(join.leftColumn);
+    const rightIsPrimary = rightKey && normalizeName(rightKey.columnName || rightKey.name) === normalizeName(join.rightColumn);
+    const orientation = persistenceJoinOrientation(left, right, join, leftIsPrimary, rightIsPrimary);
+    const source = orientation.source;
+    const target = orientation.target;
+    const sourceColumn = orientation.sourceColumn;
+    const targetColumn = orientation.targetColumn;
+    relations.push({
+      id: `fk:${source.id}:${sourceColumn}->${target.id}:${targetColumn}`,
+      fromId: source.id,
+      toId: target.id,
+      kind: 'ASSOCIATES_WITH',
+      sourceCardinality: 'ZERO_OR_MORE',
+      targetCardinality: 'ONE',
+      foreignKey: {
+        property: sourceColumn,
+        referencesProperty: targetColumn
+      }
+    });
+  }
+  for (const source of nodes) {
+    for (const property of asArray(source.properties)) {
+      if (property.isKey) continue;
+      for (const target of nodes) {
+        if (source.id === target.id) continue;
+        const targetKey = primaryKeyProperty(target);
+        if (!targetKey || !looksLikeForeignKey(property, target, targetKey)) continue;
+        if (!shouldInferPropertyForeignKey(source, target, sqlRelatedNodeIds)) continue;
+        relations.push({
+          id: `fk:${source.id}:${property.name}->${target.id}:${targetKey.name}`,
+          fromId: source.id,
+          toId: target.id,
+          kind: 'ASSOCIATES_WITH',
+          sourceCardinality: property.required ? 'ONE_OR_MORE' : 'ZERO_OR_MORE',
+          targetCardinality: 'ONE',
+          foreignKey: {
+            property: property.name,
+            referencesProperty: targetKey.name
+          }
+        });
+        break;
+      }
+    }
+  }
+  return relations;
+}
+
+function normalizedForeignKeyRelationKey(relation) {
+  return [
+    relation.fromId,
+    relation.toId,
+    normalizeName(relation.foreignKey?.property),
+    normalizeName(relation.foreignKey?.referencesProperty)
+  ].join(':');
+}
+
+function shouldInferPropertyForeignKey(source, target, sqlRelatedNodeIds) {
+  const sourceTable = normalizeSingular(source?.tableName || source?.name);
+  const targetTable = normalizeSingular(target?.tableName || target?.name);
+  return sourceTable.includes(targetTable) || sqlRelatedNodeIds.has(source.id);
+}
+
+function persistenceJoinOrientation(left, right, join, leftIsPrimary, rightIsPrimary) {
+  const leftTable = normalizeSingular(left?.tableName || left?.name);
+  const rightTable = normalizeSingular(right?.tableName || right?.name);
+  const leftColumn = normalizeName(join.leftColumn);
+  const rightColumn = normalizeName(join.rightColumn);
+  const leftColumnNamesLeftTable = leftColumn.includes(leftTable);
+  const rightColumnNamesRightTable = rightColumn.includes(rightTable);
+  if (leftColumnNamesLeftTable && !rightColumnNamesRightTable) {
+    return { source: right, target: left, sourceColumn: join.rightColumn, targetColumn: join.leftColumn };
+  }
+  if (rightColumnNamesRightTable && !leftColumnNamesLeftTable) {
+    return { source: left, target: right, sourceColumn: join.leftColumn, targetColumn: join.rightColumn };
+  }
+  if (leftIsPrimary && !rightIsPrimary) {
+    return { source: right, target: left, sourceColumn: join.rightColumn, targetColumn: join.leftColumn };
+  }
+  if (rightIsPrimary && !leftIsPrimary) {
+    return { source: left, target: right, sourceColumn: join.leftColumn, targetColumn: join.rightColumn };
+  }
+  return { source: right, target: left, sourceColumn: join.rightColumn, targetColumn: join.leftColumn };
+}
+
+function collectPersistenceSqlFacts(project, discovery) {
+  const facts = { tables: new Map(), joins: [] };
+  const rootPath = workspaceSettings(project).workspaceFolderPath || project?.workspacePath;
+  if (!rootPath) return facts;
+  const sourceRefs = new Set();
+  for (const node of asArray(discovery.nodes)) {
+    for (const evidence of asArray(node.evidence)) {
+      if (evidence?.sourceRef) sourceRefs.add(String(evidence.sourceRef));
+    }
+    for (const property of asArray(node.properties)) {
+      for (const evidence of asArray(property.evidence)) {
+        if (evidence?.sourceRef) sourceRefs.add(String(evidence.sourceRef));
+      }
+    }
+  }
+  for (const sourceRef of sourceRefs) {
+    const sourcePath = resolveEvidencePath(rootPath, sourceRef);
+    if (!sourcePath) continue;
+    try {
+      for (const statement of extractExecSqlStatements(fs.readFileSync(sourcePath, 'utf8'))) {
+        collectSqlStatementFacts(statement, facts);
+      }
+    } catch (error) {
+      // Evidence is best-effort for diagrams; stale source refs should not block opening the editor.
+    }
+  }
+  return facts;
+}
+
+function resolveEvidencePath(rootPath, sourceRef) {
+  const cleanRef = String(sourceRef || '').split('#')[0].split(':')[0];
+  const candidates = [
+    path.resolve(rootPath, cleanRef),
+    path.resolve(rootPath, 'demo/cics-genapp', cleanRef),
+    path.resolve(rootPath, 'demo/cics-genapp/base/src', path.basename(cleanRef)),
+    path.resolve(rootPath, 'base/src', path.basename(cleanRef))
+  ];
+  return candidates.find(candidate => fs.existsSync(candidate) && fs.statSync(candidate).isFile());
+}
+
+function extractExecSqlStatements(source) {
+  const statements = [];
+  const matcher = /EXEC\s+SQL([\s\S]*?)END-EXEC/gi;
+  let match;
+  while ((match = matcher.exec(source || '')) !== null) {
+    const sql = match[1].replace(/\s+/g, ' ').trim();
+    if (sql) statements.push(sql);
+  }
+  return statements;
+}
+
+function collectSqlStatementFacts(statement, facts) {
+  const sql = String(statement || '').replace(/\s+/g, ' ').trim();
+  collectInsertColumns(sql, facts);
+  collectUpdateColumns(sql, facts);
+  collectSelectColumns(sql, facts);
+  collectJoinColumns(sql, facts);
+}
+
+function rememberTableColumn(facts, table, column) {
+  const tableKey = normalizeName(table);
+  const columnName = normalizeSqlColumn(column);
+  if (!tableKey || !columnName || columnName.startsWith(':')) return;
+  const columns = facts.tables.get(tableKey) || [];
+  if (!columns.some(value => normalizeName(value) === normalizeName(columnName))) columns.push(columnName);
+  facts.tables.set(tableKey, columns);
+}
+
+function collectInsertColumns(sql, facts) {
+  const matcher = /\bINSERT\s+INTO\s+([A-Z0-9_]+)\s*\(([\s\S]*?)\)\s*VALUES\b/ig;
+  let match;
+  while ((match = matcher.exec(sql)) !== null) {
+    splitSqlList(match[2]).forEach(column => rememberTableColumn(facts, match[1], column));
+  }
+}
+
+function collectUpdateColumns(sql, facts) {
+  const match = /\bUPDATE\s+([A-Z0-9_]+)\s+SET\s+([\s\S]*?)(?:\bWHERE\b|$)/i.exec(sql);
+  if (!match) return;
+  splitSqlList(match[2]).map(value => value.split('=')[0]).forEach(column => rememberTableColumn(facts, match[1], column));
+}
+
+function collectSelectColumns(sql, facts) {
+  const match = /\bSELECT\s+([\s\S]*?)\s+\bFROM\s+([\s\S]*?)(?:\s+\bWHERE\b|\s+\bORDER\b|\s+\bGROUP\b|$)/i.exec(sql);
+  if (!match) return;
+  const tables = splitSqlList(match[2]).map(table => normalizeSqlColumn(table.split(/\s+/)[0]));
+  if (tables.length === 1) {
+    splitSqlList(match[1]).forEach(column => rememberTableColumn(facts, tables[0], column.includes('.') ? column.split('.').pop() : column));
+    return;
+  }
+  splitSqlList(match[1]).filter(column => column.includes('.')).forEach(column => {
+    const [table, field] = column.split('.');
+    rememberTableColumn(facts, table, field);
+  });
+}
+
+function collectJoinColumns(sql, facts) {
+  const matcher = /\b([A-Z][A-Z0-9_]*)\.([A-Z][A-Z0-9_]*)\s*=\s*([A-Z][A-Z0-9_]*)\.([A-Z][A-Z0-9_]*)\b/ig;
+  let match;
+  while ((match = matcher.exec(sql)) !== null) {
+    rememberTableColumn(facts, match[1], match[2]);
+    rememberTableColumn(facts, match[3], match[4]);
+    facts.joins.push({
+      leftTable: normalizeSqlColumn(match[1]),
+      leftColumn: normalizeSqlColumn(match[2]),
+      rightTable: normalizeSqlColumn(match[3]),
+      rightColumn: normalizeSqlColumn(match[4])
+    });
+  }
+}
+
+function splitSqlList(value) {
+  return String(value || '').split(',').map(item => normalizeSqlColumn(item)).filter(Boolean);
+}
+
+function normalizeSqlColumn(value) {
+  return String(value || '')
+    .replace(/\b(DISTINCT|AS)\b/ig, ' ')
+    .replace(/["'`]/g, '')
+    .replace(/\([^)]*\)/g, '')
+    .trim()
+    .split(/\s+/)[0]
+    .replace(/[^A-Za-z0-9_:-]/g, '');
+}
+
+function primaryKeyProperty(node) {
+  return asArray(node?.properties).find(property => property.isKey)
+    || asArray(node?.properties).find(property => looksLikePrimaryKey(property, node?.tableName, node?.name));
+}
+
+function looksLikeForeignKey(property, target, targetKey) {
+  const propertyName = normalizeName(property?.columnName || property?.sourceColumn || property?.name);
+  const keyName = normalizeName(targetKey?.columnName || targetKey?.sourceColumn || targetKey?.name);
+  const targetTable = normalizeSingular(target?.tableName || target?.name);
+  if (!propertyName || !targetTable || !keyName) return false;
+  if (propertyName === keyName) return keyName.includes(targetTable);
+  return propertyName === `${targetTable}${keyName}`
+    || propertyName === `${targetTable}ID`
+    || propertyName === `${targetTable}KEY`
+    || propertyName === `${targetTable}NO`
+    || propertyName === `${targetTable}NUMBER`
+    || (propertyName.includes(targetTable) && (propertyName.endsWith(keyName) || propertyName.endsWith('ID')));
+}
+
+function normalizeSingular(value) {
+  const normalized = normalizeName(value);
+  return normalized.endsWith('S') ? normalized.slice(0, -1) : normalized;
+}
+
 function nativeArchitectureDocument(project, domain) {
-  const projection = classModelProjection(domain);
-  const canvas = projection.items.map((item, index) => ({
+  const projection = classModelProjection(domain, { componentLimit: Infinity, classLimit: Infinity, repositoryLimit: Infinity });
+  // No x/y here (was a global index % 3 grid ignoring which layer a
+  // component landed in) — those numbers went straight into
+  // profile.layout below and got read back as parent-relative offsets
+  // inside each component's (much smaller) package box, spreading
+  // components far down the page on first open. Leaving components out of
+  // profile.layout lets the webview's own per-layer slot layout stack them
+  // tightly inside their actual package instead.
+  const canvas = projection.items.map(item => ({
     id: item.id,
     layer: nativeArchitectureLayer(item.packageName),
     kind: 'COMPONENT',
     label: item.name || item.id,
     packageName: nativeArchitecturePackage(project, item.packageName),
     className: item.name || item.id,
-    componentId: item.sourceId || item.logicalId || item.id,
-    x: 320 + (index % 3) * 260,
-    y: Math.floor(index / 3) * 150 + nativeArchitectureLayerOffset(item.packageName)
+    componentId: item.sourceId || item.logicalId || item.id
   }));
   return {
     profile: {
+      style: 'HEXAGONAL',
       packageRoots: {
-        controller: `${nativeTargetPackage(project)}.adapter.in`,
-        service: `${nativeTargetPackage(project)}.application`,
-        model: `${nativeTargetPackage(project)}.domain`,
-        persistence: `${nativeTargetPackage(project)}.adapter.out.persistence`
+        'inbound-adapter': `${nativeTargetPackage(project)}.adapter.in`,
+        'inbound-port': `${nativeTargetPackage(project)}.port.in`,
+        application: `${nativeTargetPackage(project)}.application`,
+        domain: `${nativeTargetPackage(project)}.domain`,
+        'outbound-port': `${nativeTargetPackage(project)}.port.out`,
+        'outbound-adapter': `${nativeTargetPackage(project)}.adapter.out.persistence`
       },
       suffixes: {
-        controller: 'Controller',
-        service: 'Service',
-        model: '',
-        persistence: 'Repository'
+        'inbound-adapter': 'Controller',
+        'inbound-port': 'Port',
+        application: 'UseCase',
+        domain: '',
+        'outbound-port': 'Port',
+        'outbound-adapter': 'Adapter'
       },
       dependencyRules: [
-        { fromLayer: 'controller', toLayer: 'service', allowed: true, reason: 'Inbound adapters call application services.' },
-        { fromLayer: 'service', toLayer: 'model', allowed: true, reason: 'Application services orchestrate domain behavior.' },
-        { fromLayer: 'service', toLayer: 'persistence', allowed: true, reason: 'Application services use outbound persistence ports/adapters.' },
-        { fromLayer: 'model', toLayer: 'controller', allowed: false, reason: 'Domain model must not depend on inbound adapters.' },
-        { fromLayer: 'persistence', toLayer: 'controller', allowed: false, reason: 'Persistence adapters must not depend on controllers.' }
+        { fromLayer: 'inbound-adapter', toLayer: 'inbound-port', allowed: true, reason: 'Driving adapters call inbound ports.' },
+        { fromLayer: 'inbound-port', toLayer: 'application', allowed: true, reason: 'Inbound ports expose application use cases.' },
+        { fromLayer: 'application', toLayer: 'domain', allowed: true, reason: 'Use cases coordinate domain behavior.' },
+        { fromLayer: 'application', toLayer: 'outbound-port', allowed: true, reason: 'Application core depends on outbound ports.' },
+        { fromLayer: 'outbound-adapter', toLayer: 'outbound-port', allowed: true, reason: 'Driven adapters implement outbound ports.' },
+        { fromLayer: 'domain', toLayer: 'inbound-adapter', allowed: false, reason: 'Domain model must not depend on driving adapters.' },
+        { fromLayer: 'domain', toLayer: 'outbound-adapter', allowed: false, reason: 'Domain model must not depend on driven adapters.' }
       ],
-      layout: Object.fromEntries(canvas.map(node => [node.id, { x: node.x, y: node.y }])),
+      layout: {},
       excludedNodeIds: []
     },
-    canvas: canvas.map(({ x, y, ...node }) => node),
+    canvas,
     dependencyDiagnostics: []
   };
-}
-
-function nativeLayoutForNodes(nodes, columnWidth, rowHeight) {
-  return Object.fromEntries(asArray(nodes).map((node, index) => [
-    String(node.id || node.name || `node:${index}`),
-    { x: 80 + (index % 3) * columnWidth, y: 90 + Math.floor(index / 3) * rowHeight }
-  ]));
 }
 
 function nativeArchitectureLayer(packageName) {
@@ -2721,13 +3688,6 @@ function nativeArchitectureLayer(packageName) {
   if (normalized.includes('application')) return 'service';
   if (normalized.includes('infrastructure') || normalized.includes('persistence')) return 'persistence';
   return 'model';
-}
-
-function nativeArchitectureLayerOffset(packageName) {
-  const layer = nativeArchitectureLayer(packageName);
-  if (layer === 'service') return 220;
-  if (layer === 'persistence') return 440;
-  return 40;
 }
 
 function nativeArchitecturePackage(project, packageName) {
@@ -3101,25 +4061,39 @@ function renderMermaidClassDiagram(projection) {
   return lines.join('\n');
 }
 
-function classModelProjection(domain) {
+// Default caps keep the static Mermaid/drawio exports (fixed-size text/image
+// output, several callers below) readable. The native architecture canvas
+// (#280 follow-up) is pannable/zoomable and its own layout already wraps
+// many components per layer, so it passes Infinity here instead — a fixed
+// 18/28/28 cap meant a project with more components than that would lose
+// some on every "Open Native Architecture Diagram" regenerate, sometimes
+// dropping the exact one the user had just repositioned, permanently.
+function classModelProjection(domain, limits) {
+  const componentLimit = limits?.componentLimit ?? 18;
+  const classLimit = limits?.classLimit ?? 28;
+  const repositoryLimit = limits?.repositoryLimit ?? 28;
   const discovery = domainDiscovery(domain);
   const taken = new Set();
   const itemBySourceId = new Map();
   const componentNodes = uniqueNodes([
     ...discovery.repositories.flatMap(repository => asArray(repository.users)),
     ...discovery.nodes.filter(node => sameKind(node.kind, 'SERVICE') || sameKind(node.kind, 'USE_CASE'))
-  ]).slice(0, 18);
-  const classNodes = uniqueNodes([
-    ...discovery.repositories.flatMap(repository => asArray(repository.mappedNodes)),
-    ...discovery.recordNodes.filter(node => asArray(node.properties).length)
-  ])
+  ]).slice(0, componentLimit);
+  // Used to also pull in every property-bearing ENTITY/VALUE_OBJECT across
+  // the whole project (discovery.recordNodes) — with classLimit uncapped
+  // for the native architecture canvas, that's the same explosion already
+  // fixed in nativeDomainDocument: hundreds of working-storage groups
+  // unrelated to any repository, each becoming its own "domain class" box
+  // (reported: 381 nodes in a project with 24 repositories). Scoped to
+  // records a repository actually maps to, same as the domain fix.
+  const classNodes = uniqueNodes(discovery.repositories.flatMap(repository => asArray(repository.mappedNodes)))
     .sort((left, right) => asArray(right.properties).length - asArray(left.properties).length
       || String(left.name || left.id).localeCompare(String(right.name || right.id)))
-    .slice(0, 28);
+    .slice(0, classLimit);
   const repositoryNodes = discovery.repositories
     .filter(repository => asArray(repository.properties).length || asArray(repository.mappedNodes).length || asArray(repository.users).length)
     .sort(compareRepositoriesForDiagram)
-    .slice(0, 28);
+    .slice(0, repositoryLimit);
   const items = [
     ...componentNodes.map((node, index) => projectUmlItem(node, 'application', 'component', taken, index)),
     ...classNodes.map((node, index) => projectUmlItem(node, 'domain_model', classStereotype(node), taken, index)),
@@ -3814,7 +4788,7 @@ async function collectCobolFiles(uri, root, files, depth) {
 }
 
 async function containsCobolArtifacts(uri, depth) {
-  if (depth > 4) return false;
+  if (depth > 8) return false;
   let entries = [];
   try {
     entries = await vscode.workspace.fs.readDirectory(uri);
@@ -3895,8 +4869,9 @@ function isInsidePath(candidate, parent) {
 
 function updateStatus() {
   const project = state.projects.find(candidate => candidate.id === state.activeProjectId);
+  const settings = workspaceSettings(project);
   statusItem.text = project ? `$(tools) Renovatio: ${project.name}` : '$(tools) Renovatio';
-  statusItem.tooltip = project ? `Workspace: ${project.workspacePath || 'not configured'}\nScan root: ${project.cobolScanRoot || project.workspacePath || 'not configured'}` : 'Select Renovatio project';
+  statusItem.tooltip = project ? `Workspace: ${settings.workspaceFolderPath || project.workspacePath || 'not configured'}\nCOBOL roots: ${settings.configuredCobolRoots.length ? settings.configuredCobolRoots.join(', ') : 'not configured'}` : 'Select Renovatio project';
 }
 
 class ProjectsProvider {
@@ -3910,10 +4885,14 @@ class ProjectsProvider {
     if (item?.children) return item.children;
     const project = state.projects.find(candidate => candidate.id === state.activeProjectId);
     if (!project) {
+      const create = new vscode.TreeItem('Create Renovatio project', vscode.TreeItemCollapsibleState.None);
+      create.description = 'from COBOL source root';
+      create.iconPath = new vscode.ThemeIcon('new-folder');
+      create.command = { command: 'renovatio.createProject', title: 'Create Renovatio Project' };
       const select = new vscode.TreeItem('Select Renovatio project', vscode.TreeItemCollapsibleState.None);
       select.iconPath = new vscode.ThemeIcon('folder-active');
       select.command = { command: 'renovatio.selectProject', title: 'Select Renovatio Project' };
-      return [select];
+      return [create, select];
     }
     const settings = workspaceSettings(project);
     const workspace = new vscode.TreeItem(path.basename(settings.workspaceFolderPath || project.workspacePath || 'Workspace'), vscode.TreeItemCollapsibleState.None);
@@ -3921,13 +4900,27 @@ class ProjectsProvider {
     workspace.iconPath = new vscode.ThemeIcon('root-folder');
     workspace.tooltip = settings.workspaceFolderPath || project.workspacePath || 'VS Code workspace';
 
+    // Once a project is active, nothing else in this tree ever opened the
+    // project picker — the toolbar's "Select Project" icon (folder-active)
+    // can be pushed into the "..." overflow depending on panel width, and
+    // clicking the current project's own row below just re-selects the
+    // same project (a no-op), so there was no discoverable way to switch
+    // projects at all short of knowing that toolbar icon exists. This row
+    // is always present and always opens the picker (see #280 usability
+    // report — "no sé cómo elegir el proyecto").
+    const switchProject = new vscode.TreeItem('Switch project...', vscode.TreeItemCollapsibleState.None);
+    switchProject.description = `${state.projects.length} available`;
+    switchProject.iconPath = new vscode.ThemeIcon('folder-active');
+    switchProject.tooltip = 'Choose a different Renovatio project';
+    switchProject.command = { command: 'renovatio.selectProject', title: 'Select Renovatio Project' };
+
     const projectItem = new vscode.TreeItem(project.name, vscode.TreeItemCollapsibleState.None);
-    projectItem.description = 'Renovatio project';
+    projectItem.description = 'Active project';
     projectItem.contextValue = 'renovatioProject';
     projectItem.iconPath = new vscode.ThemeIcon('repo');
-    projectItem.command = { command: 'renovatio.selectProject', title: 'Select Renovatio Project', arguments: [project.id] };
+    projectItem.tooltip = 'The currently active Renovatio project — use "Switch project..." above to change it';
 
-    const sourceRootItems = settings.cobolRoots.map(root => {
+    const sourceRootItems = settings.configuredCobolRoots.map(root => {
       const rootItem = new vscode.TreeItem(path.basename(root) || root, vscode.TreeItemCollapsibleState.None);
       rootItem.description = root;
       rootItem.iconPath = new vscode.ThemeIcon('folder');
@@ -3962,7 +4955,7 @@ class ProjectsProvider {
     target.description = settings.targetPackage;
     target.iconPath = new vscode.ThemeIcon('symbol-namespace');
 
-    return [workspace, projectItem, sources, generated, target];
+    return [switchProject, projectItem, workspace, sources, generated, target];
   }
 }
 
@@ -3977,6 +4970,12 @@ class OperationsProvider {
     const project = state.projects.find(candidate => candidate.id === state.activeProjectId);
     const settings = workspaceSettings(project);
     const operations = [
+      {
+        label: 'Create Renovatio project',
+        description: 'from COBOL source root',
+        icon: 'new-folder',
+        command: 'renovatio.createProject'
+      },
       {
         label: 'Select Renovatio project',
         description: project?.name || '',
@@ -4075,7 +5074,7 @@ class AnalysisProvider {
   getTreeItem(item) { return item; }
   getChildren(item) {
     if (item?.children) return item.children;
-    const inventory = state.analysis?.inventory || {};
+    const inventory = workbenchInventory(state.analysis, state.latestJob);
     const entries = Object.entries(inventory);
     const discovery = domainDiscovery(state.domainModel);
     const result = [];

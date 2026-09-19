@@ -95,6 +95,9 @@ public class BusinessLogicDecomposer {
     ) {
         List<DecomposedBusinessLogic.DataAccessComponent> components = new ArrayList<>();
 
+        // Get file-to-record mapping from FILE SECTION
+        Map<String, String> fileToRecordMapping = model.getFileToRecordMapping();
+
         // Group file operations by file name
         Map<String, Set<FileOperationStatement.OperationType>> fileOperations = new LinkedHashMap<>();
 
@@ -116,17 +119,21 @@ public class BusinessLogicDecomposer {
             DecomposedBusinessLogic.DataAccessComponent.AccessPattern pattern =
                     determineAccessPattern(ops);
 
+            // Get the record name from FILE SECTION mapping, fall back to file name
+            String recordName = fileToRecordMapping.getOrDefault(fileName, fileName);
+            String entityName = toEntityName(recordName);
+
             // Create field mappings from data items
             List<DecomposedBusinessLogic.FieldMapping> fieldMappings =
-                    createFieldMappings(model.getDataItems(), fileName);
+                    createFieldMappings(model.getDataItems(), recordName);
 
             // Find potential key fields
             List<String> keyFields = findKeyFields(model.getDataItems());
 
             components.add(new DecomposedBusinessLogic.DataAccessComponent(
                     "DA-" + fileName,
-                    toEntityName(fileName),
-                    fileName,
+                    entityName,
+                    recordName,
                     keyFields,
                     fieldMappings,
                     pattern
@@ -640,7 +647,10 @@ public class BusinessLogicDecomposer {
         return Character.toUpperCase(camel.charAt(0)) + camel.substring(1);
     }
 
-    private String toEntityName(String fileName) {
-        return toPascalCase(fileName.replace("-FILE", "").replace("FILE-", ""));
+    private String toEntityName(String name) {
+        // Strip common COBOL suffixes: FILE (from FD names)
+        // Keep RECORD suffix for 01 level records to get more descriptive entity names
+        String cleaned = name.replace("-FILE", "").replace("FILE-", "");
+        return toPascalCase(cleaned);
     }
 }

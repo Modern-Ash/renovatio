@@ -31,6 +31,9 @@ export function deactivate(): void {
 }
 
 class RenovatioDiagramEditorProvider implements vscode.CustomTextEditorProvider {
+    private updateQueue: Promise<void> = Promise.resolve();
+    private readonly mutatingDocuments = new Map<string, number>();
+
     constructor(
         private readonly context: vscode.ExtensionContext,
         private readonly output: vscode.OutputChannel
@@ -56,12 +59,16 @@ class RenovatioDiagramEditorProvider implements vscode.CustomTextEditorProvider 
             webviewPanel.webview.postMessage({
                 type: 'setModel',
                 documentKind: parsed.kind,
+                hasSavedLayout: hasSavedLayout(parsed),
                 model: parsed.model
             });
         };
 
         const changeSubscription = vscode.workspace.onDidChangeTextDocument(event => {
             if (event.document.uri.toString() === document.uri.toString()) {
+                if (this.isMutatingDocument(document.uri)) {
+                    return;
+                }
                 postModel();
             }
         });
@@ -84,14 +91,7 @@ class RenovatioDiagramEditorProvider implements vscode.CustomTextEditorProvider 
             if (message.type !== 'diagramEvent') {
                 return;
             }
-            try {
-                const parsed = parseDiagramDocument(document.getText(), document.fileName);
-                const next = applyDiagramEvent(parsed, message.event);
-                await this.replaceDocument(document, formatDiagramDocument(next.raw));
-            } catch (error) {
-                const detail = error instanceof Error ? error.message : String(error);
-                vscode.window.showErrorMessage(`Unable to update Renovatio diagram: ${detail}`);
-            }
+            await this.enqueueDiagramUpdate(document, message.event, postModel);
         });
 
         postModel();
@@ -120,14 +120,71 @@ class RenovatioDiagramEditorProvider implements vscode.CustomTextEditorProvider 
         }
     }
 
+    private async enqueueDiagramUpdate(document: vscode.TextDocument, event: unknown, postModel: () => void): Promise<void> {
+        if (!isDocumentMutationEvent(event)) {
+            return;
+        }
+        this.updateQueue = this.updateQueue
+            .catch(() => undefined)
+            .then(async () => {
+                try {
+                    const parsed = parseDiagramDocument(document.getText(), document.fileName);
+                    const next = applyDiagramEvent(parsed, event as never);
+                    const layoutOnly = isLayoutOnlyEvent(event);
+                    this.beginDocumentMutation(document.uri);
+                    try {
+                        await this.replaceDocument(document, formatDiagramDocument(next.raw));
+                    } finally {
+                        this.endDocumentMutation(document.uri);
+                    }
+                    if (!layoutOnly) {
+                        postModel();
+                    }
+                } catch (error) {
+                    const detail = error instanceof Error ? error.message : String(error);
+                    vscode.window.showErrorMessage(`Unable to update Renovatio diagram: ${detail}`);
+                }
+            });
+        await this.updateQueue;
+    }
+
+    private beginDocumentMutation(uri: vscode.Uri): void {
+        const key = uri.toString();
+        this.mutatingDocuments.set(key, (this.mutatingDocuments.get(key) ?? 0) + 1);
+    }
+
+    private endDocumentMutation(uri: vscode.Uri): void {
+        const key = uri.toString();
+        const count = this.mutatingDocuments.get(key) ?? 0;
+        if (count <= 0) {
+            return;
+        }
+        if (count === 1) {
+            this.mutatingDocuments.delete(key);
+        } else {
+            this.mutatingDocuments.set(key, count - 1);
+        }
+    }
+
+    private isMutatingDocument(uri: vscode.Uri): boolean {
+        return (this.mutatingDocuments.get(uri.toString()) ?? 0) > 0;
+    }
+
     private async replaceDocument(document: vscode.TextDocument, text: string): Promise<void> {
+        if (document.getText() === text) {
+            return;
+        }
         const edit = new vscode.WorkspaceEdit();
         const start = new vscode.Position(0, 0);
         const end = document.lineCount === 0
             ? start
             : document.lineAt(document.lineCount - 1).rangeIncludingLineBreak.end;
         edit.replace(document.uri, new vscode.Range(start, end), text);
-        await vscode.workspace.applyEdit(edit);
+        const applied = await vscode.workspace.applyEdit(edit);
+        if (!applied) {
+            throw new Error('VS Code rejected the diagram document edit.');
+        }
+        await document.save();
     }
 
     private htmlFor(webview: vscode.Webview): string {
@@ -155,6 +212,32 @@ class RenovatioDiagramEditorProvider implements vscode.CustomTextEditorProvider 
 </body>
 </html>`;
     }
+}
+
+function hasSavedLayout(parsed: ParsedDiagramDocument): boolean {
+    const layout = parsed.kind === 'architecture'
+        ? parsed.raw.profile?.layout ?? parsed.raw.layout
+        : parsed.raw.layout;
+    return Boolean(layout && typeof layout === 'object' && Object.keys(layout).length > 0);
+}
+
+function isLayoutOnlyEvent(event: unknown): boolean {
+    return Boolean(event && typeof event === 'object' && (event as { type?: unknown }).type === 'layoutChanged');
+}
+
+function isDocumentMutationEvent(event: unknown): boolean {
+    if (!event || typeof event !== 'object') {
+        return false;
+    }
+    const type = (event as { type?: unknown }).type;
+    return type === 'nodeMoved'
+        || type === 'layoutChanged'
+        || type === 'nodesPruned'
+        || type === 'edgeCreated'
+        || type === 'edgeReconnected'
+        || type === 'edgeLabelChanged'
+        || type === 'edgesDeleted'
+        || type === 'architectureStyleChanged';
 }
 
 class RenovatioWelcomeTree implements vscode.TreeDataProvider<RenovatioTreeItem> {

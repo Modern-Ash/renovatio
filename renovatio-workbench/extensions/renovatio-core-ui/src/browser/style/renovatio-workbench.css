@@ -682,6 +682,47 @@
     z-index: 6;
 }
 
+.renovatio-edge-label,
+.renovatio-edge-label-editor {
+    font: 10px/1.3 "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+    z-index: 5;
+}
+
+.renovatio-edge-label {
+    background: #071012;
+    border: 1px solid rgba(238, 248, 245, 0.2);
+    border-radius: 3px;
+    color: rgba(238, 248, 245, 0.75);
+    padding: 1px 5px;
+    white-space: nowrap;
+}
+
+.renovatio-edge-label-editor button,
+.renovatio-edge-label-editor input {
+    background: #0c1a1d;
+    border: 1px solid var(--renovatio-accent);
+    border-radius: 3px;
+    color: var(--renovatio-ink);
+    font: inherit;
+    padding: 2px 6px;
+}
+
+.renovatio-edge-label-editor button {
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.renovatio-edge-label-editor-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.renovatio-edge-label-editor-actions button.is-delete {
+    border-color: var(--renovatio-hazard, #e5484d);
+    color: var(--renovatio-hazard, #e5484d);
+    padding: 2px 7px;
+}
+
 .renovatio-domain-class-node {
     background: #071012;
     border: 1px solid rgba(238, 248, 245, 0.28);
@@ -1282,18 +1323,22 @@
 .renovatio-architecture-flow-node {
     background: rgba(4, 13, 15, 0.95);
     border: 1px solid rgba(238, 248, 245, 0.28);
+    box-sizing: border-box;
     color: var(--renovatio-ink);
     display: grid;
     gap: 5px;
+    height: 100%;
     min-height: 76px;
     padding: 10px;
-    width: 190px;
+    width: 100%;
 }
 
 .renovatio-architecture-flow-node.is-layer {
-    background: rgba(255, 180, 0, 0.13);
-    border-color: var(--renovatio-hazard);
-    width: 210px;
+    align-content: start;
+    background: rgba(4, 13, 15, 0.45);
+    border-color: rgba(245, 197, 66, 0.72);
+    gap: 3px;
+    padding: 0;
 }
 
 .renovatio-architecture-flow-node.has-diagnostics {
@@ -1319,6 +1364,20 @@
     justify-content: space-between;
 }
 
+.renovatio-architecture-flow-node.is-layer header {
+    background: #071012;
+    border-color: rgba(245, 197, 66, 0.72);
+    border-style: solid;
+    border-width: 0 1px 1px 0;
+    max-width: 68%;
+    min-height: 30px;
+    padding: 6px 8px;
+}
+
+.renovatio-architecture-flow-node.is-component {
+    border-radius: 0;
+}
+
 .renovatio-architecture-flow-node span,
 .renovatio-architecture-flow-node em,
 .renovatio-architecture-flow-node small,
@@ -1339,6 +1398,11 @@
 .renovatio-architecture-flow-node p,
 .renovatio-architecture-flow-node small {
     overflow-wrap: anywhere;
+}
+
+.renovatio-architecture-flow-node.is-layer strong,
+.renovatio-architecture-flow-node.is-layer p {
+    padding-inline: 10px;
 }
 
 .renovatio-architecture-flow-node p {

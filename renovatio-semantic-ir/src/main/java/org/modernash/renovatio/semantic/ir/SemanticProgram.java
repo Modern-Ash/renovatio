@@ -16,7 +16,8 @@ public record SemanticProgram(String schemaVersion, Header header, String progra
                               SourceProvenance sourceProvenance, List<SemanticType> types,
                               List<DataIntent> dataIntents, List<SideEffect> sideEffects,
                               List<IoOperation> ioOperations, ControlFlow controlFlow,
-                              List<UnclassifiedDataAccess> unclassifiedDataAccesses) {
+                              List<UnclassifiedDataAccess> unclassifiedDataAccesses,
+                              List<FieldFlow> fieldFlows) {
     public static final String SCHEMA_VERSION = "1";
 
     public SemanticProgram {
@@ -33,11 +34,13 @@ public record SemanticProgram(String schemaVersion, Header header, String progra
         ioOperations = nodes(ioOperations, programId, NodeKind.IO_OPERATION);
         controlFlow = Objects.requireNonNull(controlFlow, "controlFlow").validated(programId);
         unclassifiedDataAccesses = nodes(unclassifiedDataAccesses, programId, NodeKind.UNCLASSIFIED_DATA_ACCESS);
+        fieldFlows = nodes(fieldFlows, programId, NodeKind.FIELD_FLOW);
 
         List<Node> all = new ArrayList<>();
         all.add(headerNode(header));
         all.addAll(types); all.addAll(dataIntents); all.addAll(sideEffects); all.addAll(ioOperations);
         all.addAll(controlFlow.nodes()); all.addAll(controlFlow.edges()); all.addAll(unclassifiedDataAccesses);
+        all.addAll(fieldFlows);
         requireUnique(all.stream().map(Node::header).map(Header::id).toList(), "semantic node id");
 
         Set<String> semanticIds = new HashSet<>(all.stream().map(Node::header).map(Header::id).toList());
@@ -48,6 +51,17 @@ public record SemanticProgram(String schemaVersion, Header header, String progra
         sideEffects.forEach(effect -> requireReferences(effect.affectedNodeIds(), semanticIds, "affected node"));
         Set<String> effectIds = new HashSet<>(sideEffects.stream().map(value -> value.header().id()).toList());
         ioOperations.forEach(io -> requireReferences(io.sideEffectIds(), effectIds, "side effect"));
+        fieldFlows.forEach(flow -> requireReferences(List.of(flow.sourceTypeId(), flow.targetTypeId()), typeIds,
+                "field flow endpoint"));
+    }
+
+    public SemanticProgram(String schemaVersion, Header header, String programId,
+                           SourceProvenance sourceProvenance, List<SemanticType> types,
+                           List<DataIntent> dataIntents, List<SideEffect> sideEffects,
+                           List<IoOperation> ioOperations, ControlFlow controlFlow,
+                           List<UnclassifiedDataAccess> unclassifiedDataAccesses) {
+        this(schemaVersion, header, programId, sourceProvenance, types, dataIntents, sideEffects, ioOperations,
+                controlFlow, unclassifiedDataAccesses, List.of());
     }
 
     private static Node headerNode(Header value) { return () -> value; }
@@ -89,7 +103,7 @@ public record SemanticProgram(String schemaVersion, Header header, String progra
     }
 
     public enum NodeKind { PROGRAM, TYPE, DATA_INTENT, SIDE_EFFECT, IO_OPERATION,
-        CONTROL_FLOW_NODE, CONTROL_FLOW_EDGE, UNCLASSIFIED_DATA_ACCESS }
+        CONTROL_FLOW_NODE, CONTROL_FLOW_EDGE, UNCLASSIFIED_DATA_ACCESS, FIELD_FLOW }
     public enum TypeKind { TEXT, INTEGER, DECIMAL, BOOLEAN, GROUP, UNKNOWN }
     public enum Signedness { SIGNED, UNSIGNED, UNKNOWN }
     public enum IntentKind { OVERLAPPING_STORAGE, DEPENDENT_CARDINALITY, MOVE_CORRESPONDING }
@@ -141,13 +155,49 @@ public record SemanticProgram(String schemaVersion, Header header, String progra
 
     public record IoOperation(Header header, IoKind ioKind, String operation,
                               Optional<String> resourceReference, Direction direction,
-                              List<String> sideEffectIds) implements Node {
+                              List<String> sideEffectIds, Optional<String> boundRecordSymbol,
+                              List<String> keyFieldSymbols, Optional<String> assignTarget) implements Node {
         public IoOperation {
             Objects.requireNonNull(ioKind, "ioKind"); operation = SemanticIdentity.text(operation, "operation");
             resourceReference = resourceReference == null ? Optional.empty()
                     : resourceReference.map(value -> SemanticIdentity.text(value, "resourceReference"));
             Objects.requireNonNull(direction, "direction");
             sideEffectIds = sorted(sideEffectIds, "sideEffectId");
+            // The record symbol a FILE-kind resource is structurally bound
+            // to — e.g. the FD's "RECORD IS ..." / the 01-level record
+            // declared right under it in the FILE SECTION — when the
+            // provider was able to parse that binding directly. Lets a
+            // domain projector associate a file with its record exactly,
+            // rather than guessing from name similarity (see #280 gap:
+            // name-based matching missed pairs like ACCTFILE-FILE /
+            // ACCOUNT-RECORD or DALYTRAN-FILE / TRAN-RECORD, where COBOL
+            // naming conventions diverge between the FD and the record).
+            boundRecordSymbol = boundRecordSymbol == null ? Optional.empty()
+                    : boundRecordSymbol.map(value -> SemanticIdentity.text(value, "boundRecordSymbol"));
+            // The field(s) declared as this FILE-kind resource's RECORD
+            // KEY / ALTERNATE RECORD KEY in FILE-CONTROL — a VSAM/indexed
+            // file's actual access key(s). Real structural evidence for
+            // inferring a relation between two *different* entities (one
+            // file's own field happens to be another file's declared key
+            // -> the first references the second), unlike anything a name
+            // heuristic alone could establish.
+            keyFieldSymbols = sorted(keyFieldSymbols, "keyFieldSymbol");
+            // The physical dataset this FILE-kind resource is ASSIGN TO —
+            // the same physical VSAM/indexed file is often declared under a
+            // different local SELECT name in every program that opens it
+            // (ACCT-FILE, ACCOUNT-FILE, ACCTFILE-FILE all ASSIGN TO
+            // ACCTFILE). Real structural evidence those are one physical
+            // resource, used to merge them before FK inference runs so a
+            // same-file duplicate doesn't get mistaken for a foreign key.
+            assignTarget = assignTarget == null ? Optional.empty()
+                    : assignTarget.map(value -> SemanticIdentity.text(value, "assignTarget"));
+        }
+
+        public IoOperation(Header header, IoKind ioKind, String operation,
+                           Optional<String> resourceReference, Direction direction,
+                           List<String> sideEffectIds) {
+            this(header, ioKind, operation, resourceReference, direction, sideEffectIds, Optional.empty(), List.of(),
+                    Optional.empty());
         }
     }
 
@@ -188,6 +238,20 @@ public record SemanticProgram(String schemaVersion, Header header, String progra
             observedOperation = SemanticIdentity.text(observedOperation, "observedOperation");
             reason = SemanticIdentity.text(reason, "reason");
             evidenceIds = sorted(evidenceIds, "evidenceId");
+        }
+    }
+
+    // A single MOVE (or equivalent assignment)'s source -> target field
+    // pair, both resolved to real SemanticType ids. This is the actual
+    // procedure-division data flow a COBOL program performs — e.g. "MOVE
+    // XREF-ACCT-ID TO WS-ACCT-ID" right before a keyed READ — and is what
+    // lets a domain projector infer a relation between two different
+    // business entities from the program's own logic, rather than from
+    // name similarity or a coincidental identical field name.
+    public record FieldFlow(Header header, String sourceTypeId, String targetTypeId) implements Node {
+        public FieldFlow {
+            sourceTypeId = SemanticIdentity.hash(sourceTypeId, "sourceTypeId");
+            targetTypeId = SemanticIdentity.hash(targetTypeId, "targetTypeId");
         }
     }
 

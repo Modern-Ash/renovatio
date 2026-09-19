@@ -47,7 +47,7 @@ export function DomainClassNode(props: NodeProps): React.ReactElement {
             <Handle type='target' position={Position.Left} />
             <Handle type='source' position={Position.Right} />
             <header>
-                <span className={`renovatio-domain-class-badge ${badgeClass}`}>{data.kind}</span>
+                <span className={`renovatio-domain-class-badge ${badgeClass}`}>«{data.kind}»</span>
                 <strong>{data.label}</strong>
                 {Boolean(data.pendingSuggestionCount) && <span className='renovatio-domain-suggestion-badge'>{data.pendingSuggestionCount}</span>}
             </header>
