@@ -38,23 +38,23 @@ public class Db2001ServiceImpl implements Db2001Service {
     if (input.getWsMessage() == null || input.getWsMessage().length() > 80) { return false; };
     return true;
   }
-    @GeneratedFrom(paragraph = "FETCH-EMPLOYEE", lines = "32-50")
+    @GeneratedFrom(paragraph = "FETCH-EMPLOYEE", lines = "41-59")
     private void performFetchEmployee(Db2001DTO input, Db2001DTO out) {
         // COBOL not translated: EMP-ID (data item not modeled)
         // EXEC SQL SELECT EMP_NAME, EMP_DEPT, EMP_SALARY                INTO :WS-EMP-NAME, :WS-EMP-DEPT, :WS-EMP-SALARY                FROM EMPLOYEES                WHERE EMP_ID = :WS-EMP-ID
         // COBOL not translated: SQLCODE (data item not modeled)
     }
-    @GeneratedFrom(paragraph = "UPDATE-SALARY", lines = "51-63")
+    @GeneratedFrom(paragraph = "UPDATE-SALARY", lines = "60-72")
     private void performUpdateSalary(Db2001DTO input, Db2001DTO out) {
         // COBOL not translated: WS, EMP, SALARY (data item not modeled)
         // EXEC SQL UPDATE EMPLOYEES                SET EMP_SALARY = :WS-EMP-SALARY                WHERE EMP_ID = :WS-EMP-ID
         // COBOL not translated: SQLCODE (data item not modeled)
     }
-    @GeneratedFrom(paragraph = "DISPLAY-RESULT", lines = "64-66")
+    @GeneratedFrom(paragraph = "DISPLAY-RESULT", lines = "73-75")
     private void performDisplayResult(Db2001DTO input, Db2001DTO out) {
         System.out.println(out.getWsMessage());
     }
-    @GeneratedFrom(paragraph = "CLEANUP", lines = "67-73")
+    @GeneratedFrom(paragraph = "CLEANUP", lines = "76-82")
     private void performCleanup(Db2001DTO input, Db2001DTO out) {
         out.setWsEmpId(0);
         // COBOL not translated: SPACES (data item not modeled)

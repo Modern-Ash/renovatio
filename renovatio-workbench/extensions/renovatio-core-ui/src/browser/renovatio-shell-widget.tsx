@@ -1860,8 +1860,13 @@ export class RenovatioShellWidget extends ReactWidget {
         const model = architectureToDiagram(view, this.ai?.items ?? []);
         const visibleModel = this.architectureSuggestionsOnly
             ? (() => {
-                const nodes = model.nodes.filter(node => Number(node.data?.pendingSuggestionCount ?? 0) > 0);
-                const ids = new Set(nodes.map(node => node.id));
+                const ids = new Set(model.nodes
+                    .filter(node => Number(node.data?.pendingSuggestionCount ?? 0) > 0)
+                    .map(node => node.id));
+                model.nodes.forEach(node => {
+                    if (node.parentId && ids.has(node.id)) ids.add(node.parentId);
+                });
+                const nodes = model.nodes.filter(node => ids.has(node.id));
                 return { nodes, edges: model.edges.filter(edge => ids.has(edge.source) && ids.has(edge.target)) };
             })()
             : model;
@@ -1869,7 +1874,7 @@ export class RenovatioShellWidget extends ReactWidget {
             <div className='renovatio-architecture-diagram-toolbar' role='group' aria-label='Architecture diagram filters'>
                 <button type='button' aria-pressed={this.architectureSuggestionsOnly} onClick={() => { this.architectureSuggestionsOnly = !this.architectureSuggestionsOnly; this.update(); }}>Suggestions</button>
             </div>
-            <div className='renovatio-architecture-flow-surface' aria-label='Architecture layer graph'>
+            <div className='renovatio-architecture-flow-surface' aria-label='Architecture UML package diagram'>
                 <DiagramCanvas
                     model={visibleModel}
                     onEvent={this.handleArchitectureDiagramEvent}

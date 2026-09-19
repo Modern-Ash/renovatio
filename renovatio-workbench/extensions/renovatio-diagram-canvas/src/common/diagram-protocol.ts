@@ -22,6 +22,18 @@ export interface DiagramNodeVM {
     /** Optional grouping key (e.g. architecture layer, bounded context) used for
      * layout banding/coloring; the canvas does not interpret its value. */
     group?: string;
+    /** Id of another node in the same model that visually CONTAINS this one
+     * (e.g. a UML package containing a class) — not a relationship/edge, a
+     * nesting. When set, this node renders and drags inside the parent's
+     * bounds; x/y become relative to the parent's origin instead of the
+     * canvas origin. The parent node must appear earlier in `nodes` than
+     * any node naming it as parentId. */
+    parentId?: string;
+    /** Explicit box size in canvas pixels. Required on any node used as a
+     * parentId target (a container needs a size to contain its children);
+     * optional otherwise, where the node type's natural size applies. */
+    width?: number;
+    height?: number;
     /** Last known position. Omit to let the canvas auto-layout the node. */
     x?: number;
     y?: number;
@@ -56,4 +68,14 @@ export type DiagramEvent =
     | { type: 'nodeMoved'; id: string; x: number; y: number }
     | { type: 'nodeSelected'; id: string | null }
     | { type: 'edgeCreated'; source: string; target: string }
-    | { type: 'nodesPruned'; ids: string[] };
+    | { type: 'nodesPruned'; ids: string[] }
+    /** An existing edge got dragged off one of its endpoints and dropped
+     * onto a different node — same relationship record, new source/target. */
+    | { type: 'edgeReconnected'; id: string; source: string; target: string }
+    /** The user edited an edge's label through the canvas's built-in
+     * relation editor popover. */
+    | { type: 'edgeLabelChanged'; id: string; label: string }
+    /** The user deleted a relation — either via the relation editor
+     * popover's delete button or by selecting the edge and pressing
+     * Delete/Backspace. */
+    | { type: 'edgesDeleted'; ids: string[] };

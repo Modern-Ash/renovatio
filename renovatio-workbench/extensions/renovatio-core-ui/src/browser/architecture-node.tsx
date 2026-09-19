@@ -18,7 +18,7 @@ export interface ArchitectureNodeData {
 }
 
 function kindLabel(kind: string): string {
-    return kind === 'ARCHITECTURE_LAYER' ? 'LAYER' : kind.replace(/_/g, ' ');
+    return kind === 'ARCHITECTURE_LAYER' ? 'package' : kind.replace(/_/g, ' ').toLowerCase();
 }
 
 export function ArchitectureNode(props: NodeProps): React.ReactElement {
@@ -33,13 +33,13 @@ export function ArchitectureNode(props: NodeProps): React.ReactElement {
             <Handle type='target' position={Position.Left} />
             <Handle type='source' position={Position.Right} />
             <header>
-                <span>{kindLabel(data.kind)}</span>
+                <span>«{kindLabel(data.kind)}»</span>
                 {isLayer && typeof data.componentCount === 'number' && <em>{data.componentCount}</em>}
                 {Boolean(data.pendingSuggestionCount) && <em className='renovatio-architecture-suggestion-badge'>{data.pendingSuggestionCount}</em>}
             </header>
-            <strong>{data.label}{data.excluded ? ' (excluded)' : ''}</strong>
-            <p>{data.packageName || data.layer || 'unmapped package'}</p>
-            <small>{data.className || data.componentId || 'generated component'}</small>
+            <strong>{isLayer ? data.packageName || data.label : data.className || data.label}{data.excluded ? ' (excluded)' : ''}</strong>
+            <p>{isLayer ? data.label : data.packageName || data.layer || 'unmapped package'}</p>
+            {!isLayer && <small>{data.componentId || 'generated component'}</small>}
         </div>
     );
 }

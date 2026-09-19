@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import org.modernash.renovatio.semantic.ir.SemanticProgram;
 import org.modernash.renovatio.semantic.ir.SourceProvenance;
 import org.modernash.renovatio.semantic.ir.SourceSpan;
@@ -147,6 +148,53 @@ class DomainModelTest {
                 node.kind() == DomainModel.Kind.REPOSITORY && node.name().equals("FETCH")));
         assertFalse(model.nodes().stream().anyMatch(node ->
                 node.kind() == DomainModel.Kind.REPOSITORY && node.name().equals("SELECT")));
+    }
+
+    @Test
+    void deduplicatesMultipleIoOperationsOnSameResourceAndFiltersFiller() {
+        SourceSpan span = new SourceSpan("src/dup.cob", 1, 1, 1, 8);
+        SourceProvenance provenance = new SourceProvenance("src/dup.cob", "a".repeat(64), "COBOL", Optional.empty(), List.of());
+        SemanticProgram.IoOperation select1 = new SemanticProgram.IoOperation(
+                SemanticProgram.Header.create("DUPPROG", SemanticProgram.NodeKind.IO_OPERATION, "db-select-1", span),
+                SemanticProgram.IoKind.DATABASE, "SELECT", Optional.of("POLICY"),
+                SemanticProgram.Direction.READ, List.of());
+        SemanticProgram.IoOperation insert1 = new SemanticProgram.IoOperation(
+                SemanticProgram.Header.create("DUPPROG", SemanticProgram.NodeKind.IO_OPERATION, "db-insert-1", span),
+                SemanticProgram.IoKind.DATABASE, "INSERT", Optional.of("POLICY"),
+                SemanticProgram.Direction.WRITE, List.of());
+        SemanticProgram.SemanticType fillerType = new SemanticProgram.SemanticType(
+                SemanticProgram.Header.create("DUPPROG", SemanticProgram.NodeKind.TYPE, "filler-1", span),
+                "FILLER", SemanticProgram.TypeKind.TEXT, SemanticProgram.Signedness.UNKNOWN,
+                OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), List.of());
+        SemanticProgram.SemanticType realType1 = new SemanticProgram.SemanticType(
+                SemanticProgram.Header.create("DUPPROG", SemanticProgram.NodeKind.TYPE, "type-1", span),
+                "CUST-RECORD", SemanticProgram.TypeKind.GROUP, SemanticProgram.Signedness.UNKNOWN,
+                OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), List.of());
+        SemanticProgram.SemanticType realTypeDup = new SemanticProgram.SemanticType(
+                SemanticProgram.Header.create("DUPPROG", SemanticProgram.NodeKind.TYPE, "type-2", span),
+                "CUST-RECORD", SemanticProgram.TypeKind.GROUP, SemanticProgram.Signedness.UNKNOWN,
+                OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), OptionalInt.empty(), List.of());
+
+        SemanticProgram program = new SemanticProgram("1", SemanticProgram.Header.create("DUPPROG",
+                SemanticProgram.NodeKind.PROGRAM, "program", span), "DUPPROG", provenance,
+                List.of(fillerType, realType1, realTypeDup), List.of(), List.of(), List.of(select1, insert1),
+                new SemanticProgram.ControlFlow(Optional.empty(), List.of(), List.of()), List.of());
+
+        DomainModel model = new SemanticDomainProjector().project("project-dup", List.of(program));
+
+        // FILLER should be ignored
+        assertFalse(model.nodes().stream().anyMatch(node -> "FILLER".equalsIgnoreCase(node.name())));
+
+        // CUST-RECORD should be deduplicated within the program
+        long custRecordCount = model.nodes().stream().filter(node -> "CUST-RECORD".equals(node.name())).count();
+        assertEquals(1, custRecordCount);
+
+        // POLICY repository should be deduplicated within the program
+        long policyCount = model.nodes().stream().filter(node -> "POLICY".equals(node.name())).count();
+        assertEquals(1, policyCount);
+        DomainModel.DomainNode policyNode = model.nodes().stream().filter(node -> "POLICY".equals(node.name())).findFirst().orElseThrow();
+        assertEquals(DomainModel.Kind.REPOSITORY, policyNode.kind());
+        assertEquals(2, policyNode.evidence().size());
     }
 
     private static DomainModel.DomainNode node(String id, DomainModel.Kind kind) {

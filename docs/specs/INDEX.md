@@ -281,7 +281,7 @@ grep -l "java.plan" docs/specs/**/*.md
 ### ¿Tienes preguntas?
 
 - **📖 Lee primero**: [SPEC-KIT-QUICK-START.md](../SPEC-KIT-QUICK-START.md)
-- **💬 Issues**: [GitHub Issues](https://github.com/accentureshark/renovatio/issues)
+- **💬 Issues**: [GitHub Issues](https://github.com/Modern-Ash/renovatio/issues)
 - **📧 Contacto**: Consulta el README principal para contactos del equipo
 
 ### ¿Encontraste un problema?

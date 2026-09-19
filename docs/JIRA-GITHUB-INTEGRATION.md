@@ -46,7 +46,7 @@ En tu instancia de Jira:
 
 1. Ve a **Apps** > **Manage Apps**
 2. Busca "GitHub for Jira"
-3. Configura el workspace para el repositorio `accentureshark/renovatio`
+3. Configura el workspace para el repositorio `Modern-Ash/renovatio`
 4. Otorga los permisos necesarios (read issues, write comments, etc.)
 
 ### 3. Configurar proyecto Jira

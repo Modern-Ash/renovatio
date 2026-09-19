@@ -28,7 +28,8 @@ class PromptCatalogLoaderTest {
                         "decision.persistence.v1",
                         "decision.naming.v1",
                         "decision.architecture.v1",
-                        "decision.batch.v1"),
+                        "decision.batch.v1",
+                        "cobol.domain.entities.v1"),
                 catalog.entries().stream().map(PromptDefinition::promptId).toList());
         assertEquals("DOMAIN_NAMING", catalog.require("cobol.domain.naming.v1").appliesTo());
     }

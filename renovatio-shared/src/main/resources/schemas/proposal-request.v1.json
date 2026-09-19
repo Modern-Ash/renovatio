@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://renovatio.shark.org/schemas/proposal-request.v1.json",
+  "$id": "https://renovatio.modernash.org/schemas/proposal-request.v1.json",
   "title": "ProposalRequest",
   "type": "object",
   "required": ["version", "kind", "input", "schema", "budget", "model"],

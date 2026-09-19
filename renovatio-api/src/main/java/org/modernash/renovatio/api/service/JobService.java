@@ -294,9 +294,10 @@ public class JobService {
             return new WorkbenchDomainModelDtoSeed(false, current.revision(), 0, 0);
         }
         if (!current.model().nodes().isEmpty() || !current.model().relations().isEmpty()) {
-            if (hasStaleOperationRepositories(current.model())) {
-                var refreshed = domainModelService.save(projectId, current.revision(),
-                        mergeProjectedDeterministicModel(projected, current.model()));
+            DomainModel merged = mergeProjectedDeterministicModel(projected, current.model());
+            if (hasStaleOperationRepositories(current.model())
+                    || !merged.canonicalHash().equals(current.canonicalHash())) {
+                var refreshed = domainModelService.save(projectId, current.revision(), merged);
                 return new WorkbenchDomainModelDtoSeed(true, refreshed.revision(),
                         refreshed.model().nodes().size(), refreshed.model().relations().size());
             }

@@ -1,0 +1,30 @@
+promptId: cobol.domain.entities.v1
+appliesTo: DOMAIN_MODEL.ENTITY_RELATIONS
+system: >-
+  Given deterministically-extracted COBOL structural facts (FD/record boundaries,
+  RECORD KEY / ALTERNATE RECORD KEY declarations, ASSIGN TO dataset names, COPY-expanded
+  field lists, and MOVE field-to-field data flow pairs), propose the business entities and
+  the relations between them. Every entity's sourceFacts and every relation's evidenceField
+  MUST name a fact that was actually supplied in the input — never invent a field, key, or
+  file name that was not present in the facts you were given. Do not propose a relation
+  between an entity and itself, and do not propose a relation for two facts that describe
+  the same physical file under different local names (that is a duplicate, not a relation).
+  For MOVE-derived relations, if the source field belongs to one entity and the target field is
+  a RECORD KEY or declared key of another entity, emit the relation from the source-field entity
+  to the target-key entity and set evidenceField to the source field, not the target key.
+fewShot:
+  - input:
+      facts:
+        - {fd: ACCTFILE-FILE, assignTo: ACCTFILE, recordKey: FD-ACCT-ID, fields: [FD-ACCT-ID, FD-ACCT-DATA]}
+        - {fd: XREF-FILE, assignTo: XREFFILE, recordKey: FD-XREF-CARD-NUM, fields: [FD-XREF-CARD-NUM, XREF-CUST-ID, XREF-ACCT-ID]}
+        - {move: {source: XREF-ACCT-ID, target: FD-ACCT-ID}}
+    output:
+      entities:
+        - {name: ACCOUNT, sourceFacts: [ACCTFILE-FILE], fields: [FD-ACCT-ID, FD-ACCT-DATA]}
+        - {name: CARD-XREF, sourceFacts: [XREF-FILE], fields: [FD-XREF-CARD-NUM, XREF-CUST-ID, XREF-ACCT-ID]}
+      relations:
+        - {fromEntity: CARD-XREF, toEntity: ACCOUNT, evidenceField: XREF-ACCT-ID, cardinality: MANY_TO_ONE,
+           confidence: 0.9, rationale: "MOVE XREF-ACCT-ID TO FD-ACCT-ID before a keyed read of ACCTFILE-FILE by its own RECORD KEY."}
+outputSchema: schemas/domain-entities.v1.schema.json
+validators: [json-schema.v1]
+fallback: fallbacks/cobol.domain.entities.fallback.v1.yaml

@@ -25649,6 +25649,162 @@
     }
   });
 
+  // ../renovatio-workbench/extensions/renovatio-diagram-canvas/lib/browser/diagram-edit-context.js
+  var require_diagram_edit_context = __commonJS({
+    "../renovatio-workbench/extensions/renovatio-diagram-canvas/lib/browser/diagram-edit-context.js"(exports) {
+      "use strict";
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.DiagramEditContext = void 0;
+      var react_1 = require_react();
+      exports.DiagramEditContext = (0, react_1.createContext)({});
+    }
+  });
+
+  // ../renovatio-workbench/extensions/renovatio-diagram-canvas/lib/browser/floating-edge.js
+  var require_floating_edge = __commonJS({
+    "../renovatio-workbench/extensions/renovatio-diagram-canvas/lib/browser/floating-edge.js"(exports) {
+      "use strict";
+      var __createBinding = exports && exports.__createBinding || (Object.create ? (function(o, m, k, k2) {
+        if (k2 === void 0) k2 = k;
+        var desc = Object.getOwnPropertyDescriptor(m, k);
+        if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+          desc = { enumerable: true, get: function() {
+            return m[k];
+          } };
+        }
+        Object.defineProperty(o, k2, desc);
+      }) : (function(o, m, k, k2) {
+        if (k2 === void 0) k2 = k;
+        o[k2] = m[k];
+      }));
+      var __setModuleDefault = exports && exports.__setModuleDefault || (Object.create ? (function(o, v) {
+        Object.defineProperty(o, "default", { enumerable: true, value: v });
+      }) : function(o, v) {
+        o["default"] = v;
+      });
+      var __importStar = exports && exports.__importStar || /* @__PURE__ */ (function() {
+        var ownKeys = function(o) {
+          ownKeys = Object.getOwnPropertyNames || function(o2) {
+            var ar = [];
+            for (var k in o2) if (Object.prototype.hasOwnProperty.call(o2, k)) ar[ar.length] = k;
+            return ar;
+          };
+          return ownKeys(o);
+        };
+        return function(mod) {
+          if (mod && mod.__esModule) return mod;
+          var result = {};
+          if (mod != null) {
+            for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+          }
+          __setModuleDefault(result, mod);
+          return result;
+        };
+      })();
+      Object.defineProperty(exports, "__esModule", { value: true });
+      exports.FloatingEdge = FloatingEdge;
+      var jsx_runtime_1 = require_jsx_runtime();
+      var react_1 = __importStar(require_react());
+      var react_2 = require_umd();
+      var diagram_edit_context_1 = require_diagram_edit_context();
+      function nodeIntersection(intersectionNode, otherNode) {
+        const width = intersectionNode.measured.width ?? 0;
+        const height = intersectionNode.measured.height ?? 0;
+        const intersectionPos = intersectionNode.internals.positionAbsolute;
+        const otherPos = otherNode.internals.positionAbsolute;
+        const otherWidth = otherNode.measured.width ?? 0;
+        const otherHeight = otherNode.measured.height ?? 0;
+        const w = width / 2;
+        const h = height / 2;
+        const x2 = intersectionPos.x + w;
+        const y2 = intersectionPos.y + h;
+        const x1 = otherPos.x + otherWidth / 2;
+        const y1 = otherPos.y + otherHeight / 2;
+        const xx1 = (x1 - x2) / (2 * w || 1) - (y1 - y2) / (2 * h || 1);
+        const yy1 = (x1 - x2) / (2 * w || 1) + (y1 - y2) / (2 * h || 1);
+        const a = 1 / (Math.abs(xx1) + Math.abs(yy1) || 1);
+        const xx3 = a * xx1;
+        const yy3 = a * yy1;
+        return { x: w * (xx3 + yy3) + x2, y: h * (-xx3 + yy3) + y2 };
+      }
+      function edgeSide(node, intersection) {
+        const pos = node.internals.positionAbsolute;
+        const width = node.measured.width ?? 0;
+        const height = node.measured.height ?? 0;
+        const nx = Math.round(pos.x);
+        const ny = Math.round(pos.y);
+        const px = Math.round(intersection.x);
+        const py = Math.round(intersection.y);
+        if (px <= nx + 1)
+          return react_2.Position.Left;
+        if (px >= nx + width - 1)
+          return react_2.Position.Right;
+        if (py <= ny + 1)
+          return react_2.Position.Top;
+        if (py >= ny + height - 1)
+          return react_2.Position.Bottom;
+        return react_2.Position.Top;
+      }
+      function floatingEdgeParams(source, target) {
+        const sourceIntersection = nodeIntersection(source, target);
+        const targetIntersection = nodeIntersection(target, source);
+        return {
+          sx: sourceIntersection.x,
+          sy: sourceIntersection.y,
+          tx: targetIntersection.x,
+          ty: targetIntersection.y,
+          sourcePos: edgeSide(source, sourceIntersection),
+          targetPos: edgeSide(target, targetIntersection)
+        };
+      }
+      var PATH_BY_LINE_STYLE = {
+        straight: react_2.getStraightPath,
+        default: react_2.getBezierPath,
+        step: react_2.getSmoothStepPath,
+        smoothstep: react_2.getSmoothStepPath
+      };
+      function FloatingEdge(props) {
+        const { id, source, target, markerStart, markerEnd, style, label, selected } = props;
+        const sourceNode = (0, react_2.useInternalNode)(source);
+        const targetNode = (0, react_2.useInternalNode)(target);
+        const { onEdgeLabelChange, onEdgeDelete } = (0, react_1.useContext)(diagram_edit_context_1.DiagramEditContext);
+        const [editing, setEditing] = react_1.default.useState(false);
+        const [draftLabel, setDraftLabel] = react_1.default.useState(String(label ?? ""));
+        if (!sourceNode || !targetNode) {
+          return null;
+        }
+        const { sx, sy, tx, ty, sourcePos, targetPos } = floatingEdgeParams(sourceNode, targetNode);
+        const lineStyle = props.data?.lineStyle ?? "smoothstep";
+        const pathFn = PATH_BY_LINE_STYLE[lineStyle] ?? react_2.getSmoothStepPath;
+        const [path, labelX, labelY] = pathFn({
+          sourceX: sx,
+          sourceY: sy,
+          sourcePosition: sourcePos,
+          targetX: tx,
+          targetY: ty,
+          targetPosition: targetPos
+        });
+        const commitLabel = () => {
+          setEditing(false);
+          if (draftLabel !== String(label ?? "")) {
+            onEdgeLabelChange?.(id, draftLabel);
+          }
+        };
+        return (0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(react_2.BaseEdge, { id, path, markerStart, markerEnd, style }), selected && (onEdgeLabelChange || onEdgeDelete) && (0, jsx_runtime_1.jsx)(react_2.EdgeLabelRenderer, { children: (0, jsx_runtime_1.jsx)("div", { className: "renovatio-edge-label-editor", style: { position: "absolute", transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`, pointerEvents: "all" }, children: editing ? (0, jsx_runtime_1.jsx)("input", { autoFocus: true, value: draftLabel, onChange: (event) => setDraftLabel(event.target.value), onBlur: commitLabel, onKeyDown: (event) => {
+          if (event.key === "Enter")
+            commitLabel();
+          if (event.key === "Escape") {
+            setDraftLabel(String(label ?? ""));
+            setEditing(false);
+          }
+        } }) : (0, jsx_runtime_1.jsxs)("div", { className: "renovatio-edge-label-editor-actions", children: [onEdgeLabelChange && (0, jsx_runtime_1.jsx)("button", { type: "button", onClick: () => {
+          setDraftLabel(String(label ?? ""));
+          setEditing(true);
+        }, children: String(label ?? "") || "Edit relation" }), onEdgeDelete && (0, jsx_runtime_1.jsx)("button", { type: "button", className: "is-delete", title: "Delete relation", onClick: () => onEdgeDelete(id), children: "\u2715" })] }) }) }), !selected && label ? (0, jsx_runtime_1.jsx)(react_2.EdgeLabelRenderer, { children: (0, jsx_runtime_1.jsx)("div", { className: "renovatio-edge-label", style: { position: "absolute", transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`, pointerEvents: "none" }, children: String(label) }) }) : null] });
+      }
+    }
+  });
+
   // ../renovatio-workbench/extensions/renovatio-diagram-canvas/lib/browser/diagram-canvas.js
   var require_diagram_canvas = __commonJS({
     "../renovatio-workbench/extensions/renovatio-diagram-canvas/lib/browser/diagram-canvas.js"(exports) {
@@ -25663,16 +25819,23 @@
         return react_2.addEdge;
       } });
       require_style();
+      var floating_edge_1 = require_floating_edge();
+      var diagram_edit_context_1 = require_diagram_edit_context();
+      var EDGE_TYPES = { floating: floating_edge_1.FloatingEdge };
       var DEFAULT_NODE_TYPE = () => "default";
+      var FALLBACK_NODE_WIDTH = 260;
+      var FALLBACK_NODE_HEIGHT = 220;
       function layoutMissingPositions(nodes) {
         const positions = /* @__PURE__ */ new Map();
         const columns = Math.max(1, Math.ceil(Math.sqrt(nodes.length || 1)));
+        const cellWidth = FALLBACK_NODE_WIDTH * 2;
+        const cellHeight = FALLBACK_NODE_HEIGHT * 2;
         nodes.forEach((node, index) => {
           if (typeof node.x === "number" && typeof node.y === "number") {
             positions.set(node.id, { x: node.x, y: node.y });
             return;
           }
-          positions.set(node.id, { x: index % columns * 220, y: Math.floor(index / columns) * 140 });
+          positions.set(node.id, { x: index % columns * cellWidth, y: Math.floor(index / columns) * cellHeight });
         });
         return positions;
       }
@@ -25682,10 +25845,19 @@
           id: node.id,
           type: typeFor(node),
           position: positions.get(node.id) ?? { x: 0, y: 0 },
+          // UML-style containment (e.g. a package containing its classes) is
+          // real parent/child nesting, not an edge — a host sets parentId on
+          // the contained node and width/height on the container (see #267
+          // follow-up: a "membership edge" was tried first and correctly
+          // rejected as not how containment reads visually). React Flow
+          // requires the parent to appear earlier in the array than any node
+          // naming it; every mapper here already emits containers first.
+          ...node.parentId ? { parentId: node.parentId, extent: "parent" } : {},
+          ...node.width || node.height ? { style: { width: node.width, height: node.height } } : {},
           data: { label: node.label, kind: node.kind, group: node.group, ...node.data }
         }));
       }
-      function toFlowEdges(diagramEdges, styleFor, markerFor) {
+      function toFlowEdges(diagramEdges, styleFor, markerFor, edgeType = "smoothstep") {
         return diagramEdges.map((edge) => {
           const markers = markerFor?.(edge);
           return {
@@ -25693,10 +25865,17 @@
             source: edge.source,
             target: edge.target,
             label: edge.label,
+            // Always the floating edge (see floating-edge.tsx) — it
+            // recomputes its own endpoints from the two nodes' rectangles
+            // every render, so it always attaches at whichever side is
+            // actually closest to the other node. `lineStyle` (not React
+            // Flow's own `type`) is what picks straight/curved/step now.
+            type: "floating",
+            reconnectable: true,
             markerStart: markers?.markerStart,
             markerEnd: markers?.markerEnd ?? { type: react_2.MarkerType.ArrowClosed },
             style: styleFor?.(edge),
-            data: { kind: edge.kind, ...edge.data }
+            data: { kind: edge.kind, lineStyle: edgeType, ...edge.data }
           };
         });
       }
@@ -25704,7 +25883,12 @@
         const typeFor = props.nodeTypeFor ?? DEFAULT_NODE_TYPE;
         const [flowNodes, setFlowNodes] = (0, react_1.useState)(() => toFlowNodes(props.model.nodes, typeFor));
         const [selectedIds, setSelectedIds] = (0, react_1.useState)([]);
-        const flowEdges = (0, react_1.useMemo)(() => toFlowEdges(props.model.edges, props.edgeStyleFor, props.edgeMarkerFor), [props.model.edges, props.edgeStyleFor, props.edgeMarkerFor]);
+        const reactFlowInstance = (0, react_1.useRef)(null);
+        const hasFramedNodes = (0, react_1.useRef)(false);
+        const [flowEdges, setFlowEdges] = (0, react_1.useState)(() => toFlowEdges(props.model.edges, props.edgeStyleFor, props.edgeMarkerFor, props.edgeType));
+        (0, react_1.useEffect)(() => {
+          setFlowEdges(toFlowEdges(props.model.edges, props.edgeStyleFor, props.edgeMarkerFor, props.edgeType));
+        }, [props.model.edges, props.edgeStyleFor, props.edgeMarkerFor, props.edgeType]);
         (0, react_1.useEffect)(() => {
           const validIds = new Set(props.model.nodes.map((node) => node.id));
           setSelectedIds((current) => current.filter((id) => validIds.has(id)));
@@ -25712,30 +25896,48 @@
             const selected = new Set(current.filter((node) => node.selected).map((node) => node.id));
             return toFlowNodes(props.model.nodes, typeFor).map((node) => ({ ...node, selected: selected.has(node.id) }));
           });
+          if (!hasFramedNodes.current && props.model.nodes.length > 0) {
+            hasFramedNodes.current = true;
+            requestAnimationFrame(() => reactFlowInstance.current?.fitView());
+          }
         }, [props.model.nodes]);
         const handleNodesChange = (0, react_1.useCallback)((changes) => {
-          const removedNodeIds = [];
+          const nonRemovalChanges = changes.filter((change) => change.type !== "remove");
+          if (nonRemovalChanges.length === 0) {
+            return;
+          }
           setFlowNodes((current) => {
-            const next = (0, react_2.applyNodeChanges)(changes, current);
-            if (changes.some((change) => change.type === "select")) {
-              setSelectedIds(next.filter((node) => node.selected).map((node) => node.id));
+            const next = (0, react_2.applyNodeChanges)(nonRemovalChanges, current);
+            const stableNext = next.length === 0 && props.model.nodes.length > 0 ? toFlowNodes(props.model.nodes, typeFor) : next;
+            if (nonRemovalChanges.some((change) => change.type === "select")) {
+              setSelectedIds(stableNext.filter((node) => node.selected).map((node) => node.id));
             }
-            return next;
+            return stableNext;
           });
-          for (const change of changes) {
+          for (const change of nonRemovalChanges) {
             if (change.type === "position" && change.position && change.dragging === false) {
               props.onEvent({ type: "nodeMoved", id: change.id, x: change.position.x, y: change.position.y });
             }
             if (change.type === "select" && change.selected) {
               props.onEvent({ type: "nodeSelected", id: change.id });
             }
+          }
+        }, [props.onEvent, props.model.nodes, typeFor]);
+        const handleEdgesChange = (0, react_1.useCallback)((changes) => {
+          const removedEdgeIds = [];
+          setFlowEdges((current) => (0, react_2.applyEdgeChanges)(changes, current));
+          for (const change of changes) {
             if (change.type === "remove") {
-              removedNodeIds.push(change.id);
+              removedEdgeIds.push(change.id);
             }
           }
-          if (removedNodeIds.length > 0) {
-            props.onEvent({ type: "nodesPruned", ids: removedNodeIds });
+          if (removedEdgeIds.length > 0) {
+            props.onEvent({ type: "edgesDeleted", ids: removedEdgeIds });
           }
+        }, [props.onEvent]);
+        const handleEdgeDelete = (0, react_1.useCallback)((edgeId) => {
+          setFlowEdges((current) => current.filter((edge) => edge.id !== edgeId));
+          props.onEvent({ type: "edgesDeleted", ids: [edgeId] });
         }, [props.onEvent]);
         const handleConnect = (0, react_1.useCallback)((connection) => {
           if (!connection.source || !connection.target)
@@ -25743,6 +25945,17 @@
           setFlowNodes((current) => current);
           props.onEvent({ type: "edgeCreated", source: connection.source, target: connection.target });
         }, [props.onEvent]);
+        const handleReconnect = (0, react_1.useCallback)((oldEdge, newConnection) => {
+          if (!newConnection.source || !newConnection.target)
+            return;
+          setFlowEdges((current) => (0, react_2.reconnectEdge)(oldEdge, newConnection, current));
+          props.onEvent({ type: "edgeReconnected", id: oldEdge.id, source: newConnection.source, target: newConnection.target });
+        }, [props.onEvent]);
+        const handleEdgeLabelChange = (0, react_1.useCallback)((edgeId, label) => {
+          setFlowEdges((current) => current.map((edge) => edge.id === edgeId ? { ...edge, label } : edge));
+          props.onEvent({ type: "edgeLabelChanged", id: edgeId, label });
+        }, [props.onEvent]);
+        const editContextValue = (0, react_1.useMemo)(() => ({ onEdgeLabelChange: handleEdgeLabelChange, onEdgeDelete: handleEdgeDelete }), [handleEdgeLabelChange, handleEdgeDelete]);
         const handlePaneClick = (0, react_1.useCallback)(() => {
           setSelectedIds([]);
           props.onEvent({ type: "nodeSelected", id: null });
@@ -25752,7 +25965,9 @@
             return;
           props.onEvent({ type: "nodesPruned", ids: selectedIds });
         }, [props.onEvent, selectedIds]);
-        return (0, jsx_runtime_1.jsxs)("div", { className: props.className ?? "renovatio-diagram-canvas", style: { width: "100%", height: "100%", position: "relative" }, children: [props.defs && (0, jsx_runtime_1.jsx)("svg", { width: 0, height: 0, style: { position: "absolute" }, "aria-hidden": "true", children: (0, jsx_runtime_1.jsx)("defs", { children: props.defs }) }), props.enablePrune && selectedIds.length > 0 && (0, jsx_runtime_1.jsx)("button", { type: "button", className: "renovatio-diagram-prune-selection", onClick: handlePruneSelection, children: props.pruneLabel ?? `Prune selection (${selectedIds.length})` }), (0, jsx_runtime_1.jsxs)(react_2.ReactFlow, { nodes: flowNodes, edges: flowEdges, nodeTypes: props.nodeTypes, onNodesChange: handleNodesChange, onConnect: handleConnect, onPaneClick: handlePaneClick, selectionOnDrag: true, multiSelectionKeyCode: ["Shift", "Meta", "Control"], fitView: true, children: [(0, jsx_runtime_1.jsx)(react_2.Background, {}), (0, jsx_runtime_1.jsx)(react_2.Controls, {}), (0, jsx_runtime_1.jsx)(react_2.MiniMap, { pannable: true, zoomable: true })] })] });
+        return (0, jsx_runtime_1.jsxs)("div", { className: props.className ?? "renovatio-diagram-canvas", style: { width: "100%", height: "100%", position: "relative" }, children: [props.defs && (0, jsx_runtime_1.jsx)("svg", { width: 0, height: 0, style: { position: "absolute" }, "aria-hidden": "true", children: (0, jsx_runtime_1.jsx)("defs", { children: props.defs }) }), props.enablePrune && selectedIds.length > 0 && (0, jsx_runtime_1.jsx)("button", { type: "button", className: "renovatio-diagram-prune-selection", onClick: handlePruneSelection, children: props.pruneLabel ?? `Prune selection (${selectedIds.length})` }), (0, jsx_runtime_1.jsx)(diagram_edit_context_1.DiagramEditContext.Provider, { value: editContextValue, children: (0, jsx_runtime_1.jsxs)(react_2.ReactFlow, { nodes: flowNodes, edges: flowEdges, nodeTypes: props.nodeTypes, edgeTypes: EDGE_TYPES, onNodesChange: handleNodesChange, onEdgesChange: handleEdgesChange, onConnect: handleConnect, onReconnect: handleReconnect, edgesReconnectable: true, deleteKeyCode: null, onPaneClick: handlePaneClick, onInit: (instance) => {
+          reactFlowInstance.current = instance;
+        }, selectionOnDrag: true, multiSelectionKeyCode: ["Shift", "Meta", "Control"], elevateNodesOnSelect: false, elevateEdgesOnSelect: false, fitView: true, children: [(0, jsx_runtime_1.jsx)(react_2.Background, {}), (0, jsx_runtime_1.jsx)(react_2.Controls, {}), (0, jsx_runtime_1.jsx)(react_2.MiniMap, { pannable: true, zoomable: true })] }) })] });
       }
     }
   });
@@ -25783,24 +25998,36 @@
       model: { nodes: [], edges: [] },
       ready: false
     });
+    const pendingPositions = (0, import_react.useRef)({});
+    const saveTimer = (0, import_react.useRef)(void 0);
+    const [edgeType, setEdgeTypeState] = (0, import_react.useState)(() => vscode.getState?.()?.edgeType ?? "smoothstep");
     (0, import_react.useEffect)(() => {
       const listener = (event) => {
         if (event.data?.type === "setModel") {
           const documentKind = event.data.documentKind;
-          const model = event.data.model;
+          const model = withPendingPositions(event.data.model, pendingPositions.current);
+          const positions = autoArrange(model.nodes, model.edges, documentKind);
           setState({
             documentKind,
-            model: withMissingLayout(model, autoArrange(model.nodes, model.edges, documentKind)),
+            model: event.data.hasSavedLayout ? withMissingLayout(model, positions) : withLayout(model, positions),
             ready: true
           });
         }
       };
       const errorListener = (event) => {
+        if (isResizeObserverLoopMessage(event.message)) {
+          event.preventDefault();
+          return;
+        }
         setState((current) => ({ ...current, ready: true, error: event.message }));
         vscode.postMessage({ type: "error", message: event.message });
       };
       const rejectionListener = (event) => {
         const detail = String(event.reason);
+        if (isResizeObserverLoopMessage(detail)) {
+          event.preventDefault();
+          return;
+        }
         setState((current) => ({ ...current, ready: true, error: detail }));
         vscode.postMessage({ type: "error", message: detail });
       };
@@ -25812,23 +26039,74 @@
         window.removeEventListener("message", listener);
         window.removeEventListener("error", errorListener);
         window.removeEventListener("unhandledrejection", rejectionListener);
+        if (saveTimer.current !== void 0) {
+          window.clearTimeout(saveTimer.current);
+        }
       };
     }, []);
-    const handleEvent = (0, import_react.useCallback)((event) => {
+    const postDiagramEvent = (0, import_react.useCallback)((event) => {
       vscode.postMessage({ type: "diagramEvent", event });
     }, []);
+    const flushPendingLayout = (0, import_react.useCallback)(() => {
+      const positions = pendingPositions.current;
+      if (!Object.keys(positions).length) return;
+      pendingPositions.current = {};
+      if (saveTimer.current !== void 0) {
+        window.clearTimeout(saveTimer.current);
+        saveTimer.current = void 0;
+      }
+      postDiagramEvent({ type: "layoutChanged", positions });
+    }, [postDiagramEvent]);
+    const discardPendingLayoutSave = (0, import_react.useCallback)(() => {
+      pendingPositions.current = {};
+      if (saveTimer.current !== void 0) {
+        window.clearTimeout(saveTimer.current);
+        saveTimer.current = void 0;
+      }
+    }, []);
+    const scheduleLayoutSave = (0, import_react.useCallback)(() => {
+      if (saveTimer.current !== void 0) {
+        window.clearTimeout(saveTimer.current);
+      }
+      saveTimer.current = window.setTimeout(() => {
+        flushPendingLayout();
+      }, 450);
+    }, [flushPendingLayout]);
+    const handleEvent = (0, import_react.useCallback)((event) => {
+      if (event.type === "nodeMoved") {
+        pendingPositions.current = {
+          ...pendingPositions.current,
+          [event.id]: { x: event.x, y: event.y }
+        };
+        setState((current) => ({
+          ...current,
+          model: moveNodeInModel(current.model, event.id, event.x, event.y)
+        }));
+        scheduleLayoutSave();
+        return;
+      }
+      flushPendingLayout();
+      postDiagramEvent(event);
+    }, [flushPendingLayout, postDiagramEvent, scheduleLayoutSave]);
+    const handleArchitectureStyleChange = (0, import_react.useCallback)((event) => {
+      flushPendingLayout();
+      postDiagramEvent({ type: "architectureStyleChanged", style: event.target.value });
+    }, [flushPendingLayout, postDiagramEvent]);
+    const setEdgeType = (0, import_react.useCallback)((next) => {
+      setEdgeTypeState(next);
+      vscode.setState?.({ edgeType: next });
+    }, []);
     const runAutoLayout = (0, import_react.useCallback)(() => {
+      discardPendingLayoutSave();
       const positions = autoArrange(state.model.nodes, state.model.edges, state.documentKind);
       setState((current) => ({ ...current, model: withLayout(current.model, positions) }));
-      vscode.postMessage({ type: "diagramEvent", event: { type: "layoutChanged", positions } });
-    }, [state.documentKind, state.model.edges, state.model.nodes]);
+      postDiagramEvent({ type: "layoutChanged", positions });
+    }, [discardPendingLayoutSave, postDiagramEvent, state.documentKind, state.model.edges, state.model.nodes]);
     const nodeTypes = (0, import_react.useMemo)(() => ({ renovatio: RenovatioDiagramNode }), []);
+    const architectureStyle = architectureStyleFromModel(state.model);
     return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", { className: "renovatio-vscode-editor", children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "renovatio-vscode-toolbar", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("strong", { children: [
-          state.documentKind === "architecture" ? "Architecture" : "Domain",
-          " Diagram"
-        ] }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: diagramTitle(state.documentKind) }),
         /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
           state.model.nodes.length,
           " nodes"
@@ -25837,7 +26115,24 @@
           state.model.edges.length,
           " edges"
         ] }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "toolbar-actions", children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { type: "button", onClick: runAutoLayout, children: "Auto layout" }) })
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "toolbar-actions", children: [
+          state.documentKind === "architecture" && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", { className: "toolbar-field", children: [
+            "Style",
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", { value: architectureStyle, onChange: handleArchitectureStyleChange, children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", { value: "LAYERED_MVC", children: "MVC" }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", { value: "HEXAGONAL", children: "Hexagonal" })
+            ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("label", { className: "toolbar-field", children: [
+            "Lines",
+            /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("select", { value: edgeType, onChange: (event) => setEdgeType(event.target.value), children: [
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", { value: "straight", children: "Straight" }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", { value: "default", children: "Curved" }),
+              /* @__PURE__ */ (0, import_jsx_runtime.jsx)("option", { value: "smoothstep", children: "Step" })
+            ] })
+          ] }),
+          /* @__PURE__ */ (0, import_jsx_runtime.jsx)("button", { type: "button", onClick: runAutoLayout, children: "Auto layout" })
+        ] })
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", { className: "renovatio-vscode-canvas", children: state.error ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "renovatio-vscode-message is-error", children: [
         /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: "Diagram renderer failed" }),
@@ -25850,6 +26145,7 @@
           nodeTypes,
           nodeTypeFor: () => "renovatio",
           edgeStyleFor: edgeStyle,
+          edgeType,
           enablePrune: true,
           pruneLabel: "Exclude selected",
           className: "renovatio-vscode-flow"
@@ -25859,34 +26155,85 @@
   }
   function edgeStyle(edge) {
     if (edge.data?.allowed === false) return { stroke: "#e5484d" };
+    if (edge.data?.foreignKey) {
+      return { stroke: "var(--vscode-charts-blue, #3794ff)", strokeWidth: 1.6 };
+    }
+    if (edge.data?.sourceCardinality || edge.data?.targetCardinality) {
+      return { stroke: "rgba(180, 190, 200, 0.62)", strokeWidth: 1.2 };
+    }
     return {};
+  }
+  function moveNodeInModel(model, id, x, y) {
+    return {
+      ...model,
+      nodes: model.nodes.map((node) => node.id === id ? { ...node, x, y } : node)
+    };
+  }
+  function withPendingPositions(model, positions) {
+    if (!Object.keys(positions).length) {
+      return model;
+    }
+    return {
+      ...model,
+      nodes: model.nodes.map((node) => {
+        const position = positions[node.id];
+        return position ? { ...node, x: position.x, y: position.y } : node;
+      })
+    };
   }
   function RenovatioDiagramNode(props) {
     const data = props.data ?? {};
-    const properties = Array.isArray(data.properties) ? data.properties.slice(0, 6) : [];
-    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", { className: `renovatio-vscode-node ${props.selected ? "selected" : ""} ${data.excluded ? "excluded" : ""}`, children: [
+    const rawProperties = Array.isArray(data.properties) ? data.properties : [];
+    const properties = rawProperties.slice(0, 5);
+    const isArchitectureLayer = data.kind === "ARCHITECTURE_LAYER";
+    const isArchitectureComponent = data.layer && !isArchitectureLayer;
+    const isPersistenceTable = data.diagramKind === "persistence" || data.kind === "TABLE";
+    const isDomainClass = !isArchitectureLayer && !isArchitectureComponent && Array.isArray(data.properties);
+    const stereotype = isArchitectureLayer ? "package" : String(data.kind ?? "").toLowerCase().replace(/_/g, " ");
+    const title = isArchitectureLayer ? String(data.packageName || data.label || "") : String(data.className || data.label || "");
+    const subtitle = isArchitectureLayer ? String(data.layerRole || data.label || "") : String(data.layerRole || data.tableName || data.sourceDataset || data.packageName || data.group || data.layer || "");
+    return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("article", { className: `renovatio-vscode-node ${isArchitectureLayer ? "is-package" : ""} ${isArchitectureComponent ? "is-architecture-class" : ""} ${isDomainClass ? "is-domain-class" : ""} ${isPersistenceTable ? "is-persistence-table" : ""} ${props.selected ? "selected" : ""} ${data.excluded ? "excluded" : ""}`, children: [
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react2.Handle, { type: "target", position: import_react2.Position.Left }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_react2.Handle, { type: "source", position: import_react2.Position.Right }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", { className: "node-title", children: [
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: String(data.label ?? "") }),
-        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("small", { children: String(data.kind ?? "") })
+        /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: title }),
+        /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("small", { children: [
+          "\xAB",
+          stereotype,
+          "\xBB"
+        ] })
       ] }),
       /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "node-body", children: [
-        properties.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "muted", children: data.group || data.layer || "No fields" }),
+        properties.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "muted", children: subtitle || data.componentId || "No fields" }),
+        properties.length > 0 && subtitle && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "muted", children: subtitle }),
         properties.map((property) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "property-row", children: [
           /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
-            property.isKey ? "PK " : "",
-            property.name,
+            /* @__PURE__ */ (0, import_jsx_runtime.jsx)("strong", { children: property.isKey ? "PK" : property.isForeignKey ? "FK" : "" }),
+            property.columnName ?? property.name,
             property.required ? "*" : ""
           ] }),
           /* @__PURE__ */ (0, import_jsx_runtime.jsx)("code", { children: property.type ?? "unknown" })
-        ] }, `${property.name}:${property.type}`))
+        ] }, `${property.name}:${property.type}`)),
+        rawProperties.length > properties.length && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { className: "muted", children: [
+          "+",
+          rawProperties.length - properties.length,
+          " attributes"
+        ] })
       ] }),
       data.excluded && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "node-note", children: String(data.exclusionReason ?? "Excluded") })
     ] });
   }
   function autoArrange(nodes, edges, kind) {
-    const COLUMN_GAP = 320;
+    if (kind === "architecture") {
+      return autoArrangeArchitecture(nodes, edges);
+    }
+    if (kind === "persistence") {
+      return autoArrangePersistence(nodes, edges);
+    }
+    if (kind === "domain") {
+      return autoArrangeDomain(nodes, edges);
+    }
+    const COLUMN_GAP = 430;
     const ROW_GAP = 170;
     const groups = orderedGroups(nodes, kind);
     const groupByNode = new Map(nodes.map((node) => [node.id, groupKey(node, kind)]));
@@ -25917,6 +26264,295 @@
     });
     return result;
   }
+  function autoArrangeDomain(nodes, edges) {
+    const COLUMN_GAP = 360;
+    const ROW_GAP = 165;
+    const MAX_LANE_ROWS = 8;
+    const LANE_SUBCOLUMN_GAP = COLUMN_GAP;
+    const columns = ["USE_CASE", "DOMAIN_SERVICE", "AGGREGATE", "ENTITY", "VALUE_OBJECT", "REPOSITORY", "EXTERNAL_SYSTEM", "EVENT"];
+    const columnFor = (node) => {
+      const kind = String(node.kind ?? "").toUpperCase();
+      if (kind === "USE_CASE") return 0;
+      if (kind === "DOMAIN_SERVICE" || kind === "SERVICE") return 1;
+      if (kind === "AGGREGATE") return 2;
+      if (kind === "ENTITY" || kind === "VALUE_OBJECT" || kind === "BOUNDED_CONTEXT") return 3;
+      if (kind === "REPOSITORY") return 4;
+      if (kind === "EXTERNAL_SYSTEM") return 5;
+      if (kind === "EVENT") return 2;
+      return 3;
+    };
+    const connected = /* @__PURE__ */ new Map();
+    nodes.forEach((node) => connected.set(node.id, 0));
+    edges.forEach((edge) => {
+      connected.set(edge.source, (connected.get(edge.source) ?? 0) + 1);
+      connected.set(edge.target, (connected.get(edge.target) ?? 0) + 1);
+    });
+    const isolated = nodes.filter((node) => (connected.get(node.id) ?? 0) === 0);
+    const isolatedIds = new Set(isolated.map((node) => node.id));
+    const lanes = /* @__PURE__ */ new Map();
+    nodes.forEach((node) => {
+      if (isolatedIds.has(node.id)) return;
+      const column = columnFor(node);
+      lanes.set(column, [...lanes.get(column) ?? [], node]);
+    });
+    const result = {};
+    let cursorX = 72;
+    for (let column = 0; column < columns.length; column += 1) {
+      const lane = lanes.get(column);
+      if (!lane || !lane.length) continue;
+      const eventOffset = columns[column] === "EVENT" ? 120 : 0;
+      lane.sort((left, right) => (connected.get(right.id) ?? 0) - (connected.get(left.id) ?? 0) || columns.indexOf(String(left.kind ?? "").toUpperCase()) - columns.indexOf(String(right.kind ?? "").toUpperCase()) || String(left.label || left.id).localeCompare(String(right.label || right.id)));
+      lane.forEach((node, index) => {
+        const subColumn = Math.floor(index / MAX_LANE_ROWS);
+        const row = index % MAX_LANE_ROWS;
+        result[node.id] = { x: cursorX + subColumn * LANE_SUBCOLUMN_GAP, y: 72 + eventOffset + row * ROW_GAP };
+      });
+      const subColumnCount = Math.ceil(lane.length / MAX_LANE_ROWS);
+      cursorX += subColumnCount * LANE_SUBCOLUMN_GAP;
+    }
+    if (isolated.length) {
+      cursorX += LANE_SUBCOLUMN_GAP;
+      isolated.sort((left, right) => String(left.kind ?? "").localeCompare(String(right.kind ?? "")) || String(left.label || left.id).localeCompare(String(right.label || right.id))).forEach((node, index) => {
+        const subColumn = Math.floor(index / MAX_LANE_ROWS);
+        const row = index % MAX_LANE_ROWS;
+        result[node.id] = { x: cursorX + subColumn * LANE_SUBCOLUMN_GAP, y: 72 + row * ROW_GAP };
+      });
+    }
+    return result;
+  }
+  function autoArrangePersistence(nodes, edges) {
+    const COLUMN_GAP = 320;
+    const NODE_GAP = 72;
+    const START_X = 80;
+    const START_Y = 80;
+    const connectedEdges = edges.filter((edge) => nodes.some((node) => node.id === edge.source) && nodes.some((node) => node.id === edge.target));
+    if (!connectedEdges.length) {
+      return autoArrangePersistenceGrid(nodes);
+    }
+    const incoming = new Map(nodes.map((node) => [node.id, []]));
+    const outgoing = new Map(nodes.map((node) => [node.id, []]));
+    connectedEdges.forEach((edge) => {
+      incoming.get(edge.target)?.push(edge);
+      outgoing.get(edge.source)?.push(edge);
+    });
+    const hub = [...nodes].sort((left, right) => {
+      const leftDegree = (incoming.get(left.id)?.length ?? 0) + (outgoing.get(left.id)?.length ?? 0);
+      const rightDegree = (incoming.get(right.id)?.length ?? 0) + (outgoing.get(right.id)?.length ?? 0);
+      if (rightDegree !== leftDegree) return rightDegree - leftDegree;
+      return String(left.label || left.id).localeCompare(String(right.label || right.id));
+    })[0];
+    if (hub) {
+      return autoArrangePersistenceAroundHub(nodes, connectedEdges, incoming, outgoing, hub);
+    }
+    const columns = /* @__PURE__ */ new Map();
+    nodes.forEach((node) => {
+      const incomingCount = incoming.get(node.id)?.length ?? 0;
+      const outgoingCount = outgoing.get(node.id)?.length ?? 0;
+      const column = outgoingCount > 0 && incomingCount > 0 ? 1 : incomingCount > 0 ? 2 : 0;
+      columns.set(column, [...columns.get(column) ?? [], node]);
+    });
+    const result = {};
+    [...columns.entries()].sort(([left], [right]) => left - right).forEach(([column, lane]) => {
+      const ordered = lane.sort((left, right) => {
+        const leftIncomingY = averageIncomingY(left.id, incoming, result);
+        const rightIncomingY = averageIncomingY(right.id, incoming, result);
+        if (leftIncomingY !== rightIncomingY) return leftIncomingY - rightIncomingY;
+        const degreeDiff = (incoming.get(right.id)?.length ?? 0) + (outgoing.get(right.id)?.length ?? 0) - ((incoming.get(left.id)?.length ?? 0) + (outgoing.get(left.id)?.length ?? 0));
+        if (degreeDiff !== 0) return degreeDiff;
+        return String(left.label || left.id).localeCompare(String(right.label || right.id));
+      });
+      let cursorY = START_Y;
+      ordered.forEach((node) => {
+        result[node.id] = { x: START_X + column * COLUMN_GAP, y: cursorY };
+        cursorY += estimatedPersistenceNodeHeight(node) + NODE_GAP;
+      });
+    });
+    avoidRelationNodeOverlaps(nodes, connectedEdges, result);
+    return result;
+  }
+  function autoArrangePersistenceAroundHub(nodes, edges, incoming, outgoing, hub) {
+    const LEFT_X = 80;
+    const HUB_X = 540;
+    const RIGHT_X = 900;
+    const TOP_Y = 80;
+    const NODE_GAP = 84;
+    const result = {};
+    const dependents = uniqueNodesForIds((incoming.get(hub.id) ?? []).map((edge) => edge.source), nodes).sort((left, right) => String(left.label || left.id).localeCompare(String(right.label || right.id)));
+    const references = uniqueNodesForIds((outgoing.get(hub.id) ?? []).map((edge) => edge.target), nodes).sort((left, right) => String(left.label || left.id).localeCompare(String(right.label || right.id)));
+    const placed = /* @__PURE__ */ new Set([hub.id, ...dependents.map((node) => node.id), ...references.map((node) => node.id)]);
+    const remaining = nodes.filter((node) => !placed.has(node.id)).sort((left, right) => String(left.label || left.id).localeCompare(String(right.label || right.id)));
+    const leftLane = [...dependents, ...remaining.filter((node) => (outgoing.get(node.id)?.length ?? 0) > 0)];
+    const rightLane = references;
+    const centerLane = [hub, ...remaining.filter((node) => (outgoing.get(node.id)?.length ?? 0) === 0)];
+    layoutLane(leftLane, LEFT_X, TOP_Y, NODE_GAP, result);
+    const leftHeight = laneHeight(leftLane, NODE_GAP);
+    const hubY = Math.max(TOP_Y, TOP_Y + Math.max(0, (leftHeight - estimatedPersistenceNodeHeight(hub)) / 2));
+    result[hub.id] = { x: HUB_X, y: hubY };
+    layoutLane(centerLane.filter((node) => node.id !== hub.id), HUB_X, hubY + estimatedPersistenceNodeHeight(hub) + NODE_GAP, NODE_GAP, result);
+    layoutLane(rightLane, RIGHT_X, hubY, NODE_GAP, result);
+    avoidRelationNodeOverlaps(nodes, edges, result);
+    return result;
+  }
+  function layoutLane(lane, x, startY, gap, result) {
+    let cursorY = startY;
+    lane.forEach((node) => {
+      result[node.id] = { x, y: cursorY };
+      cursorY += estimatedPersistenceNodeHeight(node) + gap;
+    });
+  }
+  function laneHeight(lane, gap) {
+    if (!lane.length) return 0;
+    return lane.reduce((sum, node) => sum + estimatedPersistenceNodeHeight(node), 0) + (lane.length - 1) * gap;
+  }
+  function uniqueNodesForIds(ids, nodes) {
+    const byId = new Map(nodes.map((node) => [node.id, node]));
+    return Array.from(new Set(ids)).map((id) => byId.get(id)).filter((node) => Boolean(node));
+  }
+  function autoArrangePersistenceGrid(nodes) {
+    const COLUMN_GAP = 430;
+    const NODE_GAP = 72;
+    const columnHeights = [80, 80, 80];
+    const result = {};
+    [...nodes].sort((left, right) => String(left.label || left.id).localeCompare(String(right.label || right.id))).forEach((node, index) => {
+      const column = index % 3;
+      result[node.id] = { x: 80 + column * COLUMN_GAP, y: columnHeights[column] };
+      columnHeights[column] += estimatedPersistenceNodeHeight(node) + NODE_GAP;
+    });
+    return result;
+  }
+  function estimatedPersistenceNodeHeight(node) {
+    const properties = Array.isArray(node.data?.properties) ? node.data.properties : [];
+    const visibleProperties = Math.min(properties.length, 5);
+    const hasMore = properties.length > visibleProperties;
+    return 72 + visibleProperties * 24 + (hasMore ? 22 : 0);
+  }
+  function avoidRelationNodeOverlaps(nodes, edges, positions) {
+    const byId = new Map(nodes.map((node) => [node.id, node]));
+    const NODE_WIDTH = 280;
+    const CLEARANCE = 22;
+    for (let pass = 0; pass < 8; pass += 1) {
+      let moved = false;
+      for (const edge of edges) {
+        const source = byId.get(edge.source);
+        const target = byId.get(edge.target);
+        const sourcePosition = positions[edge.source];
+        const targetPosition = positions[edge.target];
+        if (!source || !target || !sourcePosition || !targetPosition) continue;
+        const sourceHeight = estimatedPersistenceNodeHeight(source);
+        const targetHeight = estimatedPersistenceNodeHeight(target);
+        const line = {
+          x1: sourcePosition.x + NODE_WIDTH,
+          y1: sourcePosition.y + sourceHeight / 2,
+          x2: targetPosition.x,
+          y2: targetPosition.y + targetHeight / 2
+        };
+        for (const node of nodes) {
+          if (node.id === edge.source || node.id === edge.target) continue;
+          const position = positions[node.id];
+          if (!position) continue;
+          const height = estimatedPersistenceNodeHeight(node);
+          const rect = {
+            left: position.x - CLEARANCE,
+            right: position.x + NODE_WIDTH + CLEARANCE,
+            top: position.y - CLEARANCE,
+            bottom: position.y + height + CLEARANCE
+          };
+          if (!lineIntersectsRect(line, rect)) continue;
+          positions[node.id] = { x: position.x, y: rect.bottom + CLEARANCE };
+          moved = true;
+        }
+      }
+      if (!moved) return;
+    }
+  }
+  function lineIntersectsRect(line, rect) {
+    if (line.x1 < rect.left && line.x2 < rect.left) return false;
+    if (line.x1 > rect.right && line.x2 > rect.right) return false;
+    if (line.y1 < rect.top && line.y2 < rect.top) return false;
+    if (line.y1 > rect.bottom && line.y2 > rect.bottom) return false;
+    if (pointInRect(line.x1, line.y1, rect) || pointInRect(line.x2, line.y2, rect)) return true;
+    return segmentsIntersect(line.x1, line.y1, line.x2, line.y2, rect.left, rect.top, rect.right, rect.top) || segmentsIntersect(line.x1, line.y1, line.x2, line.y2, rect.right, rect.top, rect.right, rect.bottom) || segmentsIntersect(line.x1, line.y1, line.x2, line.y2, rect.right, rect.bottom, rect.left, rect.bottom) || segmentsIntersect(line.x1, line.y1, line.x2, line.y2, rect.left, rect.bottom, rect.left, rect.top);
+  }
+  function pointInRect(x, y, rect) {
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+  }
+  function segmentsIntersect(ax, ay, bx, by, cx, cy, dx, dy) {
+    const direction = (px, py, qx, qy, rx, ry) => (rx - px) * (qy - py) - (qx - px) * (ry - py);
+    const d1 = direction(cx, cy, dx, dy, ax, ay);
+    const d2 = direction(cx, cy, dx, dy, bx, by);
+    const d3 = direction(ax, ay, bx, by, cx, cy);
+    const d4 = direction(ax, ay, bx, by, dx, dy);
+    return (d1 > 0 && d2 < 0 || d1 < 0 && d2 > 0) && (d3 > 0 && d4 < 0 || d3 < 0 && d4 > 0);
+  }
+  function averageIncomingY(nodeId, incoming, positions) {
+    const ys = (incoming.get(nodeId) ?? []).map((edge) => positions[edge.source]?.y).filter((value) => typeof value === "number");
+    if (!ys.length) return Number.MAX_SAFE_INTEGER;
+    return ys.reduce((sum, value) => sum + value, 0) / ys.length;
+  }
+  function diagramTitle(kind) {
+    if (kind === "architecture") return "Architecture Diagram";
+    if (kind === "persistence") return "Persistence DER";
+    return "Domain Diagram";
+  }
+  function autoArrangeArchitecture(nodes, edges) {
+    const style = architectureStyleFromModel({ nodes, edges: [] });
+    const packages = nodes.filter((node) => node.kind === "ARCHITECTURE_LAYER");
+    const packageOrder = orderedArchitectureGroups(packages.length ? packages : nodes, style);
+    const packageByGroup = new Map(packages.map((node) => [String(node.group ?? node.id).toLowerCase(), node]));
+    const result = {};
+    packageOrder.forEach((group, index) => {
+      const packageNode = packageByGroup.get(group);
+      if (!packageNode) return;
+      result[packageNode.id] = architecturePackagePosition(group, index, style);
+      const childTop = style === "HEXAGONAL" && group === "service" ? 64 : 66;
+      const children = nodes.filter((node) => node.parentId === packageNode.id).sort((left, right) => String(left.label || left.id).localeCompare(String(right.label || right.id)));
+      children.forEach((node, index2) => {
+        result[node.id] = { x: 18, y: childTop + index2 * 118 };
+      });
+    });
+    avoidArchitecturePackageRelationOverlaps(packages, edges, result);
+    return result;
+  }
+  function avoidArchitecturePackageRelationOverlaps(packages, edges, positions) {
+    const byId = new Map(packages.map((node) => [node.id, node]));
+    const CLEARANCE = 34;
+    for (let pass = 0; pass < 8; pass += 1) {
+      let moved = false;
+      for (const edge of edges) {
+        const source = byId.get(edge.source);
+        const target = byId.get(edge.target);
+        const sourcePosition = positions[edge.source];
+        const targetPosition = positions[edge.target];
+        if (!source || !target || !sourcePosition || !targetPosition) continue;
+        const sourceWidth = source.width ?? 300;
+        const targetHeight = target.height ?? 180;
+        const sourceHeight = source.height ?? 180;
+        const line = {
+          x1: sourcePosition.x + sourceWidth,
+          y1: sourcePosition.y + sourceHeight / 2,
+          x2: targetPosition.x,
+          y2: targetPosition.y + targetHeight / 2
+        };
+        for (const node of packages) {
+          if (node.id === edge.source || node.id === edge.target) continue;
+          const position = positions[node.id];
+          if (!position) continue;
+          const width = node.width ?? 300;
+          const height = node.height ?? 180;
+          const rect = {
+            left: position.x - CLEARANCE,
+            right: position.x + width + CLEARANCE,
+            top: position.y - CLEARANCE,
+            bottom: position.y + height + CLEARANCE
+          };
+          if (!lineIntersectsRect(line, rect)) continue;
+          positions[node.id] = { x: position.x, y: rect.bottom + CLEARANCE };
+          moved = true;
+        }
+      }
+      if (!moved) return;
+    }
+  }
   function withLayout(model, positions) {
     return { nodes: model.nodes.map((node) => ({ ...node, x: positions[node.id]?.x ?? node.x, y: positions[node.id]?.y ?? node.y })), edges: model.edges };
   }
@@ -25931,13 +26567,34 @@
   }
   function orderedGroups(nodes, kind) {
     if (kind === "architecture") {
-      const preferred2 = ["controller", "service", "application", "model", "domain", "persistence", "infrastructure"];
-      const existing2 = unique(nodes.map((node) => groupKey(node, kind)));
-      return [...preferred2.filter((group) => existing2.includes(group)), ...existing2.filter((group) => !preferred2.includes(group))];
+      return orderedArchitectureGroups(nodes, architectureStyleFromModel({ nodes, edges: [] }));
     }
     const preferred = ["USE_CASE", "SERVICE", "AGGREGATE", "ENTITY", "VALUE_OBJECT", "REPOSITORY"];
     const existing = unique(nodes.map((node) => groupKey(node, kind)));
     return [...preferred.filter((group) => existing.includes(group)), ...existing.filter((group) => !preferred.includes(group))];
+  }
+  function orderedArchitectureGroups(nodes, style) {
+    const preferred = style === "HEXAGONAL" ? ["inbound-adapter", "inbound-port", "application", "domain", "outbound-port", "outbound-adapter"] : ["controller", "service", "model", "persistence"];
+    const existing = unique(nodes.map((node) => groupKey(node, "architecture")));
+    return [...preferred.filter((group) => existing.includes(group)), ...existing.filter((group) => !preferred.includes(group))];
+  }
+  function architectureStyleFromModel(model) {
+    const value = model.nodes.find((node) => node.kind === "ARCHITECTURE_LAYER")?.data?.architectureStyle;
+    return value === "HEXAGONAL" ? "HEXAGONAL" : "LAYERED_MVC";
+  }
+  function architecturePackagePosition(layer, index, style) {
+    if (style === "HEXAGONAL") {
+      const positions = {
+        "inbound-adapter": { x: 80, y: 360 },
+        "inbound-port": { x: 500, y: 360 },
+        application: { x: 920, y: 120 },
+        domain: { x: 920, y: 600 },
+        "outbound-port": { x: 1340, y: 360 },
+        "outbound-adapter": { x: 1760, y: 360 }
+      };
+      return positions[layer] ?? { x: 80 + index % 3 * 420, y: 780 + Math.floor(index / 3) * 320 };
+    }
+    return { x: 80 + index * 420, y: 120 };
   }
   function groupKey(node, kind) {
     if (kind === "architecture") {
@@ -25947,6 +26604,9 @@
   }
   function unique(values) {
     return Array.from(new Set(values.filter(Boolean)));
+  }
+  function isResizeObserverLoopMessage(message) {
+    return String(message ?? "").includes("ResizeObserver loop completed with undelivered notifications");
   }
   (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App, {}));
 })();

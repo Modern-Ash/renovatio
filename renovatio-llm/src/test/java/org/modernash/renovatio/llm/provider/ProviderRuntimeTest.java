@@ -47,6 +47,21 @@ class ProviderRuntimeTest {
     }
 
     @Test
+    void ollamaConfigurationUsesEnvironmentOverrideAndLocalDefaultEndpoint() {
+        Properties properties = new Properties();
+        properties.setProperty(OllamaConfiguration.MODEL_PROPERTY, "property-model");
+        OllamaConfiguration configuration = OllamaConfiguration.from(properties, Map.of(
+                OllamaConfiguration.MODEL_ENV, "environment-model"));
+
+        assertEquals("environment-model", configuration.model());
+        assertEquals(URI.create("http://localhost:11434/api/chat"), configuration.endpoint());
+        assertEquals(Duration.ofSeconds(120), configuration.timeout());
+        assertEquals(ProviderFailure.PROVIDER_CONFIGURATION_INVALID,
+                assertThrows(ProviderException.class,
+                        () -> OllamaConfiguration.from(new Properties(), Map.of())).failure());
+    }
+
+    @Test
     void retriesOnlyRetryableFailuresWithInjectedJitterAndSleeper() {
         Queue<Object> outcomes = new ArrayDeque<>();
         outcomes.add(new ProviderException(ProviderFailure.PROVIDER_RATE_LIMIT));
@@ -66,6 +81,27 @@ class ProviderRuntimeTest {
 
         assertEquals(response, provider.complete(request()));
         assertEquals(List.of(Duration.ofMillis(250), Duration.ofMillis(500)), sleeps);
+    }
+
+    @Test
+    void ollamaRetriesWithSameDeterministicPolicy() {
+        Queue<Object> outcomes = new ArrayDeque<>();
+        outcomes.add(new ProviderException(ProviderFailure.PROVIDER_SERVER_ERROR));
+        LlmResponse response = new LlmResponse("ollama", "qwen-cobol", JSON.createObjectNode().put("ok", true));
+        outcomes.add(response);
+        List<Duration> sleeps = new ArrayList<>();
+        OllamaTransport transport = (request, configuration) -> {
+            Object outcome = outcomes.remove();
+            if (outcome instanceof ProviderException exception) {
+                throw exception;
+            }
+            return (LlmResponse) outcome;
+        };
+        OllamaLlmProvider provider = new OllamaLlmProvider(ollamaConfiguration(), transport,
+                new RetryPolicy(), () -> 0.5, sleeps::add);
+
+        assertEquals(response, provider.complete(request()));
+        assertEquals(List.of(Duration.ofMillis(250)), sleeps);
     }
 
     @Test
@@ -113,6 +149,29 @@ class ProviderRuntimeTest {
     }
 
     @Test
+    void malformedAndOversizedOllamaBodiesFailWithStableCategory() throws Exception {
+        assertEquals(ProviderFailure.OUTPUT_MALFORMED,
+                assertThrows(ProviderException.class,
+                        () -> OllamaHttpTransport.decodeContent(JSON, "not-json")).failure());
+        assertEquals(ProviderFailure.OUTPUT_MALFORMED,
+                assertThrows(ProviderException.class,
+                        () -> OllamaHttpTransport.decodeContent(JSON, "{}")).failure());
+        assertEquals(ProviderFailure.OUTPUT_MALFORMED,
+                assertThrows(ProviderException.class,
+                        () -> OllamaHttpTransport.decodeContent(JSON,
+                                "x".repeat(OllamaHttpTransport.MAX_RESPONSE_BYTES + 1))).failure());
+        assertEquals("value", OllamaHttpTransport.decodeContent(JSON,
+                "{\"message\":{\"content\":\"{\\\"result\\\":\\\"value\\\"}\"}}" )
+                .path("result").textValue());
+        assertEquals("legacy", OllamaHttpTransport.decodeContent(JSON,
+                "{\"response\":\"{\\\"result\\\":\\\"legacy\\\"}\"}" )
+                .path("result").textValue());
+        byte[] maximum = new byte[OllamaHttpTransport.MAX_RESPONSE_BYTES];
+        assertEquals(maximum.length, OllamaHttpTransport.readBounded(
+                new ByteArrayInputStream(maximum)).length);
+    }
+
+    @Test
     void anthropicRequestEnforcesTemperatureZeroAndDeterministicPolicy() throws Exception {
         JsonNode body = JSON.readTree(new AnthropicHttpTransport().body(request(), "model"));
 
@@ -121,6 +180,19 @@ class ProviderRuntimeTest {
         assertEquals(0, body.path("temperature").intValue());
         assertEquals("Return JSON", body.path("system").textValue());
         assertEquals(3, body.path("messages").size());
+    }
+
+    @Test
+    void ollamaRequestEnforcesJsonModeShapeAndDeterministicPolicy() throws Exception {
+        JsonNode body = JSON.readTree(new OllamaHttpTransport().body(request(), "qwen-cobol"));
+
+        assertEquals("qwen-cobol", body.path("model").textValue());
+        assertEquals(false, body.path("stream").booleanValue());
+        assertEquals("json", body.path("format").textValue());
+        assertEquals(0, body.path("options").path("temperature").intValue());
+        assertEquals("system", body.path("messages").path(0).path("role").textValue());
+        assertEquals("Return JSON", body.path("messages").path(0).path("content").textValue());
+        assertEquals(4, body.path("messages").size());
     }
 
     @Test
@@ -145,5 +217,10 @@ class ProviderRuntimeTest {
     private static AnthropicConfiguration configuration() {
         return new AnthropicConfiguration("secret", "model", URI.create("https://example.invalid"),
                 Duration.ofSeconds(60));
+    }
+
+    private static OllamaConfiguration ollamaConfiguration() {
+        return new OllamaConfiguration("qwen-cobol", URI.create("http://localhost:11434/api/chat"),
+                Duration.ofSeconds(120));
     }
 }

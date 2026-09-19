@@ -662,6 +662,74 @@ body {
   overflow: hidden;
   user-select: none;
 }
+.renovatio-vscode-node.is-package,
+.renovatio-vscode-node.is-architecture-class {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border-radius: 0;
+}
+.renovatio-vscode-node.is-package {
+  display: grid;
+  align-content: start;
+  min-height: 0;
+  border-color: var(--vscode-charts-yellow, #d7ba7d);
+  background: color-mix(in srgb, var(--vscode-editorWidget-background) 72%, transparent);
+  box-shadow: none;
+}
+.renovatio-vscode-node.is-package .node-title {
+  width: 68%;
+  min-height: 32px;
+  box-sizing: border-box;
+  border-right: 1px solid var(--vscode-charts-yellow, #d7ba7d);
+  border-bottom-color: var(--vscode-charts-yellow, #d7ba7d);
+  background: var(--vscode-editorWidget-background);
+}
+.renovatio-vscode-node.is-package .node-body {
+  padding: 8px 10px;
+}
+.renovatio-vscode-node.is-architecture-class {
+  min-height: 0;
+  background: var(--vscode-editor-background);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+}
+.renovatio-vscode-node.is-domain-class {
+  width: 260px;
+  min-height: 128px;
+  border-radius: 0;
+  border-color: color-mix(in srgb, var(--vscode-foreground) 32%, transparent);
+  background: var(--vscode-editor-background);
+  box-shadow: none;
+}
+.renovatio-vscode-node.is-persistence-table {
+  width: 280px;
+  border-color: color-mix(in srgb, var(--vscode-charts-blue, #3794ff) 56%, var(--vscode-panel-border));
+}
+.renovatio-vscode-node.is-persistence-table .node-title {
+  background: color-mix(in srgb, var(--vscode-charts-blue, #3794ff) 14%, var(--vscode-editor-background));
+}
+.renovatio-vscode-node.is-domain-class .node-title {
+  display: grid;
+  gap: 2px;
+  justify-content: stretch;
+  text-align: center;
+}
+.renovatio-vscode-node.is-domain-class .node-title small {
+  order: -1;
+  text-transform: none;
+}
+.renovatio-vscode-node.is-domain-class .node-body {
+  gap: 0;
+  padding: 0;
+}
+.renovatio-vscode-node.is-domain-class .muted {
+  border-bottom: 1px solid var(--vscode-panel-border);
+  padding: 6px 10px;
+}
+.renovatio-vscode-node.is-domain-class .property-row {
+  border-bottom: 1px solid color-mix(in srgb, var(--vscode-panel-border) 70%, transparent);
+  padding: 4px 10px;
+}
 .renovatio-vscode-node.excluded {
   opacity: 0.55;
   border-style: dashed;
@@ -695,6 +763,19 @@ body {
   align-items: baseline;
   font-size: 12px;
 }
+.property-row span {
+  display: flex;
+  min-width: 0;
+  gap: 6px;
+  align-items: baseline;
+  overflow-wrap: anywhere;
+}
+.property-row span strong {
+  min-width: 18px;
+  color: var(--vscode-charts-blue, #3794ff);
+  font-size: 10px;
+  font-weight: 700;
+}
 .property-row code {
   color: var(--vscode-textPreformat-foreground);
   font-family: var(--vscode-editor-font-family);
@@ -710,5 +791,40 @@ body {
 .node-note {
   border-top: 1px solid var(--vscode-panel-border);
   padding: 7px 10px;
+}
+.renovatio-edge-label,
+.renovatio-edge-label-editor {
+  font-size: 10px;
+  z-index: 5;
+}
+.renovatio-edge-label {
+  background: var(--vscode-editor-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 3px;
+  color: var(--vscode-descriptionForeground);
+  padding: 1px 5px;
+  white-space: nowrap;
+}
+.renovatio-edge-label-editor button,
+.renovatio-edge-label-editor input {
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-focusBorder);
+  border-radius: 3px;
+  color: var(--vscode-input-foreground);
+  font: inherit;
+  padding: 2px 6px;
+}
+.renovatio-edge-label-editor button {
+  cursor: pointer;
+  white-space: nowrap;
+}
+.renovatio-edge-label-editor-actions {
+  display: flex;
+  gap: 4px;
+}
+.renovatio-edge-label-editor-actions button.is-delete {
+  border-color: var(--vscode-errorForeground);
+  color: var(--vscode-errorForeground);
+  padding: 2px 7px;
 }
 /*# sourceMappingURL=webview.css.map */

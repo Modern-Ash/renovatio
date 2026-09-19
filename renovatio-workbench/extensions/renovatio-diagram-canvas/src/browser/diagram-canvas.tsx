@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ReactFlow,
     Background,
@@ -6,16 +6,27 @@ import {
     MarkerType,
     MiniMap,
     addEdge,
+    applyEdgeChanges,
     applyNodeChanges,
+    reconnectEdge,
     type Connection,
     type Edge,
+    type EdgeChange,
+    type EdgeTypes,
     type Node,
     type NodeChange,
     type OnConnect,
-    type OnNodesChange
+    type OnEdgesChange,
+    type OnNodesChange,
+    type OnReconnect,
+    type ReactFlowInstance
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { DiagramEdgeVM, DiagramEvent, DiagramModel, DiagramNodeVM } from '../common/diagram-protocol';
+import { FloatingEdge } from './floating-edge';
+import { DiagramEditContext } from './diagram-edit-context';
+
+const EDGE_TYPES: EdgeTypes = { floating: FloatingEdge };
 
 export interface DiagramCanvasProps {
     model: DiagramModel;
@@ -41,6 +52,12 @@ export interface DiagramCanvasProps {
      * be supplied by the host via `defs` — this package draws no notation
      * of its own, it only wires the reference through to React Flow. */
     edgeMarkerFor?: (edge: DiagramEdgeVM) => { markerStart?: string; markerEnd?: string };
+    /** React Flow edge routing style, applied to every edge: 'smoothstep'
+     * (default — right-angle bends, reads as routing around nodes rather
+     * than through them), 'step' (the same but sharp corners), 'straight'
+     * or 'default' (a bezier curve). A host that lets the user pick a line
+     * style (#280 gap fix) passes the current selection through here. */
+    edgeType?: 'straight' | 'default' | 'step' | 'smoothstep';
     /** Host-supplied `<marker>`/other SVG defs (e.g. ER cardinality glyphs),
      * rendered once in a zero-size <svg> so `edgeMarkerFor`'s `url(#id)`
      * references resolve. SVG marker lookups are document-wide, so this
@@ -55,6 +72,16 @@ export interface DiagramCanvasProps {
 
 const DEFAULT_NODE_TYPE = (): string => 'default';
 
+// Fallback box size for nodes that carry no explicit width/height (e.g.
+// Domain's UML class boxes, whose real rendered height grows with however
+// many properties a node has — CSS-driven, unknown to this package). Picked
+// generous enough for a class box with a handful of properties; the gap
+// between cells must be at least one box wide/tall in each direction (a
+// reported bug: rows touching with zero gap, boxes overlapping once a node
+// had more properties than the row height assumed).
+const FALLBACK_NODE_WIDTH = 260;
+const FALLBACK_NODE_HEIGHT = 220;
+
 /** Pure default layout used only when a node has no x/y: lays nodes out in a
  * simple grid so nothing overlaps at (0,0). Real auto-layout (dagre/elkjs,
  * grouped by `group`) is a per-mode concern for #265/#267, not this core
@@ -62,12 +89,14 @@ const DEFAULT_NODE_TYPE = (): string => 'default';
 function layoutMissingPositions(nodes: DiagramNodeVM[]): Map<string, { x: number; y: number }> {
     const positions = new Map<string, { x: number; y: number }>();
     const columns = Math.max(1, Math.ceil(Math.sqrt(nodes.length || 1)));
+    const cellWidth = FALLBACK_NODE_WIDTH * 2;
+    const cellHeight = FALLBACK_NODE_HEIGHT * 2;
     nodes.forEach((node, index) => {
         if (typeof node.x === 'number' && typeof node.y === 'number') {
             positions.set(node.id, { x: node.x, y: node.y });
             return;
         }
-        positions.set(node.id, { x: (index % columns) * 220, y: Math.floor(index / columns) * 140 });
+        positions.set(node.id, { x: (index % columns) * cellWidth, y: Math.floor(index / columns) * cellHeight });
     });
     return positions;
 }
@@ -81,6 +110,15 @@ function toFlowNodes(
         id: node.id,
         type: typeFor(node),
         position: positions.get(node.id) ?? { x: 0, y: 0 },
+        // UML-style containment (e.g. a package containing its classes) is
+        // real parent/child nesting, not an edge — a host sets parentId on
+        // the contained node and width/height on the container (see #267
+        // follow-up: a "membership edge" was tried first and correctly
+        // rejected as not how containment reads visually). React Flow
+        // requires the parent to appear earlier in the array than any node
+        // naming it; every mapper here already emits containers first.
+        ...(node.parentId ? { parentId: node.parentId, extent: 'parent' as const } : {}),
+        ...(node.width || node.height ? { style: { width: node.width, height: node.height } } : {}),
         data: { label: node.label, kind: node.kind, group: node.group, ...node.data }
     }));
 }
@@ -88,7 +126,14 @@ function toFlowNodes(
 function toFlowEdges(
     diagramEdges: DiagramEdgeVM[],
     styleFor?: (edge: DiagramEdgeVM) => React.CSSProperties,
-    markerFor?: (edge: DiagramEdgeVM) => { markerStart?: string; markerEnd?: string }
+    markerFor?: (edge: DiagramEdgeVM) => { markerStart?: string; markerEnd?: string },
+    // Defaults to 'smoothstep': a straight/bezier line between two
+    // grid-arranged nodes often cuts diagonally across an unrelated node
+    // sitting between them — the node's own z-index (see
+    // webview.css/renovatio-workbench.css) then visibly severs that line
+    // mid-path. Right-angle bends along the gutters between grid cells
+    // read as routing around nodes rather than through them.
+    edgeType: DiagramCanvasProps['edgeType'] = 'smoothstep'
 ): Edge[] {
     return diagramEdges.map(edge => {
         const markers = markerFor?.(edge);
@@ -97,10 +142,17 @@ function toFlowEdges(
             source: edge.source,
             target: edge.target,
             label: edge.label,
+            // Always the floating edge (see floating-edge.tsx) — it
+            // recomputes its own endpoints from the two nodes' rectangles
+            // every render, so it always attaches at whichever side is
+            // actually closest to the other node. `lineStyle` (not React
+            // Flow's own `type`) is what picks straight/curved/step now.
+            type: 'floating',
+            reconnectable: true,
             markerStart: markers?.markerStart,
             markerEnd: markers?.markerEnd ?? { type: MarkerType.ArrowClosed },
             style: styleFor?.(edge),
-            data: { kind: edge.kind, ...edge.data }
+            data: { kind: edge.kind, lineStyle: edgeType, ...edge.data }
         };
     });
 }
@@ -116,10 +168,25 @@ export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
     const typeFor = props.nodeTypeFor ?? DEFAULT_NODE_TYPE;
     const [flowNodes, setFlowNodes] = useState<Node[]>(() => toFlowNodes(props.model.nodes, typeFor));
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const flowEdges = useMemo(
-        () => toFlowEdges(props.model.edges, props.edgeStyleFor, props.edgeMarkerFor),
-        [props.model.edges, props.edgeStyleFor, props.edgeMarkerFor]
+    const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
+    // `fitView` on <ReactFlow> only runs once, at mount — a mode whose model
+    // arrives async (e.g. Domain) mounts with zero nodes, so that initial
+    // fit has nothing to frame. Once real nodes show up for the first time,
+    // fit the view to them explicitly instead of leaving the camera parked
+    // on an empty canvas.
+    const hasFramedNodes = useRef(false);
+    // Local state (not a plain useMemo) so a reconnect drag can update the
+    // dropped endpoint immediately, before the host round-trips the event
+    // back down through props.model — otherwise the edge would visibly
+    // snap back to its old endpoint until that round-trip completes.
+    const [flowEdges, setFlowEdges] = useState<Edge[]>(
+        () => toFlowEdges(props.model.edges, props.edgeStyleFor, props.edgeMarkerFor, props.edgeType)
     );
+
+    useEffect(() => {
+        setFlowEdges(toFlowEdges(props.model.edges, props.edgeStyleFor, props.edgeMarkerFor, props.edgeType));
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.model.edges, props.edgeStyleFor, props.edgeMarkerFor, props.edgeType]);
 
     useEffect(() => {
         // Reconcile incoming nodes with the current selection instead of
@@ -134,32 +201,65 @@ export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
             const selected = new Set(current.filter(node => node.selected).map(node => node.id));
             return toFlowNodes(props.model.nodes, typeFor).map(node => ({ ...node, selected: selected.has(node.id) }));
         });
+        if (!hasFramedNodes.current && props.model.nodes.length > 0) {
+            hasFramedNodes.current = true;
+            // Wait a tick so React Flow has measured the just-added nodes
+            // before framing them (fitView on the same frame they appear
+            // can under-measure and frame the wrong extent).
+            requestAnimationFrame(() => reactFlowInstance.current?.fitView());
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.model.nodes]);
 
     const handleNodesChange: OnNodesChange = useCallback(changes => {
-        const removedNodeIds: string[] = [];
+        const nonRemovalChanges = (changes as NodeChange[]).filter(change => change.type !== 'remove');
+        if (nonRemovalChanges.length === 0) {
+            return;
+        }
         setFlowNodes(current => {
-            const next = applyNodeChanges(changes, current);
-            if ((changes as NodeChange[]).some(change => change.type === 'select')) {
-                setSelectedIds(next.filter(node => node.selected).map(node => node.id));
+            const next = applyNodeChanges(nonRemovalChanges, current);
+            const stableNext = next.length === 0 && props.model.nodes.length > 0
+                ? toFlowNodes(props.model.nodes, typeFor)
+                : next;
+            if (nonRemovalChanges.some(change => change.type === 'select')) {
+                setSelectedIds(stableNext.filter(node => node.selected).map(node => node.id));
             }
-            return next;
+            return stableNext;
         });
-        for (const change of changes as NodeChange[]) {
+        for (const change of nonRemovalChanges) {
             if (change.type === 'position' && change.position && change.dragging === false) {
                 props.onEvent({ type: 'nodeMoved', id: change.id, x: change.position.x, y: change.position.y });
             }
             if (change.type === 'select' && change.selected) {
                 props.onEvent({ type: 'nodeSelected', id: change.id });
             }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.onEvent, props.model.nodes, typeFor]);
+
+    // Without this, edges never gain a `selected: true` flag when clicked
+    // (React Flow reports the click as a 'select' EdgeChange but does
+    // nothing with it unless the host applies it) — which meant the
+    // relation editor popover in FloatingEdge, gated on `selected`, could
+    // never appear, and Delete/Backspace on a selected edge had nothing to
+    // remove it from either.
+    const handleEdgesChange: OnEdgesChange = useCallback(changes => {
+        const removedEdgeIds: string[] = [];
+        setFlowEdges(current => applyEdgeChanges(changes, current));
+        for (const change of changes as EdgeChange[]) {
             if (change.type === 'remove') {
-                removedNodeIds.push(change.id);
+                removedEdgeIds.push(change.id);
             }
         }
-        if (removedNodeIds.length > 0) {
-            props.onEvent({ type: 'nodesPruned', ids: removedNodeIds });
+        if (removedEdgeIds.length > 0) {
+            props.onEvent({ type: 'edgesDeleted', ids: removedEdgeIds });
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.onEvent]);
+
+    const handleEdgeDelete = useCallback((edgeId: string) => {
+        setFlowEdges(current => current.filter(edge => edge.id !== edgeId));
+        props.onEvent({ type: 'edgesDeleted', ids: [edgeId] });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.onEvent]);
 
@@ -169,6 +269,23 @@ export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
         props.onEvent({ type: 'edgeCreated', source: connection.source, target: connection.target });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [props.onEvent]);
+
+    const handleReconnect: OnReconnect = useCallback((oldEdge, newConnection) => {
+        if (!newConnection.source || !newConnection.target) return;
+        setFlowEdges(current => reconnectEdge(oldEdge, newConnection, current));
+        props.onEvent({ type: 'edgeReconnected', id: oldEdge.id, source: newConnection.source, target: newConnection.target });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.onEvent]);
+
+    const handleEdgeLabelChange = useCallback((edgeId: string, label: string) => {
+        setFlowEdges(current => current.map(edge => (edge.id === edgeId ? { ...edge, label } : edge)));
+        props.onEvent({ type: 'edgeLabelChanged', id: edgeId, label });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [props.onEvent]);
+    const editContextValue = useMemo(
+        () => ({ onEdgeLabelChange: handleEdgeLabelChange, onEdgeDelete: handleEdgeDelete }),
+        [handleEdgeLabelChange, handleEdgeDelete]
+    );
 
     const handlePaneClick = useCallback(() => {
         setSelectedIds([]);
@@ -189,21 +306,31 @@ export function DiagramCanvas(props: DiagramCanvasProps): React.ReactElement {
                 className='renovatio-diagram-prune-selection'
                 onClick={handlePruneSelection}
             >{props.pruneLabel ?? `Prune selection (${selectedIds.length})`}</button>}
-            <ReactFlow
-                nodes={flowNodes}
-                edges={flowEdges}
-                nodeTypes={props.nodeTypes}
-                onNodesChange={handleNodesChange}
-                onConnect={handleConnect}
-                onPaneClick={handlePaneClick}
-                selectionOnDrag
-                multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
-                fitView
-            >
-                <Background />
-                <Controls />
-                <MiniMap pannable zoomable />
-            </ReactFlow>
+            <DiagramEditContext.Provider value={editContextValue}>
+                <ReactFlow
+                    nodes={flowNodes}
+                    edges={flowEdges}
+                    nodeTypes={props.nodeTypes}
+                    edgeTypes={EDGE_TYPES}
+                    onNodesChange={handleNodesChange}
+                    onEdgesChange={handleEdgesChange}
+                    onConnect={handleConnect}
+                    onReconnect={handleReconnect}
+                    edgesReconnectable
+                    deleteKeyCode={null}
+                    onPaneClick={handlePaneClick}
+                    onInit={instance => { reactFlowInstance.current = instance; }}
+                    selectionOnDrag
+                    multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
+                    elevateNodesOnSelect={false}
+                    elevateEdgesOnSelect={false}
+                    fitView
+                >
+                    <Background />
+                    <Controls />
+                    <MiniMap pannable zoomable />
+                </ReactFlow>
+            </DiagramEditContext.Provider>
         </div>
     );
 }

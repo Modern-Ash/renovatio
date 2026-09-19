@@ -63,10 +63,44 @@ public final class CobolSemanticProjector {
         List<SemanticProgram.SemanticType> types = new ArrayList<>();
         Map<String, String> typeIdsByName = new HashMap<>();
         Map<String, String> typeIdsBySourceNode = new LinkedHashMap<>();
+        // Two passes: memberIds was never populated here at all — every
+        // SemanticType this projector built passed List.of() regardless of
+        // level, so a GROUP type could never show its own fields even once
+        // it existed. Pass 1 builds each item's header/basic fields and
+        // walks COBOL's level-number nesting (a higher level number is a
+        // child of the most recent lower one — 01 owns the 05s under it,
+        // a 05 owns the 10s under it, etc.) to work out parent -> children
+        // by header id; pass 2 constructs the final immutable SemanticType
+        // list with that hierarchy filled in.
+        record PendingType(SemanticProgram.Header header, CobolDataItem item) { }
+        List<PendingType> pending = new ArrayList<>();
+        Map<String, List<String>> childHeaderIdsByParent = new LinkedHashMap<>();
+        List<String> levelStackIds = new ArrayList<>();
+        List<Integer> levelStackLevels = new ArrayList<>();
         for (int index = 0; index < model.getDataItems().size(); index++) {
             CobolDataItem item = model.getDataItems().get(index);
             String role = "data-item:" + item.name().toUpperCase(Locale.ROOT) + ":" + index;
             var header = SemanticProgram.Header.create(programId, SemanticProgram.NodeKind.TYPE, role, programSpan);
+            pending.add(new PendingType(header, item));
+            typeIdsByName.putIfAbsent(item.name().toUpperCase(Locale.ROOT), header.id());
+            String sourceNodeId = identities.node(item, "/dataItems/" + index).nodeId();
+            if (typeIdsBySourceNode.putIfAbsent(sourceNodeId, header.id()) != null) {
+                throw new IllegalArgumentException("duplicate COBOL data-item node: " + sourceNodeId);
+            }
+
+            while (!levelStackLevels.isEmpty() && levelStackLevels.get(levelStackLevels.size() - 1) >= item.level()) {
+                levelStackLevels.remove(levelStackLevels.size() - 1);
+                levelStackIds.remove(levelStackIds.size() - 1);
+            }
+            if (!levelStackIds.isEmpty()) {
+                childHeaderIdsByParent.computeIfAbsent(levelStackIds.get(levelStackIds.size() - 1),
+                        key -> new ArrayList<>()).add(header.id());
+            }
+            levelStackLevels.add(item.level());
+            levelStackIds.add(header.id());
+        }
+        for (PendingType entry : pending) {
+            CobolDataItem item = entry.item();
             PicType pic = item.picType();
             SemanticProgram.TypeKind kind = typeKind(pic, item.picture());
             SemanticProgram.Signedness signedness = pic == null ? SemanticProgram.Signedness.UNKNOWN
@@ -74,13 +108,9 @@ public final class CobolSemanticProjector {
             OptionalInt precision = pic == null ? OptionalInt.empty() : OptionalInt.of(pic.digits());
             OptionalInt scale = pic == null ? OptionalInt.empty() : OptionalInt.of(pic.scale());
             OptionalInt cardinality = item.occurs() == null ? OptionalInt.empty() : OptionalInt.of(item.occurs());
-            types.add(new SemanticProgram.SemanticType(header, item.name(), kind, signedness, precision, scale,
-                    cardinality, cardinality, List.of()));
-            typeIdsByName.putIfAbsent(item.name().toUpperCase(Locale.ROOT), header.id());
-            String sourceNodeId = identities.node(item, "/dataItems/" + index).nodeId();
-            if (typeIdsBySourceNode.putIfAbsent(sourceNodeId, header.id()) != null) {
-                throw new IllegalArgumentException("duplicate COBOL data-item node: " + sourceNodeId);
-            }
+            List<String> memberIds = childHeaderIdsByParent.getOrDefault(entry.header().id(), List.of());
+            types.add(new SemanticProgram.SemanticType(entry.header(), item.name(), kind, signedness, precision,
+                    scale, cardinality, cardinality, memberIds));
         }
 
         List<CobolAnnotation> contributingAnnotations = contributingAnnotations(model, annotatedContext,
@@ -156,16 +186,30 @@ public final class CobolSemanticProjector {
         List<SemanticProgram.IoOperation> io = new ArrayList<>();
         List<SemanticProgram.UnclassifiedDataAccess> residual = new ArrayList<>();
         int[] sequence = {0};
+        // FD name -> the 01-level record declared right under it in the
+        // FILE SECTION, parsed structurally (see #280: name-similarity
+        // guessing between a file and its record missed real pairs like
+        // ACCTFILE-FILE/ACCOUNT-RECORD where COBOL naming abbreviations
+        // diverge). Threaded down so a FILE-kind IoOperation can carry its
+        // actual bound record symbol instead of leaving a domain projector
+        // to guess it from the name alone.
+        Map<String, String> fileToRecordMapping = stringMap(model, "getFileToRecordMapping");
+        Map<String, java.util.List<String>> fileKeyFields = stringListMap(model, "getFileKeyFields");
+        Map<String, String> fileAssignTarget = stringMap(model, "getFileAssignTarget");
         model.getParagraphs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry ->
                 visitStatements(model.getProgramId(), entry.getValue().statements(), span, typeIds,
-                        entry.getKey(), sequence, effects, io, residual));
+                        entry.getKey(), sequence, effects, io, residual, fileToRecordMapping, fileKeyFields,
+                        fileAssignTarget));
         return new Projection(effects, io, residual);
     }
 
     private void visitStatements(String programId, List<CobolStatement> statements, SourceSpan span,
                                  Map<String, String> typeIds, String paragraph, int[] sequence,
                                  List<SemanticProgram.SideEffect> effects, List<SemanticProgram.IoOperation> io,
-                                 List<SemanticProgram.UnclassifiedDataAccess> residual) {
+                                 List<SemanticProgram.UnclassifiedDataAccess> residual,
+                                 Map<String, String> fileToRecordMapping,
+                                 Map<String, java.util.List<String>> fileKeyFields,
+                                 Map<String, String> fileAssignTarget) {
         for (CobolStatement statement : statements) {
             int ordinal = sequence[0]++;
             String role = paragraph + ":" + ordinal;
@@ -175,9 +219,16 @@ public final class CobolSemanticProjector {
                     case WRITE, REWRITE, DELETE -> SemanticProgram.Direction.WRITE;
                     case OPEN, CLOSE -> SemanticProgram.Direction.UNKNOWN;
                 };
-                io.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
+                String boundRecord = fileToRecordMapping.get(file.fileName().toUpperCase(java.util.Locale.ROOT));
+                java.util.List<String> keyFields = fileKeyFields.getOrDefault(
+                        file.fileName().toUpperCase(java.util.Locale.ROOT), List.of());
+                String assignTarget = fileAssignTarget.get(file.fileName().toUpperCase(java.util.Locale.ROOT));
+                io.add(ioOperation(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.IO_OPERATION, "file:" + role, span), SemanticProgram.IoKind.FILE,
-                        file.operationType().name(), Optional.of(file.fileName()), direction, List.of()));
+                        file.operationType().name(), Optional.of(file.fileName()), direction,
+                        boundRecord == null || boundRecord.isBlank() ? Optional.empty() : Optional.of(boundRecord),
+                        keyFields,
+                        assignTarget == null || assignTarget.isBlank() ? Optional.empty() : Optional.of(assignTarget)));
             } else if (statement instanceof Db2Statement db2) {
                 String operation = firstToken(db2.sql());
                 SemanticProgram.Direction direction = databaseDirection(operation);
@@ -206,8 +257,8 @@ public final class CobolSemanticProjector {
             } else if (statement instanceof IfStatement branch) {
                 recordExpressionReads(programId, branch.condition(), span, typeIds,
                         role + ":if-condition", effects, residual);
-                visitStatements(programId, branch.thenStatements(), span, typeIds, paragraph, sequence, effects, io, residual);
-                visitStatements(programId, branch.elseStatements(), span, typeIds, paragraph, sequence, effects, io, residual);
+                visitStatements(programId, branch.thenStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
+                visitStatements(programId, branch.elseStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
             } else if (statement instanceof EvaluateStatement evaluate) {
                 recordExpressionReads(programId, evaluate.expression(), span, typeIds,
                         role + ":evaluate-expression", effects, residual);
@@ -216,7 +267,7 @@ public final class CobolSemanticProjector {
                     recordExpressionReads(programId, branch.condition(), span, typeIds,
                             role + ":when-condition:" + index, effects, residual);
                     visitStatements(programId, branch.statements(), span, typeIds,
-                            paragraph, sequence, effects, io, residual);
+                            paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
                 }
             }
         }
@@ -228,6 +279,55 @@ public final class CobolSemanticProjector {
             case "INSERT", "UPDATE", "DELETE", "MERGE" -> SemanticProgram.Direction.WRITE;
             default -> SemanticProgram.Direction.UNKNOWN;
         };
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, String> stringMap(CobolIntermediateModel model, String methodName) {
+        try {
+            Object value = model.getClass().getMethod(methodName).invoke(model);
+            if (!(value instanceof Map<?, ?> map)) return Map.of();
+            Map<String, String> result = new LinkedHashMap<>();
+            map.forEach((key, entry) -> {
+                if (key != null && entry != null) result.put(key.toString(), entry.toString());
+            });
+            return result;
+        } catch (ReflectiveOperationException | ClassCastException ignored) {
+            return Map.of();
+        }
+    }
+
+    private static Map<String, List<String>> stringListMap(CobolIntermediateModel model, String methodName) {
+        try {
+            Object value = model.getClass().getMethod(methodName).invoke(model);
+            if (!(value instanceof Map<?, ?> map)) return Map.of();
+            Map<String, List<String>> result = new LinkedHashMap<>();
+            map.forEach((key, entry) -> {
+                if (key == null || !(entry instanceof List<?> list)) return;
+                result.put(key.toString(), list.stream().filter(Objects::nonNull).map(Object::toString).toList());
+            });
+            return result;
+        } catch (ReflectiveOperationException | ClassCastException ignored) {
+            return Map.of();
+        }
+    }
+
+    private static SemanticProgram.IoOperation ioOperation(SemanticProgram.Header header,
+                                                           SemanticProgram.IoKind kind,
+                                                           String operation,
+                                                           Optional<String> resourceReference,
+                                                           SemanticProgram.Direction direction,
+                                                           Optional<String> boundRecord,
+                                                           List<String> keyFields,
+                                                           Optional<String> assignTarget) {
+        try {
+            var constructor = SemanticProgram.IoOperation.class.getConstructor(SemanticProgram.Header.class,
+                    SemanticProgram.IoKind.class, String.class, Optional.class, SemanticProgram.Direction.class,
+                    List.class, Optional.class, List.class, Optional.class);
+            return constructor.newInstance(header, kind, operation, resourceReference, direction, List.of(),
+                    boundRecord, keyFields, assignTarget);
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return new SemanticProgram.IoOperation(header, kind, operation, resourceReference, direction, List.of());
+        }
     }
 
     private void recordExpressionReads(String programId, String expression, SourceSpan span,

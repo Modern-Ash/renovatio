@@ -26,7 +26,9 @@
     "workspaceContains:**/*.cob",
     "workspaceContains:**/*.cpy",
     "workspaceContains:**/*.jcl",
+    "onCommand:renovatio.openWelcome",
     "onCommand:renovatio.selectProject",
+    "onCommand:renovatio.createProject",
     "onCommand:renovatio.analyzeSelectedPath",
     "onCommand:renovatio.analyzeCobolSources",
     "onCommand:renovatio.addCobolSourceRoot",
@@ -78,6 +80,15 @@
           "scope": "resource",
           "description": "Future target-code output root used after discovery, decisions, and approval. Relative paths are resolved from the VS Code workspace folder."
         },
+        "renovatio.generatedRoots": {
+          "type": "array",
+          "default": [],
+          "scope": "resource",
+          "items": {
+            "type": "string"
+          },
+          "description": "Future target-code output roots associated with this Renovatio VS Code workspace. The first root is used for analyzer output."
+        },
         "renovatio.targetLanguage": {
           "type": "string",
           "default": "java",
@@ -99,6 +110,11 @@
     },
     "commands": [
       {
+        "command": "renovatio.openWelcome",
+        "title": "Renovatio: Welcome",
+        "icon": "$(home)"
+      },
+      {
         "command": "renovatio.refresh",
         "title": "Renovatio: Refresh",
         "icon": "$(refresh)"
@@ -107,6 +123,11 @@
         "command": "renovatio.selectProject",
         "title": "Renovatio: Select Project",
         "icon": "$(folder-active)"
+      },
+      {
+        "command": "renovatio.createProject",
+        "title": "Renovatio: Create Project",
+        "icon": "$(new-folder)"
       },
       {
         "command": "renovatio.analyzeSelectedPath",
@@ -196,12 +217,16 @@
           "group": "navigation@51"
         },
         {
-          "command": "renovatio.openControlDeck",
+          "command": "renovatio.createProject",
           "group": "navigation@52"
         },
         {
-          "command": "renovatio.openDomainModel",
+          "command": "renovatio.openControlDeck",
           "group": "navigation@53"
+        },
+        {
+          "command": "renovatio.openDomainModel",
+          "group": "navigation@54"
         },
         {
           "command": "renovatio.openPersistenceModel",
@@ -218,10 +243,16 @@
       ],
       "commandPalette": [
         {
+          "command": "renovatio.openWelcome"
+        },
+        {
           "command": "renovatio.refresh"
         },
         {
           "command": "renovatio.selectProject"
+        },
+        {
+          "command": "renovatio.createProject"
         },
         {
           "command": "renovatio.analyzeSelectedPath"
@@ -279,6 +310,11 @@
           "command": "renovatio.selectProject",
           "when": "view == renovatio.projects",
           "group": "navigation@2"
+        },
+        {
+          "command": "renovatio.createProject",
+          "when": "view == renovatio.projects || view == renovatio.operations",
+          "group": "navigation@2.5"
         },
         {
           "command": "renovatio.analyzeWorkspace",
