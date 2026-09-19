@@ -9,13 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 /**
  * Lightweight IR parser that extracts an executable structure from COBOL
@@ -298,23 +300,44 @@ public class SimpleCobolIrParser {
 
     private static Path workspaceRoot(Path baseFile) {
         Path current = baseFile.toAbsolutePath().normalize().getParent();
+        Path sourceDirectory = current;
         for (int level = 0; level < WORKSPACE_ROOT_CLIMB_LEVELS && current != null && current.getParent() != null; level++) {
-            current = current.getParent();
+            Path parent = current.getParent();
+            if (parent == null || parent.getParent() == null) {
+                break;
+            }
+            current = parent;
         }
-        return current != null ? current : baseFile.toAbsolutePath().normalize().getParent();
+        return current != null ? current : sourceDirectory;
     }
 
     private Map<String, Path> buildCopybookIndex(Path root) {
         Map<String, Path> index = new HashMap<>();
-        try (Stream<Path> walk = Files.walk(root, 12)) {
-            walk.filter(Files::isRegularFile)
-                    .filter(path -> !path.toString().contains(java.io.File.separator + ".git" + java.io.File.separator))
-                    .forEach(path -> {
-                        String fileName = path.getFileName().toString();
-                        int dot = fileName.lastIndexOf('.');
-                        String baseName = (dot > 0 ? fileName.substring(0, dot) : fileName).toUpperCase(Locale.ROOT);
-                        index.putIfAbsent(baseName, path);
-                    });
+        try {
+            Files.walkFileTree(root, Set.of(), 12, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
+                    return dir.getFileName() != null && ".git".equals(dir.getFileName().toString())
+                            ? FileVisitResult.SKIP_SUBTREE
+                            : FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+                    if (!attrs.isRegularFile()) return FileVisitResult.CONTINUE;
+                    String fileName = file.getFileName().toString();
+                    int dot = fileName.lastIndexOf('.');
+                    String baseName = (dot > 0 ? fileName.substring(0, dot) : fileName).toUpperCase(Locale.ROOT);
+                    index.putIfAbsent(baseName, file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult visitFileFailed(Path file, IOException exc) {
+                    log.debug("Skipping inaccessible copybook index path {}: {}", file, exc.getMessage());
+                    return FileVisitResult.CONTINUE;
+                }
+            });
         } catch (IOException e) {
             log.debug("Copybook index scan failed for root {}: {}", root, e.getMessage());
         }

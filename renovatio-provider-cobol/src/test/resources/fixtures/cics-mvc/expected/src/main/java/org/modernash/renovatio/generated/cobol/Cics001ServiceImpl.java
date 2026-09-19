@@ -39,7 +39,7 @@ public class Cics001ServiceImpl implements Cics001Service {
     if (input.getWsMessage() == null || input.getWsMessage().length() > 80) { return false; };
     return true;
   }
-    @GeneratedFrom(paragraph = "RECEIVE-DATA", lines = "30-41")
+    @GeneratedFrom(paragraph = "RECEIVE-DATA", lines = "40-51")
     private void performReceiveData(Cics001DTO input, Cics001DTO out) {
         // COBOL not translated: EXEC CICS
         // COBOL not translated: RECEIVE
@@ -51,7 +51,7 @@ public class Cics001ServiceImpl implements Cics001Service {
             performSendError(input, out);
         }
     }
-    @GeneratedFrom(paragraph = "PROCESS-CUSTOMER", lines = "42-60")
+    @GeneratedFrom(paragraph = "PROCESS-CUSTOMER", lines = "52-70")
     private void performProcessCustomer(Cics001DTO input, Cics001DTO out) {
         // COBOL not translated: CUST-ID (data item not modeled)
         // COBOL not translated: EXEC CICS
@@ -70,7 +70,7 @@ public class Cics001ServiceImpl implements Cics001Service {
             out.setWsMessage("Customer not found");
         }
     }
-    @GeneratedFrom(paragraph = "SEND-RESPONSE", lines = "61-68")
+    @GeneratedFrom(paragraph = "SEND-RESPONSE", lines = "71-78")
     private void performSendResponse(Cics001DTO input, Cics001DTO out) {
         // COBOL not translated: EXEC CICS
         // COBOL not translated: SEND
@@ -78,14 +78,14 @@ public class Cics001ServiceImpl implements Cics001Service {
         // COBOL not translated: LENGTH (LENGTH OF WS-MESSAGE)
         // COBOL not translated: RESP (WS-RESPONSE)
     }
-    @GeneratedFrom(paragraph = "CLEANUP", lines = "80-84")
+    @GeneratedFrom(paragraph = "CLEANUP", lines = "90-94")
     private void performCleanup(Cics001DTO input, Cics001DTO out) {
         // COBOL not translated: SPACES (data item not modeled)
         // COBOL not translated: SPACES (data item not modeled)
         out.setWsResponse(0);
         // COBOL not translated: SPACES (data item not modeled)
     }
-    @GeneratedFrom(paragraph = "SEND-ERROR", lines = "69-79")
+    @GeneratedFrom(paragraph = "SEND-ERROR", lines = "79-89")
     private void performSendError(Cics001DTO input, Cics001DTO out) {
         // COBOL not translated: EXEC CICS
         // COBOL not translated: SEND
