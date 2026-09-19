@@ -26,7 +26,12 @@
     "workspaceContains:**/*.cob",
     "workspaceContains:**/*.cpy",
     "workspaceContains:**/*.jcl",
+    "workspaceContains:.renovatio/workspace.renovatio.json",
     "onCommand:renovatio.openWelcome",
+    "onCommand:renovatio.initializeWorkspace",
+    "onCommand:renovatio.openWorkspaceManifest",
+    "onCommand:renovatio.validateWorkspace",
+    "onCommand:renovatio.formatArtifacts",
     "onCommand:renovatio.selectProject",
     "onCommand:renovatio.createProject",
     "onCommand:renovatio.analyzeSelectedPath",
@@ -118,6 +123,26 @@
         "command": "renovatio.refresh",
         "title": "Renovatio: Refresh",
         "icon": "$(refresh)"
+      },
+      {
+        "command": "renovatio.initializeWorkspace",
+        "title": "Renovatio: Initialize Workspace",
+        "icon": "$(new-folder)"
+      },
+      {
+        "command": "renovatio.openWorkspaceManifest",
+        "title": "Renovatio: Open Workspace Manifest",
+        "icon": "$(json)"
+      },
+      {
+        "command": "renovatio.validateWorkspace",
+        "title": "Renovatio: Validate Workspace",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "renovatio.formatArtifacts",
+        "title": "Renovatio: Format Artifacts",
+        "icon": "$(symbol-keyword)"
       },
       {
         "command": "renovatio.selectProject",
@@ -249,6 +274,18 @@
           "command": "renovatio.refresh"
         },
         {
+          "command": "renovatio.initializeWorkspace"
+        },
+        {
+          "command": "renovatio.openWorkspaceManifest"
+        },
+        {
+          "command": "renovatio.validateWorkspace"
+        },
+        {
+          "command": "renovatio.formatArtifacts"
+        },
+        {
           "command": "renovatio.selectProject"
         },
         {
@@ -303,8 +340,23 @@
       "view/title": [
         {
           "command": "renovatio.refresh",
-          "when": "view == renovatio.projects || view == renovatio.analysis",
+          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.analysis",
           "group": "navigation@1"
+        },
+        {
+          "command": "renovatio.initializeWorkspace",
+          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.views.welcome",
+          "group": "navigation@1.5"
+        },
+        {
+          "command": "renovatio.openWorkspaceManifest",
+          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.views.welcome",
+          "group": "navigation@1.6"
+        },
+        {
+          "command": "renovatio.validateWorkspace",
+          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.views.welcome",
+          "group": "navigation@1.7"
         },
         {
           "command": "renovatio.selectProject",
@@ -436,7 +488,7 @@
     "viewsWelcome": [
       {
         "view": "renovatio.projects",
-        "contents": "Open a VS Code workspace and configure COBOL source roots.\n[Select Project](command:renovatio.selectProject)\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)"
+        "contents": "Open a VS Code workspace and initialize the local Renovatio contract.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Open Workspace Manifest](command:renovatio.openWorkspaceManifest)\n[Validate Workspace](command:renovatio.validateWorkspace)\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)"
       },
       {
         "view": "renovatio.analysis",
@@ -448,11 +500,39 @@
       },
       {
         "view": "renovatio.operations",
-        "contents": "Run the Renovatio workflow through native VS Code commands.\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Control Deck](command:renovatio.openControlDeck)"
+        "contents": "Run the Renovatio workflow through native VS Code commands.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Validate Workspace](command:renovatio.validateWorkspace)\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Control Deck](command:renovatio.openControlDeck)"
       },
       {
         "view": "renovatio.views.welcome",
         "contents": "Open native Renovatio diagram editors from the current workspace.\n[Open Native Domain Diagram](command:renovatio.openNativeDomainDiagram)\n[Open Native Persistence Diagram](command:renovatio.openNativePersistenceDiagram)\n[Open Native Architecture Diagram](command:renovatio.openNativeArchitectureDiagram)\n[Open Domain Diagram Sample](command:renovatio.openDomainSample)\n[Open Architecture Diagram Sample](command:renovatio.openArchitectureSample)"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": [
+          "/.renovatio/workspace.renovatio.json",
+          "workspace.renovatio.json"
+        ],
+        "url": "./schemas/workspace-manifest.schema.json"
+      },
+      {
+        "fileMatch": [
+          "*.renovatio-domain.json"
+        ],
+        "url": "./schemas/domain-model.schema.json"
+      },
+      {
+        "fileMatch": [
+          "*.renovatio-arch.json"
+        ],
+        "url": "./schemas/architecture.schema.json"
+      },
+      {
+        "fileMatch": [
+          "*.migration-map.renovatio.json",
+          "migration-map.renovatio.json"
+        ],
+        "url": "./schemas/migration-map.schema.json"
       }
     ],
     "languages": [

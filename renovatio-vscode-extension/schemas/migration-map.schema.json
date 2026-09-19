@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://modern-ash.github.io/renovatio/schemas/migration-map.schema.json",
+  "title": "Renovatio Migration Map",
+  "description": "Versioned legacy-to-target navigation and evidence map. Population is covered by a follow-up epic ticket.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "projectId", "mappings"],
+  "properties": {
+    "version": {
+      "const": "1"
+    },
+    "projectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "mappings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "legacy", "target"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "legacy": {
+            "$ref": "#/$defs/location"
+          },
+          "target": {
+            "$ref": "#/$defs/location"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "range": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "startLine": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "endLine": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

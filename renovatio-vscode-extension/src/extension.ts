@@ -6,6 +6,7 @@ import {
     type ParsedDiagramDocument
 } from './model';
 import * as legacyExtension from './legacyExtension';
+import { RenovatioWorkspaceManifestService } from './workspaceManifest';
 
 const DOMAIN_VIEW_TYPE = 'renovatio.diagram.domain';
 const ARCHITECTURE_VIEW_TYPE = 'renovatio.diagram.architecture';
@@ -16,14 +17,21 @@ export function activate(context: vscode.ExtensionContext): void {
 
     const provider = new RenovatioDiagramEditorProvider(context, output);
     const tree = new RenovatioWelcomeTree(context);
+    const manifestService = new RenovatioWorkspaceManifestService(output);
     context.subscriptions.push(
         output,
+        manifestService,
         vscode.window.registerCustomEditorProvider(DOMAIN_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.window.registerCustomEditorProvider(ARCHITECTURE_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.window.registerTreeDataProvider('renovatio.views.welcome', tree),
+        vscode.commands.registerCommand('renovatio.initializeWorkspace', () => manifestService.initializeWorkspace()),
+        vscode.commands.registerCommand('renovatio.openWorkspaceManifest', () => manifestService.openWorkspaceManifest()),
+        vscode.commands.registerCommand('renovatio.validateWorkspace', () => manifestService.validateWorkspace()),
+        vscode.commands.registerCommand('renovatio.formatArtifacts', () => manifestService.formatArtifacts()),
         vscode.commands.registerCommand('renovatio.openDomainSample', () => openSample(context, 'sample.renovatio-domain.json')),
         vscode.commands.registerCommand('renovatio.openArchitectureSample', () => openSample(context, 'sample.renovatio-arch.json'))
     );
+    void manifestService.validateWorkspace();
 }
 
 export function deactivate(): void {
@@ -249,6 +257,10 @@ class RenovatioWelcomeTree implements vscode.TreeDataProvider<RenovatioTreeItem>
 
     getChildren(): RenovatioTreeItem[] {
         return [
+            new RenovatioTreeItem('Initialize Renovatio Workspace', 'renovatio.initializeWorkspace', '.renovatio/workspace.renovatio.json'),
+            new RenovatioTreeItem('Open Workspace Manifest', 'renovatio.openWorkspaceManifest', 'local contract'),
+            new RenovatioTreeItem('Validate Renovatio Workspace', 'renovatio.validateWorkspace', 'schemas and manifest'),
+            new RenovatioTreeItem('Format Renovatio Artifacts', 'renovatio.formatArtifacts', 'JSON/JSONC'),
             new RenovatioTreeItem('Open Native Domain Diagram', 'renovatio.openNativeDomainDiagram', 'current DomainModel'),
             new RenovatioTreeItem('Open Native Persistence Diagram', 'renovatio.openNativePersistenceDiagram', 'repositories and records'),
             new RenovatioTreeItem('Open Native Architecture Diagram', 'renovatio.openNativeArchitectureDiagram', 'target layers'),

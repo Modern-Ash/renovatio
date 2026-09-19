@@ -7,7 +7,47 @@ It supports standalone local files:
 - `*.renovatio-domain.json`
 - `*.renovatio-arch.json`
 
-In this first cut the JSON file is the source of truth. The extension does not fetch from, save to, or live-sync with the Renovatio backend. Backend synchronization can be added later as a separate host concern without changing the shared canvas package.
+The local Renovatio artifact files are the source of truth for editor state. The extension can now initialize a workspace manifest at `.renovatio/workspace.renovatio.json`; backend synchronization remains a separate workflow concern.
+
+## Workspace Manifest
+
+Run `Renovatio: Initialize Workspace` from the Command Palette to create:
+
+```text
+.renovatio/workspace.renovatio.json
+```
+
+The manifest is a workspace-relative, versioned contract for agents, developers and the Renovatio backend. It captures:
+
+- `projectId`: stable local project identity.
+- `source`: legacy language, source roots, include globs and exclude globs.
+- `targets`: target language roots plus optional package/framework metadata.
+- `artifacts`: paths for domain, persistence, architecture, migration map and evidence output.
+- `backend`: API URL, environment and whether local process control is allowed.
+- `llm`: reverse-engineering provider, model, prompt profile, temperature, token limit and cache behavior.
+
+All paths in `source.roots`, `targets[].root` and `artifacts` should be relative to the VS Code workspace folder. The extension contributes JSON Schema validation for:
+
+- `.renovatio/workspace.renovatio.json`
+- `*.renovatio-domain.json`
+- `*.renovatio-arch.json`
+- `migration-map.renovatio.json`
+
+The manifest takes precedence for new two-way workbench features. Existing VS Code settings still act as fallback/defaults when the manifest does not exist:
+
+- `renovatio.cobolRoots`
+- `renovatio.generatedRoot`
+- `renovatio.generatedRoots`
+- `renovatio.targetLanguage`
+- `renovatio.targetPackage`
+- `renovatio.backendUrl`
+
+Useful commands:
+
+- `Renovatio: Initialize Workspace`
+- `Renovatio: Open Workspace Manifest`
+- `Renovatio: Validate Workspace`
+- `Renovatio: Format Artifacts`
 
 ## Build
 
