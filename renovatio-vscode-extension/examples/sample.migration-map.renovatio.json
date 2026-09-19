@@ -1,0 +1,59 @@
+{
+  "version": "1",
+  "projectId": "carddemo",
+  "generatedAt": "2026-09-19T00:00:00.000Z",
+  "sourceHash": "sha256:example-source",
+  "targetHash": "sha256:example-target",
+  "entries": [
+    {
+      "id": "program:CARDDEMO",
+      "kind": "program",
+      "source": {
+        "language": "cobol",
+        "path": "src/mainframe/CARDDEMO.cbl",
+        "symbol": "CARDDEMO",
+        "range": {
+          "startLine": 1,
+          "startColumn": 1,
+          "endLine": 240,
+          "endColumn": 72
+        },
+        "hash": "sha256:example-source-program"
+      },
+      "renovatio": {
+        "domainNodeIds": [
+          "usecase:card-demo"
+        ],
+        "architectureNodeIds": [
+          "service:CardDemoService"
+        ],
+        "semanticIds": [
+          "semantic:program:CARDDEMO"
+        ]
+      },
+      "target": {
+        "language": "java",
+        "path": "generated/java/src/main/java/com/example/modernized/Carddemo.java",
+        "symbol": "Carddemo",
+        "range": {
+          "startLine": 12,
+          "startColumn": 1,
+          "endLine": 120,
+          "endColumn": 1
+        },
+        "hash": "sha256:example-target-program"
+      },
+      "status": "generated",
+      "confidence": 0.86,
+      "evidence": [
+        ".renovatio/evidence/carddemo-equivalence.json"
+      ],
+      "lastDecision": {
+        "actor": "human",
+        "action": "accepted",
+        "at": "2026-09-19T00:00:00.000Z",
+        "reason": "Matches batch fixture"
+      }
+    }
+  ]
+}

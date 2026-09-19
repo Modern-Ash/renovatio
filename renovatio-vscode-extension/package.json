@@ -32,6 +32,10 @@
     "onCommand:renovatio.openWorkspaceManifest",
     "onCommand:renovatio.validateWorkspace",
     "onCommand:renovatio.formatArtifacts",
+    "onCommand:renovatio.createMigrationMap",
+    "onCommand:renovatio.openMigrationMap",
+    "onCommand:renovatio.validateMigrationMap",
+    "onCommand:renovatio.formatMigrationMap",
     "onCommand:renovatio.openBackendSettings",
     "onCommand:renovatio.testBackendConnection",
     "onCommand:renovatio.openBackendLogs",
@@ -154,6 +158,26 @@
       {
         "command": "renovatio.formatArtifacts",
         "title": "Renovatio: Format Artifacts",
+        "icon": "$(symbol-keyword)"
+      },
+      {
+        "command": "renovatio.createMigrationMap",
+        "title": "Renovatio: Create Migration Map",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "renovatio.openMigrationMap",
+        "title": "Renovatio: Open Migration Map",
+        "icon": "$(references)"
+      },
+      {
+        "command": "renovatio.validateMigrationMap",
+        "title": "Renovatio: Validate Migration Map",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "renovatio.formatMigrationMap",
+        "title": "Renovatio: Format Migration Map",
         "icon": "$(symbol-keyword)"
       },
       {
@@ -358,6 +382,18 @@
           "command": "renovatio.formatArtifacts"
         },
         {
+          "command": "renovatio.createMigrationMap"
+        },
+        {
+          "command": "renovatio.openMigrationMap"
+        },
+        {
+          "command": "renovatio.validateMigrationMap"
+        },
+        {
+          "command": "renovatio.formatMigrationMap"
+        },
+        {
           "command": "renovatio.openBackendSettings"
         },
         {
@@ -470,6 +506,16 @@
           "command": "renovatio.testBackendConnection",
           "when": "view == renovatio.backend",
           "group": "navigation@2"
+        },
+        {
+          "command": "renovatio.openMigrationMap",
+          "when": "view == renovatio.operations || view == renovatio.analysis || view == renovatio.domainModel",
+          "group": "navigation@2.2"
+        },
+        {
+          "command": "renovatio.validateMigrationMap",
+          "when": "view == renovatio.operations || view == renovatio.analysis || view == renovatio.domainModel",
+          "group": "navigation@2.3"
         },
         {
           "command": "renovatio.openBackendLogs",
@@ -627,7 +673,7 @@
       },
       {
         "view": "renovatio.operations",
-        "contents": "Run the Renovatio workflow through native VS Code commands.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Validate Workspace](command:renovatio.validateWorkspace)\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Control Deck](command:renovatio.openControlDeck)"
+        "contents": "Run the Renovatio workflow through native VS Code commands.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Create Migration Map](command:renovatio.createMigrationMap)\n[Validate Workspace](command:renovatio.validateWorkspace)\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Control Deck](command:renovatio.openControlDeck)"
       },
       {
         "view": "renovatio.backend",
@@ -663,7 +709,7 @@
           "*.migration-map.renovatio.json",
           "migration-map.renovatio.json"
         ],
-        "url": "./schemas/migration-map.schema.json"
+        "url": "./schemas/migration-map.renovatio.schema.json"
       }
     ],
     "languages": [

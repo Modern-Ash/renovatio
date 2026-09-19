@@ -67,6 +67,51 @@ Process-control commands are safety gated:
 
 Backend commands may be configured in the manifest under `backend.commands`. Missing backend endpoints are reported as unsupported instead of faking success.
 
+## Migration Map
+
+Run `Renovatio: Create Migration Map` after initializing a workspace to create the manifest-defined artifact, usually:
+
+```text
+.renovatio/migration-map.renovatio.json
+```
+
+The migration map is Renovatio's durable two-way traceability contract. Each entry links a legacy source location to Renovatio semantic/domain/architecture ids, target code, evidence and the latest human or agent decision.
+
+Supported entry statuses:
+
+- `proposed`
+- `accepted`
+- `generated`
+- `manually-edited`
+- `stale-source`
+- `stale-target`
+- `needs-review`
+- `rejected`
+
+Supported entry kinds:
+
+- `program`
+- `paragraph`
+- `section`
+- `copybook`
+- `record`
+- `field`
+- `jcl-job`
+- `jcl-step`
+- `business-rule`
+- `dataset`
+- `table`
+- `test-fixture`
+
+Useful commands:
+
+- `Renovatio: Create Migration Map`
+- `Renovatio: Open Migration Map`
+- `Renovatio: Validate Migration Map`
+- `Renovatio: Format Migration Map`
+
+Migration map paths are workspace-relative. Validation reports malformed entries and missing source or target files in VS Code Problems.
+
 ## Build
 
 ```sh

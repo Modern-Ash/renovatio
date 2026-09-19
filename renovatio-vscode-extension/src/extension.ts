@@ -8,6 +8,7 @@ import {
 import * as legacyExtension from './legacyExtension';
 import { RenovatioWorkspaceManifestService } from './workspaceManifest';
 import { RenovatioBackendControlCenter } from './backendControl';
+import { MigrationMapService } from './migrationMap';
 
 const DOMAIN_VIEW_TYPE = 'renovatio.diagram.domain';
 const ARCHITECTURE_VIEW_TYPE = 'renovatio.diagram.architecture';
@@ -21,12 +22,14 @@ export function activate(context: vscode.ExtensionContext): void {
     const tree = new RenovatioWelcomeTree(context);
     const manifestService = new RenovatioWorkspaceManifestService(output);
     const backendControl = new RenovatioBackendControlCenter(manifestService, backendOutput);
+    const migrationMapService = new MigrationMapService(manifestService, output);
     backendControl.register(context);
     context.subscriptions.push(
         output,
         backendOutput,
         manifestService,
         backendControl,
+        migrationMapService,
         vscode.window.registerCustomEditorProvider(DOMAIN_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.window.registerCustomEditorProvider(ARCHITECTURE_VIEW_TYPE, provider, { webviewOptions: { retainContextWhenHidden: true } }),
         vscode.window.registerTreeDataProvider('renovatio.views.welcome', tree),
@@ -34,6 +37,10 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand('renovatio.openWorkspaceManifest', () => manifestService.openWorkspaceManifest()),
         vscode.commands.registerCommand('renovatio.validateWorkspace', () => manifestService.validateWorkspace()),
         vscode.commands.registerCommand('renovatio.formatArtifacts', () => manifestService.formatArtifacts()),
+        vscode.commands.registerCommand('renovatio.createMigrationMap', () => migrationMapService.createMigrationMap()),
+        vscode.commands.registerCommand('renovatio.openMigrationMap', () => migrationMapService.openMigrationMap()),
+        vscode.commands.registerCommand('renovatio.validateMigrationMap', () => migrationMapService.validateMigrationMap()),
+        vscode.commands.registerCommand('renovatio.formatMigrationMap', () => migrationMapService.formatMigrationMap()),
         vscode.commands.registerCommand('renovatio.openDomainSample', () => openSample(context, 'sample.renovatio-domain.json')),
         vscode.commands.registerCommand('renovatio.openArchitectureSample', () => openSample(context, 'sample.renovatio-arch.json'))
     );
@@ -266,6 +273,8 @@ class RenovatioWelcomeTree implements vscode.TreeDataProvider<RenovatioTreeItem>
             new RenovatioTreeItem('Initialize Renovatio Workspace', 'renovatio.initializeWorkspace', '.renovatio/workspace.renovatio.json'),
             new RenovatioTreeItem('Open Workspace Manifest', 'renovatio.openWorkspaceManifest', 'local contract'),
             new RenovatioTreeItem('Validate Renovatio Workspace', 'renovatio.validateWorkspace', 'schemas and manifest'),
+            new RenovatioTreeItem('Create Migration Map', 'renovatio.createMigrationMap', 'legacy to target traceability'),
+            new RenovatioTreeItem('Open Migration Map', 'renovatio.openMigrationMap', '.renovatio/migration-map.renovatio.json'),
             new RenovatioTreeItem('Format Renovatio Artifacts', 'renovatio.formatArtifacts', 'JSON/JSONC'),
             new RenovatioTreeItem('Open Native Domain Diagram', 'renovatio.openNativeDomainDiagram', 'current DomainModel'),
             new RenovatioTreeItem('Open Native Persistence Diagram', 'renovatio.openNativePersistenceDiagram', 'repositories and records'),
