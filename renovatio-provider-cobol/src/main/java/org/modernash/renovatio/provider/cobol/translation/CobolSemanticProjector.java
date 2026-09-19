@@ -135,7 +135,7 @@ public final class CobolSemanticProjector {
 
         return new SemanticProgram("1", SemanticProgram.Header.create(programId,
                 SemanticProgram.NodeKind.PROGRAM, "program", programSpan), programId, provenance, types, intents,
-                projection.effects(), ioOperations, controlFlow, projection.unclassified(), projection.fieldFlows());
+                projection.effects(), ioOperations, controlFlow, projection.unclassified());
     }
 
     private static void projectCics(String programId, String source, SourceSpan span,
@@ -185,7 +185,6 @@ public final class CobolSemanticProjector {
         List<SemanticProgram.SideEffect> effects = new ArrayList<>();
         List<SemanticProgram.IoOperation> io = new ArrayList<>();
         List<SemanticProgram.UnclassifiedDataAccess> residual = new ArrayList<>();
-        List<SemanticProgram.FieldFlow> fieldFlows = new ArrayList<>();
         int[] sequence = {0};
         // FD name -> the 01-level record declared right under it in the
         // FILE SECTION, parsed structurally (see #280: name-similarity
@@ -200,8 +199,8 @@ public final class CobolSemanticProjector {
         model.getParagraphs().entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry ->
                 visitStatements(model.getProgramId(), entry.getValue().statements(), span, typeIds,
                         entry.getKey(), sequence, effects, io, residual, fileToRecordMapping, fileKeyFields,
-                        fileAssignTarget, fieldFlows));
-        return new Projection(effects, io, residual, fieldFlows);
+                        fileAssignTarget));
+        return new Projection(effects, io, residual);
     }
 
     private void visitStatements(String programId, List<CobolStatement> statements, SourceSpan span,
@@ -210,8 +209,7 @@ public final class CobolSemanticProjector {
                                  List<SemanticProgram.UnclassifiedDataAccess> residual,
                                  Map<String, String> fileToRecordMapping,
                                  Map<String, java.util.List<String>> fileKeyFields,
-                                 Map<String, String> fileAssignTarget,
-                                 List<SemanticProgram.FieldFlow> fieldFlows) {
+                                 Map<String, String> fileAssignTarget) {
         for (CobolStatement statement : statements) {
             int ordinal = sequence[0]++;
             String role = paragraph + ":" + ordinal;
@@ -251,15 +249,6 @@ public final class CobolSemanticProjector {
                         role + ":move-source", effects, residual);
                 recordWrite(programId, move.target(), span, typeIds,
                         role + ":move-target", effects, residual);
-                // The actual join pattern real COBOL programs use: extract
-                // a key from one record and MOVE it into another field
-                // right before a keyed READ. A simple single-field MOVE
-                // whose source and target both resolve to real data items
-                // is real data-flow evidence of a relation between
-                // whatever entities those two fields belong to — the
-                // domain projector uses this instead of guessing from
-                // name similarity.
-                recordFieldFlow(programId, move.source(), move.target(), span, typeIds, fieldFlows);
             } else if (statement instanceof ComputeStatement compute) {
                 recordExpressionReads(programId, compute.expression(), span, typeIds,
                         role + ":compute-expression", effects, residual);
@@ -268,8 +257,8 @@ public final class CobolSemanticProjector {
             } else if (statement instanceof IfStatement branch) {
                 recordExpressionReads(programId, branch.condition(), span, typeIds,
                         role + ":if-condition", effects, residual);
-                visitStatements(programId, branch.thenStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget, fieldFlows);
-                visitStatements(programId, branch.elseStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget, fieldFlows);
+                visitStatements(programId, branch.thenStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
+                visitStatements(programId, branch.elseStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
             } else if (statement instanceof EvaluateStatement evaluate) {
                 recordExpressionReads(programId, evaluate.expression(), span, typeIds,
                         role + ":evaluate-expression", effects, residual);
@@ -278,7 +267,7 @@ public final class CobolSemanticProjector {
                     recordExpressionReads(programId, branch.condition(), span, typeIds,
                             role + ":when-condition:" + index, effects, residual);
                     visitStatements(programId, branch.statements(), span, typeIds,
-                            paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget, fieldFlows);
+                            paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
                 }
             }
         }
@@ -337,25 +326,6 @@ public final class CobolSemanticProjector {
                     SemanticProgram.NodeKind.UNCLASSIFIED_DATA_ACCESS, "unclassified:" + role, span),
                     subject.strip(), operation, "No matching semantic data node", List.of()));
         }
-    }
-
-    // Only a plain "MOVE <single-field> TO <single-field>" is trustworthy
-    // enough to assert a data-flow relation from — a MOVE whose source is
-    // a literal, or whose source/target don't each resolve to exactly one
-    // known data item, carries no reliable field-to-field evidence.
-    private void recordFieldFlow(String programId, String source, String target, SourceSpan span,
-                                 Map<String, String> typeIds, List<SemanticProgram.FieldFlow> fieldFlows) {
-        if (source == null || target == null || isLiteral(source) || isLiteral(target)) return;
-        String sourceTrimmed = source.strip();
-        String targetTrimmed = target.strip();
-        if (!DATA_REFERENCE.matcher(sourceTrimmed).matches() || !DATA_REFERENCE.matcher(targetTrimmed).matches()) return;
-        String sourceTypeId = typeIds.get(sourceTrimmed.toUpperCase(Locale.ROOT));
-        String targetTypeId = typeIds.get(targetTrimmed.toUpperCase(Locale.ROOT));
-        if (sourceTypeId == null || targetTypeId == null || sourceTypeId.equals(targetTypeId)) return;
-        int ordinal = fieldFlows.size();
-        fieldFlows.add(new SemanticProgram.FieldFlow(SemanticProgram.Header.create(programId,
-                SemanticProgram.NodeKind.FIELD_FLOW, "field-flow:" + ordinal + ":" + sourceTrimmed + ":" + targetTrimmed,
-                span), sourceTypeId, targetTypeId));
     }
 
     private static boolean isLiteral(String value) {
@@ -418,6 +388,5 @@ public final class CobolSemanticProjector {
 
     private record Projection(List<SemanticProgram.SideEffect> effects,
                               List<SemanticProgram.IoOperation> io,
-                              List<SemanticProgram.UnclassifiedDataAccess> unclassified,
-                              List<SemanticProgram.FieldFlow> fieldFlows) { }
+                              List<SemanticProgram.UnclassifiedDataAccess> unclassified) { }
 }
