@@ -67,6 +67,9 @@
     "onCommand:renovatio.openDiscoveryOutput",
     "onCommand:renovatio.generateMigrationPlan",
     "onCommand:renovatio.previewMigrationDiff",
+    "onCommand:renovatio.openChangeSet",
+    "onCommand:renovatio.approveChange",
+    "onCommand:renovatio.rejectChange",
     "onCommand:renovatio.applyApprovedChanges",
     "onCommand:renovatio.reconcileGeneratedCode",
     "onCommand:renovatio.exportEvidenceBundle",
@@ -357,6 +360,21 @@
         "command": "renovatio.previewMigrationDiff",
         "title": "Renovatio: Preview Migration Diff",
         "icon": "$(diff)"
+      },
+      {
+        "command": "renovatio.openChangeSet",
+        "title": "Renovatio: Open Change Set",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "renovatio.approveChange",
+        "title": "Renovatio: Approve Change",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "renovatio.rejectChange",
+        "title": "Renovatio: Reject Change",
+        "icon": "$(circle-slash)"
       },
       {
         "command": "renovatio.applyApprovedChanges",

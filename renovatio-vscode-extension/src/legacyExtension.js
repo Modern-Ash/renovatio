@@ -71,9 +71,6 @@ function activate(context) {
     vscode.commands.registerCommand('renovatio.openEvidence', openEvidence),
     vscode.commands.registerCommand('renovatio.openDiscoveryOutput', openDiscoveryOutput),
     vscode.commands.registerCommand('renovatio.generateMigrationPlan', generateMigrationPlan),
-    vscode.commands.registerCommand('renovatio.previewMigrationDiff', previewMigrationDiff),
-    vscode.commands.registerCommand('renovatio.applyApprovedChanges', applyApprovedChanges),
-    vscode.commands.registerCommand('renovatio.reconcileGeneratedCode', reconcileGeneratedCode),
     vscode.commands.registerCommand('renovatio.exportEvidenceBundle', exportEvidenceBundle),
     vscode.workspace.onDidChangeConfiguration(event => {
       if (event.affectsConfiguration('renovatio')) {

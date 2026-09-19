@@ -157,6 +157,26 @@ When `.renovatio/migration-map.renovatio.json` exists, COBOL/JCL and generated J
 
 The first implementation matches exact workspace-relative `source.path` and `target.path` entries. Ranged entries use the mapped range; file-level entries appear on the first line. Missing migration maps stay silent, and missing mapped files offer to open the migration map.
 
+## Preview And Apply Workflow
+
+`Renovatio: Preview Migration Diff` creates a reviewable change set under:
+
+```text
+.renovatio/changesets/
+```
+
+The workflow is approval-gated:
+
+- preview reads the workspace manifest, backend/LLM configuration and migration map.
+- backend dry-run is attempted when available; otherwise the extension writes an explicit local preview change set so the workflow remains testable offline.
+- each change records target path, kind, status, before/after hashes, diff metadata and migration entry ids.
+- `Renovatio: Open Change Set` opens a native VS Code side-by-side diff.
+- `Renovatio: Approve Change` and `Renovatio: Reject Change` update the persisted change set.
+- `Renovatio: Apply Approved Changes` writes only approved changes, blocks conflicts when files changed after preview, and updates migration map target hashes, evidence links and generated status.
+- `Renovatio: Reconcile Generated Code` refreshes target hashes after intentional manual edits.
+
+Generated code is never applied from preview alone. Every write goes through explicit approval and VS Code workspace file APIs.
+
 ## Build
 
 ```sh
