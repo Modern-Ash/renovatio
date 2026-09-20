@@ -9,6 +9,33 @@ It supports standalone local files:
 
 The local Renovatio artifact files are the source of truth for editor state. The extension can now initialize a workspace manifest at `.renovatio/workspace.renovatio.json`; backend synchronization remains a separate workflow concern.
 
+This workbench documentation belongs to epic #281 and reflects the implemented child tickets #283, #284, #290, #291 and #292.
+
+## Quick Start
+
+```sh
+cd renovatio-workbench
+npm run build --workspace @renovatio/diagram-canvas
+
+cd ../renovatio-vscode-extension
+npm install
+npm test
+npm run build
+npm run package
+```
+
+Install the emitted `.vsix`, open a COBOL/JCL workspace in VS Code, then run:
+
+1. `Renovatio: Initialize Workspace` to create `.renovatio/workspace.renovatio.json`.
+2. `Renovatio: Open Backend Settings` and `Renovatio: Configure LLM Model` to confirm backend URL, environment, provider, model and prompt profile.
+3. `Renovatio: Run Backend And LLM Checks` to smoke test backend health and reverse-engineering configuration.
+4. `Renovatio: Analyze VS Code Workspace` or the explicit COBOL source-root commands from the `Discovery` view.
+5. `Renovatio: Open Native Domain Diagram`, `Renovatio: Open Native Architecture Diagram` and `Renovatio: Open Migration Map` to review generated artifacts.
+6. `Renovatio: Preview Migration Diff`, approve or reject the change set, then `Renovatio: Apply Approved Changes`.
+7. `Renovatio: Export Evidence Bundle` for reviewer and agent handoff.
+
+For a five-minute evaluation run, use `Renovatio: Install Demo Workspace Assets` before the checks. It writes a small local-first fixture workspace with COBOL, copybook, generated Java, models, migration map and evidence files.
+
 ## Activity Bar Workflow
 
 The Renovatio Activity Bar is organized around the modernization workflow:
@@ -62,6 +89,19 @@ Useful commands:
 - `Renovatio: Validate Workspace`
 - `Renovatio: Format Artifacts`
 
+Minimal manifest shape:
+
+```json
+{
+  "version": "1",
+  "projectId": "carddemo",
+  "source": { "language": "cobol", "roots": ["src/mainframe"] },
+  "targets": [{ "language": "java", "root": "generated/java" }],
+  "backend": { "url": "http://127.0.0.1:8081", "environment": "local", "allowLocalProcessControl": true },
+  "llm": { "provider": "openai", "model": "gpt-4.1", "promptProfile": "renovatio-cobol-reverse-engineering-v1" }
+}
+```
+
 ## 5-Minute Evaluator Flow
 
 Open `Renovatio: Open 5-Minute Evaluator Guide` from the Command Palette or the Renovatio Activity Bar.
@@ -94,6 +134,8 @@ Process-control commands are safety gated:
 - Every command displays the exact shell command and asks for confirmation before execution.
 
 Backend commands may be configured in the manifest under `backend.commands`. Missing backend endpoints are reported as unsupported instead of faking success.
+
+For staging and production manifests, keep `backend.allowLocalProcessControl` disabled. Start, stop and restart commands are intended only for local/dev evaluator workspaces where the manifest explicitly opts in and VS Code shows the exact shell command before execution.
 
 ## Optional Backend Sync
 
@@ -167,6 +209,20 @@ Useful commands:
 
 Migration map paths are workspace-relative. Validation reports malformed entries and missing source or target files in VS Code Problems.
 
+Minimal migration entry:
+
+```json
+{
+  "id": "program:CARDDEMO",
+  "kind": "program",
+  "source": { "language": "cobol", "path": "src/mainframe/CARDDEMO.cbl" },
+  "target": { "language": "java", "path": "generated/java/src/main/java/com/example/CardDemoService.java" },
+  "status": "needs-review",
+  "confidence": 0.84,
+  "evidence": [".renovatio/evidence/evaluator-summary.md"]
+}
+```
+
 ## Artifact Diagnostics
 
 Renovatio publishes workspace-aware diagnostics to VS Code Problems for the manifest, migration map and mapped files.
@@ -219,6 +275,8 @@ The workflow is approval-gated:
 
 Generated code is never applied from preview alone. Every write goes through explicit approval and VS Code workspace file APIs.
 
+Change sets record the proposed target path, before/after hashes, entry ids, status and diff metadata. Applying changes requires an approved status and blocks if the target file changed after preview.
+
 ## Evidence Bundles
 
 `Renovatio: Export Evidence Bundle` writes an auditable bundle under:
@@ -239,6 +297,44 @@ Each bundle includes:
 - `summary.md` for reviewers and handoff.
 
 Missing optional artifacts are listed as warnings. Missing required artifacts block export unless the user explicitly chooses a partial bundle. `Renovatio: Open Latest Evidence Bundle` opens the latest summary, and `Renovatio: Copy Evidence Summary` copies `summary.md` to the clipboard.
+
+Evidence bundle manifests capture the workspace, migration map, diagram artifacts, evidence files, backend identity, LLM identity and warnings used during review. This is the primary handoff artifact for future agents.
+
+## Agent Handoff Guide
+
+Implementation entry points:
+
+- Commands and activation events live in `package.json`; command handlers are registered from `src/extension.ts`.
+- Activity Bar views are implemented by `src/views.ts` and share manifest state from `src/workspaceManifest.ts`.
+- Backend and LLM controls live in `src/backend.ts`; keep local process control gated by manifest environment and explicit confirmation.
+- Migration map contracts live in `src/migrationMap.ts`; testable indexing, hover and hash helpers live in `src/workbenchCore.ts`.
+- CodeLens, hover and source-target navigation live in `src/navigation.ts`.
+- Change-set preview/apply behavior lives in `src/changeSet.ts`.
+- Evidence bundle export lives in `src/evidence.ts`.
+- Diagram parsing and edit application live in `src/model.ts`; shared rendering code lives in `renovatio-workbench/extensions/renovatio-diagram-canvas`.
+- JSON Schemas live under `schemas/`; add or update matching examples under `examples/` and tests under `test/fixtures/workspace-basic/`.
+
+Verification before opening a PR:
+
+```sh
+cd renovatio-vscode-extension
+npm test
+npm run build
+npm run package
+
+cd ..
+./mvnw -B verify -Djacoco.skip=true -Dexec.skip=true
+(cd renovatio-ui && npm run build)
+(cd renovatio-workbench && npm run build)
+```
+
+Common pitfalls:
+
+- Do not let backend sync silently overwrite local artifacts; pulls must create backups and pushes must use revision guards.
+- Keep artifact paths workspace-relative and schema-validated.
+- Add new commands to both `contributes.commands` and `activationEvents`.
+- Update tests when adding schema fields, migration-map statuses or new diagram event behavior.
+- Keep test output such as `dist-test/` out of the packaged `.vsix`.
 
 ## Build
 
