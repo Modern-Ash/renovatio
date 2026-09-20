@@ -62,6 +62,21 @@ Useful commands:
 - `Renovatio: Validate Workspace`
 - `Renovatio: Format Artifacts`
 
+## 5-Minute Evaluator Flow
+
+Open `Renovatio: Open 5-Minute Evaluator Guide` from the Command Palette or the Renovatio Activity Bar.
+
+For a fresh folder:
+
+1. Run `Renovatio: Install Demo Workspace Assets`.
+2. Run `Renovatio: Run Backend And LLM Checks`.
+3. Run `Renovatio: Analyze VS Code Workspace`.
+4. Open `Renovatio: Open Native Domain Diagram`.
+5. Open `Renovatio: Open Migration Map`.
+6. Run `Renovatio: Export Evidence Bundle`.
+
+The demo installer writes a small manifest, COBOL source, copybook, generated Java sample, model artifacts, migration map and evidence summary into the current workspace. Backend and LLM identity are visible before analysis from the `Backend` view and the evaluator guide. Offline or unsupported backend endpoints are reported as status, not as a blocker for local artifact review.
+
 ## Backend And LLM Control
 
 The Renovatio Activity Bar includes a `Backend` view backed by `.renovatio/workspace.renovatio.json`.

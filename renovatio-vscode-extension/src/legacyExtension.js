@@ -4947,14 +4947,13 @@ class ProjectsProvider {
     if (item?.children) return item.children;
     const project = state.projects.find(candidate => candidate.id === state.activeProjectId);
     if (!project) {
-      const create = new vscode.TreeItem('Create Renovatio project', vscode.TreeItemCollapsibleState.None);
-      create.description = 'from COBOL source root';
-      create.iconPath = new vscode.ThemeIcon('new-folder');
-      create.command = { command: 'renovatio.createProject', title: 'Create Renovatio Project' };
-      const select = new vscode.TreeItem('Select Renovatio project', vscode.TreeItemCollapsibleState.None);
-      select.iconPath = new vscode.ThemeIcon('folder-active');
-      select.command = { command: 'renovatio.selectProject', title: 'Select Renovatio Project' };
-      return [create, select];
+      return [
+        treeValue('Status', 'Needs setup', 'Create a manifest or install demo assets before analysis', 'warning'),
+        treeAction('Open 5-minute guide', 'renovatio.openEvaluatorGuide', 'first action', 'rocket'),
+        treeAction('Install demo workspace assets', 'renovatio.installDemoWorkspace', 'sample manifest, COBOL and evidence', 'cloud-download'),
+        treeAction('Initialize Renovatio workspace', 'renovatio.initializeWorkspace', 'create local manifest', 'new-folder'),
+        treeAction('Select Renovatio project', 'renovatio.selectProject', 'existing backend project', 'folder-active')
+      ];
     }
     const settings = workspaceSettings(project);
     const workspace = new vscode.TreeItem(path.basename(settings.workspaceFolderPath || project.workspacePath || 'Workspace'), vscode.TreeItemCollapsibleState.None);
@@ -5017,7 +5016,14 @@ class ProjectsProvider {
     target.description = settings.targetPackage;
     target.iconPath = new vscode.ThemeIcon('symbol-namespace');
 
-    return [switchProject, projectItem, workspace, sources, generated, target];
+    const nextAction = new vscode.TreeItem('Next action', vscode.TreeItemCollapsibleState.Expanded);
+    nextAction.iconPath = new vscode.ThemeIcon('rocket');
+    nextAction.children = [
+      treeAction('Run backend and LLM checks', 'renovatio.runEvaluatorChecks', 'confirm readiness before analysis', 'beaker'),
+      treeAction('Analyze workspace', 'renovatio.analyzeWorkspace', settings.configuredCobolRoots.length ? 'configured roots' : 'workspace fallback', 'run-all')
+    ];
+
+    return [nextAction, switchProject, projectItem, workspace, sources, generated, target];
   }
 }
 
@@ -5032,6 +5038,24 @@ class OperationsProvider {
     const project = state.projects.find(candidate => candidate.id === state.activeProjectId);
     const settings = workspaceSettings(project);
     const operations = [
+      {
+        label: 'Open 5-minute guide',
+        description: project ? 'Ready' : 'Needs setup',
+        icon: 'rocket',
+        command: 'renovatio.openEvaluatorGuide'
+      },
+      {
+        label: 'Install demo workspace assets',
+        description: 'sample manifest and artifacts',
+        icon: 'cloud-download',
+        command: 'renovatio.installDemoWorkspace'
+      },
+      {
+        label: 'Run backend and LLM checks',
+        description: 'health plus reverse-engineering smoke test',
+        icon: 'beaker',
+        command: 'renovatio.runEvaluatorChecks'
+      },
       {
         label: 'Create Renovatio project',
         description: 'from COBOL source root',
@@ -5184,10 +5208,11 @@ class AnalysisProvider {
     }
 
     if (!result.length) {
-      const item = new vscode.TreeItem('No analysis loaded', vscode.TreeItemCollapsibleState.None);
-      item.iconPath = new vscode.ThemeIcon('warning');
-      item.command = { command: 'renovatio.analyzeCobolSources', title: 'Analyze COBOL Sources' };
-      return [item];
+      return [
+        treeValue('Status', 'Ready', 'No analysis has been loaded yet', 'info'),
+        treeAction('Analyze workspace', 'renovatio.analyzeWorkspace', 'primary next action', 'run-all'),
+        treeAction('Open sample COBOL', 'renovatio.openCobolSample', 'demo source', 'file-code')
+      ];
     }
     return result;
   }
@@ -5211,10 +5236,11 @@ class DomainModelProvider {
     }
     const domain = state.domainModel;
     if (!domain) {
-      const refreshItem = new vscode.TreeItem('Domain model not loaded', vscode.TreeItemCollapsibleState.None);
-      refreshItem.iconPath = new vscode.ThemeIcon('refresh');
-      refreshItem.command = { command: 'renovatio.refresh', title: 'Refresh Renovatio' };
-      return [refreshItem];
+      return [
+        treeValue('Status', 'Needs review', 'Run discovery or install demo assets', 'warning'),
+        treeAction('Analyze workspace', 'renovatio.analyzeWorkspace', 'primary next action', 'run-all'),
+        treeAction('Install demo workspace assets', 'renovatio.installDemoWorkspace', 'sample models and diagrams', 'cloud-download')
+      ];
     }
     const model = domain.model || {};
     const nodes = asArray(model.nodes);

@@ -28,6 +28,12 @@
     "workspaceContains:**/*.jcl",
     "workspaceContains:.renovatio/workspace.renovatio.json",
     "onCommand:renovatio.openWelcome",
+    "onCommand:renovatio.openEvaluatorGuide",
+    "onCommand:renovatio.installDemoWorkspace",
+    "onCommand:renovatio.openCobolSample",
+    "onCommand:renovatio.openGeneratedJavaSample",
+    "onCommand:renovatio.openEvidenceSummarySample",
+    "onCommand:renovatio.runEvaluatorChecks",
     "onCommand:renovatio.initializeWorkspace",
     "onCommand:renovatio.openWorkspaceManifest",
     "onCommand:renovatio.validateWorkspace",
@@ -157,6 +163,36 @@
         "command": "renovatio.openWelcome",
         "title": "Renovatio: Welcome",
         "icon": "$(home)"
+      },
+      {
+        "command": "renovatio.openEvaluatorGuide",
+        "title": "Renovatio: Open 5-Minute Evaluator Guide",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "renovatio.installDemoWorkspace",
+        "title": "Renovatio: Install Demo Workspace Assets",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "renovatio.openCobolSample",
+        "title": "Renovatio: Open Sample COBOL",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "renovatio.openGeneratedJavaSample",
+        "title": "Renovatio: Open Sample Generated Java",
+        "icon": "$(symbol-class)"
+      },
+      {
+        "command": "renovatio.openEvidenceSummarySample",
+        "title": "Renovatio: Open Sample Evidence Summary",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "renovatio.runEvaluatorChecks",
+        "title": "Renovatio: Run Backend And LLM Checks",
+        "icon": "$(beaker)"
       },
       {
         "command": "renovatio.refresh",
@@ -497,6 +533,24 @@
       ],
       "commandPalette": [
         {
+          "command": "renovatio.openEvaluatorGuide"
+        },
+        {
+          "command": "renovatio.installDemoWorkspace"
+        },
+        {
+          "command": "renovatio.runEvaluatorChecks"
+        },
+        {
+          "command": "renovatio.openCobolSample"
+        },
+        {
+          "command": "renovatio.openGeneratedJavaSample"
+        },
+        {
+          "command": "renovatio.openEvidenceSummarySample"
+        },
+        {
           "command": "renovatio.openWelcome"
         },
         {
@@ -666,6 +720,11 @@
         }
       ],
       "view/title": [
+        {
+          "command": "renovatio.openEvaluatorGuide",
+          "when": "view == renovatio.workspace || view == renovatio.discovery || view == renovatio.models || view == renovatio.migration || view == renovatio.evidence || view == renovatio.backend",
+          "group": "navigation@0.5"
+        },
         {
           "command": "renovatio.refresh",
           "when": "view == renovatio.workspace || view == renovatio.discovery || view == renovatio.models || view == renovatio.migration || view == renovatio.evidence",
@@ -860,27 +919,27 @@
     "viewsWelcome": [
       {
         "view": "renovatio.workspace",
-        "contents": "Set up the local Renovatio workspace contract before analysis.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Open Manifest](command:renovatio.openWorkspaceManifest)\n[Validate Workspace](command:renovatio.validateWorkspace)\n[Add Source Root](command:renovatio.addCobolSourceRoot)\n[Configure Target Root](command:renovatio.selectGeneratedOutputFolder)"
+        "contents": "Needs setup: create a local workspace contract, backend identity and LLM model before analysis.\n[Open 5-Minute Evaluator Guide](command:renovatio.openEvaluatorGuide)\n[Install Demo Workspace Assets](command:renovatio.installDemoWorkspace)\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Open Manifest](command:renovatio.openWorkspaceManifest)"
       },
       {
         "view": "renovatio.discovery",
-        "contents": "Discover COBOL, JCL, copybooks, datasets and warnings from the configured roots.\n[Analyze Workspace](command:renovatio.analyzeWorkspace)\n[Analyze Explorer Selection](command:renovatio.analyzeSelectedPath)\n[Open Discovery Output](command:renovatio.openDiscoveryOutput)"
+        "contents": "Ready: discover COBOL, JCL, copybooks, datasets and warnings from the configured roots.\n[Analyze Workspace](command:renovatio.analyzeWorkspace)\n[Run Backend And LLM Checks](command:renovatio.runEvaluatorChecks)\n[Open Sample COBOL](command:renovatio.openCobolSample)\n[Open Discovery Output](command:renovatio.openDiscoveryOutput)"
       },
       {
         "view": "renovatio.models",
-        "contents": "Inspect domain, persistence and architecture models after discovery.\n[Analyze Workspace](command:renovatio.analyzeWorkspace)\n[Open Domain Model](command:renovatio.openDomainModel)\n[Open Persistence Model](command:renovatio.openPersistenceModel)\n[Open Domain Diagram](command:renovatio.openNativeDomainDiagram)\n[Open Architecture Diagram](command:renovatio.openNativeArchitectureDiagram)"
+        "contents": "Needs review: inspect domain, persistence and architecture models after discovery.\n[Open Domain Diagram](command:renovatio.openNativeDomainDiagram)\n[Open Domain Model](command:renovatio.openDomainModel)\n[Open Persistence Model](command:renovatio.openPersistenceModel)\n[Open Architecture Diagram](command:renovatio.openNativeArchitectureDiagram)"
       },
       {
         "view": "renovatio.migration",
-        "contents": "Trace legacy source to target code and prepare approval-gated changes.\n[Create Migration Map](command:renovatio.createMigrationMap)\n[Open Migration Map](command:renovatio.openMigrationMap)\n[Validate Migration Map](command:renovatio.validateMigrationMap)\n[Preview Diff](command:renovatio.previewMigrationDiff)\n[Open Future Output](command:renovatio.openGeneratedCode)"
+        "contents": "Ready: trace legacy source to target code and prepare approval-gated changes.\n[Open Migration Map](command:renovatio.openMigrationMap)\n[Create Migration Map](command:renovatio.createMigrationMap)\n[Preview Migration Diff](command:renovatio.previewMigrationDiff)\n[Open Sample Generated Java](command:renovatio.openGeneratedJavaSample)"
       },
       {
         "view": "renovatio.evidence",
-        "contents": "Review analysis evidence, reports, risks and bundle export readiness.\n[Analyze Workspace](command:renovatio.analyzeWorkspace)\n[Open Control Deck](command:renovatio.openControlDeck)\n[Open Discovery Output](command:renovatio.openDiscoveryOutput)\n[Export Evidence Bundle](command:renovatio.exportEvidenceBundle)"
+        "contents": "Needs review: package reports, checksums, risks and handoff evidence.\n[Open Sample Evidence Summary](command:renovatio.openEvidenceSummarySample)\n[Open Control Deck](command:renovatio.openControlDeck)\n[Open Discovery Output](command:renovatio.openDiscoveryOutput)\n[Export Evidence Bundle](command:renovatio.exportEvidenceBundle)"
       },
       {
         "view": "renovatio.backend",
-        "contents": "Configure Renovatio backend and LLM reverse-engineering from the local workspace manifest.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Test Backend Connection](command:renovatio.testBackendConnection)\n[Open Backend Settings](command:renovatio.openBackendSettings)\n[Open Backend Logs](command:renovatio.openBackendLogs)"
+        "contents": "Offline or ready: confirm backend health and LLM reverse-engineering model before analysis.\n[Run Backend And LLM Checks](command:renovatio.runEvaluatorChecks)\n[Configure LLM Model](command:renovatio.configureLlmModel)\n[Open Backend Settings](command:renovatio.openBackendSettings)\n[Open Backend Logs](command:renovatio.openBackendLogs)"
       }
     ],
     "jsonValidation": [
