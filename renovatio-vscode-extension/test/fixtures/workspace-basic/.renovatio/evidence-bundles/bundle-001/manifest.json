@@ -1,31 +1,51 @@
 {
   "version": "1",
-  "bundleId": "bundle-001",
   "projectId": "carddemo-evaluator",
-  "createdAt": "2026-09-19T20:00:00Z",
-  "summary": {
-    "status": "needs-review",
-    "migrationEntries": 2,
-    "warnings": [
-      "Manual review required for CARDDEMO service mapping."
-    ]
-  },
-  "artifacts": {
-    "workspace": ".renovatio/workspace.renovatio.json",
-    "migrationMap": ".renovatio/migration-map.renovatio.json",
-    "domainModel": ".renovatio/diagrams/sample.renovatio-domain.json",
-    "architecture": ".renovatio/diagrams/sample.renovatio-arch.json",
-    "evidence": [
-      ".renovatio/evidence/evaluator-summary.md"
-    ]
-  },
+  "exportedAt": "2026-09-19T20:00:00Z",
+  "partial": false,
   "backend": {
     "url": "http://127.0.0.1:8081",
-    "environment": "local"
+    "environment": "local",
+    "version": "unknown"
   },
   "llm": {
     "provider": "openai",
     "model": "gpt-4.1",
-    "promptProfile": "renovatio-cobol-reverse-engineering-v1"
+    "promptProfile": "renovatio-cobol-reverse-engineering-v1",
+    "cacheEnabled": true
+  },
+  "artifacts": [
+    {
+      "path": "workspace.renovatio.json",
+      "source": ".renovatio/workspace.renovatio.json",
+      "sha256": "sha256:workspace",
+      "required": true
+    },
+    {
+      "path": "migration-map.renovatio.json",
+      "source": ".renovatio/migration-map.renovatio.json",
+      "sha256": "sha256:migration-map",
+      "required": true
+    },
+    {
+      "path": "reports/.renovatio/evidence/evaluator-summary.md",
+      "source": ".renovatio/evidence/evaluator-summary.md",
+      "sha256": "sha256:evidence-summary",
+      "required": false
+    }
+  ],
+  "risks": [],
+  "warnings": [
+    {
+      "path": ".renovatio/evidence/evaluator-summary.md",
+      "message": "Manual review required for CARDDEMO service mapping."
+    }
+  ],
+  "summary": {
+    "sourceFiles": 2,
+    "migrationEntries": 2,
+    "generatedTargets": 1,
+    "staleEntries": 0,
+    "evidenceFiles": 1
   }
 }

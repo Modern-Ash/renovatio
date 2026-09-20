@@ -40,6 +40,7 @@ const SAMPLE_FILES = [
 export class RenovatioOnboardingService implements vscode.Disposable {
     private readonly disposables: vscode.Disposable[] = [];
     private guidePanel?: vscode.WebviewPanel;
+    private demoFolder?: vscode.WorkspaceFolder;
 
     constructor(
         private readonly context: vscode.ExtensionContext,
@@ -53,6 +54,7 @@ export class RenovatioOnboardingService implements vscode.Disposable {
             vscode.commands.registerCommand('renovatio.openCobolSample', () => this.openBundledSample(['examples', 'src', 'mainframe', 'CARDDEMO.cbl'])),
             vscode.commands.registerCommand('renovatio.openGeneratedJavaSample', () => this.openBundledSample(['examples', 'generated', 'java', 'src', 'main', 'java', 'com', 'example', 'modernized', 'Carddemo.java'])),
             vscode.commands.registerCommand('renovatio.openEvidenceSummarySample', () => this.openEvidenceSummarySample()),
+            vscode.commands.registerCommand('renovatio.openInstalledDomainDiagram', () => this.openInstalledDomainDiagram()),
             vscode.commands.registerCommand('renovatio.runEvaluatorChecks', () => this.runEvaluatorChecks())
         );
         context.subscriptions.push(...this.disposables);
@@ -73,13 +75,14 @@ export class RenovatioOnboardingService implements vscode.Disposable {
             this.guidePanel.onDidDispose(() => { this.guidePanel = undefined; });
         }
         this.guidePanel.reveal(vscode.ViewColumn.One);
-        const manifest = await this.manifestService.load();
+        const manifest = await this.manifestService.load(this.demoFolder);
         this.guidePanel.webview.html = this.renderGuide(manifest);
     }
 
     private async installDemoWorkspace(): Promise<void> {
         const folder = await pickWorkspaceFolder();
         if (!folder) return;
+        this.demoFolder = folder;
 
         const manifestUri = workspaceUri(folder, WORKSPACE_MANIFEST_RELATIVE_PATH);
         if (!await exists(manifestUri)) {
@@ -87,15 +90,25 @@ export class RenovatioOnboardingService implements vscode.Disposable {
             await vscode.workspace.fs.writeFile(manifestUri, encodeText(`${JSON.stringify(defaultDemoManifest(folder), null, 2)}\n`));
         }
 
+        let copied = 0;
+        let skipped = 0;
         for (const sample of SAMPLE_FILES) {
             const source = vscode.Uri.joinPath(this.context.extensionUri, ...sample.from);
             const target = workspaceUri(folder, sample.to);
+            if (await exists(target)) {
+                skipped += 1;
+                continue;
+            }
             await vscode.workspace.fs.createDirectory(parentUri(target));
             await vscode.workspace.fs.writeFile(target, await vscode.workspace.fs.readFile(source));
+            copied += 1;
         }
 
         await this.manifestService.validateWorkspace(folder);
-        vscode.window.showInformationMessage('Renovatio demo workspace assets are ready.', 'Open Guide', 'Analyze Workspace')
+        const message = skipped
+            ? `Renovatio demo assets ready: copied ${copied}, preserved ${skipped} existing.`
+            : 'Renovatio demo workspace assets are ready.';
+        vscode.window.showInformationMessage(message, 'Open Guide', 'Analyze Workspace')
             .then(action => {
                 if (action === 'Open Guide') void this.openEvaluatorGuide();
                 if (action === 'Analyze Workspace') void vscode.commands.executeCommand('renovatio.analyzeWorkspace');
@@ -103,7 +116,7 @@ export class RenovatioOnboardingService implements vscode.Disposable {
     }
 
     private async openEvidenceSummarySample(): Promise<void> {
-        const folder = vscode.workspace.workspaceFolders?.[0];
+        const folder = this.demoFolder ?? vscode.workspace.workspaceFolders?.[0];
         if (folder) {
             const local = workspaceUri(folder, '.renovatio/evidence/evaluator-summary.md');
             if (await exists(local)) {
@@ -115,7 +128,7 @@ export class RenovatioOnboardingService implements vscode.Disposable {
     }
 
     private async runEvaluatorChecks(): Promise<void> {
-        const manifest = await this.manifestService.load();
+        const manifest = await this.manifestService.load(this.demoFolder);
         if (!manifest) {
             const action = await vscode.window.showInformationMessage(
                 'Create or install a Renovatio workspace manifest before running backend and LLM checks.',
@@ -128,6 +141,19 @@ export class RenovatioOnboardingService implements vscode.Disposable {
         }
         await vscode.commands.executeCommand('renovatio.testBackendConnection');
         await vscode.commands.executeCommand('renovatio.testLlmReverseEngineering');
+    }
+
+    private async openInstalledDomainDiagram(): Promise<void> {
+        const folder = this.demoFolder ?? vscode.workspace.workspaceFolders?.[0];
+        const manifest = await this.manifestService.load(folder);
+        if (folder && manifest) {
+            const uri = workspaceUri(folder, manifest.artifacts.domainModel);
+            if (await exists(uri)) {
+                await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(uri), { preview: false });
+                return;
+            }
+        }
+        await this.openBundledSample(['examples', 'sample.renovatio-domain.json']);
     }
 
     private async openBundledSample(relativeParts: string[]): Promise<void> {
@@ -211,7 +237,7 @@ export class RenovatioOnboardingService implements vscode.Disposable {
     ${guideStep('1', 'Create demo assets', 'Manifest, COBOL, generated Java, model, migration map and evidence.', 'renovatio.installDemoWorkspace', 'Install Demo Workspace')}
     ${guideStep('2', 'Confirm backend and LLM', 'Shows Offline, Ready or unsupported endpoints before analysis.', 'renovatio.runEvaluatorChecks', 'Run Checks')}
     ${guideStep('3', 'Analyze COBOL', 'Parse the configured roots and populate discovery output.', 'renovatio.analyzeWorkspace', 'Analyze Workspace')}
-    ${guideStep('4', 'Review models', 'Open domain and architecture diagrams with native VS Code editors.', 'renovatio.openNativeDomainDiagram', 'Open Domain Diagram')}
+    ${guideStep('4', 'Review models', 'Open domain and architecture diagrams with native VS Code editors.', 'renovatio.openInstalledDomainDiagram', 'Open Domain Diagram')}
     ${guideStep('5', 'Review traceability', 'Inspect legacy-to-target mapping and stale states.', 'renovatio.openMigrationMap', 'Open Migration Map')}
     ${guideStep('6', 'Export evidence', 'Package reports, checksums and review context.', 'renovatio.exportEvidenceBundle', 'Export Evidence')}
   </section>
@@ -270,8 +296,8 @@ function defaultDemoManifest(folder: vscode.WorkspaceFolder): RenovatioWorkspace
             capabilitiesEndpoint: '/api/capabilities',
             allowLocalProcessControl: true,
             commands: {
-                start: './mvnw -pl renovatio-api spring-boot:run',
-                reloadConfig: 'curl -X POST http://127.0.0.1:8081/api/admin/reload'
+                start: './mvnw -pl renovatio-api spring-boot:run -Dspring-boot.run.arguments=--server.port=8081',
+                reloadConfig: 'curl -fsS -X POST http://127.0.0.1:8081/api/admin/reload'
             }
         },
         llm: {

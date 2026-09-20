@@ -10,8 +10,9 @@
     },
     "dependencyRules": [
       {
-        "from": "controller",
-        "to": "service"
+        "fromLayer": "controller",
+        "toLayer": "service",
+        "allowed": true
       }
     ]
   },

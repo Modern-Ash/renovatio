@@ -7,10 +7,12 @@ const {
   classifyHashState,
   entriesForMigrationPath,
   formatMigrationMap,
+  migrationEntryId,
   migrationHoverMarkdown,
   migrationRangeContains,
   sameHash,
   sha256Text,
+  targetPathForMigration,
   validateMigrationMapArtifact,
   workspaceRelativePath
 } = require('../dist-test/src/workbenchCore');
@@ -34,6 +36,35 @@ test('migration map formatter sorts entries by id', () => {
   });
   assert.ok(text.indexOf('program:AFIRST') < text.indexOf('program:ZLAST'));
   assert.ok(text.endsWith('\n'));
+});
+
+test('migration entry ids include source path to avoid basename collisions', () => {
+  assert.equal(migrationEntryId('program', 'src/a/CUSTOMER.cbl', 0), 'program:src:a:CUSTOMER');
+  assert.equal(migrationEntryId('program', 'src/b/CUSTOMER.cbl', 1), 'program:src:b:CUSTOMER');
+});
+
+test('target path helper emits language-specific target extensions', () => {
+  assert.equal(
+    targetPathForMigration({ language: 'python', root: 'generated/python' }, 'src/mainframe/CARDDEMO.cbl', ['src/mainframe']),
+    'generated/python/CARDDEMO.py'
+  );
+  assert.equal(
+    targetPathForMigration({ language: 'node', root: 'generated/node' }, 'src/mainframe/CARDDEMO.cbl', ['src/mainframe']),
+    'generated/node/CARDDEMO.ts'
+  );
+});
+
+test('migration map validator rejects malformed trace and decision contracts', () => {
+  const issues = validateMigrationMapArtifact({
+    ...migrationMap,
+    entries: [{
+      ...migrationMap.entries[0],
+      renovatio: [],
+      lastDecision: 'accepted'
+    }]
+  });
+  assert.ok(issues.some(issue => issue.includes('renovatio must be an object')));
+  assert.ok(issues.some(issue => issue.includes('lastDecision must be an object')));
 });
 
 test('hover markdown is concise and includes commands and stale review state', () => {

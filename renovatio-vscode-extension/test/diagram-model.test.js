@@ -37,6 +37,11 @@ test('architecture diagram fixture parses and preserves profile layout changes',
   const parsed = parseDiagramDocument(fs.readFileSync(uri, 'utf8'), uri);
   assert.equal(parsed.kind, 'architecture');
   assert.ok(parsed.model.nodes.some(node => node.id === 'architecture-layer:service'));
+  assert.ok(parsed.model.edges.some(edge =>
+    edge.id === 'architecture-rule:controller:service:0' &&
+    edge.source === 'architecture-layer:controller' &&
+    edge.target === 'architecture-layer:service'
+  ));
   const next = applyDiagramEvent(parsed, {
     type: 'layoutChanged',
     positions: {

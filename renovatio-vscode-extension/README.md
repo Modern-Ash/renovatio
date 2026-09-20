@@ -306,11 +306,11 @@ Implementation entry points:
 
 - Commands and activation events live in `package.json`; command handlers are registered from `src/extension.ts`.
 - Activity Bar views are implemented by `src/views.ts` and share manifest state from `src/workspaceManifest.ts`.
-- Backend and LLM controls live in `src/backend.ts`; keep local process control gated by manifest environment and explicit confirmation.
+- Backend and LLM controls live in `src/backendControl.ts`; keep local process control gated by manifest environment and explicit confirmation.
 - Migration map contracts live in `src/migrationMap.ts`; testable indexing, hover and hash helpers live in `src/workbenchCore.ts`.
 - CodeLens, hover and source-target navigation live in `src/navigation.ts`.
-- Change-set preview/apply behavior lives in `src/changeSet.ts`.
-- Evidence bundle export lives in `src/evidence.ts`.
+- Change-set storage helpers live in `src/changeSet.ts`; preview, approval, apply and reconciliation behavior lives in `src/generationWorkflow.ts`.
+- Evidence bundle export lives in `src/evidenceBundle.ts`.
 - Diagram parsing and edit application live in `src/model.ts`; shared rendering code lives in `renovatio-workbench/extensions/renovatio-diagram-canvas`.
 - JSON Schemas live under `schemas/`; add or update matching examples under `examples/` and tests under `test/fixtures/workspace-basic/`.
 

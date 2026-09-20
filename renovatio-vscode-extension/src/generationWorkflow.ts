@@ -226,9 +226,10 @@ export class RenovatioGenerationWorkflow implements vscode.Disposable {
         for (const [index, entry] of entries.entries()) {
             if (!entry.target?.path || entry.status === 'rejected') continue;
             const targetUri = workspaceUri(context.folder, entry.target.path);
-            const before = await exists(targetUri) ? decodeBytes(await vscode.workspace.fs.readFile(targetUri)) : '';
+            const existedBefore = await exists(targetUri);
+            const before = existedBefore ? decodeBytes(await vscode.workspace.fs.readFile(targetUri)) : '';
             const after = this.proposedContent(entry, targetLanguage, before);
-            const beforeHash = before ? await sha256Text(before) : null;
+            const beforeHash = existedBefore ? await sha256Text(before) : null;
             const afterHash = await sha256Text(after);
             const changeId = `change-${String(index + 1).padStart(3, '0')}`;
             const beforePath = `${directory}/${changeId}.before`;
@@ -289,13 +290,31 @@ export class RenovatioGenerationWorkflow implements vscode.Disposable {
         changeSet: RenovatioChangeSet,
         change: RenovatioChange
     ): Promise<'applied' | 'conflict'> {
+        if (!isWorkspaceRelativePath(change.path)) {
+            change.status = 'conflict';
+            return 'conflict';
+        }
         const targetUri = workspaceUri(context.folder, change.path);
+        const existsNow = await exists(targetUri);
         if (change.kind === 'delete') {
-            change.status = 'skipped';
+            if (change.beforeHash && existsNow) {
+                const currentHash = await sha256File(targetUri);
+                if (currentHash !== change.beforeHash) {
+                    change.status = 'conflict';
+                    return 'conflict';
+                }
+            }
+            if (existsNow) await vscode.workspace.fs.delete(targetUri);
+            change.afterHash = null;
+            change.status = 'applied';
+            this.updateMigrationEntries(context.migrationMap, changeSet, change);
             return 'applied';
         }
-        const existsNow = await exists(targetUri);
         if (change.beforeHash === null && existsNow) {
+            change.status = 'conflict';
+            return 'conflict';
+        }
+        if (change.kind === 'modify' && !existsNow) {
             change.status = 'conflict';
             return 'conflict';
         }
@@ -306,7 +325,7 @@ export class RenovatioGenerationWorkflow implements vscode.Disposable {
                 return 'conflict';
             }
         }
-        if (!change.afterPath) {
+        if (!change.afterPath || !isWorkspaceRelativePath(change.afterPath)) {
             change.status = 'conflict';
             return 'conflict';
         }
@@ -328,7 +347,7 @@ export class RenovatioGenerationWorkflow implements vscode.Disposable {
         for (const entryId of change.migrationEntryIds) {
             const entry = migrationMap.entries.find(candidate => candidate.id === entryId);
             if (!entry) continue;
-            entry.status = 'generated';
+            entry.status = change.kind === 'delete' ? 'accepted' : 'generated';
             if (entry.target) entry.target.hash = change.afterHash ?? undefined;
             entry.evidence = [...new Set([...(entry.evidence ?? []), evidence, change.diffPath])];
             entry.lastDecision = {
@@ -376,6 +395,11 @@ export class RenovatioGenerationWorkflow implements vscode.Disposable {
         const migrationMap = JSON.parse(decodeBytes(await vscode.workspace.fs.readFile(mapUri))) as MigrationMapArtifact;
         return { folder, manifest, mapUri, migrationMap };
     }
+}
+
+function isWorkspaceRelativePath(path: string): boolean {
+    if (path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path) || /^[a-z][a-z0-9+.-]*:/i.test(path)) return false;
+    return !path.replace(/\\/g, '/').split('/').some(part => part === '..');
 }
 
 async function aggregateSourceHash(folder: vscode.WorkspaceFolder, entries: MigrationMapEntry[]): Promise<string | undefined> {

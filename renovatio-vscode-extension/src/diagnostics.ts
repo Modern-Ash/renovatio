@@ -105,7 +105,7 @@ export class RenovatioArtifactDiagnosticsService implements vscode.Disposable {
         if (!await exists(uri)) return undefined;
         const text = decodeBytes(await vscode.workspace.fs.readFile(uri));
         try {
-            return { uri, text, value: JSON.parse(text) as T };
+            return { uri, text, value: parseJsonc(text) as T };
         } catch (error) {
             const target = uri.fsPath.endsWith('migration-map.renovatio.json')
                 ? this.migrationMapDiagnostics
@@ -265,8 +265,8 @@ export class RenovatioArtifactDiagnosticsService implements vscode.Disposable {
             addJsonDiagnostic(diagnostics, document.text, label, `${label} is missing ${side}.path.`, vscode.DiagnosticSeverity.Warning);
             return;
         }
-        if (isAbsolutePath(location.path)) {
-            addJsonDiagnostic(diagnostics, document.text, location.path, `${label} ${side}.path must be workspace-relative.`, vscode.DiagnosticSeverity.Error);
+        if (!isWorkspaceRelativePath(location.path)) {
+            addJsonDiagnostic(diagnostics, document.text, location.path, `${label} ${side}.path must be workspace-relative and stay inside the workspace.`, vscode.DiagnosticSeverity.Error);
             return;
         }
 
@@ -312,8 +312,16 @@ export class RenovatioArtifactDiagnosticsService implements vscode.Disposable {
         if (entry.status === 'generated' && (!Array.isArray(entry.evidence) || entry.evidence.length === 0)) {
             addJsonDiagnostic(diagnostics, document.text, label, `${label} is generated without evidence.`, vscode.DiagnosticSeverity.Warning);
         }
-        for (const evidence of entry.evidence ?? []) {
+        const evidenceEntries = Array.isArray(entry.evidence) ? entry.evidence : [];
+        if (!Array.isArray(entry.evidence)) {
+            addJsonDiagnostic(diagnostics, document.text, label, `${label} evidence must be an array.`, vscode.DiagnosticSeverity.Error);
+        }
+        for (const evidence of evidenceEntries) {
             if (!looksLikePath(evidence)) continue;
+            if (!isWorkspaceRelativePath(evidence)) {
+                addJsonDiagnostic(diagnostics, document.text, evidence, `${label} evidence path must stay inside the workspace: ${evidence}.`, vscode.DiagnosticSeverity.Error);
+                continue;
+            }
             const exact = workspaceUri(folder, evidence);
             const underEvidenceDir = workspaceUri(folder, [manifest.artifacts.evidenceDir, evidence].join('/'));
             if (!await exists(exact) && !await exists(underEvidenceDir)) {
@@ -335,7 +343,7 @@ function validateWorkspacePaths(
             addJsonDiagnostic(diagnostics, text, label, `${label} cannot be empty.`, vscode.DiagnosticSeverity.Error);
             continue;
         }
-        if (isAbsolutePath(value) && !isUnderWorkspace(folder, value)) {
+        if (!isWorkspaceRelativePath(value) && !(isAbsolutePath(value) && isUnderWorkspace(folder, value))) {
             addJsonDiagnostic(diagnostics, text, value, `${label} points outside the workspace: ${value}.`, vscode.DiagnosticSeverity.Error);
         }
     }
@@ -448,6 +456,11 @@ function isAbsolutePath(path: string): boolean {
     return path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path);
 }
 
+function isWorkspaceRelativePath(path: string): boolean {
+    if (isAbsolutePath(path) || /^[a-z][a-z0-9+.-]*:/i.test(path)) return false;
+    return !path.replace(/\\/g, '/').split('/').some(part => part === '..');
+}
+
 function normalizePath(value: string): string {
     return value.replace(/\\/g, '/').replace(/\/+$/, '');
 }
@@ -477,6 +490,57 @@ async function exists(uri: vscode.Uri): Promise<boolean> {
 
 function decodeBytes(value: Uint8Array): string {
     return new TextDecoder('utf-8').decode(value);
+}
+
+function parseJsonc(text: string): unknown {
+    return JSON.parse(stripJsonComments(text));
+}
+
+function stripJsonComments(text: string): string {
+    let output = '';
+    let inString = false;
+    let escaped = false;
+    for (let index = 0; index < text.length; index += 1) {
+        const char = text[index];
+        const next = text[index + 1];
+        if (inString) {
+            output += char;
+            if (escaped) {
+                escaped = false;
+            } else if (char === '\\') {
+                escaped = true;
+            } else if (char === '"') {
+                inString = false;
+            }
+            continue;
+        }
+        if (char === '"') {
+            inString = true;
+            output += char;
+            continue;
+        }
+        if (char === '/' && next === '/') {
+            while (index < text.length && text[index] !== '\n') {
+                output += ' ';
+                index += 1;
+            }
+            output += '\n';
+            continue;
+        }
+        if (char === '/' && next === '*') {
+            output += '  ';
+            index += 2;
+            while (index < text.length && !(text[index] === '*' && text[index + 1] === '/')) {
+                output += text[index] === '\n' ? '\n' : ' ';
+                index += 1;
+            }
+            output += '  ';
+            index += 1;
+            continue;
+        }
+        output += char;
+    }
+    return output;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
