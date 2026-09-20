@@ -26,7 +26,9 @@ The VS Code extension contributes JSON Schemas for local-first Renovatio workben
   "projectId": "carddemo",
   "source": {
     "language": "cobol",
-    "roots": ["src/mainframe"]
+    "roots": ["src/mainframe"],
+    "include": ["**/*.cbl", "**/*.cob", "**/*.cpy", "**/*.jcl"],
+    "exclude": ["**/target/**", "**/.git/**"]
   },
   "targets": [
     {
@@ -34,14 +36,27 @@ The VS Code extension contributes JSON Schemas for local-first Renovatio workben
       "root": "generated/java"
     }
   ],
+  "artifacts": {
+    "domainModel": ".renovatio/diagrams/carddemo.renovatio-domain.json",
+    "persistenceModel": ".renovatio/diagrams/carddemo-persistence.renovatio-domain.json",
+    "architecture": ".renovatio/diagrams/carddemo.renovatio-arch.json",
+    "migrationMap": ".renovatio/migration-map.renovatio.json",
+    "evidenceDir": ".renovatio/evidence"
+  },
   "backend": {
     "url": "http://127.0.0.1:8081",
-    "environment": "local"
+    "environment": "local",
+    "allowLocalProcessControl": true
   },
   "llm": {
     "provider": "openai",
     "model": "gpt-4.1",
-    "promptProfile": "renovatio-cobol-reverse-engineering-v1"
+    "purpose": "cobol-reverse-engineering",
+    "temperature": 0.1,
+    "maxTokens": 8192,
+    "cacheEnabled": true,
+    "promptProfile": "renovatio-cobol-reverse-engineering-v1",
+    "fallbackModel": null
   }
 }
 ```

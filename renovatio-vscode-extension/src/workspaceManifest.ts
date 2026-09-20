@@ -71,7 +71,7 @@ export class RenovatioWorkspaceManifestService implements vscode.Disposable {
             this.diagnostics,
             vscode.workspace.onDidOpenTextDocument(document => this.validateDocumentIfManifest(document)),
             vscode.workspace.onDidSaveTextDocument(document => this.validateDocumentIfManifest(document)),
-            vscode.workspace.onDidChangeWorkspaceFolders(() => void this.validateWorkspace())
+            vscode.workspace.onDidChangeWorkspaceFolders(() => void this.validateWorkspace(undefined, { notify: false }))
         );
     }
 
@@ -132,27 +132,33 @@ export class RenovatioWorkspaceManifestService implements vscode.Disposable {
         await vscode.window.showTextDocument(document, { preview: false });
     }
 
-    async validateWorkspace(folder?: vscode.WorkspaceFolder): Promise<boolean> {
+    async validateWorkspace(folder?: vscode.WorkspaceFolder, options: { notify?: boolean } = {}): Promise<boolean> {
+        const notify = options.notify ?? true;
         const folders = folder ? [folder] : vscode.workspace.workspaceFolders ?? [];
         if (!folders.length) {
-            vscode.window.showWarningMessage('Open a VS Code workspace before validating Renovatio artifacts.');
+            if (notify) vscode.window.showWarningMessage('Open a VS Code workspace before validating Renovatio artifacts.');
             return false;
         }
 
         let valid = true;
+        let inspected = 0;
         for (const workspaceFolder of folders) {
             const manifestUri = this.manifestUri(workspaceFolder);
             if (!await exists(manifestUri)) {
                 this.diagnostics.delete(manifestUri);
                 continue;
             }
+            inspected += 1;
             const text = decodeBytes(await vscode.workspace.fs.readFile(manifestUri));
             const diagnostics = this.validateManifestText(text);
             this.diagnostics.set(manifestUri, diagnostics);
             valid = valid && diagnostics.length === 0;
         }
 
-        if (valid) {
+        if (!notify) return valid;
+        if (inspected === 0) {
+            vscode.window.showInformationMessage('No Renovatio workspace manifest found.');
+        } else if (valid) {
             vscode.window.showInformationMessage('Renovatio workspace validation passed.');
         } else {
             vscode.window.showWarningMessage('Renovatio workspace validation found issues. See Problems.');
@@ -211,6 +217,12 @@ export class RenovatioWorkspaceManifestService implements vscode.Disposable {
 
     private async formatDocument(document: vscode.TextDocument, options: { silent?: boolean } = {}): Promise<boolean> {
         try {
+            if (hasJsonComments(document.getText())) {
+                if (!options.silent) {
+                    vscode.window.showWarningMessage('Renovatio JSONC artifacts with comments are left unchanged to preserve comments.');
+                }
+                return false;
+            }
             const parsed = parseJsonc(document.getText());
             const formatted = `${JSON.stringify(parsed, null, 2)}\n`;
             if (formatted === document.getText()) return true;
@@ -313,7 +325,14 @@ export class RenovatioWorkspaceManifestService implements vscode.Disposable {
     } {
         const config = vscode.workspace.getConfiguration('renovatio', folder.uri);
         const targetLanguage = String(config.get('targetLanguage') || 'java');
-        const generatedRoot = String(config.get('generatedRoot') || `generated/${targetLanguage}`);
+        const configuredGeneratedRoot = config.inspect<string>('generatedRoot');
+        const generatedRootValue = String(config.get('generatedRoot') || `generated/${targetLanguage}`);
+        const hasExplicitGeneratedRoot = configuredGeneratedRoot?.globalValue !== undefined
+            || configuredGeneratedRoot?.workspaceValue !== undefined
+            || configuredGeneratedRoot?.workspaceFolderValue !== undefined;
+        const generatedRoot = !hasExplicitGeneratedRoot && generatedRootValue === 'generated/java' && targetLanguage !== 'java'
+            ? `generated/${targetLanguage}`
+            : generatedRootValue;
         const generatedRoots = uniqueStrings([
             ...stringArray(config.get('generatedRoots')),
             generatedRoot
@@ -369,8 +388,8 @@ function validateManifest(value: unknown): string[] {
                 issues.push(`targets[${index}] must be an object.`);
                 return;
             }
-            requireString(target, 'language', issues);
-            requireString(target, 'root', issues);
+            requireString(target, 'language', issues, ['java', 'python', 'node']);
+            requireWorkspaceRelativePath(target, 'root', issues, `targets[${index}].root`);
         });
     }
     const artifacts = requireObject(value, 'artifacts', issues);
@@ -387,6 +406,10 @@ function validateManifest(value: unknown): string[] {
         if (backend.capabilitiesEndpoint !== undefined) requireString(backend, 'capabilitiesEndpoint', issues);
         if (backend.commands !== undefined && !isRecord(backend.commands)) {
             issues.push('backend.commands must be an object.');
+        } else if (isRecord(backend.commands)) {
+            for (const key of ['start', 'stop', 'restart', 'reloadConfig']) {
+                if (backend.commands[key] !== undefined) requireString(backend.commands, key, issues);
+            }
         }
         if (typeof backend.allowLocalProcessControl !== 'boolean') {
             issues.push('backend.allowLocalProcessControl must be a boolean.');
@@ -467,14 +490,14 @@ function requireStringArray(target: Record<string, unknown>, key: string, issues
     }
 }
 
-function requireWorkspaceRelativePath(target: Record<string, unknown>, key: string, issues: string[]): void {
+function requireWorkspaceRelativePath(target: Record<string, unknown>, key: string, issues: string[], label = `artifacts.${key}`): void {
     const value = target[key];
     if (typeof value !== 'string' || value.trim() === '') {
-        issues.push(`artifacts.${key} must be a workspace-relative path.`);
+        issues.push(`${label} must be a workspace-relative path.`);
         return;
     }
-    if (value.startsWith('/') || /^[a-zA-Z]:[\\/]/.test(value)) {
-        issues.push(`artifacts.${key} must be workspace-relative, not absolute.`);
+    if (value.startsWith('/') || /^[a-zA-Z]:[\\/]/.test(value) || /^[a-z][a-z0-9+.-]*:/i.test(value) || value.replace(/\\/g, '/').split('/').includes('..')) {
+        issues.push(`${label} must stay inside the workspace.`);
     }
 }
 
@@ -535,6 +558,31 @@ function stripJsonComments(text: string): string {
         output += char;
     }
     return output;
+}
+
+function hasJsonComments(text: string): boolean {
+    let inString = false;
+    let escaped = false;
+    for (let index = 0; index < text.length; index += 1) {
+        const char = text[index];
+        const next = text[index + 1];
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (char === '\\') {
+                escaped = true;
+            } else if (char === '"') {
+                inString = false;
+            }
+            continue;
+        }
+        if (char === '"') {
+            inString = true;
+            continue;
+        }
+        if (char === '/' && (next === '/' || next === '*')) return true;
+    }
+    return false;
 }
 
 function relativePath(folder: vscode.WorkspaceFolder, value: string): string {

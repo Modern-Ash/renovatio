@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { formatMigrationMap, type MigrationMapArtifact, type MigrationMapEntry, type MigrationLocation } from './migrationMap';
+import { formatMigrationMap, validateMigrationMapArtifact, type MigrationMapArtifact, type MigrationMapEntry, type MigrationLocation } from './migrationMap';
 import { type RenovatioWorkspaceManifest, RenovatioWorkspaceManifestService } from './workspaceManifest';
 import { entriesForMigrationPath, migrationHoverMarkdown } from './workbenchCore';
 
@@ -96,7 +96,7 @@ export class MigrationNavigationService implements vscode.CodeLensProvider, vsco
             .filter(entry => entryMatchesPosition(document, position, entry[side]));
         if (!entries.length) return undefined;
         const markdown = new vscode.MarkdownString(undefined, true);
-        markdown.isTrusted = true;
+        markdown.isTrusted = { enabledCommands: ['renovatio.openMigrationTarget', 'renovatio.openMigrationSource', 'renovatio.showMigrationEvidence'] };
         markdown.supportThemeIcons = true;
         markdown.appendMarkdown(entries.slice(0, 3).map(entry => migrationHoverMarkdown(entry, side)).join('\n\n---\n\n'));
         return new vscode.Hover(markdown);
@@ -247,6 +247,11 @@ export class MigrationNavigationService implements vscode.CodeLensProvider, vsco
         if (!await exists(uri)) return undefined;
         try {
             const artifact = JSON.parse(new TextDecoder('utf-8').decode(await vscode.workspace.fs.readFile(uri))) as MigrationMapArtifact;
+            const issues = validateMigrationMapArtifact(artifact);
+            if (issues.length) {
+                if (!options.silent) vscode.window.showWarningMessage(`Migration map is invalid: ${issues[0]}`);
+                return undefined;
+            }
             return { folder, manifest, uri, artifact };
         } catch (error) {
             if (!options.silent) vscode.window.showErrorMessage(`Could not read migration map: ${message(error)}`);

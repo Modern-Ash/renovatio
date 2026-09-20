@@ -23,7 +23,10 @@ export class BackendClientError extends Error {
 }
 
 export class RenovatioBackendArtifactClient {
-    constructor(private readonly manifest: RenovatioWorkspaceManifest) {}
+    constructor(
+        private readonly manifest: RenovatioWorkspaceManifest,
+        private readonly role = 'ADMIN'
+    ) {}
 
     async getArtifact(key: RenovatioSyncArtifactKey): Promise<RemoteArtifact> {
         const response = await this.request('GET', this.artifactPath(key));
@@ -74,6 +77,7 @@ export class RenovatioBackendArtifactClient {
                 signal: controller.signal,
                 headers: {
                     'Accept': 'application/json',
+                    'X-Role': this.role,
                     ...(body === undefined ? {} : { 'Content-Type': 'application/json' })
                 },
                 body: body === undefined ? undefined : JSON.stringify(body)

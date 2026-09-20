@@ -55,6 +55,11 @@ export type NavigationSide = 'source' | 'target';
 
 const STATUSES = ['proposed', 'accepted', 'generated', 'manually-edited', 'stale-source', 'stale-target', 'needs-review', 'rejected'];
 const ENTRY_KINDS = ['program', 'paragraph', 'section', 'copybook', 'record', 'field', 'jcl-job', 'jcl-step', 'business-rule', 'dataset', 'table', 'test-fixture'];
+const TARGET_EXTENSIONS: Record<string, string> = {
+    java: '.java',
+    python: '.py',
+    node: '.ts'
+};
 
 export function parseJsonObject(text: string, label: string): Record<string, unknown> {
     const parsed = JSON.parse(text) as unknown;
@@ -78,6 +83,8 @@ export function validateMigrationMapArtifact(value: unknown): string[] {
     requireString(value, 'version', issues, ['1']);
     requireString(value, 'projectId', issues);
     requireString(value, 'generatedAt', issues);
+    requireOptionalString(value, 'sourceHash', issues);
+    requireOptionalString(value, 'targetHash', issues);
     if (!Array.isArray(value.entries)) {
         issues.push('entries must be an array.');
         return issues;
@@ -103,8 +110,38 @@ export function validateMigrationMapArtifact(value: unknown): string[] {
         }
         validateLocation(entry.source, `entries[${index}].source`, issues);
         validateLocation(entry.target, `entries[${index}].target`, issues);
+        validateRenovatioTrace(entry.renovatio, `entries[${index}].renovatio`, issues);
+        validateDecision(entry.lastDecision, `entries[${index}].lastDecision`, issues);
     });
     return issues;
+}
+
+export function migrationEntryId(kind: string, sourcePath: string, fallbackIndex: number): string {
+    const normalized = normalizePath(sourcePath)
+        .replace(/\.[^.]+$/, '')
+        .replace(/[^A-Za-z0-9._/-]+/g, '-')
+        .replace(/[/.]+/g, ':')
+        .replace(/:+/g, ':')
+        .replace(/^:+|:+$/g, '');
+    return `${kind}:${normalized || fallbackIndex}`;
+}
+
+export function targetPathForMigration(
+    target: { language: string; root: string; package?: string },
+    sourcePath: string,
+    sourceRoots: string[]
+): string {
+    const normalizedSource = normalizePath(sourcePath);
+    const root = sourceRoots.map(normalizePath).find(candidate => normalizedSource.startsWith(`${candidate}/`));
+    const relative = root ? normalizedSource.slice(root.length + 1) : normalizedSource;
+    const base = relative.replace(/\.[^.]+$/, '');
+    if (target.language === 'java') {
+        const packagePath = (target.package ?? '').replace(/\./g, '/');
+        return [target.root, 'src/main/java', packagePath, `${targetSymbol(symbolFromPath(normalizedSource) ?? base)}.java`]
+            .filter(Boolean)
+            .join('/');
+    }
+    return `${target.root}/${base}${TARGET_EXTENSIONS[target.language] ?? ''}`;
 }
 
 export function entriesForMigrationPath(
@@ -200,6 +237,8 @@ function validateLocation(value: unknown, label: string, issues: string[]): void
     }
     requireString(value, 'language', issues);
     requireString(value, 'path', issues);
+    requireOptionalString(value, 'symbol', issues);
+    requireOptionalString(value, 'hash', issues);
     const range = value.range;
     if (range !== undefined) {
         if (!isRecord(range)) {
@@ -214,6 +253,32 @@ function validateLocation(value: unknown, label: string, issues: string[]): void
     }
 }
 
+function validateRenovatioTrace(value: unknown, label: string, issues: string[]): void {
+    if (value === undefined) return;
+    if (!isRecord(value)) {
+        issues.push(`${label} must be an object.`);
+        return;
+    }
+    for (const key of ['domainNodeIds', 'architectureNodeIds', 'semanticIds']) {
+        const entries = value[key];
+        if (!Array.isArray(entries) || entries.some(entry => typeof entry !== 'string')) {
+            issues.push(`${label}.${key} must be an array of strings.`);
+        }
+    }
+}
+
+function validateDecision(value: unknown, label: string, issues: string[]): void {
+    if (value === undefined) return;
+    if (!isRecord(value)) {
+        issues.push(`${label} must be an object.`);
+        return;
+    }
+    requireString(value, 'actor', issues);
+    requireString(value, 'action', issues);
+    requireString(value, 'at', issues);
+    requireOptionalString(value, 'reason', issues);
+}
+
 function requireString(target: Record<string, unknown>, key: string, issues: string[], allowed?: string[]): void {
     const value = target[key];
     if (typeof value !== 'string' || value.trim() === '') {
@@ -223,6 +288,22 @@ function requireString(target: Record<string, unknown>, key: string, issues: str
     if (allowed && !allowed.includes(value)) {
         issues.push(`${key} must be one of: ${allowed.join(', ')}.`);
     }
+}
+
+function requireOptionalString(target: Record<string, unknown>, key: string, issues: string[]): void {
+    const value = target[key];
+    if (value !== undefined && typeof value !== 'string') {
+        issues.push(`${key} must be a string.`);
+    }
+}
+
+function symbolFromPath(path: string): string | undefined {
+    const fileName = path.split('/').pop();
+    return fileName?.replace(/\.[^.]+$/, '').toUpperCase();
+}
+
+function targetSymbol(symbol: string): string {
+    return symbol.toLowerCase().replace(/(^|[-_])([a-z0-9])/g, (_match, _prefix, value: string) => value.toUpperCase());
 }
 
 function formatLocation(location: MigrationLocation | undefined): string {

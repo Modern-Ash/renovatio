@@ -69,7 +69,7 @@ export function activate(context: vscode.ExtensionContext): void {
         vscode.commands.registerCommand('renovatio.openDomainSample', () => openSample(context, 'sample.renovatio-domain.json')),
         vscode.commands.registerCommand('renovatio.openArchitectureSample', () => openSample(context, 'sample.renovatio-arch.json'))
     );
-    void manifestService.validateWorkspace();
+    void manifestService.validateWorkspace(undefined, { notify: false });
     void artifactDiagnostics.refreshAll();
 }
 

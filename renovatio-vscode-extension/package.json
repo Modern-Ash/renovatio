@@ -33,6 +33,7 @@
     "onCommand:renovatio.openCobolSample",
     "onCommand:renovatio.openGeneratedJavaSample",
     "onCommand:renovatio.openEvidenceSummarySample",
+    "onCommand:renovatio.openInstalledDomainDiagram",
     "onCommand:renovatio.runEvaluatorChecks",
     "onCommand:renovatio.initializeWorkspace",
     "onCommand:renovatio.openWorkspaceManifest",
@@ -188,6 +189,11 @@
         "command": "renovatio.openEvidenceSummarySample",
         "title": "Renovatio: Open Sample Evidence Summary",
         "icon": "$(shield)"
+      },
+      {
+        "command": "renovatio.openInstalledDomainDiagram",
+        "title": "Renovatio: Open Installed Domain Diagram",
+        "icon": "$(type-hierarchy)"
       },
       {
         "command": "renovatio.runEvaluatorChecks",

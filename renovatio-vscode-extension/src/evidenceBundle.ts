@@ -238,14 +238,22 @@ export class RenovatioEvidenceBundleService implements vscode.Disposable {
         );
         for (const file of evidenceFiles) evidence.add(relativePath(folder, file));
         for (const value of [...evidence].sort()) {
+            if (!isWorkspaceRelativePath(value)) {
+                warnings.push({ path: value, message: 'Evidence reference escapes the workspace.' });
+                continue;
+            }
             const source = await exists(workspaceUri(folder, value))
                 ? value
                 : `${manifest.artifacts.evidenceDir}/${value}`;
+            if (!isWorkspaceRelativePath(source)) {
+                warnings.push({ path: value, message: 'Evidence reference escapes the workspace.' });
+                continue;
+            }
             if (!await exists(workspaceUri(folder, source))) {
                 warnings.push({ path: value, message: 'Evidence reference does not exist.' });
                 continue;
             }
-            await this.copyArtifact(folder, bundleUri, source, `reports/${source.split('/').pop()}`, false, artifacts, warnings, checksums);
+            await this.copyArtifact(folder, bundleUri, source, `reports/${safeBundlePath(source)}`, false, artifacts, warnings, checksums);
         }
     }
 
@@ -389,12 +397,23 @@ function summaryCounts(
     migrationMap: MigrationMapArtifact | undefined,
     warnings: BundleWarning[]
 ): EvidenceBundleManifest['summary'] {
+    const sourceRoots = manifest.source.roots.map(root => root.replace(/\\/g, '/'));
+    const sourceFiles = new Set(
+        (migrationMap?.entries ?? [])
+            .map(entry => entry.source?.path)
+            .filter((value): value is string => Boolean(value))
+    );
+    const evidenceFiles = new Set(
+        (migrationMap?.entries ?? [])
+            .flatMap(entry => entry.evidence ?? [])
+            .filter(looksLikeWorkspaceFile)
+    );
     return {
-        sourceFiles: manifest.source.roots.length,
+        sourceFiles: sourceFiles.size || sourceRoots.length,
         migrationEntries: migrationMap?.entries.length ?? 0,
         generatedTargets: (migrationMap?.entries ?? []).filter(entry => entry.target?.path && entry.status === 'generated').length,
         staleEntries: (migrationMap?.entries ?? []).filter(entry => entry.status === 'stale-source' || entry.status === 'stale-target').length,
-        evidenceFiles: warnings.filter(warning => warning.message.includes('Evidence')).length
+        evidenceFiles: evidenceFiles.size
     };
 }
 
@@ -420,10 +439,19 @@ function sanitizeName(value: string): string {
 }
 
 function timestampId(value: Date): string {
-    return value.toISOString().slice(0, 10).replace(/-/g, '');
+    return value.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
 }
 
 function looksLikeWorkspaceFile(value: string): boolean {
     if (/^[a-z][a-z0-9+.-]*:/i.test(value)) return false;
     return value.includes('/') || value.includes('\\') || /\.(json|ya?ml|md|txt|log|sarif|xml|html?|diff)$/i.test(value);
+}
+
+function isWorkspaceRelativePath(path: string): boolean {
+    if (path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path) || /^[a-z][a-z0-9+.-]*:/i.test(path)) return false;
+    return !path.replace(/\\/g, '/').split('/').some(part => part === '..');
+}
+
+function safeBundlePath(path: string): string {
+    return path.replace(/\\/g, '/').replace(/^\/+/, '').replace(/[^A-Za-z0-9._/-]+/g, '-');
 }

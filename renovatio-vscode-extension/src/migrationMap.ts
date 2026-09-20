@@ -1,5 +1,11 @@
 import * as vscode from 'vscode';
 import { RenovatioWorkspaceManifestService, type RenovatioWorkspaceManifest } from './workspaceManifest';
+import {
+    formatMigrationMap as formatMigrationMapCore,
+    migrationEntryId,
+    targetPathForMigration,
+    validateMigrationMapArtifact as validateMigrationMapArtifactCore
+} from './workbenchCore';
 
 export const MIGRATION_MAP_SCHEMA_VERSION = '1';
 
@@ -244,12 +250,15 @@ export class MigrationMapService implements vscode.Disposable {
                 for (const side of ['source', 'target'] as const) {
                     const location = entry[side];
                     if (!isRecord(location) || typeof location.path !== 'string') continue;
-                    if (isAbsolutePath(location.path)) {
-                        issues.push(`entries[${index}].${side}.path must be workspace-relative.`);
+                    if (!isWorkspaceRelativePath(location.path)) {
+                        issues.push(`entries[${index}].${side}.path must be workspace-relative and stay inside the workspace.`);
                         continue;
                     }
                     const uri = vscode.Uri.joinPath(folder.uri, ...location.path.split('/'));
-                    if (!await exists(uri)) {
+                    if (side === 'source' && !await exists(uri)) {
+                        issues.push(`entries[${index}].${side}.path does not exist: ${location.path}`);
+                    }
+                    if (side === 'target' && targetMustExist(entry) && !await exists(uri)) {
                         issues.push(`entries[${index}].${side}.path does not exist: ${location.path}`);
                     }
                 }
@@ -284,88 +293,18 @@ export class MigrationMapService implements vscode.Disposable {
 }
 
 export function formatMigrationMap(value: MigrationMapArtifact): string {
-    const normalized: MigrationMapArtifact = {
-        ...value,
-        entries: [...(value.entries ?? [])].sort((left, right) => left.id.localeCompare(right.id))
-    };
-    return `${JSON.stringify(normalized, null, 2)}\n`;
+    return formatMigrationMapCore(value);
 }
 
 export function validateMigrationMapArtifact(value: unknown): string[] {
-    const issues: string[] = [];
-    if (!isRecord(value)) return ['Migration map must be a JSON object.'];
-    requireString(value, 'version', issues, ['1']);
-    requireString(value, 'projectId', issues);
-    requireString(value, 'generatedAt', issues);
-    if (!Array.isArray(value.entries)) {
-        issues.push('entries must be an array.');
-        return issues;
-    }
-    const ids = new Set<string>();
-    value.entries.forEach((entry, index) => {
-        if (!isRecord(entry)) {
-            issues.push(`entries[${index}] must be an object.`);
-            return;
-        }
-        requireString(entry, 'id', issues);
-        if (typeof entry.id === 'string') {
-            if (ids.has(entry.id)) issues.push(`entries[${index}].id is duplicated: ${entry.id}`);
-            ids.add(entry.id);
-        }
-        requireString(entry, 'kind', issues, ENTRY_KINDS);
-        requireString(entry, 'status', issues, STATUSES);
-        if (entry.confidence !== undefined && (typeof entry.confidence !== 'number' || entry.confidence < 0 || entry.confidence > 1)) {
-            issues.push(`entries[${index}].confidence must be between 0 and 1.`);
-        }
-        if (!Array.isArray(entry.evidence) || entry.evidence.some(value => typeof value !== 'string')) {
-            issues.push(`entries[${index}].evidence must be an array of strings.`);
-        }
-        validateLocation(entry.source, `entries[${index}].source`, issues);
-        validateLocation(entry.target, `entries[${index}].target`, issues);
-    });
-    return issues;
-}
-
-const STATUSES: string[] = ['proposed', 'accepted', 'generated', 'manually-edited', 'stale-source', 'stale-target', 'needs-review', 'rejected'];
-const ENTRY_KINDS: string[] = ['program', 'paragraph', 'section', 'copybook', 'record', 'field', 'jcl-job', 'jcl-step', 'business-rule', 'dataset', 'table', 'test-fixture'];
-
-function validateLocation(value: unknown, label: string, issues: string[]): void {
-    if (value === undefined) return;
-    if (!isRecord(value)) {
-        issues.push(`${label} must be an object.`);
-        return;
-    }
-    requireString(value, 'language', issues);
-    requireString(value, 'path', issues);
-    const range = value.range;
-    if (range !== undefined) {
-        if (!isRecord(range)) {
-            issues.push(`${label}.range must be an object.`);
-            return;
-        }
-        for (const key of ['startLine', 'startColumn', 'endLine', 'endColumn']) {
-            if (!Number.isInteger(range[key]) || Number(range[key]) < 1) {
-                issues.push(`${label}.range.${key} must be a positive integer.`);
-            }
-        }
-    }
-}
-
-function requireString(target: Record<string, unknown>, key: string, issues: string[], allowed?: string[]): void {
-    const value = target[key];
-    if (typeof value !== 'string' || value.trim() === '') {
-        issues.push(`${key} must be a non-empty string.`);
-        return;
-    }
-    if (allowed && !allowed.includes(value)) {
-        issues.push(`${key} must be one of: ${allowed.join(', ')}.`);
-    }
+    return validateMigrationMapArtifactCore(value);
 }
 
 async function sourceCandidates(folder: vscode.WorkspaceFolder, manifest: RenovatioWorkspaceManifest): Promise<string[]> {
     const files: vscode.Uri[] = [];
+    const exclude = globAlternatives(manifest.source.exclude);
     for (const include of manifest.source.include) {
-        files.push(...await vscode.workspace.findFiles(new vscode.RelativePattern(folder, include), '**/{node_modules,target,.git}/**', 200));
+        files.push(...await vscode.workspace.findFiles(new vscode.RelativePattern(folder, include), exclude));
     }
     const roots = manifest.source.roots.map(root => root.replace(/\\/g, '/'));
     return [...new Set(files.map(uri => uri.toString()))]
@@ -376,16 +315,7 @@ async function sourceCandidates(folder: vscode.WorkspaceFolder, manifest: Renova
 }
 
 function targetPathFor(target: RenovatioWorkspaceManifest['targets'][number], sourcePath: string, roots: string[]): string {
-    const root = roots.find(candidate => sourcePath.startsWith(`${candidate}/`));
-    const relative = root ? sourcePath.slice(root.length + 1) : sourcePath;
-    const base = relative.replace(/\.[^.]+$/, '');
-    if (target.language === 'java') {
-        const packagePath = (target.package ?? '').replace(/\./g, '/');
-        return [target.root, 'src/main/java', packagePath, `${targetSymbol(symbolFromPath(sourcePath) ?? base)}.java`]
-            .filter(Boolean)
-            .join('/');
-    }
-    return `${target.root}/${base}`;
+    return targetPathForMigration(target, sourcePath, roots);
 }
 
 function relativePath(folder: vscode.WorkspaceFolder, uri: vscode.Uri): string {
@@ -395,8 +325,7 @@ function relativePath(folder: vscode.WorkspaceFolder, uri: vscode.Uri): string {
 }
 
 function stableEntryId(path: string, index: number): string {
-    const symbol = symbolFromPath(path);
-    return `${kindFromPath(path)}:${symbol ?? index}`;
+    return migrationEntryId(kindFromPath(path), path, index);
 }
 
 function kindFromPath(path: string): MigrationMapEntryKind {
@@ -446,8 +375,19 @@ function isRecord(value: unknown): value is Record<string, unknown> {
     return Boolean(value && typeof value === 'object' && !Array.isArray(value));
 }
 
-function isAbsolutePath(path: string): boolean {
-    return path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path);
+function targetMustExist(entry: Record<string, unknown>): boolean {
+    return ['generated', 'manually-edited', 'stale-target'].includes(String(entry.status));
+}
+
+function isWorkspaceRelativePath(path: string): boolean {
+    if (path.startsWith('/') || /^[A-Za-z]:[\\/]/.test(path) || /^[a-z][a-z0-9+.-]*:/i.test(path)) return false;
+    return !path.replace(/\\/g, '/').split('/').some(part => part === '..');
+}
+
+function globAlternatives(patterns: string[]): string | undefined {
+    const cleaned = [...new Set(patterns.filter(pattern => pattern.trim().length > 0))];
+    if (!cleaned.length) return undefined;
+    return cleaned.length === 1 ? cleaned[0] : `{${cleaned.join(',')}}`;
 }
 
 async function exists(uri: vscode.Uri): Promise<boolean> {

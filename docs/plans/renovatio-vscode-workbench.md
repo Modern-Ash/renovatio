@@ -13,12 +13,13 @@ The extension should prefer transparent files under `.renovatio/` over hidden st
 - `renovatio-vscode-extension/package.json` declares commands, views, activation events, menus, schemas, languages and custom editors.
 - `src/extension.ts` wires command registration and services.
 - `src/workspaceManifest.ts` owns `.renovatio/workspace.renovatio.json` creation, loading, formatting and validation.
-- `src/backend.ts` owns backend health checks, LLM smoke tests and local/dev server controls.
+- `src/backendControl.ts` owns backend health checks, LLM smoke tests and local/dev server controls.
 - `src/migrationMap.ts` owns migration-map read/write, validation and diagnostics.
 - `src/workbenchCore.ts` contains pure helper functions for migration-map indexing, hover formatting, hash comparison and stale-state classification.
 - `src/navigation.ts` owns CodeLens and hover navigation between legacy and generated code.
-- `src/changeSet.ts` owns preview, approval, rejection, apply and reconciliation.
-- `src/evidence.ts` owns evidence bundle export and latest-bundle helpers.
+- `src/changeSet.ts` owns change-set storage helpers.
+- `src/generationWorkflow.ts` owns preview, approval, rejection, apply and reconciliation.
+- `src/evidenceBundle.ts` owns evidence bundle export and latest-bundle helpers.
 - `src/sync.ts` owns optional backend revision comparison, pull, push and conflict status.
 - `src/model.ts` parses diagram artifacts and applies diagram edit events.
 

@@ -50,8 +50,10 @@ test('evidence bundle manifest fixture links core workbench artifacts', () => {
     'manifest.json'
   ), 'utf8'));
   assert.equal(manifest.version, '1');
-  assert.equal(manifest.summary.status, 'needs-review');
-  assert.equal(manifest.artifacts.workspace, '.renovatio/workspace.renovatio.json');
-  assert.equal(manifest.artifacts.migrationMap, '.renovatio/migration-map.renovatio.json');
+  assert.equal(manifest.summary.migrationEntries, 2);
+  assert.equal(manifest.partial, false);
+  assert.equal(Array.isArray(manifest.artifacts), true);
+  assert.ok(manifest.artifacts.some(artifact => artifact.source === '.renovatio/workspace.renovatio.json'));
+  assert.ok(manifest.artifacts.some(artifact => artifact.source === '.renovatio/migration-map.renovatio.json'));
   assert.equal(manifest.llm.promptProfile, 'renovatio-cobol-reverse-engineering-v1');
 });

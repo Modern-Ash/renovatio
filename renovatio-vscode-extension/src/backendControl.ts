@@ -151,6 +151,7 @@ export class RenovatioBackendControlCenter implements vscode.TreeDataProvider<Ba
             value: manifest.llm.fallbackModel ?? '',
             prompt: 'Leave empty to disable fallback.'
         });
+        if (fallbackModel === undefined) return;
         await this.manifestService.update(next => {
             next.llm.provider = provider.trim();
             next.llm.model = model.trim();
@@ -332,8 +333,12 @@ function canControlServer(manifest: RenovatioWorkspaceManifest): boolean {
 }
 
 function defaultCommand(kind: 'start' | 'stop' | 'restart' | 'reloadConfig', manifest: RenovatioWorkspaceManifest): string | undefined {
-    if (kind === 'start') return './mvnw -pl renovatio-api spring-boot:run';
-    if (kind === 'reloadConfig') return `curl -X POST ${joinUrl(manifest.backend.url, '/api/admin/reload')}`;
+    if (kind === 'start') {
+        const port = portFromUrl(manifest.backend.url);
+        const portArgument = port && port !== '8080' ? ` -Dspring-boot.run.arguments=--server.port=${port}` : '';
+        return `./mvnw -pl renovatio-api spring-boot:run${portArgument}`;
+    }
+    if (kind === 'reloadConfig') return `curl -fsS -X POST ${joinUrl(manifest.backend.url, '/api/admin/reload')}`;
     return undefined;
 }
 
@@ -362,10 +367,25 @@ function parseMaybeJson(text: string): unknown {
 }
 
 function healthStatus(value: unknown): BackendStatus {
-    if (typeof value === 'string') return value ? 'healthy' : 'unknown';
+    if (typeof value === 'string') {
+        const normalized = value.trim().toUpperCase();
+        if (['UP', 'OK', 'HEALTHY', 'READY'].includes(normalized)) return 'healthy';
+        if (['DOWN', 'OUT_OF_SERVICE', 'UNHEALTHY', 'FAILED', 'ERROR'].includes(normalized)) return 'unhealthy';
+        return 'unknown';
+    }
     if (!value || typeof value !== 'object') return 'unknown';
     const status = String((value as { status?: unknown }).status ?? '').toUpperCase();
     return status === 'UP' || status === 'OK' || status === 'HEALTHY' ? 'healthy' : 'unhealthy';
+}
+
+function portFromUrl(value: string): string | undefined {
+    try {
+        const parsed = new URL(value);
+        if (parsed.port) return parsed.port;
+        return parsed.protocol === 'https:' ? '443' : parsed.protocol === 'http:' ? '80' : undefined;
+    } catch {
+        return undefined;
+    }
 }
 
 function versionFrom(value: unknown): string | undefined {

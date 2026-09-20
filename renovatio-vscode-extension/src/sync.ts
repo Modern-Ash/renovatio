@@ -175,7 +175,10 @@ export class RenovatioSyncService implements vscode.Disposable {
 
         const content = decodeBytes(await vscode.workspace.fs.readFile(selected.uri));
         const state = await this.readState(context.folder);
-        const expectedRevision = state.artifacts[selected.key]?.revision ?? context.manifest.sync?.lastSyncedRevision ?? null;
+        const expectedRevision = selected.remote?.revision
+            ?? state.artifacts[selected.key]?.revision
+            ?? context.manifest.sync?.lastSyncedRevision
+            ?? null;
         try {
             const remote = await context.client.putArtifact(selected.key, content, selected.path, expectedRevision);
             await this.writeBaseline(context, selected.key, await sha256File(selected.uri), remote);
@@ -226,7 +229,7 @@ export class RenovatioSyncService implements vscode.Disposable {
         const key = artifactKeyForDocument(context.manifest, context.folder, document.uri);
         if (!key) return;
         const status = (await this.collectStatuses(context)).find(entry => entry.key === key);
-        if (status && status.state !== 'both-changed' && status.state !== 'remote-changed') {
+        if (status?.state === 'local-changed') {
             await this.pushSelected(context, status);
         }
     }
@@ -309,7 +312,10 @@ export class RenovatioSyncService implements vscode.Disposable {
         try {
             const state = await this.readState(context.folder);
             const content = decodeBytes(await vscode.workspace.fs.readFile(status.uri));
-            const expectedRevision = state.artifacts[status.key]?.revision ?? context.manifest.sync?.lastSyncedRevision ?? null;
+            const expectedRevision = status.remote?.revision
+                ?? state.artifacts[status.key]?.revision
+                ?? context.manifest.sync?.lastSyncedRevision
+                ?? null;
             const remote = await context.client.putArtifact(status.key, content, status.path, expectedRevision);
             await this.writeBaseline(context, status.key, await sha256File(status.uri), remote);
             await this.markManifestSynced(context, remote.revision);
@@ -374,7 +380,8 @@ export class RenovatioSyncService implements vscode.Disposable {
         if (!folder) return undefined;
         const manifest = await this.manifestService.load(folder);
         if (!manifest) return undefined;
-        return { folder, manifest, client: new RenovatioBackendArtifactClient(manifest) };
+        const role = String(vscode.workspace.getConfiguration('renovatio', folder.uri).get('role') || 'ADMIN');
+        return { folder, manifest, client: new RenovatioBackendArtifactClient(manifest, role) };
     }
 
     private async readState(folder: vscode.WorkspaceFolder): Promise<SyncStateFile> {

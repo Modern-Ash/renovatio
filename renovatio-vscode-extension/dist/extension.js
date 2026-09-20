@@ -4907,7 +4907,7 @@ var RenovatioWorkspaceManifestService = class {
       this.diagnostics,
       vscode.workspace.onDidOpenTextDocument((document) => this.validateDocumentIfManifest(document)),
       vscode.workspace.onDidSaveTextDocument((document) => this.validateDocumentIfManifest(document)),
-      vscode.workspace.onDidChangeWorkspaceFolders(() => void this.validateWorkspace())
+      vscode.workspace.onDidChangeWorkspaceFolders(() => void this.validateWorkspace(void 0, { notify: false }))
     );
   }
   output;
@@ -4962,25 +4962,31 @@ var RenovatioWorkspaceManifestService = class {
     const document = await vscode.workspace.openTextDocument(uri);
     await vscode.window.showTextDocument(document, { preview: false });
   }
-  async validateWorkspace(folder) {
+  async validateWorkspace(folder, options = {}) {
+    const notify = options.notify ?? true;
     const folders = folder ? [folder] : vscode.workspace.workspaceFolders ?? [];
     if (!folders.length) {
-      vscode.window.showWarningMessage("Open a VS Code workspace before validating Renovatio artifacts.");
+      if (notify) vscode.window.showWarningMessage("Open a VS Code workspace before validating Renovatio artifacts.");
       return false;
     }
     let valid = true;
+    let inspected = 0;
     for (const workspaceFolder of folders) {
       const manifestUri = this.manifestUri(workspaceFolder);
       if (!await exists(manifestUri)) {
         this.diagnostics.delete(manifestUri);
         continue;
       }
+      inspected += 1;
       const text = decodeBytes(await vscode.workspace.fs.readFile(manifestUri));
       const diagnostics = this.validateManifestText(text);
       this.diagnostics.set(manifestUri, diagnostics);
       valid = valid && diagnostics.length === 0;
     }
-    if (valid) {
+    if (!notify) return valid;
+    if (inspected === 0) {
+      vscode.window.showInformationMessage("No Renovatio workspace manifest found.");
+    } else if (valid) {
       vscode.window.showInformationMessage("Renovatio workspace validation passed.");
     } else {
       vscode.window.showWarningMessage("Renovatio workspace validation found issues. See Problems.");
@@ -5030,6 +5036,12 @@ var RenovatioWorkspaceManifestService = class {
   }
   async formatDocument(document, options = {}) {
     try {
+      if (hasJsonComments(document.getText())) {
+        if (!options.silent) {
+          vscode.window.showWarningMessage("Renovatio JSONC artifacts with comments are left unchanged to preserve comments.");
+        }
+        return false;
+      }
       const parsed = parseJsonc(document.getText());
       const formatted = `${JSON.stringify(parsed, null, 2)}
 `;
@@ -5116,7 +5128,10 @@ var RenovatioWorkspaceManifestService = class {
   defaultsFromSettings(folder) {
     const config = vscode.workspace.getConfiguration("renovatio", folder.uri);
     const targetLanguage = String(config.get("targetLanguage") || "java");
-    const generatedRoot = String(config.get("generatedRoot") || `generated/${targetLanguage}`);
+    const configuredGeneratedRoot = config.inspect("generatedRoot");
+    const generatedRootValue = String(config.get("generatedRoot") || `generated/${targetLanguage}`);
+    const hasExplicitGeneratedRoot = configuredGeneratedRoot?.globalValue !== void 0 || configuredGeneratedRoot?.workspaceValue !== void 0 || configuredGeneratedRoot?.workspaceFolderValue !== void 0;
+    const generatedRoot = !hasExplicitGeneratedRoot && generatedRootValue === "generated/java" && targetLanguage !== "java" ? `generated/${targetLanguage}` : generatedRootValue;
     const generatedRoots = uniqueStrings([
       ...stringArray(config.get("generatedRoots")),
       generatedRoot
@@ -5169,8 +5184,8 @@ function validateManifest(value2) {
         issues.push(`targets[${index}] must be an object.`);
         return;
       }
-      requireString(target, "language", issues);
-      requireString(target, "root", issues);
+      requireString(target, "language", issues, ["java", "python", "node"]);
+      requireWorkspaceRelativePath(target, "root", issues, `targets[${index}].root`);
     });
   }
   const artifacts = requireObject(value2, "artifacts", issues);
@@ -5187,6 +5202,10 @@ function validateManifest(value2) {
     if (backend.capabilitiesEndpoint !== void 0) requireString(backend, "capabilitiesEndpoint", issues);
     if (backend.commands !== void 0 && !isRecord(backend.commands)) {
       issues.push("backend.commands must be an object.");
+    } else if (isRecord(backend.commands)) {
+      for (const key of ["start", "stop", "restart", "reloadConfig"]) {
+        if (backend.commands[key] !== void 0) requireString(backend.commands, key, issues);
+      }
     }
     if (typeof backend.allowLocalProcessControl !== "boolean") {
       issues.push("backend.allowLocalProcessControl must be a boolean.");
@@ -5261,14 +5280,14 @@ function requireStringArray(target, key, issues, allowed) {
     issues.push(`${key} must contain only: ${allowed.join(", ")}.`);
   }
 }
-function requireWorkspaceRelativePath(target, key, issues) {
+function requireWorkspaceRelativePath(target, key, issues, label = `artifacts.${key}`) {
   const value2 = target[key];
   if (typeof value2 !== "string" || value2.trim() === "") {
-    issues.push(`artifacts.${key} must be a workspace-relative path.`);
+    issues.push(`${label} must be a workspace-relative path.`);
     return;
   }
-  if (value2.startsWith("/") || /^[a-zA-Z]:[\\/]/.test(value2)) {
-    issues.push(`artifacts.${key} must be workspace-relative, not absolute.`);
+  if (value2.startsWith("/") || /^[a-zA-Z]:[\\/]/.test(value2) || /^[a-z][a-z0-9+.-]*:/i.test(value2) || value2.replace(/\\/g, "/").split("/").includes("..")) {
+    issues.push(`${label} must stay inside the workspace.`);
   }
 }
 function diagnostic(messageText) {
@@ -5326,6 +5345,30 @@ function stripJsonComments(text) {
     output += char;
   }
   return output;
+}
+function hasJsonComments(text) {
+  let inString = false;
+  let escaped = false;
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === "/" && (next === "/" || next === "*")) return true;
+  }
+  return false;
 }
 function relativePath(folder, value2) {
   const normalized = value2.replace(/\\/g, "/");
@@ -5503,6 +5546,7 @@ var RenovatioBackendControlCenter = class {
       value: manifest.llm.fallbackModel ?? "",
       prompt: "Leave empty to disable fallback."
     });
+    if (fallbackModel === void 0) return;
     await this.manifestService.update((next) => {
       next.llm.provider = provider.trim();
       next.llm.model = model.trim();
@@ -5667,8 +5711,12 @@ function canControlServer(manifest) {
   return ["local", "dev"].includes(manifest.backend.environment) && manifest.backend.allowLocalProcessControl === true;
 }
 function defaultCommand(kind, manifest) {
-  if (kind === "start") return "./mvnw -pl renovatio-api spring-boot:run";
-  if (kind === "reloadConfig") return `curl -X POST ${joinUrl(manifest.backend.url, "/api/admin/reload")}`;
+  if (kind === "start") {
+    const port = portFromUrl(manifest.backend.url);
+    const portArgument = port && port !== "8080" ? ` -Dspring-boot.run.arguments=--server.port=${port}` : "";
+    return `./mvnw -pl renovatio-api spring-boot:run${portArgument}`;
+  }
+  if (kind === "reloadConfig") return `curl -fsS -X POST ${joinUrl(manifest.backend.url, "/api/admin/reload")}`;
   return void 0;
 }
 function joinUrl(base, endpoint) {
@@ -5693,10 +5741,24 @@ function parseMaybeJson(text) {
   }
 }
 function healthStatus(value2) {
-  if (typeof value2 === "string") return value2 ? "healthy" : "unknown";
+  if (typeof value2 === "string") {
+    const normalized = value2.trim().toUpperCase();
+    if (["UP", "OK", "HEALTHY", "READY"].includes(normalized)) return "healthy";
+    if (["DOWN", "OUT_OF_SERVICE", "UNHEALTHY", "FAILED", "ERROR"].includes(normalized)) return "unhealthy";
+    return "unknown";
+  }
   if (!value2 || typeof value2 !== "object") return "unknown";
   const status = String(value2.status ?? "").toUpperCase();
   return status === "UP" || status === "OK" || status === "HEALTHY" ? "healthy" : "unhealthy";
+}
+function portFromUrl(value2) {
+  try {
+    const parsed = new URL(value2);
+    if (parsed.port) return parsed.port;
+    return parsed.protocol === "https:" ? "443" : parsed.protocol === "http:" ? "80" : void 0;
+  } catch {
+    return void 0;
+  }
 }
 function versionFrom(value2) {
   if (!value2 || typeof value2 !== "object") return void 0;
@@ -5721,6 +5783,199 @@ function message2(error) {
 
 // src/migrationMap.ts
 var vscode3 = __toESM(require("vscode"));
+
+// src/workbenchCore.ts
+var STATUSES = ["proposed", "accepted", "generated", "manually-edited", "stale-source", "stale-target", "needs-review", "rejected"];
+var ENTRY_KINDS = ["program", "paragraph", "section", "copybook", "record", "field", "jcl-job", "jcl-step", "business-rule", "dataset", "table", "test-fixture"];
+var TARGET_EXTENSIONS = {
+  java: ".java",
+  python: ".py",
+  node: ".ts"
+};
+function formatMigrationMap(value2) {
+  const normalized = {
+    ...value2,
+    entries: [...value2.entries ?? []].sort((left, right) => left.id.localeCompare(right.id))
+  };
+  return `${JSON.stringify(normalized, null, 2)}
+`;
+}
+function validateMigrationMapArtifact(value2) {
+  const issues = [];
+  if (!isRecord2(value2)) return ["Migration map must be a JSON object."];
+  requireString2(value2, "version", issues, ["1"]);
+  requireString2(value2, "projectId", issues);
+  requireString2(value2, "generatedAt", issues);
+  requireOptionalString(value2, "sourceHash", issues);
+  requireOptionalString(value2, "targetHash", issues);
+  if (!Array.isArray(value2.entries)) {
+    issues.push("entries must be an array.");
+    return issues;
+  }
+  const ids = /* @__PURE__ */ new Set();
+  value2.entries.forEach((entry, index) => {
+    if (!isRecord2(entry)) {
+      issues.push(`entries[${index}] must be an object.`);
+      return;
+    }
+    requireString2(entry, "id", issues);
+    if (typeof entry.id === "string") {
+      if (ids.has(entry.id)) issues.push(`entries[${index}].id is duplicated: ${entry.id}`);
+      ids.add(entry.id);
+    }
+    requireString2(entry, "kind", issues, ENTRY_KINDS);
+    requireString2(entry, "status", issues, STATUSES);
+    if (entry.confidence !== void 0 && (typeof entry.confidence !== "number" || entry.confidence < 0 || entry.confidence > 1)) {
+      issues.push(`entries[${index}].confidence must be between 0 and 1.`);
+    }
+    if (!Array.isArray(entry.evidence) || entry.evidence.some((value3) => typeof value3 !== "string")) {
+      issues.push(`entries[${index}].evidence must be an array of strings.`);
+    }
+    validateLocation(entry.source, `entries[${index}].source`, issues);
+    validateLocation(entry.target, `entries[${index}].target`, issues);
+    validateRenovatioTrace(entry.renovatio, `entries[${index}].renovatio`, issues);
+    validateDecision(entry.lastDecision, `entries[${index}].lastDecision`, issues);
+  });
+  return issues;
+}
+function migrationEntryId(kind, sourcePath, fallbackIndex) {
+  const normalized = normalizePath(sourcePath).replace(/\.[^.]+$/, "").replace(/[^A-Za-z0-9._/-]+/g, "-").replace(/[/.]+/g, ":").replace(/:+/g, ":").replace(/^:+|:+$/g, "");
+  return `${kind}:${normalized || fallbackIndex}`;
+}
+function targetPathForMigration(target, sourcePath, sourceRoots) {
+  const normalizedSource = normalizePath(sourcePath);
+  const root = sourceRoots.map(normalizePath).find((candidate) => normalizedSource.startsWith(`${candidate}/`));
+  const relative = root ? normalizedSource.slice(root.length + 1) : normalizedSource;
+  const base = relative.replace(/\.[^.]+$/, "");
+  if (target.language === "java") {
+    const packagePath = (target.package ?? "").replace(/\./g, "/");
+    return [target.root, "src/main/java", packagePath, `${targetSymbol(symbolFromPath(normalizedSource) ?? base)}.java`].filter(Boolean).join("/");
+  }
+  return `${target.root}/${base}${TARGET_EXTENSIONS[target.language] ?? ""}`;
+}
+function entriesForMigrationPath(artifact, documentPath, side) {
+  const path = normalizePath(documentPath);
+  return artifact.entries.filter((entry) => normalizePath(entry[side]?.path) === path);
+}
+function migrationHoverMarkdown(entry, side) {
+  const source = entry.source;
+  const target = entry.target;
+  const confidence = typeof entry.confidence === "number" ? `${Math.round(entry.confidence * 100)}%` : "unknown";
+  const decision = entry.lastDecision ? `${entry.lastDecision.action} by ${entry.lastDecision.actor} at ${entry.lastDecision.at}` : "none";
+  const warnings = staleWarnings(entry);
+  const openOtherCommand = side === "source" ? "renovatio.openMigrationTarget" : "renovatio.openMigrationSource";
+  const openOtherLabel = side === "source" ? "Open target" : "Open legacy source";
+  const evidenceCount = entry.evidence?.length ?? 0;
+  const lines = [
+    `**Renovatio migration** \`${entry.id}\``,
+    "",
+    `- Status: \`${entry.status}\``,
+    `- Confidence: ${confidence}`,
+    `- Source: ${formatLocation(source)}`,
+    `- Target: ${formatLocation(target)}`,
+    `- Evidence: ${evidenceCount}`,
+    `- Last decision: ${decision}`
+  ];
+  if (side === "target") {
+    lines.push(`- Source hash: ${source?.hash ?? "not recorded"}`);
+    lines.push(`- Target hash: ${target?.hash ?? "not recorded"}`);
+  }
+  if (warnings.length) lines.push(`- Warnings: ${warnings.join(", ")}`);
+  lines.push("");
+  lines.push(`[${openOtherLabel}](command:${openOtherCommand}?${encodeURIComponent(JSON.stringify([entry.id]))})`);
+  lines.push(`[Show evidence](command:renovatio.showMigrationEvidence?${encodeURIComponent(JSON.stringify([entry.id]))})`);
+  return lines.join("\n");
+}
+function staleWarnings(entry) {
+  const warnings = [];
+  if (entry.status === "stale-source") warnings.push("source changed");
+  if (entry.status === "stale-target") warnings.push("target changed");
+  if (entry.status === "needs-review") warnings.push("needs review");
+  return warnings;
+}
+function validateLocation(value2, label, issues) {
+  if (value2 === void 0) return;
+  if (!isRecord2(value2)) {
+    issues.push(`${label} must be an object.`);
+    return;
+  }
+  requireString2(value2, "language", issues);
+  requireString2(value2, "path", issues);
+  requireOptionalString(value2, "symbol", issues);
+  requireOptionalString(value2, "hash", issues);
+  const range = value2.range;
+  if (range !== void 0) {
+    if (!isRecord2(range)) {
+      issues.push(`${label}.range must be an object.`);
+      return;
+    }
+    for (const key of ["startLine", "startColumn", "endLine", "endColumn"]) {
+      if (!Number.isInteger(range[key]) || Number(range[key]) < 1) {
+        issues.push(`${label}.range.${key} must be a positive integer.`);
+      }
+    }
+  }
+}
+function validateRenovatioTrace(value2, label, issues) {
+  if (value2 === void 0) return;
+  if (!isRecord2(value2)) {
+    issues.push(`${label} must be an object.`);
+    return;
+  }
+  for (const key of ["domainNodeIds", "architectureNodeIds", "semanticIds"]) {
+    const entries = value2[key];
+    if (!Array.isArray(entries) || entries.some((entry) => typeof entry !== "string")) {
+      issues.push(`${label}.${key} must be an array of strings.`);
+    }
+  }
+}
+function validateDecision(value2, label, issues) {
+  if (value2 === void 0) return;
+  if (!isRecord2(value2)) {
+    issues.push(`${label} must be an object.`);
+    return;
+  }
+  requireString2(value2, "actor", issues);
+  requireString2(value2, "action", issues);
+  requireString2(value2, "at", issues);
+  requireOptionalString(value2, "reason", issues);
+}
+function requireString2(target, key, issues, allowed) {
+  const value2 = target[key];
+  if (typeof value2 !== "string" || value2.trim() === "") {
+    issues.push(`${key} must be a non-empty string.`);
+    return;
+  }
+  if (allowed && !allowed.includes(value2)) {
+    issues.push(`${key} must be one of: ${allowed.join(", ")}.`);
+  }
+}
+function requireOptionalString(target, key, issues) {
+  const value2 = target[key];
+  if (value2 !== void 0 && typeof value2 !== "string") {
+    issues.push(`${key} must be a string.`);
+  }
+}
+function symbolFromPath(path) {
+  const fileName = path.split("/").pop();
+  return fileName?.replace(/\.[^.]+$/, "").toUpperCase();
+}
+function targetSymbol(symbol) {
+  return symbol.toLowerCase().replace(/(^|[-_])([a-z0-9])/g, (_match, _prefix, value2) => value2.toUpperCase());
+}
+function formatLocation(location) {
+  if (!location) return "not mapped";
+  const symbol = location.symbol ? `#${location.symbol}` : "";
+  return `\`${location.path}${symbol}\``;
+}
+function normalizePath(value2) {
+  return String(value2 ?? "").replace(/\\/g, "/");
+}
+function isRecord2(value2) {
+  return Boolean(value2 && typeof value2 === "object" && !Array.isArray(value2));
+}
+
+// src/migrationMap.ts
 var MigrationMapService = class {
   constructor(manifestService, output) {
     this.manifestService = manifestService;
@@ -5802,7 +6057,7 @@ var MigrationMapService = class {
     }
     const document = await vscode3.workspace.openTextDocument(uri);
     const parsed = parseJson(document.getText());
-    const formatted = formatMigrationMap(parsed);
+    const formatted = formatMigrationMap2(parsed);
     if (formatted === document.getText()) return;
     const edit = new vscode3.WorkspaceEdit();
     const end = document.lineCount === 0 ? new vscode3.Position(0, 0) : document.lineAt(document.lineCount - 1).rangeIncludingLineBreak.end;
@@ -5824,7 +6079,7 @@ var MigrationMapService = class {
     const sourceFiles = await sourceCandidates(folder, manifest);
     const target = manifest.targets[0];
     const entries = sourceFiles.map((path, index) => {
-      const symbol = symbolFromPath(path);
+      const symbol = symbolFromPath2(path);
       return {
         id: stableEntryId(path, index),
         kind: kindFromPath(path),
@@ -5841,7 +6096,7 @@ var MigrationMapService = class {
         target: target ? {
           language: target.language,
           path: targetPathFor(target, path, sourceRoots),
-          symbol: symbol ? targetSymbol(symbol) : void 0
+          symbol: symbol ? targetSymbol2(symbol) : void 0
         } : void 0,
         status: "proposed",
         confidence: 0,
@@ -5868,19 +6123,22 @@ var MigrationMapService = class {
     } catch (error) {
       return [diagnostic2(`Invalid JSON: ${message3(error)}`)];
     }
-    const issues = validateMigrationMapArtifact(parsed);
-    if (isRecord2(parsed) && Array.isArray(parsed.entries)) {
+    const issues = validateMigrationMapArtifact2(parsed);
+    if (isRecord3(parsed) && Array.isArray(parsed.entries)) {
       for (const [index, entry] of parsed.entries.entries()) {
-        if (!isRecord2(entry)) continue;
+        if (!isRecord3(entry)) continue;
         for (const side of ["source", "target"]) {
           const location = entry[side];
-          if (!isRecord2(location) || typeof location.path !== "string") continue;
-          if (isAbsolutePath(location.path)) {
-            issues.push(`entries[${index}].${side}.path must be workspace-relative.`);
+          if (!isRecord3(location) || typeof location.path !== "string") continue;
+          if (!isWorkspaceRelativePath(location.path)) {
+            issues.push(`entries[${index}].${side}.path must be workspace-relative and stay inside the workspace.`);
             continue;
           }
           const uri = vscode3.Uri.joinPath(folder.uri, ...location.path.split("/"));
-          if (!await exists2(uri)) {
+          if (side === "source" && !await exists2(uri)) {
+            issues.push(`entries[${index}].${side}.path does not exist: ${location.path}`);
+          }
+          if (side === "target" && targetMustExist(entry) && !await exists2(uri)) {
             issues.push(`entries[${index}].${side}.path does not exist: ${location.path}`);
           }
         }
@@ -5911,98 +6169,23 @@ var MigrationMapService = class {
     return vscode3.Uri.joinPath(folder.uri, ...manifest.artifacts.migrationMap.split("/"));
   }
 };
-function formatMigrationMap(value2) {
-  const normalized = {
-    ...value2,
-    entries: [...value2.entries ?? []].sort((left, right) => left.id.localeCompare(right.id))
-  };
-  return `${JSON.stringify(normalized, null, 2)}
-`;
+function formatMigrationMap2(value2) {
+  return formatMigrationMap(value2);
 }
-function validateMigrationMapArtifact(value2) {
-  const issues = [];
-  if (!isRecord2(value2)) return ["Migration map must be a JSON object."];
-  requireString2(value2, "version", issues, ["1"]);
-  requireString2(value2, "projectId", issues);
-  requireString2(value2, "generatedAt", issues);
-  if (!Array.isArray(value2.entries)) {
-    issues.push("entries must be an array.");
-    return issues;
-  }
-  const ids = /* @__PURE__ */ new Set();
-  value2.entries.forEach((entry, index) => {
-    if (!isRecord2(entry)) {
-      issues.push(`entries[${index}] must be an object.`);
-      return;
-    }
-    requireString2(entry, "id", issues);
-    if (typeof entry.id === "string") {
-      if (ids.has(entry.id)) issues.push(`entries[${index}].id is duplicated: ${entry.id}`);
-      ids.add(entry.id);
-    }
-    requireString2(entry, "kind", issues, ENTRY_KINDS);
-    requireString2(entry, "status", issues, STATUSES);
-    if (entry.confidence !== void 0 && (typeof entry.confidence !== "number" || entry.confidence < 0 || entry.confidence > 1)) {
-      issues.push(`entries[${index}].confidence must be between 0 and 1.`);
-    }
-    if (!Array.isArray(entry.evidence) || entry.evidence.some((value3) => typeof value3 !== "string")) {
-      issues.push(`entries[${index}].evidence must be an array of strings.`);
-    }
-    validateLocation(entry.source, `entries[${index}].source`, issues);
-    validateLocation(entry.target, `entries[${index}].target`, issues);
-  });
-  return issues;
-}
-var STATUSES = ["proposed", "accepted", "generated", "manually-edited", "stale-source", "stale-target", "needs-review", "rejected"];
-var ENTRY_KINDS = ["program", "paragraph", "section", "copybook", "record", "field", "jcl-job", "jcl-step", "business-rule", "dataset", "table", "test-fixture"];
-function validateLocation(value2, label, issues) {
-  if (value2 === void 0) return;
-  if (!isRecord2(value2)) {
-    issues.push(`${label} must be an object.`);
-    return;
-  }
-  requireString2(value2, "language", issues);
-  requireString2(value2, "path", issues);
-  const range = value2.range;
-  if (range !== void 0) {
-    if (!isRecord2(range)) {
-      issues.push(`${label}.range must be an object.`);
-      return;
-    }
-    for (const key of ["startLine", "startColumn", "endLine", "endColumn"]) {
-      if (!Number.isInteger(range[key]) || Number(range[key]) < 1) {
-        issues.push(`${label}.range.${key} must be a positive integer.`);
-      }
-    }
-  }
-}
-function requireString2(target, key, issues, allowed) {
-  const value2 = target[key];
-  if (typeof value2 !== "string" || value2.trim() === "") {
-    issues.push(`${key} must be a non-empty string.`);
-    return;
-  }
-  if (allowed && !allowed.includes(value2)) {
-    issues.push(`${key} must be one of: ${allowed.join(", ")}.`);
-  }
+function validateMigrationMapArtifact2(value2) {
+  return validateMigrationMapArtifact(value2);
 }
 async function sourceCandidates(folder, manifest) {
   const files = [];
+  const exclude = globAlternatives(manifest.source.exclude);
   for (const include of manifest.source.include) {
-    files.push(...await vscode3.workspace.findFiles(new vscode3.RelativePattern(folder, include), "**/{node_modules,target,.git}/**", 200));
+    files.push(...await vscode3.workspace.findFiles(new vscode3.RelativePattern(folder, include), exclude));
   }
   const roots = manifest.source.roots.map((root) => root.replace(/\\/g, "/"));
   return [...new Set(files.map((uri) => uri.toString()))].map((value2) => vscode3.Uri.parse(value2)).map((uri) => relativePath2(folder, uri)).filter((file) => roots.length === 0 || roots.some((root) => file === root || file.startsWith(`${root}/`))).sort();
 }
 function targetPathFor(target, sourcePath, roots) {
-  const root = roots.find((candidate) => sourcePath.startsWith(`${candidate}/`));
-  const relative = root ? sourcePath.slice(root.length + 1) : sourcePath;
-  const base = relative.replace(/\.[^.]+$/, "");
-  if (target.language === "java") {
-    const packagePath = (target.package ?? "").replace(/\./g, "/");
-    return [target.root, "src/main/java", packagePath, `${targetSymbol(symbolFromPath(sourcePath) ?? base)}.java`].filter(Boolean).join("/");
-  }
-  return `${target.root}/${base}`;
+  return targetPathForMigration(target, sourcePath, roots);
 }
 function relativePath2(folder, uri) {
   const root = folder.uri.fsPath.replace(/\\/g, "/");
@@ -6010,8 +6193,7 @@ function relativePath2(folder, uri) {
   return file.startsWith(`${root}/`) ? file.slice(root.length + 1) : file;
 }
 function stableEntryId(path, index) {
-  const symbol = symbolFromPath(path);
-  return `${kindFromPath(path)}:${symbol ?? index}`;
+  return migrationEntryId(kindFromPath(path), path, index);
 }
 function kindFromPath(path) {
   const lower = path.toLowerCase();
@@ -6019,12 +6201,12 @@ function kindFromPath(path) {
   if (lower.endsWith(".cpy") || lower.endsWith(".copybook")) return "copybook";
   return "program";
 }
-function symbolFromPath(path) {
+function symbolFromPath2(path) {
   const fileName = path.split("/").pop();
   if (!fileName) return void 0;
   return fileName.replace(/\.[^.]+$/, "").toUpperCase();
 }
-function targetSymbol(symbol) {
+function targetSymbol2(symbol) {
   return symbol.toLowerCase().replace(/(^|[-_])([a-z0-9])/g, (_match, _prefix, value2) => value2.toUpperCase());
 }
 function diagnostic2(messageText) {
@@ -6049,11 +6231,20 @@ function parentUri(uri) {
   parts.pop();
   return uri.with({ path: parts.join("/") || "/" });
 }
-function isRecord2(value2) {
+function isRecord3(value2) {
   return Boolean(value2 && typeof value2 === "object" && !Array.isArray(value2));
 }
-function isAbsolutePath(path) {
-  return path.startsWith("/") || /^[A-Za-z]:[\\/]/.test(path);
+function targetMustExist(entry) {
+  return ["generated", "manually-edited", "stale-target"].includes(String(entry.status));
+}
+function isWorkspaceRelativePath(path) {
+  if (path.startsWith("/") || /^[A-Za-z]:[\\/]/.test(path) || /^[a-z][a-z0-9+.-]*:/i.test(path)) return false;
+  return !path.replace(/\\/g, "/").split("/").some((part) => part === "..");
+}
+function globAlternatives(patterns) {
+  const cleaned = [...new Set(patterns.filter((pattern) => pattern.trim().length > 0))];
+  if (!cleaned.length) return void 0;
+  return cleaned.length === 1 ? cleaned[0] : `{${cleaned.join(",")}}`;
 }
 async function exists2(uri) {
   try {
@@ -6069,58 +6260,6 @@ function message3(error) {
 
 // src/navigation.ts
 var vscode4 = __toESM(require("vscode"));
-
-// src/workbenchCore.ts
-function entriesForMigrationPath(artifact, documentPath, side) {
-  const path = normalizePath(documentPath);
-  return artifact.entries.filter((entry) => normalizePath(entry[side]?.path) === path);
-}
-function migrationHoverMarkdown(entry, side) {
-  const source = entry.source;
-  const target = entry.target;
-  const confidence = typeof entry.confidence === "number" ? `${Math.round(entry.confidence * 100)}%` : "unknown";
-  const decision = entry.lastDecision ? `${entry.lastDecision.action} by ${entry.lastDecision.actor} at ${entry.lastDecision.at}` : "none";
-  const warnings = staleWarnings(entry);
-  const openOtherCommand = side === "source" ? "renovatio.openMigrationTarget" : "renovatio.openMigrationSource";
-  const openOtherLabel = side === "source" ? "Open target" : "Open legacy source";
-  const evidenceCount = entry.evidence?.length ?? 0;
-  const lines = [
-    `**Renovatio migration** \`${entry.id}\``,
-    "",
-    `- Status: \`${entry.status}\``,
-    `- Confidence: ${confidence}`,
-    `- Source: ${formatLocation(source)}`,
-    `- Target: ${formatLocation(target)}`,
-    `- Evidence: ${evidenceCount}`,
-    `- Last decision: ${decision}`
-  ];
-  if (side === "target") {
-    lines.push(`- Source hash: ${source?.hash ?? "not recorded"}`);
-    lines.push(`- Target hash: ${target?.hash ?? "not recorded"}`);
-  }
-  if (warnings.length) lines.push(`- Warnings: ${warnings.join(", ")}`);
-  lines.push("");
-  lines.push(`[${openOtherLabel}](command:${openOtherCommand}?${encodeURIComponent(JSON.stringify([entry.id]))})`);
-  lines.push(`[Show evidence](command:renovatio.showMigrationEvidence?${encodeURIComponent(JSON.stringify([entry.id]))})`);
-  return lines.join("\n");
-}
-function staleWarnings(entry) {
-  const warnings = [];
-  if (entry.status === "stale-source") warnings.push("source changed");
-  if (entry.status === "stale-target") warnings.push("target changed");
-  if (entry.status === "needs-review") warnings.push("needs review");
-  return warnings;
-}
-function formatLocation(location) {
-  if (!location) return "not mapped";
-  const symbol = location.symbol ? `#${location.symbol}` : "";
-  return `\`${location.path}${symbol}\``;
-}
-function normalizePath(value2) {
-  return String(value2 ?? "").replace(/\\/g, "/");
-}
-
-// src/navigation.ts
 var SOURCE_LANGUAGES = ["cobol", "jcl"];
 var TARGET_LANGUAGES = ["java", "python", "javascript", "typescript"];
 var MigrationNavigationService = class {
@@ -6199,7 +6338,7 @@ var MigrationNavigationService = class {
     const entries = entriesForDocument(context, document, side).filter((entry) => entryMatchesPosition(document, position, entry[side]));
     if (!entries.length) return void 0;
     const markdown = new vscode4.MarkdownString(void 0, true);
-    markdown.isTrusted = true;
+    markdown.isTrusted = { enabledCommands: ["renovatio.openMigrationTarget", "renovatio.openMigrationSource", "renovatio.showMigrationEvidence"] };
     markdown.supportThemeIcons = true;
     markdown.appendMarkdown(entries.slice(0, 3).map((entry) => migrationHoverMarkdown(entry, side)).join("\n\n---\n\n"));
     return new vscode4.Hover(markdown);
@@ -6262,7 +6401,7 @@ var MigrationNavigationService = class {
         }
       } : entry)
     };
-    await vscode4.workspace.fs.writeFile(resolved.context.uri, new TextEncoder().encode(formatMigrationMap(updated)));
+    await vscode4.workspace.fs.writeFile(resolved.context.uri, new TextEncoder().encode(formatMigrationMap2(updated)));
     this.refresh();
     vscode4.window.showInformationMessage(`Marked ${resolved.entry.id} as manually edited.`);
   }
@@ -6337,6 +6476,11 @@ var MigrationNavigationService = class {
     if (!await exists3(uri)) return void 0;
     try {
       const artifact = JSON.parse(new TextDecoder("utf-8").decode(await vscode4.workspace.fs.readFile(uri)));
+      const issues = validateMigrationMapArtifact2(artifact);
+      if (issues.length) {
+        if (!options.silent) vscode4.window.showWarningMessage(`Migration map is invalid: ${issues[0]}`);
+        return void 0;
+      }
       return { folder, manifest, uri, artifact };
     } catch (error) {
       if (!options.silent) vscode4.window.showErrorMessage(`Could not read migration map: ${message4(error)}`);
@@ -6472,7 +6616,7 @@ var RenovatioArtifactDiagnosticsService = class {
     const manifestDiagnostics = await this.validateManifest(folder, manifest);
     this.manifestDiagnostics.set(manifest.uri, manifestDiagnostics);
     const migrationMapPath = stringAt(manifest.value, ["artifacts", "migrationMap"]);
-    if (!migrationMapPath || isAbsolutePath2(migrationMapPath)) return;
+    if (!migrationMapPath || isAbsolutePath(migrationMapPath)) return;
     const migrationMapUri = workspaceUri(folder, migrationMapPath);
     const migrationMap = await this.readJson(migrationMapUri);
     if (!migrationMap) return;
@@ -6483,7 +6627,7 @@ var RenovatioArtifactDiagnosticsService = class {
     if (!await exists4(uri)) return void 0;
     const text = decodeBytes3(await vscode5.workspace.fs.readFile(uri));
     try {
-      return { uri, text, value: JSON.parse(text) };
+      return { uri, text, value: parseJsonc2(text) };
     } catch (error) {
       const target = uri.fsPath.endsWith("migration-map.renovatio.json") ? this.migrationMapDiagnostics : this.manifestDiagnostics;
       target.set(uri, [diagnostic3(`Invalid JSON: ${message5(error)}`, vscode5.DiagnosticSeverity.Error)]);
@@ -6493,7 +6637,7 @@ var RenovatioArtifactDiagnosticsService = class {
   async validateManifest(folder, document) {
     const diagnostics = [];
     const manifest = document.value;
-    if (!isRecord3(manifest)) {
+    if (!isRecord4(manifest)) {
       diagnostics.push(diagnostic3("Workspace manifest must be a JSON object.", vscode5.DiagnosticSeverity.Error));
       return diagnostics;
     }
@@ -6510,7 +6654,7 @@ var RenovatioArtifactDiagnosticsService = class {
       addJsonDiagnostic(diagnostics, document.text, "roots", "source.roots must list at least one legacy source root.", vscode5.DiagnosticSeverity.Warning);
     }
     validateWorkspacePaths(diagnostics, document.text, folder, sourceRoots, "source.roots");
-    const targets = arrayAt(manifest, ["targets"]).filter(isRecord3);
+    const targets = arrayAt(manifest, ["targets"]).filter(isRecord4);
     if (!targets.length) {
       addJsonDiagnostic(diagnostics, document.text, "targets", "targets must contain at least one target.", vscode5.DiagnosticSeverity.Error);
     }
@@ -6578,14 +6722,14 @@ var RenovatioArtifactDiagnosticsService = class {
   async validateMigrationMap(folder, document, manifest, fileDiagnostics) {
     const diagnostics = [];
     const migrationMap = document.value;
-    if (!isRecord3(migrationMap)) {
+    if (!isRecord4(migrationMap)) {
       diagnostics.push(diagnostic3("Migration map must be a JSON object.", vscode5.DiagnosticSeverity.Error));
       return diagnostics;
     }
     const entries = Array.isArray(migrationMap.entries) ? migrationMap.entries : [];
     const ids = /* @__PURE__ */ new Set();
     for (const [index, rawEntry] of entries.entries()) {
-      if (!isRecord3(rawEntry)) {
+      if (!isRecord4(rawEntry)) {
         addJsonDiagnostic(diagnostics, document.text, "entries", `entries[${index}] must be an object.`, vscode5.DiagnosticSeverity.Error);
         continue;
       }
@@ -6613,8 +6757,8 @@ var RenovatioArtifactDiagnosticsService = class {
       addJsonDiagnostic(diagnostics, document.text, label, `${label} is missing ${side}.path.`, vscode5.DiagnosticSeverity.Warning);
       return;
     }
-    if (isAbsolutePath2(location.path)) {
-      addJsonDiagnostic(diagnostics, document.text, location.path, `${label} ${side}.path must be workspace-relative.`, vscode5.DiagnosticSeverity.Error);
+    if (!isWorkspaceRelativePath2(location.path)) {
+      addJsonDiagnostic(diagnostics, document.text, location.path, `${label} ${side}.path must be workspace-relative and stay inside the workspace.`, vscode5.DiagnosticSeverity.Error);
       return;
     }
     const rangeIssue = rangeProblem(location);
@@ -6647,8 +6791,16 @@ var RenovatioArtifactDiagnosticsService = class {
     if (entry.status === "generated" && (!Array.isArray(entry.evidence) || entry.evidence.length === 0)) {
       addJsonDiagnostic(diagnostics, document.text, label, `${label} is generated without evidence.`, vscode5.DiagnosticSeverity.Warning);
     }
-    for (const evidence of entry.evidence ?? []) {
+    const evidenceEntries = Array.isArray(entry.evidence) ? entry.evidence : [];
+    if (!Array.isArray(entry.evidence)) {
+      addJsonDiagnostic(diagnostics, document.text, label, `${label} evidence must be an array.`, vscode5.DiagnosticSeverity.Error);
+    }
+    for (const evidence of evidenceEntries) {
       if (!looksLikePath(evidence)) continue;
+      if (!isWorkspaceRelativePath2(evidence)) {
+        addJsonDiagnostic(diagnostics, document.text, evidence, `${label} evidence path must stay inside the workspace: ${evidence}.`, vscode5.DiagnosticSeverity.Error);
+        continue;
+      }
       const exact = workspaceUri(folder, evidence);
       const underEvidenceDir = workspaceUri(folder, [manifest.artifacts.evidenceDir, evidence].join("/"));
       if (!await exists4(exact) && !await exists4(underEvidenceDir)) {
@@ -6663,7 +6815,7 @@ function validateWorkspacePaths(diagnostics, text, folder, paths, label) {
       addJsonDiagnostic(diagnostics, text, label, `${label} cannot be empty.`, vscode5.DiagnosticSeverity.Error);
       continue;
     }
-    if (isAbsolutePath2(value2) && !isUnderWorkspace(folder, value2)) {
+    if (!isWorkspaceRelativePath2(value2) && !(isAbsolutePath(value2) && isUnderWorkspace(folder, value2))) {
       addJsonDiagnostic(diagnostics, text, value2, `${label} points outside the workspace: ${value2}.`, vscode5.DiagnosticSeverity.Error);
     }
   }
@@ -6718,19 +6870,19 @@ function sameHash(expected, actual) {
   return normalized === actual;
 }
 function objectAt(value2, path) {
-  const found = path.reduce((current, key) => isRecord3(current) ? current[key] : void 0, value2);
-  return isRecord3(found) ? found : void 0;
+  const found = path.reduce((current, key) => isRecord4(current) ? current[key] : void 0, value2);
+  return isRecord4(found) ? found : void 0;
 }
 function arrayAt(value2, path) {
-  const found = path.reduce((current, key) => isRecord3(current) ? current[key] : void 0, value2);
+  const found = path.reduce((current, key) => isRecord4(current) ? current[key] : void 0, value2);
   return Array.isArray(found) ? found : [];
 }
 function stringAt(value2, path) {
-  const found = path.reduce((current, key) => isRecord3(current) ? current[key] : void 0, value2);
+  const found = path.reduce((current, key) => isRecord4(current) ? current[key] : void 0, value2);
   return typeof found === "string" && found.trim() ? found : void 0;
 }
 function booleanAt(value2, path) {
-  const found = path.reduce((current, key) => isRecord3(current) ? current[key] : void 0, value2);
+  const found = path.reduce((current, key) => isRecord4(current) ? current[key] : void 0, value2);
   return typeof found === "boolean" ? found : void 0;
 }
 function workspaceUri(folder, relativePath5) {
@@ -6741,8 +6893,12 @@ function isUnderWorkspace(folder, absolutePath) {
   const value2 = normalizePath3(absolutePath);
   return value2 === root || value2.startsWith(`${root}/`);
 }
-function isAbsolutePath2(path) {
+function isAbsolutePath(path) {
   return path.startsWith("/") || /^[A-Za-z]:[\\/]/.test(path);
+}
+function isWorkspaceRelativePath2(path) {
+  if (isAbsolutePath(path) || /^[a-z][a-z0-9+.-]*:/i.test(path)) return false;
+  return !path.replace(/\\/g, "/").split("/").some((part) => part === "..");
 }
 function normalizePath3(value2) {
   return value2.replace(/\\/g, "/").replace(/\/+$/, "");
@@ -6770,7 +6926,56 @@ async function exists4(uri) {
 function decodeBytes3(value2) {
   return new TextDecoder("utf-8").decode(value2);
 }
-function isRecord3(value2) {
+function parseJsonc2(text) {
+  return JSON.parse(stripJsonComments2(text));
+}
+function stripJsonComments2(text) {
+  let output = "";
+  let inString = false;
+  let escaped = false;
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+    if (inString) {
+      output += char;
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      output += char;
+      continue;
+    }
+    if (char === "/" && next === "/") {
+      while (index < text.length && text[index] !== "\n") {
+        output += " ";
+        index += 1;
+      }
+      output += "\n";
+      continue;
+    }
+    if (char === "/" && next === "*") {
+      output += "  ";
+      index += 2;
+      while (index < text.length && !(text[index] === "*" && text[index + 1] === "/")) {
+        output += text[index] === "\n" ? "\n" : " ";
+        index += 1;
+      }
+      output += "  ";
+      index += 1;
+      continue;
+    }
+    output += char;
+  }
+  return output;
+}
+function isRecord4(value2) {
   return Boolean(value2 && typeof value2 === "object" && !Array.isArray(value2));
 }
 function isString(value2) {
@@ -6964,7 +7169,7 @@ var RenovatioGenerationWorkflow = class {
       if (result === "conflict") conflicts += 1;
     }
     await vscode7.workspace.fs.writeFile(loaded.uri, encodeText(formatChangeSet(loaded.artifact)));
-    await vscode7.workspace.fs.writeFile(context.mapUri, encodeText(formatMigrationMap(context.migrationMap)));
+    await vscode7.workspace.fs.writeFile(context.mapUri, encodeText(formatMigrationMap2(context.migrationMap)));
     this.output.appendLine(`[apply] applied=${applied} conflicts=${conflicts} changeset=${loaded.artifact.id}`);
     if (conflicts) {
       vscode7.window.showWarningMessage(`Applied ${applied} change(s); ${conflicts} conflict(s) were left unapplied.`);
@@ -6985,7 +7190,7 @@ var RenovatioGenerationWorkflow = class {
       if (entry.status === "stale-target") entry.status = "manually-edited";
       reconciled += 1;
     }
-    await vscode7.workspace.fs.writeFile(context.mapUri, encodeText(formatMigrationMap(context.migrationMap)));
+    await vscode7.workspace.fs.writeFile(context.mapUri, encodeText(formatMigrationMap2(context.migrationMap)));
     vscode7.window.showInformationMessage(`Reconciled ${reconciled} generated target mapping(s).`);
   }
   async tryBackendPreview(context, entries) {
@@ -7030,9 +7235,10 @@ var RenovatioGenerationWorkflow = class {
     for (const [index, entry] of entries.entries()) {
       if (!entry.target?.path || entry.status === "rejected") continue;
       const targetUri = workspaceUri2(context.folder, entry.target.path);
-      const before = await exists5(targetUri) ? decodeBytes4(await vscode7.workspace.fs.readFile(targetUri)) : "";
+      const existedBefore = await exists5(targetUri);
+      const before = existedBefore ? decodeBytes4(await vscode7.workspace.fs.readFile(targetUri)) : "";
       const after = this.proposedContent(entry, targetLanguage, before);
-      const beforeHash = before ? await sha256Text(before) : null;
+      const beforeHash = existedBefore ? await sha256Text(before) : null;
       const afterHash = await sha256Text(after);
       const changeId = `change-${String(index + 1).padStart(3, "0")}`;
       const beforePath = `${directory}/${changeId}.before`;
@@ -7072,7 +7278,7 @@ var RenovatioGenerationWorkflow = class {
     };
   }
   proposedContent(entry, targetLanguage, before) {
-    const symbol = targetSymbol2(entry.target) ?? targetSymbol2(entry.source) ?? sanitizeIdentifier(entry.id);
+    const symbol = targetSymbol3(entry.target) ?? targetSymbol3(entry.source) ?? sanitizeIdentifier(entry.id);
     const marker = `Renovatio generated preview for ${entry.id}`;
     if (before.trim()) {
       const comment = lineComment(targetLanguage);
@@ -7107,13 +7313,31 @@ public final class ${symbol} {
 `;
   }
   async applyChange(context, changeSet, change) {
+    if (!isWorkspaceRelativePath3(change.path)) {
+      change.status = "conflict";
+      return "conflict";
+    }
     const targetUri = workspaceUri2(context.folder, change.path);
+    const existsNow = await exists5(targetUri);
     if (change.kind === "delete") {
-      change.status = "skipped";
+      if (change.beforeHash && existsNow) {
+        const currentHash = await sha256File(targetUri);
+        if (currentHash !== change.beforeHash) {
+          change.status = "conflict";
+          return "conflict";
+        }
+      }
+      if (existsNow) await vscode7.workspace.fs.delete(targetUri);
+      change.afterHash = null;
+      change.status = "applied";
+      this.updateMigrationEntries(context.migrationMap, changeSet, change);
       return "applied";
     }
-    const existsNow = await exists5(targetUri);
     if (change.beforeHash === null && existsNow) {
+      change.status = "conflict";
+      return "conflict";
+    }
+    if (change.kind === "modify" && !existsNow) {
       change.status = "conflict";
       return "conflict";
     }
@@ -7124,7 +7348,7 @@ public final class ${symbol} {
         return "conflict";
       }
     }
-    if (!change.afterPath) {
+    if (!change.afterPath || !isWorkspaceRelativePath3(change.afterPath)) {
       change.status = "conflict";
       return "conflict";
     }
@@ -7141,7 +7365,7 @@ public final class ${symbol} {
     for (const entryId of change.migrationEntryIds) {
       const entry = migrationMap.entries.find((candidate) => candidate.id === entryId);
       if (!entry) continue;
-      entry.status = "generated";
+      entry.status = change.kind === "delete" ? "accepted" : "generated";
       if (entry.target) entry.target.hash = change.afterHash ?? void 0;
       entry.evidence = [.../* @__PURE__ */ new Set([...entry.evidence ?? [], evidence, change.diffPath])];
       entry.lastDecision = {
@@ -7188,6 +7412,10 @@ public final class ${symbol} {
     return { folder, manifest, mapUri, migrationMap };
   }
 };
+function isWorkspaceRelativePath3(path) {
+  if (path.startsWith("/") || /^[A-Za-z]:[\\/]/.test(path) || /^[a-z][a-z0-9+.-]*:/i.test(path)) return false;
+  return !path.replace(/\\/g, "/").split("/").some((part) => part === "..");
+}
 async function aggregateSourceHash(folder, entries) {
   const hashes = [];
   for (const entry of entries) {
@@ -7197,7 +7425,7 @@ async function aggregateSourceHash(folder, entries) {
   }
   return hashes.length ? sha256Text(hashes.join("\n")) : void 0;
 }
-function targetSymbol2(location) {
+function targetSymbol3(location) {
   if (location?.symbol) return sanitizeIdentifier(location.symbol);
   const file = location?.path.split("/").pop()?.replace(/\.[^.]+$/, "");
   return file ? sanitizeIdentifier(file) : void 0;
@@ -7392,12 +7620,20 @@ var RenovatioEvidenceBundleService = class {
     );
     for (const file of evidenceFiles) evidence.add(relativePath4(folder, file));
     for (const value2 of [...evidence].sort()) {
+      if (!isWorkspaceRelativePath4(value2)) {
+        warnings.push({ path: value2, message: "Evidence reference escapes the workspace." });
+        continue;
+      }
       const source = await exists5(workspaceUri2(folder, value2)) ? value2 : `${manifest.artifacts.evidenceDir}/${value2}`;
+      if (!isWorkspaceRelativePath4(source)) {
+        warnings.push({ path: value2, message: "Evidence reference escapes the workspace." });
+        continue;
+      }
       if (!await exists5(workspaceUri2(folder, source))) {
         warnings.push({ path: value2, message: "Evidence reference does not exist." });
         continue;
       }
-      await this.copyArtifact(folder, bundleUri, source, `reports/${source.split("/").pop()}`, false, artifacts, warnings, checksums);
+      await this.copyArtifact(folder, bundleUri, source, `reports/${safeBundlePath(source)}`, false, artifacts, warnings, checksums);
     }
   }
   async writeBundleManifest(bundleUri, manifest, migrationMap, artifacts, warnings, risks, checksums) {
@@ -7514,12 +7750,19 @@ async function latestBundle(folder) {
   return parentUri4(sorted[0]);
 }
 function summaryCounts(manifest, migrationMap, warnings) {
+  const sourceRoots = manifest.source.roots.map((root) => root.replace(/\\/g, "/"));
+  const sourceFiles = new Set(
+    (migrationMap?.entries ?? []).map((entry) => entry.source?.path).filter((value2) => Boolean(value2))
+  );
+  const evidenceFiles = new Set(
+    (migrationMap?.entries ?? []).flatMap((entry) => entry.evidence ?? []).filter(looksLikeWorkspaceFile)
+  );
   return {
-    sourceFiles: manifest.source.roots.length,
+    sourceFiles: sourceFiles.size || sourceRoots.length,
     migrationEntries: migrationMap?.entries.length ?? 0,
     generatedTargets: (migrationMap?.entries ?? []).filter((entry) => entry.target?.path && entry.status === "generated").length,
     staleEntries: (migrationMap?.entries ?? []).filter((entry) => entry.status === "stale-source" || entry.status === "stale-target").length,
-    evidenceFiles: warnings.filter((warning) => warning.message.includes("Evidence")).length
+    evidenceFiles: evidenceFiles.size
   };
 }
 function countsByStatus(entries) {
@@ -7540,11 +7783,18 @@ function sanitizeName(value2) {
   return value2.toLowerCase().replace(/[^a-z0-9._-]+/g, "-").replace(/^-+|-+$/g, "") || "workspace";
 }
 function timestampId2(value2) {
-  return value2.toISOString().slice(0, 10).replace(/-/g, "");
+  return value2.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 }
 function looksLikeWorkspaceFile(value2) {
   if (/^[a-z][a-z0-9+.-]*:/i.test(value2)) return false;
   return value2.includes("/") || value2.includes("\\") || /\.(json|ya?ml|md|txt|log|sarif|xml|html?|diff)$/i.test(value2);
+}
+function isWorkspaceRelativePath4(path) {
+  if (path.startsWith("/") || /^[A-Za-z]:[\\/]/.test(path) || /^[a-z][a-z0-9+.-]*:/i.test(path)) return false;
+  return !path.replace(/\\/g, "/").split("/").some((part) => part === "..");
+}
+function safeBundlePath(path) {
+  return path.replace(/\\/g, "/").replace(/^\/+/, "").replace(/[^A-Za-z0-9._/-]+/g, "-");
 }
 
 // src/sync.ts
@@ -7559,10 +7809,12 @@ var BackendClientError = class extends Error {
   kind;
 };
 var RenovatioBackendArtifactClient = class {
-  constructor(manifest) {
+  constructor(manifest, role = "ADMIN") {
     this.manifest = manifest;
+    this.role = role;
   }
   manifest;
+  role;
   async getArtifact(key) {
     const response = await this.request("GET", this.artifactPath(key));
     if (response.status === 404 || response.status === 405 || response.status === 501) {
@@ -7604,6 +7856,7 @@ var RenovatioBackendArtifactClient = class {
         signal: controller.signal,
         headers: {
           "Accept": "application/json",
+          "X-Role": this.role,
           ...body === void 0 ? {} : { "Content-Type": "application/json" }
         },
         body: body === void 0 ? void 0 : JSON.stringify(body)
@@ -7632,7 +7885,7 @@ var RenovatioBackendArtifactClient = class {
     } catch {
       throw new BackendClientError("schema-mismatch", `Backend response for ${key} is not JSON.`);
     }
-    if (!isRecord4(parsed)) {
+    if (!isRecord5(parsed)) {
       throw new BackendClientError("schema-mismatch", `Backend response for ${key} must be an object.`);
     }
     const rawContent = parsed.content;
@@ -7654,7 +7907,7 @@ var RenovatioBackendArtifactClient = class {
 function joinUrl3(baseUrl, path) {
   return `${baseUrl.replace(/\/+$/, "")}/${path.replace(/^\/+/, "")}`;
 }
-function isRecord4(value2) {
+function isRecord5(value2) {
   return typeof value2 === "object" && value2 !== null && !Array.isArray(value2);
 }
 
@@ -7785,7 +8038,7 @@ var RenovatioSyncService = class {
     if (confirm !== "Push") return;
     const content = decodeBytes4(await vscode9.workspace.fs.readFile(selected.uri));
     const state = await this.readState(context.folder);
-    const expectedRevision = state.artifacts[selected.key]?.revision ?? context.manifest.sync?.lastSyncedRevision ?? null;
+    const expectedRevision = selected.remote?.revision ?? state.artifacts[selected.key]?.revision ?? context.manifest.sync?.lastSyncedRevision ?? null;
     try {
       const remote = await context.client.putArtifact(selected.key, content, selected.path, expectedRevision);
       await this.writeBaseline(context, selected.key, await sha256File(selected.uri), remote);
@@ -7833,7 +8086,7 @@ var RenovatioSyncService = class {
     const key = artifactKeyForDocument(context.manifest, context.folder, document.uri);
     if (!key) return;
     const status = (await this.collectStatuses(context)).find((entry) => entry.key === key);
-    if (status && status.state !== "both-changed" && status.state !== "remote-changed") {
+    if (status?.state === "local-changed") {
       await this.pushSelected(context, status);
     }
   }
@@ -7909,7 +8162,7 @@ var RenovatioSyncService = class {
     try {
       const state = await this.readState(context.folder);
       const content = decodeBytes4(await vscode9.workspace.fs.readFile(status.uri));
-      const expectedRevision = state.artifacts[status.key]?.revision ?? context.manifest.sync?.lastSyncedRevision ?? null;
+      const expectedRevision = status.remote?.revision ?? state.artifacts[status.key]?.revision ?? context.manifest.sync?.lastSyncedRevision ?? null;
       const remote = await context.client.putArtifact(status.key, content, status.path, expectedRevision);
       await this.writeBaseline(context, status.key, await sha256File(status.uri), remote);
       await this.markManifestSynced(context, remote.revision);
@@ -7964,7 +8217,8 @@ var RenovatioSyncService = class {
     if (!folder) return void 0;
     const manifest = await this.manifestService.load(folder);
     if (!manifest) return void 0;
-    return { folder, manifest, client: new RenovatioBackendArtifactClient(manifest) };
+    const role = String(vscode9.workspace.getConfiguration("renovatio", folder.uri).get("role") || "ADMIN");
+    return { folder, manifest, client: new RenovatioBackendArtifactClient(manifest, role) };
   }
   async readState(folder) {
     const uri = workspaceUri2(folder, SYNC_STATE_PATH);
@@ -8110,6 +8364,7 @@ var RenovatioOnboardingService = class {
   manifestService;
   disposables = [];
   guidePanel;
+  demoFolder;
   register(context) {
     this.disposables.push(
       vscode10.commands.registerCommand("renovatio.openEvaluatorGuide", () => this.openEvaluatorGuide()),
@@ -8117,6 +8372,7 @@ var RenovatioOnboardingService = class {
       vscode10.commands.registerCommand("renovatio.openCobolSample", () => this.openBundledSample(["examples", "src", "mainframe", "CARDDEMO.cbl"])),
       vscode10.commands.registerCommand("renovatio.openGeneratedJavaSample", () => this.openBundledSample(["examples", "generated", "java", "src", "main", "java", "com", "example", "modernized", "Carddemo.java"])),
       vscode10.commands.registerCommand("renovatio.openEvidenceSummarySample", () => this.openEvidenceSummarySample()),
+      vscode10.commands.registerCommand("renovatio.openInstalledDomainDiagram", () => this.openInstalledDomainDiagram()),
       vscode10.commands.registerCommand("renovatio.runEvaluatorChecks", () => this.runEvaluatorChecks())
     );
     context.subscriptions.push(...this.disposables);
@@ -8137,32 +8393,41 @@ var RenovatioOnboardingService = class {
       });
     }
     this.guidePanel.reveal(vscode10.ViewColumn.One);
-    const manifest = await this.manifestService.load();
+    const manifest = await this.manifestService.load(this.demoFolder);
     this.guidePanel.webview.html = this.renderGuide(manifest);
   }
   async installDemoWorkspace() {
     const folder = await pickWorkspaceFolder();
     if (!folder) return;
+    this.demoFolder = folder;
     const manifestUri = workspaceUri2(folder, WORKSPACE_MANIFEST_RELATIVE_PATH);
     if (!await exists5(manifestUri)) {
       await vscode10.workspace.fs.createDirectory(parentUri6(manifestUri));
       await vscode10.workspace.fs.writeFile(manifestUri, encodeText(`${JSON.stringify(defaultDemoManifest(folder), null, 2)}
 `));
     }
+    let copied = 0;
+    let skipped = 0;
     for (const sample of SAMPLE_FILES) {
       const source = vscode10.Uri.joinPath(this.context.extensionUri, ...sample.from);
       const target = workspaceUri2(folder, sample.to);
+      if (await exists5(target)) {
+        skipped += 1;
+        continue;
+      }
       await vscode10.workspace.fs.createDirectory(parentUri6(target));
       await vscode10.workspace.fs.writeFile(target, await vscode10.workspace.fs.readFile(source));
+      copied += 1;
     }
     await this.manifestService.validateWorkspace(folder);
-    vscode10.window.showInformationMessage("Renovatio demo workspace assets are ready.", "Open Guide", "Analyze Workspace").then((action2) => {
+    const message7 = skipped ? `Renovatio demo assets ready: copied ${copied}, preserved ${skipped} existing.` : "Renovatio demo workspace assets are ready.";
+    vscode10.window.showInformationMessage(message7, "Open Guide", "Analyze Workspace").then((action2) => {
       if (action2 === "Open Guide") void this.openEvaluatorGuide();
       if (action2 === "Analyze Workspace") void vscode10.commands.executeCommand("renovatio.analyzeWorkspace");
     });
   }
   async openEvidenceSummarySample() {
-    const folder = vscode10.workspace.workspaceFolders?.[0];
+    const folder = this.demoFolder ?? vscode10.workspace.workspaceFolders?.[0];
     if (folder) {
       const local = workspaceUri2(folder, ".renovatio/evidence/evaluator-summary.md");
       if (await exists5(local)) {
@@ -8173,7 +8438,7 @@ var RenovatioOnboardingService = class {
     await this.openBundledSample(["examples", "evidence", "evaluator-summary.md"]);
   }
   async runEvaluatorChecks() {
-    const manifest = await this.manifestService.load();
+    const manifest = await this.manifestService.load(this.demoFolder);
     if (!manifest) {
       const action2 = await vscode10.window.showInformationMessage(
         "Create or install a Renovatio workspace manifest before running backend and LLM checks.",
@@ -8186,6 +8451,18 @@ var RenovatioOnboardingService = class {
     }
     await vscode10.commands.executeCommand("renovatio.testBackendConnection");
     await vscode10.commands.executeCommand("renovatio.testLlmReverseEngineering");
+  }
+  async openInstalledDomainDiagram() {
+    const folder = this.demoFolder ?? vscode10.workspace.workspaceFolders?.[0];
+    const manifest = await this.manifestService.load(folder);
+    if (folder && manifest) {
+      const uri = workspaceUri2(folder, manifest.artifacts.domainModel);
+      if (await exists5(uri)) {
+        await vscode10.window.showTextDocument(await vscode10.workspace.openTextDocument(uri), { preview: false });
+        return;
+      }
+    }
+    await this.openBundledSample(["examples", "sample.renovatio-domain.json"]);
   }
   async openBundledSample(relativeParts) {
     const uri = vscode10.Uri.joinPath(this.context.extensionUri, ...relativeParts);
@@ -8267,7 +8544,7 @@ var RenovatioOnboardingService = class {
     ${guideStep("1", "Create demo assets", "Manifest, COBOL, generated Java, model, migration map and evidence.", "renovatio.installDemoWorkspace", "Install Demo Workspace")}
     ${guideStep("2", "Confirm backend and LLM", "Shows Offline, Ready or unsupported endpoints before analysis.", "renovatio.runEvaluatorChecks", "Run Checks")}
     ${guideStep("3", "Analyze COBOL", "Parse the configured roots and populate discovery output.", "renovatio.analyzeWorkspace", "Analyze Workspace")}
-    ${guideStep("4", "Review models", "Open domain and architecture diagrams with native VS Code editors.", "renovatio.openNativeDomainDiagram", "Open Domain Diagram")}
+    ${guideStep("4", "Review models", "Open domain and architecture diagrams with native VS Code editors.", "renovatio.openInstalledDomainDiagram", "Open Domain Diagram")}
     ${guideStep("5", "Review traceability", "Inspect legacy-to-target mapping and stale states.", "renovatio.openMigrationMap", "Open Migration Map")}
     ${guideStep("6", "Export evidence", "Package reports, checksums and review context.", "renovatio.exportEvidenceBundle", "Export Evidence")}
   </section>
@@ -8323,8 +8600,8 @@ function defaultDemoManifest(folder) {
       capabilitiesEndpoint: "/api/capabilities",
       allowLocalProcessControl: true,
       commands: {
-        start: "./mvnw -pl renovatio-api spring-boot:run",
-        reloadConfig: "curl -X POST http://127.0.0.1:8081/api/admin/reload"
+        start: "./mvnw -pl renovatio-api spring-boot:run -Dspring-boot.run.arguments=--server.port=8081",
+        reloadConfig: "curl -fsS -X POST http://127.0.0.1:8081/api/admin/reload"
       }
     },
     llm: {
@@ -8411,7 +8688,7 @@ function activate2(context) {
     vscode11.commands.registerCommand("renovatio.openDomainSample", () => openSample(context, "sample.renovatio-domain.json")),
     vscode11.commands.registerCommand("renovatio.openArchitectureSample", () => openSample(context, "sample.renovatio-arch.json"))
   );
-  void manifestService.validateWorkspace();
+  void manifestService.validateWorkspace(void 0, { notify: false });
   void artifactDiagnostics.refreshAll();
 }
 function deactivate() {
