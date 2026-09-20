@@ -248,9 +248,12 @@ npm run build --workspace @renovatio/diagram-canvas
 
 cd ../renovatio-vscode-extension
 npm install
+npm test
 npm run build
 npm run package
 ```
+
+`npm test` compiles the pure workbench modules into `dist-test/` and runs Node's built-in test runner against migration-map helpers, diagram model updates, contributed commands and JSON Schema fixture contracts. The fixture workspace lives under `test/fixtures/workspace-basic/` so agents can extend coverage without requiring a VS Code UI session.
 
 The package step emits a `.vsix` that can be installed with:
 

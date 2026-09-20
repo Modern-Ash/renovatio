@@ -1,0 +1,66 @@
+{
+  "version": "1",
+  "projectId": "carddemo",
+  "source": {
+    "language": "cobol",
+    "roots": [
+      "src/mainframe",
+      "copybooks"
+    ],
+    "include": [
+      "**/*.cbl",
+      "**/*.cob",
+      "**/*.cpy",
+      "**/*.jcl"
+    ],
+    "exclude": [
+      "**/target/**",
+      "**/.git/**"
+    ]
+  },
+  "targets": [
+    {
+      "language": "java",
+      "root": "generated/java",
+      "package": "com.example",
+      "framework": "spring"
+    }
+  ],
+  "artifacts": {
+    "domainModel": ".renovatio/diagrams/sample.renovatio-domain.json",
+    "persistenceModel": ".renovatio/diagrams/sample-persistence.renovatio-domain.json",
+    "architecture": ".renovatio/diagrams/sample.renovatio-arch.json",
+    "migrationMap": ".renovatio/migration-map.renovatio.json",
+    "evidenceDir": ".renovatio/evidence"
+  },
+  "backend": {
+    "url": "http://127.0.0.1:8081",
+    "environment": "local",
+    "healthEndpoint": "/actuator/health",
+    "capabilitiesEndpoint": "/api/capabilities",
+    "allowLocalProcessControl": true
+  },
+  "llm": {
+    "provider": "ollama",
+    "model": "codellama:13b",
+    "purpose": "cobol-reverse-engineering",
+    "temperature": 0.1,
+    "maxTokens": 8192,
+    "cacheEnabled": true,
+    "promptProfile": "cobol.domain.entities.v1",
+    "fallbackModel": null
+  },
+  "sync": {
+    "enabled": false,
+    "mode": "manual",
+    "lastSyncedAt": null,
+    "lastSyncedRevision": null,
+    "artifacts": [
+      "domainModel",
+      "persistenceModel",
+      "architecture",
+      "migrationMap"
+    ],
+    "conflictPolicy": "prompt"
+  }
+}

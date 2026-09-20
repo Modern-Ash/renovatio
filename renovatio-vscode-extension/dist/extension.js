@@ -6069,6 +6069,58 @@ function message3(error) {
 
 // src/navigation.ts
 var vscode4 = __toESM(require("vscode"));
+
+// src/workbenchCore.ts
+function entriesForMigrationPath(artifact, documentPath, side) {
+  const path = normalizePath(documentPath);
+  return artifact.entries.filter((entry) => normalizePath(entry[side]?.path) === path);
+}
+function migrationHoverMarkdown(entry, side) {
+  const source = entry.source;
+  const target = entry.target;
+  const confidence = typeof entry.confidence === "number" ? `${Math.round(entry.confidence * 100)}%` : "unknown";
+  const decision = entry.lastDecision ? `${entry.lastDecision.action} by ${entry.lastDecision.actor} at ${entry.lastDecision.at}` : "none";
+  const warnings = staleWarnings(entry);
+  const openOtherCommand = side === "source" ? "renovatio.openMigrationTarget" : "renovatio.openMigrationSource";
+  const openOtherLabel = side === "source" ? "Open target" : "Open legacy source";
+  const evidenceCount = entry.evidence?.length ?? 0;
+  const lines = [
+    `**Renovatio migration** \`${entry.id}\``,
+    "",
+    `- Status: \`${entry.status}\``,
+    `- Confidence: ${confidence}`,
+    `- Source: ${formatLocation(source)}`,
+    `- Target: ${formatLocation(target)}`,
+    `- Evidence: ${evidenceCount}`,
+    `- Last decision: ${decision}`
+  ];
+  if (side === "target") {
+    lines.push(`- Source hash: ${source?.hash ?? "not recorded"}`);
+    lines.push(`- Target hash: ${target?.hash ?? "not recorded"}`);
+  }
+  if (warnings.length) lines.push(`- Warnings: ${warnings.join(", ")}`);
+  lines.push("");
+  lines.push(`[${openOtherLabel}](command:${openOtherCommand}?${encodeURIComponent(JSON.stringify([entry.id]))})`);
+  lines.push(`[Show evidence](command:renovatio.showMigrationEvidence?${encodeURIComponent(JSON.stringify([entry.id]))})`);
+  return lines.join("\n");
+}
+function staleWarnings(entry) {
+  const warnings = [];
+  if (entry.status === "stale-source") warnings.push("source changed");
+  if (entry.status === "stale-target") warnings.push("target changed");
+  if (entry.status === "needs-review") warnings.push("needs review");
+  return warnings;
+}
+function formatLocation(location) {
+  if (!location) return "not mapped";
+  const symbol = location.symbol ? `#${location.symbol}` : "";
+  return `\`${location.path}${symbol}\``;
+}
+function normalizePath(value2) {
+  return String(value2 ?? "").replace(/\\/g, "/");
+}
+
+// src/navigation.ts
 var SOURCE_LANGUAGES = ["cobol", "jcl"];
 var TARGET_LANGUAGES = ["java", "python", "javascript", "typescript"];
 var MigrationNavigationService = class {
@@ -6149,7 +6201,7 @@ var MigrationNavigationService = class {
     const markdown = new vscode4.MarkdownString(void 0, true);
     markdown.isTrusted = true;
     markdown.supportThemeIcons = true;
-    markdown.appendMarkdown(entries.slice(0, 3).map((entry) => hoverForEntry(entry, side)).join("\n\n---\n\n"));
+    markdown.appendMarkdown(entries.slice(0, 3).map((entry) => migrationHoverMarkdown(entry, side)).join("\n\n---\n\n"));
     return new vscode4.Hover(markdown);
   }
   async openSide(entryId, side) {
@@ -6299,7 +6351,7 @@ function sideForLanguage(languageId) {
 }
 function entriesForDocument(context, document, side) {
   const path = relativePath3(context.folder, document.uri);
-  return context.artifact.entries.filter((entry) => normalizePath(entry[side]?.path) === path);
+  return entriesForMigrationPath(context.artifact, path, side);
 }
 function entryMatchesPosition(document, position, location) {
   if (!location) return false;
@@ -6328,53 +6380,12 @@ function vscodeRange(range, document) {
   const endColumn = Math.max(startColumn, range.endColumn - 1);
   return new vscode4.Range(startLine, startColumn, endLine, endColumn);
 }
-function hoverForEntry(entry, side) {
-  const source = entry.source;
-  const target = entry.target;
-  const confidence = typeof entry.confidence === "number" ? `${Math.round(entry.confidence * 100)}%` : "unknown";
-  const decision = entry.lastDecision ? `${entry.lastDecision.action} by ${entry.lastDecision.actor} at ${entry.lastDecision.at}` : "none";
-  const warnings = staleWarnings(entry);
-  const openOtherCommand = side === "source" ? "renovatio.openMigrationTarget" : "renovatio.openMigrationSource";
-  const openOtherLabel = side === "source" ? "Open target" : "Open legacy source";
-  const evidenceCount = entry.evidence?.length ?? 0;
-  const lines = [
-    `**Renovatio migration** \`${entry.id}\``,
-    "",
-    `- Status: \`${entry.status}\``,
-    `- Confidence: ${confidence}`,
-    `- Source: ${formatLocation(source)}`,
-    `- Target: ${formatLocation(target)}`,
-    `- Evidence: ${evidenceCount}`,
-    `- Last decision: ${decision}`
-  ];
-  if (side === "target") {
-    lines.push(`- Source hash: ${source?.hash ?? "not recorded"}`);
-    lines.push(`- Target hash: ${target?.hash ?? "not recorded"}`);
-  }
-  if (warnings.length) lines.push(`- Warnings: ${warnings.join(", ")}`);
-  lines.push("");
-  lines.push(`[${openOtherLabel}](command:${openOtherCommand}?${encodeURIComponent(JSON.stringify([entry.id]))})`);
-  lines.push(`[Show evidence](command:renovatio.showMigrationEvidence?${encodeURIComponent(JSON.stringify([entry.id]))})`);
-  return lines.join("\n");
-}
-function formatLocation(location) {
-  if (!location) return "not mapped";
-  const symbol = location.symbol ? `#${location.symbol}` : "";
-  return `\`${location.path}${symbol}\``;
-}
-function staleWarnings(entry) {
-  const warnings = [];
-  if (entry.status === "stale-source") warnings.push("source changed");
-  if (entry.status === "stale-target") warnings.push("target changed");
-  if (entry.status === "needs-review") warnings.push("needs review");
-  return warnings;
-}
 function relativePath3(folder, uri) {
-  const root = normalizePath(folder.uri.fsPath);
-  const file = normalizePath(uri.fsPath);
+  const root = normalizePath2(folder.uri.fsPath);
+  const file = normalizePath2(uri.fsPath);
   return file.startsWith(`${root}/`) ? file.slice(root.length + 1) : file;
 }
-function normalizePath(value2) {
+function normalizePath2(value2) {
   return String(value2 ?? "").replace(/\\/g, "/");
 }
 function isMigrationMapDocument(document) {
@@ -6515,10 +6526,10 @@ var RenovatioArtifactDiagnosticsService = class {
       if (!root) {
         addJsonDiagnostic(diagnostics, document.text, "targets", `targets[${index}].root is required.`, vscode5.DiagnosticSeverity.Error);
       } else {
-        if (targetRoots.has(normalizePath2(root))) {
+        if (targetRoots.has(normalizePath3(root))) {
           addJsonDiagnostic(diagnostics, document.text, root, `Duplicate target root: ${root}.`, vscode5.DiagnosticSeverity.Error);
         }
-        targetRoots.add(normalizePath2(root));
+        targetRoots.add(normalizePath3(root));
         validateWorkspacePaths(diagnostics, document.text, folder, [root], `targets[${index}].root`);
       }
     }
@@ -6726,14 +6737,14 @@ function workspaceUri(folder, relativePath5) {
   return vscode5.Uri.joinPath(folder.uri, ...relativePath5.split("/").filter(Boolean));
 }
 function isUnderWorkspace(folder, absolutePath) {
-  const root = normalizePath2(folder.uri.fsPath);
-  const value2 = normalizePath2(absolutePath);
+  const root = normalizePath3(folder.uri.fsPath);
+  const value2 = normalizePath3(absolutePath);
   return value2 === root || value2.startsWith(`${root}/`);
 }
 function isAbsolutePath2(path) {
   return path.startsWith("/") || /^[A-Za-z]:[\\/]/.test(path);
 }
-function normalizePath2(value2) {
+function normalizePath3(value2) {
   return value2.replace(/\\/g, "/").replace(/\/+$/, "");
 }
 function isValidUrl(value2) {
@@ -6810,8 +6821,8 @@ function workspaceUri2(folder, relativePath5) {
   return vscode6.Uri.joinPath(folder.uri, ...relativePath5.split("/").filter(Boolean));
 }
 function relativePath4(folder, uri) {
-  const root = normalizePath3(folder.uri.fsPath);
-  const file = normalizePath3(uri.fsPath);
+  const root = normalizePath4(folder.uri.fsPath);
+  const file = normalizePath4(uri.fsPath);
   return file.startsWith(`${root}/`) ? file.slice(root.length + 1) : file;
 }
 async function exists5(uri) {
@@ -6841,7 +6852,7 @@ function parentUri2(uri) {
   parts.pop();
   return uri.with({ path: parts.join("/") || "/" });
 }
-function normalizePath3(value2) {
+function normalizePath4(value2) {
   return value2.replace(/\\/g, "/").replace(/\/+$/, "");
 }
 

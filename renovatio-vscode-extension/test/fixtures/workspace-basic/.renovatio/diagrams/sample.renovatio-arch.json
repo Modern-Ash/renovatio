@@ -1,0 +1,26 @@
+{
+  "version": "1",
+  "profile": {
+    "style": "LAYERED_MVC",
+    "layout": {
+      "architecture-layer:service": {
+        "x": 320,
+        "y": 80
+      }
+    },
+    "dependencyRules": [
+      {
+        "from": "controller",
+        "to": "service"
+      }
+    ]
+  },
+  "canvas": [
+    {
+      "id": "service:CardDemoService",
+      "kind": "SERVICE",
+      "name": "CardDemoService",
+      "layer": "service"
+    }
+  ]
+}

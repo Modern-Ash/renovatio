@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { formatMigrationMap, type MigrationMapArtifact, type MigrationMapEntry, type MigrationLocation } from './migrationMap';
 import { type RenovatioWorkspaceManifest, RenovatioWorkspaceManifestService } from './workspaceManifest';
+import { entriesForMigrationPath, migrationHoverMarkdown } from './workbenchCore';
 
 type Side = 'source' | 'target';
 
@@ -97,7 +98,7 @@ export class MigrationNavigationService implements vscode.CodeLensProvider, vsco
         const markdown = new vscode.MarkdownString(undefined, true);
         markdown.isTrusted = true;
         markdown.supportThemeIcons = true;
-        markdown.appendMarkdown(entries.slice(0, 3).map(entry => hoverForEntry(entry, side)).join('\n\n---\n\n'));
+        markdown.appendMarkdown(entries.slice(0, 3).map(entry => migrationHoverMarkdown(entry, side)).join('\n\n---\n\n'));
         return new vscode.Hover(markdown);
     }
 
@@ -262,7 +263,7 @@ function sideForLanguage(languageId: string): Side | undefined {
 
 function entriesForDocument(context: MigrationMapContext, document: vscode.TextDocument, side: Side): MigrationMapEntry[] {
     const path = relativePath(context.folder, document.uri);
-    return context.artifact.entries.filter(entry => normalizePath(entry[side]?.path) === path);
+    return entriesForMigrationPath(context.artifact, path, side) as MigrationMapEntry[];
 }
 
 function entryMatchesPosition(document: vscode.TextDocument, position: vscode.Position, location: MigrationLocation | undefined): boolean {
@@ -294,52 +295,6 @@ function vscodeRange(range: MigrationLocation['range'] | undefined, document: vs
     const startColumn = Math.max(0, range.startColumn - 1);
     const endColumn = Math.max(startColumn, range.endColumn - 1);
     return new vscode.Range(startLine, startColumn, endLine, endColumn);
-}
-
-function hoverForEntry(entry: MigrationMapEntry, side: Side): string {
-    const source = entry.source;
-    const target = entry.target;
-    const confidence = typeof entry.confidence === 'number' ? `${Math.round(entry.confidence * 100)}%` : 'unknown';
-    const decision = entry.lastDecision
-        ? `${entry.lastDecision.action} by ${entry.lastDecision.actor} at ${entry.lastDecision.at}`
-        : 'none';
-    const warnings = staleWarnings(entry);
-    const openOtherCommand = side === 'source' ? 'renovatio.openMigrationTarget' : 'renovatio.openMigrationSource';
-    const openOtherLabel = side === 'source' ? 'Open target' : 'Open legacy source';
-    const evidenceCount = entry.evidence?.length ?? 0;
-    const lines = [
-        `**Renovatio migration** \`${entry.id}\``,
-        '',
-        `- Status: \`${entry.status}\``,
-        `- Confidence: ${confidence}`,
-        `- Source: ${formatLocation(source)}`,
-        `- Target: ${formatLocation(target)}`,
-        `- Evidence: ${evidenceCount}`,
-        `- Last decision: ${decision}`
-    ];
-    if (side === 'target') {
-        lines.push(`- Source hash: ${source?.hash ?? 'not recorded'}`);
-        lines.push(`- Target hash: ${target?.hash ?? 'not recorded'}`);
-    }
-    if (warnings.length) lines.push(`- Warnings: ${warnings.join(', ')}`);
-    lines.push('');
-    lines.push(`[${openOtherLabel}](command:${openOtherCommand}?${encodeURIComponent(JSON.stringify([entry.id]))})`);
-    lines.push(`[Show evidence](command:renovatio.showMigrationEvidence?${encodeURIComponent(JSON.stringify([entry.id]))})`);
-    return lines.join('\n');
-}
-
-function formatLocation(location: MigrationLocation | undefined): string {
-    if (!location) return 'not mapped';
-    const symbol = location.symbol ? `#${location.symbol}` : '';
-    return `\`${location.path}${symbol}\``;
-}
-
-function staleWarnings(entry: MigrationMapEntry): string[] {
-    const warnings: string[] = [];
-    if (entry.status === 'stale-source') warnings.push('source changed');
-    if (entry.status === 'stale-target') warnings.push('target changed');
-    if (entry.status === 'needs-review') warnings.push('needs review');
-    return warnings;
 }
 
 function relativePath(folder: vscode.WorkspaceFolder, uri: vscode.Uri): string {
