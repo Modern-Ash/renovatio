@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "outDir": "dist-test",
+    "types": [],
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": [
+    "src/model.ts",
+    "src/workbenchCore.ts"
+  ]
+}

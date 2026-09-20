@@ -1,0 +1,38 @@
+{
+  "version": "1",
+  "nodes": [
+    {
+      "id": "usecase:card-demo",
+      "kind": "USE_CASE",
+      "name": "Card Demo",
+      "confidence": 0.9,
+      "properties": []
+    },
+    {
+      "id": "entity:card-account",
+      "kind": "ENTITY",
+      "name": "CARD-ACCOUNT",
+      "properties": [
+        {
+          "name": "CARD-ID",
+          "type": "PIC X(16)",
+          "required": true
+        }
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "id": "rel:card-demo:card-account",
+      "fromId": "usecase:card-demo",
+      "toId": "entity:card-account",
+      "kind": "USES"
+    }
+  ],
+  "layout": {
+    "usecase:card-demo": {
+      "x": 100,
+      "y": 100
+    }
+  }
+}

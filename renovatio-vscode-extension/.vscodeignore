@@ -1,9 +1,12 @@
 src/**
 scripts/**
 node_modules/**
+test/**
+dist-test/**
 *.ts
 *.tsx
 tsconfig.json
+tsconfig.test.json
 package-lock.json
 dist/**/*.map
 .gitignore

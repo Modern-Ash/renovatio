@@ -122,8 +122,38 @@
           "type": "string",
           "enum": ["local", "dev", "staging", "production"]
         },
+        "healthEndpoint": {
+          "type": "string",
+          "minLength": 1
+        },
+        "capabilitiesEndpoint": {
+          "type": "string",
+          "minLength": 1
+        },
         "allowLocalProcessControl": {
           "type": "boolean"
+        },
+        "commands": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "start": {
+              "type": "string",
+              "minLength": 1
+            },
+            "stop": {
+              "type": "string",
+              "minLength": 1
+            },
+            "restart": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reloadConfig": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
         }
       }
     },
@@ -171,6 +201,47 @@
         },
         "fallbackModel": {
           "type": ["string", "null"]
+        }
+      }
+    },
+    "sync": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "mode",
+        "lastSyncedAt",
+        "lastSyncedRevision",
+        "artifacts",
+        "conflictPolicy"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["manual", "pull-on-open", "push-on-save"]
+        },
+        "lastSyncedAt": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "lastSyncedRevision": {
+          "type": ["string", "null"]
+        },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "enum": ["domainModel", "persistenceModel", "architecture", "migrationMap"]
+          }
+        },
+        "conflictPolicy": {
+          "type": "string",
+          "enum": ["prompt", "prefer-local", "prefer-remote"]
         }
       }
     }

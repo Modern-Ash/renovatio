@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://modern-ash.github.io/renovatio/schemas/migration-map.renovatio.schema.json",
+  "title": "Renovatio Migration Map",
+  "description": "Canonical two-way traceability artifact between legacy sources, Renovatio models, target code and evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "projectId", "generatedAt", "entries"],
+  "properties": {
+    "version": {
+      "const": "1"
+    },
+    "projectId": {
+      "type": "string",
+      "minLength": 1
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sourceHash": {
+      "type": "string",
+      "pattern": "^sha256:"
+    },
+    "targetHash": {
+      "type": "string",
+      "pattern": "^sha256:"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entry"
+      }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "status", "evidence"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "program",
+            "paragraph",
+            "section",
+            "copybook",
+            "record",
+            "field",
+            "jcl-job",
+            "jcl-step",
+            "business-rule",
+            "dataset",
+            "table",
+            "test-fixture"
+          ]
+        },
+        "source": {
+          "$ref": "#/$defs/location"
+        },
+        "renovatio": {
+          "$ref": "#/$defs/renovatioTrace"
+        },
+        "target": {
+          "$ref": "#/$defs/location"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "proposed",
+            "accepted",
+            "generated",
+            "manually-edited",
+            "stale-source",
+            "stale-target",
+            "needs-review",
+            "rejected"
+          ]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "lastDecision": {
+          "$ref": "#/$defs/decision"
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["language", "path"],
+      "properties": {
+        "language": {
+          "type": "string",
+          "minLength": 1
+        },
+        "path": {
+          "$ref": "#/$defs/workspaceRelativePath"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "range": {
+          "$ref": "#/$defs/range"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^sha256:"
+        }
+      }
+    },
+    "range": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["startLine", "startColumn", "endLine", "endColumn"],
+      "properties": {
+        "startLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "startColumn": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endLine": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "endColumn": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "renovatioTrace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domainNodeIds", "architectureNodeIds", "semanticIds"],
+      "properties": {
+        "domainNodeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "architectureNodeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "semanticIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actor", "action", "at"],
+      "properties": {
+        "actor": {
+          "type": "string",
+          "minLength": 1
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "workspaceRelativePath": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^/"
+          },
+          {
+            "pattern": "^[A-Za-z]:[\\\\/]"
+          }
+        ]
+      }
+    }
+  }
+}

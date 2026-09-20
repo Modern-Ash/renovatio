@@ -22,14 +22,14 @@
     {
       "language": "java",
       "root": "generated/java",
-      "package": "com.example.modernized",
+      "package": "com.example",
       "framework": "spring"
     }
   ],
   "artifacts": {
-    "domainModel": ".renovatio/diagrams/carddemo.renovatio-domain.json",
-    "persistenceModel": ".renovatio/diagrams/carddemo-persistence.renovatio-domain.json",
-    "architecture": ".renovatio/diagrams/carddemo.renovatio-arch.json",
+    "domainModel": ".renovatio/diagrams/sample.renovatio-domain.json",
+    "persistenceModel": ".renovatio/diagrams/sample-persistence.renovatio-domain.json",
+    "architecture": ".renovatio/diagrams/sample.renovatio-arch.json",
     "migrationMap": ".renovatio/migration-map.renovatio.json",
     "evidenceDir": ".renovatio/evidence"
   },
@@ -38,13 +38,7 @@
     "environment": "local",
     "healthEndpoint": "/actuator/health",
     "capabilitiesEndpoint": "/api/capabilities",
-    "allowLocalProcessControl": true,
-    "commands": {
-      "start": "./mvnw -pl renovatio-api spring-boot:run",
-      "stop": "renovatio backend stop",
-      "restart": "renovatio backend restart",
-      "reloadConfig": "curl -X POST http://127.0.0.1:8081/api/admin/reload"
-    }
+    "allowLocalProcessControl": true
   },
   "llm": {
     "provider": "ollama",

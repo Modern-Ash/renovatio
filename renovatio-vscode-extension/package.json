@@ -28,10 +28,38 @@
     "workspaceContains:**/*.jcl",
     "workspaceContains:.renovatio/workspace.renovatio.json",
     "onCommand:renovatio.openWelcome",
+    "onCommand:renovatio.openEvaluatorGuide",
+    "onCommand:renovatio.installDemoWorkspace",
+    "onCommand:renovatio.openCobolSample",
+    "onCommand:renovatio.openGeneratedJavaSample",
+    "onCommand:renovatio.openEvidenceSummarySample",
+    "onCommand:renovatio.runEvaluatorChecks",
     "onCommand:renovatio.initializeWorkspace",
     "onCommand:renovatio.openWorkspaceManifest",
     "onCommand:renovatio.validateWorkspace",
     "onCommand:renovatio.formatArtifacts",
+    "onCommand:renovatio.createMigrationMap",
+    "onCommand:renovatio.openMigrationMap",
+    "onCommand:renovatio.openMigrationSource",
+    "onCommand:renovatio.openMigrationTarget",
+    "onCommand:renovatio.showMigrationEvidence",
+    "onCommand:renovatio.openMappedDomainNode",
+    "onCommand:renovatio.markTargetManuallyRefined",
+    "onCommand:renovatio.reconcileTargetChange",
+    "onCommand:renovatio.validateMigrationMap",
+    "onCommand:renovatio.formatMigrationMap",
+    "onCommand:renovatio.openBackendSettings",
+    "onCommand:renovatio.testBackendConnection",
+    "onCommand:renovatio.openBackendLogs",
+    "onCommand:renovatio.startBackend",
+    "onCommand:renovatio.stopBackend",
+    "onCommand:renovatio.restartBackend",
+    "onCommand:renovatio.reloadBackendConfiguration",
+    "onCommand:renovatio.configureLlmModel",
+    "onCommand:renovatio.testLlmReverseEngineering",
+    "onCommand:renovatio.clearLlmCache",
+    "onCommand:renovatio.openPromptProfile",
+    "onCommand:renovatio.compareLlmOutputAgainstGoldenFixture",
     "onCommand:renovatio.selectProject",
     "onCommand:renovatio.createProject",
     "onCommand:renovatio.analyzeSelectedPath",
@@ -42,15 +70,32 @@
     "onCommand:renovatio.openControlDeck",
     "onCommand:renovatio.openPersistenceModel",
     "onCommand:renovatio.openGeneratedCode",
-    "onView:renovatio.views.welcome",
+    "onCommand:renovatio.openDiscoveryOutput",
+    "onCommand:renovatio.generateMigrationPlan",
+    "onCommand:renovatio.previewMigrationDiff",
+    "onCommand:renovatio.openChangeSet",
+    "onCommand:renovatio.approveChange",
+    "onCommand:renovatio.rejectChange",
+    "onCommand:renovatio.applyApprovedChanges",
+    "onCommand:renovatio.reconcileGeneratedCode",
+    "onCommand:renovatio.exportEvidenceBundle",
+    "onCommand:renovatio.openLatestEvidenceBundle",
+    "onCommand:renovatio.copyEvidenceSummary",
+    "onCommand:renovatio.syncStatus",
+    "onCommand:renovatio.pullFromBackend",
+    "onCommand:renovatio.pushToBackend",
+    "onCommand:renovatio.compareLocalAndBackend",
+    "onCommand:renovatio.resolveSyncConflict",
     "onCommand:renovatio.openDomainSample",
     "onCommand:renovatio.openArchitectureSample",
     "onCustomEditor:renovatio.diagram.domain",
     "onCustomEditor:renovatio.diagram.architecture",
-    "onView:renovatio.projects",
-    "onView:renovatio.operations",
-    "onView:renovatio.analysis",
-    "onView:renovatio.domainModel",
+    "onView:renovatio.workspace",
+    "onView:renovatio.discovery",
+    "onView:renovatio.models",
+    "onView:renovatio.migration",
+    "onView:renovatio.evidence",
+    "onView:renovatio.backend",
     "onCommand:renovatio.openNativeDomainDiagram",
     "onCommand:renovatio.openNativePersistenceDiagram",
     "onCommand:renovatio.openNativeArchitectureDiagram"
@@ -120,6 +165,36 @@
         "icon": "$(home)"
       },
       {
+        "command": "renovatio.openEvaluatorGuide",
+        "title": "Renovatio: Open 5-Minute Evaluator Guide",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "renovatio.installDemoWorkspace",
+        "title": "Renovatio: Install Demo Workspace Assets",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "renovatio.openCobolSample",
+        "title": "Renovatio: Open Sample COBOL",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "renovatio.openGeneratedJavaSample",
+        "title": "Renovatio: Open Sample Generated Java",
+        "icon": "$(symbol-class)"
+      },
+      {
+        "command": "renovatio.openEvidenceSummarySample",
+        "title": "Renovatio: Open Sample Evidence Summary",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "renovatio.runEvaluatorChecks",
+        "title": "Renovatio: Run Backend And LLM Checks",
+        "icon": "$(beaker)"
+      },
+      {
         "command": "renovatio.refresh",
         "title": "Renovatio: Refresh",
         "icon": "$(refresh)"
@@ -143,6 +218,116 @@
         "command": "renovatio.formatArtifacts",
         "title": "Renovatio: Format Artifacts",
         "icon": "$(symbol-keyword)"
+      },
+      {
+        "command": "renovatio.createMigrationMap",
+        "title": "Renovatio: Create Migration Map",
+        "icon": "$(git-compare)"
+      },
+      {
+        "command": "renovatio.openMigrationMap",
+        "title": "Renovatio: Open Migration Map",
+        "icon": "$(references)"
+      },
+      {
+        "command": "renovatio.openMigrationSource",
+        "title": "Renovatio: Open Legacy Source",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "renovatio.openMigrationTarget",
+        "title": "Renovatio: Open Target Code",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "renovatio.showMigrationEvidence",
+        "title": "Renovatio: Show Migration Evidence",
+        "icon": "$(references)"
+      },
+      {
+        "command": "renovatio.openMappedDomainNode",
+        "title": "Renovatio: Open Mapped Domain Node",
+        "icon": "$(symbol-structure)"
+      },
+      {
+        "command": "renovatio.markTargetManuallyRefined",
+        "title": "Renovatio: Mark Target Manually Refined",
+        "icon": "$(edit)"
+      },
+      {
+        "command": "renovatio.reconcileTargetChange",
+        "title": "Renovatio: Reconcile Target Change",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "renovatio.validateMigrationMap",
+        "title": "Renovatio: Validate Migration Map",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "renovatio.formatMigrationMap",
+        "title": "Renovatio: Format Migration Map",
+        "icon": "$(symbol-keyword)"
+      },
+      {
+        "command": "renovatio.openBackendSettings",
+        "title": "Renovatio: Open Backend Settings",
+        "icon": "$(settings-gear)"
+      },
+      {
+        "command": "renovatio.testBackendConnection",
+        "title": "Renovatio: Test Backend Connection",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "renovatio.openBackendLogs",
+        "title": "Renovatio: Open Backend Logs",
+        "icon": "$(output)"
+      },
+      {
+        "command": "renovatio.startBackend",
+        "title": "Renovatio: Start Backend",
+        "icon": "$(debug-start)"
+      },
+      {
+        "command": "renovatio.stopBackend",
+        "title": "Renovatio: Stop Backend",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "renovatio.restartBackend",
+        "title": "Renovatio: Restart Backend",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "renovatio.reloadBackendConfiguration",
+        "title": "Renovatio: Reload Backend Configuration",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "renovatio.configureLlmModel",
+        "title": "Renovatio: Configure LLM Model",
+        "icon": "$(hubot)"
+      },
+      {
+        "command": "renovatio.testLlmReverseEngineering",
+        "title": "Renovatio: Test LLM Reverse Engineering",
+        "icon": "$(beaker)"
+      },
+      {
+        "command": "renovatio.clearLlmCache",
+        "title": "Renovatio: Clear LLM Cache",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "renovatio.openPromptProfile",
+        "title": "Renovatio: Open Prompt Profile",
+        "icon": "$(file-code)"
+      },
+      {
+        "command": "renovatio.compareLlmOutputAgainstGoldenFixture",
+        "title": "Renovatio: Compare LLM Output Against Golden Fixture",
+        "icon": "$(diff)"
       },
       {
         "command": "renovatio.selectProject",
@@ -203,6 +388,86 @@
         "command": "renovatio.openGeneratedCode",
         "title": "Renovatio: Open Future Output",
         "icon": "$(file-code)"
+      },
+      {
+        "command": "renovatio.openDiscoveryOutput",
+        "title": "Renovatio: Open Discovery Output",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "renovatio.generateMigrationPlan",
+        "title": "Renovatio: Generate Migration Plan",
+        "icon": "$(list-tree)"
+      },
+      {
+        "command": "renovatio.previewMigrationDiff",
+        "title": "Renovatio: Preview Migration Diff",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "renovatio.openChangeSet",
+        "title": "Renovatio: Open Change Set",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "renovatio.approveChange",
+        "title": "Renovatio: Approve Change",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "renovatio.rejectChange",
+        "title": "Renovatio: Reject Change",
+        "icon": "$(circle-slash)"
+      },
+      {
+        "command": "renovatio.applyApprovedChanges",
+        "title": "Renovatio: Apply Approved Changes",
+        "icon": "$(pass)"
+      },
+      {
+        "command": "renovatio.reconcileGeneratedCode",
+        "title": "Renovatio: Reconcile Generated Code",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "renovatio.exportEvidenceBundle",
+        "title": "Renovatio: Export Evidence Bundle",
+        "icon": "$(package)"
+      },
+      {
+        "command": "renovatio.openLatestEvidenceBundle",
+        "title": "Renovatio: Open Latest Evidence Bundle",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "renovatio.copyEvidenceSummary",
+        "title": "Renovatio: Copy Evidence Summary",
+        "icon": "$(copy)"
+      },
+      {
+        "command": "renovatio.syncStatus",
+        "title": "Renovatio: Sync Status",
+        "icon": "$(sync)"
+      },
+      {
+        "command": "renovatio.pullFromBackend",
+        "title": "Renovatio: Pull Artifact From Backend",
+        "icon": "$(cloud-download)"
+      },
+      {
+        "command": "renovatio.pushToBackend",
+        "title": "Renovatio: Push Artifact To Backend",
+        "icon": "$(cloud-upload)"
+      },
+      {
+        "command": "renovatio.compareLocalAndBackend",
+        "title": "Renovatio: Compare Local And Backend Artifact",
+        "icon": "$(diff)"
+      },
+      {
+        "command": "renovatio.resolveSyncConflict",
+        "title": "Renovatio: Resolve Sync Conflict",
+        "icon": "$(merge)"
       },
       {
         "command": "renovatio.openDomainSample",
@@ -268,6 +533,24 @@
       ],
       "commandPalette": [
         {
+          "command": "renovatio.openEvaluatorGuide"
+        },
+        {
+          "command": "renovatio.installDemoWorkspace"
+        },
+        {
+          "command": "renovatio.runEvaluatorChecks"
+        },
+        {
+          "command": "renovatio.openCobolSample"
+        },
+        {
+          "command": "renovatio.openGeneratedJavaSample"
+        },
+        {
+          "command": "renovatio.openEvidenceSummarySample"
+        },
+        {
           "command": "renovatio.openWelcome"
         },
         {
@@ -284,6 +567,72 @@
         },
         {
           "command": "renovatio.formatArtifacts"
+        },
+        {
+          "command": "renovatio.createMigrationMap"
+        },
+        {
+          "command": "renovatio.openMigrationMap"
+        },
+        {
+          "command": "renovatio.openMigrationSource"
+        },
+        {
+          "command": "renovatio.openMigrationTarget"
+        },
+        {
+          "command": "renovatio.showMigrationEvidence"
+        },
+        {
+          "command": "renovatio.openMappedDomainNode"
+        },
+        {
+          "command": "renovatio.markTargetManuallyRefined"
+        },
+        {
+          "command": "renovatio.reconcileTargetChange"
+        },
+        {
+          "command": "renovatio.validateMigrationMap"
+        },
+        {
+          "command": "renovatio.formatMigrationMap"
+        },
+        {
+          "command": "renovatio.openBackendSettings"
+        },
+        {
+          "command": "renovatio.testBackendConnection"
+        },
+        {
+          "command": "renovatio.openBackendLogs"
+        },
+        {
+          "command": "renovatio.startBackend"
+        },
+        {
+          "command": "renovatio.stopBackend"
+        },
+        {
+          "command": "renovatio.restartBackend"
+        },
+        {
+          "command": "renovatio.reloadBackendConfiguration"
+        },
+        {
+          "command": "renovatio.configureLlmModel"
+        },
+        {
+          "command": "renovatio.testLlmReverseEngineering"
+        },
+        {
+          "command": "renovatio.clearLlmCache"
+        },
+        {
+          "command": "renovatio.openPromptProfile"
+        },
+        {
+          "command": "renovatio.compareLlmOutputAgainstGoldenFixture"
         },
         {
           "command": "renovatio.selectProject"
@@ -322,6 +671,39 @@
           "command": "renovatio.openGeneratedCode"
         },
         {
+          "command": "renovatio.openDiscoveryOutput"
+        },
+        {
+          "command": "renovatio.generateMigrationPlan"
+        },
+        {
+          "command": "renovatio.previewMigrationDiff"
+        },
+        {
+          "command": "renovatio.applyApprovedChanges"
+        },
+        {
+          "command": "renovatio.reconcileGeneratedCode"
+        },
+        {
+          "command": "renovatio.exportEvidenceBundle"
+        },
+        {
+          "command": "renovatio.syncStatus"
+        },
+        {
+          "command": "renovatio.pullFromBackend"
+        },
+        {
+          "command": "renovatio.pushToBackend"
+        },
+        {
+          "command": "renovatio.compareLocalAndBackend"
+        },
+        {
+          "command": "renovatio.resolveSyncConflict"
+        },
+        {
           "command": "renovatio.openDomainSample"
         },
         {
@@ -339,115 +721,160 @@
       ],
       "view/title": [
         {
+          "command": "renovatio.openEvaluatorGuide",
+          "when": "view == renovatio.workspace || view == renovatio.discovery || view == renovatio.models || view == renovatio.migration || view == renovatio.evidence || view == renovatio.backend",
+          "group": "navigation@0.5"
+        },
+        {
           "command": "renovatio.refresh",
-          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.analysis",
+          "when": "view == renovatio.workspace || view == renovatio.discovery || view == renovatio.models || view == renovatio.migration || view == renovatio.evidence",
           "group": "navigation@1"
         },
         {
           "command": "renovatio.initializeWorkspace",
-          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.views.welcome",
+          "when": "view == renovatio.workspace",
           "group": "navigation@1.5"
         },
         {
           "command": "renovatio.openWorkspaceManifest",
-          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.views.welcome",
+          "when": "view == renovatio.workspace || view == renovatio.backend",
           "group": "navigation@1.6"
         },
         {
           "command": "renovatio.validateWorkspace",
-          "when": "view == renovatio.projects || view == renovatio.operations || view == renovatio.views.welcome",
+          "when": "view == renovatio.workspace || view == renovatio.backend",
           "group": "navigation@1.7"
         },
         {
+          "command": "renovatio.testBackendConnection",
+          "when": "view == renovatio.backend",
+          "group": "navigation@2"
+        },
+        {
+          "command": "renovatio.syncStatus",
+          "when": "view == renovatio.backend || view == renovatio.models || view == renovatio.migration",
+          "group": "navigation@2.1"
+        },
+        {
+          "command": "renovatio.openMigrationMap",
+          "when": "view == renovatio.migration || view == renovatio.models",
+          "group": "navigation@2.2"
+        },
+        {
+          "command": "renovatio.validateMigrationMap",
+          "when": "view == renovatio.migration",
+          "group": "navigation@2.3"
+        },
+        {
+          "command": "renovatio.openBackendLogs",
+          "when": "view == renovatio.backend",
+          "group": "navigation@3"
+        },
+        {
+          "command": "renovatio.reloadBackendConfiguration",
+          "when": "view == renovatio.backend",
+          "group": "navigation@4"
+        },
+        {
           "command": "renovatio.selectProject",
-          "when": "view == renovatio.projects",
+          "when": "view == renovatio.workspace",
           "group": "navigation@2"
         },
         {
           "command": "renovatio.createProject",
-          "when": "view == renovatio.projects || view == renovatio.operations",
+          "when": "view == renovatio.workspace",
           "group": "navigation@2.5"
         },
         {
           "command": "renovatio.analyzeWorkspace",
-          "when": "view == renovatio.operations || view == renovatio.analysis",
+          "when": "view == renovatio.discovery",
           "group": "navigation@2"
         },
         {
           "command": "renovatio.addCobolSourceRoot",
-          "when": "view == renovatio.projects || view == renovatio.operations",
+          "when": "view == renovatio.workspace || view == renovatio.discovery",
           "group": "navigation@3"
         },
         {
           "command": "renovatio.selectGeneratedOutputFolder",
-          "when": "view == renovatio.projects || view == renovatio.operations",
+          "when": "view == renovatio.workspace || view == renovatio.migration",
           "group": "navigation@4"
         },
         {
           "command": "renovatio.openControlDeck",
-          "when": "view == renovatio.operations",
+          "when": "view == renovatio.evidence",
           "group": "navigation@5"
         },
         {
           "command": "renovatio.openDomainModel",
-          "when": "view == renovatio.operations || view == renovatio.domainModel",
+          "when": "view == renovatio.models",
           "group": "navigation@6"
         },
         {
           "command": "renovatio.openPersistenceModel",
-          "when": "view == renovatio.operations || view == renovatio.analysis",
+          "when": "view == renovatio.models || view == renovatio.discovery",
           "group": "navigation@11"
         },
         {
           "command": "renovatio.openGeneratedCode",
-          "when": "view == renovatio.operations || view == renovatio.analysis",
+          "when": "view == renovatio.migration",
           "group": "navigation@12"
         },
         {
           "command": "renovatio.openNativeDomainDiagram",
-          "when": "view == renovatio.operations || view == renovatio.domainModel || view == renovatio.analysis",
+          "when": "view == renovatio.models",
           "group": "navigation@8"
         },
         {
           "command": "renovatio.openNativePersistenceDiagram",
-          "when": "view == renovatio.operations || view == renovatio.domainModel || view == renovatio.analysis",
+          "when": "view == renovatio.models",
           "group": "navigation@8"
         },
         {
           "command": "renovatio.openNativeArchitectureDiagram",
-          "when": "view == renovatio.operations || view == renovatio.domainModel || view == renovatio.analysis",
+          "when": "view == renovatio.models",
           "group": "navigation@8"
+        },
+        {
+          "command": "renovatio.previewMigrationDiff",
+          "when": "view == renovatio.migration",
+          "group": "navigation@13"
+        },
+        {
+          "command": "renovatio.exportEvidenceBundle",
+          "when": "view == renovatio.evidence",
+          "group": "navigation@6"
         }
       ],
       "view/item/context": [
         {
           "command": "renovatio.selectProject",
-          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "when": "view == renovatio.workspace && viewItem == renovatioProject",
           "group": "inline@1"
         },
         {
           "command": "renovatio.analyzeSelectedPath",
-          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "when": "view == renovatio.workspace && viewItem == renovatioProject",
           "group": "inline@2"
         },
         {
           "command": "renovatio.openControlDeck",
-          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "when": "view == renovatio.workspace && viewItem == renovatioProject",
           "group": "inline@3"
         },
         {
           "command": "renovatio.openDomainModel",
-          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "when": "view == renovatio.workspace && viewItem == renovatioProject",
           "group": "inline@4"
         },
         {
           "command": "renovatio.openPersistenceModel",
-          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "when": "view == renovatio.workspace && viewItem == renovatioProject",
           "group": "inline@9"
         },
         {
           "command": "renovatio.openGeneratedCode",
-          "when": "view == renovatio.projects && viewItem == renovatioProject",
+          "when": "view == renovatio.workspace && viewItem == renovatioProject",
           "group": "inline@10"
         }
       ]
@@ -464,47 +891,55 @@
     "views": {
       "renovatio": [
         {
-          "id": "renovatio.projects",
+          "id": "renovatio.workspace",
           "name": "Workspace"
         },
         {
-          "id": "renovatio.operations",
-          "name": "Operations"
-        },
-        {
-          "id": "renovatio.analysis",
+          "id": "renovatio.discovery",
           "name": "Discovery"
         },
         {
-          "id": "renovatio.domainModel",
-          "name": "Domain Model"
+          "id": "renovatio.models",
+          "name": "Models"
         },
         {
-          "id": "renovatio.views.welcome",
-          "name": "Diagram Editor"
+          "id": "renovatio.migration",
+          "name": "Migration"
+        },
+        {
+          "id": "renovatio.evidence",
+          "name": "Evidence"
+        },
+        {
+          "id": "renovatio.backend",
+          "name": "Backend"
         }
       ]
     },
     "viewsWelcome": [
       {
-        "view": "renovatio.projects",
-        "contents": "Open a VS Code workspace and initialize the local Renovatio contract.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Open Workspace Manifest](command:renovatio.openWorkspaceManifest)\n[Validate Workspace](command:renovatio.validateWorkspace)\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)"
+        "view": "renovatio.workspace",
+        "contents": "Needs setup: create a local workspace contract, backend identity and LLM model before analysis.\n[Open 5-Minute Evaluator Guide](command:renovatio.openEvaluatorGuide)\n[Install Demo Workspace Assets](command:renovatio.installDemoWorkspace)\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Open Manifest](command:renovatio.openWorkspaceManifest)"
       },
       {
-        "view": "renovatio.analysis",
-        "contents": "Run analysis from configured COBOL source roots or the Explorer context menu.\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Native Persistence Diagram](command:renovatio.openNativePersistenceDiagram)\n[Open Inferred Persistence](command:renovatio.openPersistenceModel)"
+        "view": "renovatio.discovery",
+        "contents": "Ready: discover COBOL, JCL, copybooks, datasets and warnings from the configured roots.\n[Analyze Workspace](command:renovatio.analyzeWorkspace)\n[Run Backend And LLM Checks](command:renovatio.runEvaluatorChecks)\n[Open Sample COBOL](command:renovatio.openCobolSample)\n[Open Discovery Output](command:renovatio.openDiscoveryOutput)"
       },
       {
-        "view": "renovatio.domainModel",
-        "contents": "Run discovery to seed the versioned DomainModel, then inspect nodes, relations and invariants.\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Domain Model](command:renovatio.openDomainModel)\n[Open Native Domain Diagram](command:renovatio.openNativeDomainDiagram)\n[Open Native Architecture Diagram](command:renovatio.openNativeArchitectureDiagram)"
+        "view": "renovatio.models",
+        "contents": "Needs review: inspect domain, persistence and architecture models after discovery.\n[Open Domain Diagram](command:renovatio.openNativeDomainDiagram)\n[Open Domain Model](command:renovatio.openDomainModel)\n[Open Persistence Model](command:renovatio.openPersistenceModel)\n[Open Architecture Diagram](command:renovatio.openNativeArchitectureDiagram)"
       },
       {
-        "view": "renovatio.operations",
-        "contents": "Run the Renovatio workflow through native VS Code commands.\n[Initialize Workspace](command:renovatio.initializeWorkspace)\n[Validate Workspace](command:renovatio.validateWorkspace)\n[Add COBOL Source Root](command:renovatio.addCobolSourceRoot)\n[Analyze COBOL Sources](command:renovatio.analyzeCobolSources)\n[Open Control Deck](command:renovatio.openControlDeck)"
+        "view": "renovatio.migration",
+        "contents": "Ready: trace legacy source to target code and prepare approval-gated changes.\n[Open Migration Map](command:renovatio.openMigrationMap)\n[Create Migration Map](command:renovatio.createMigrationMap)\n[Preview Migration Diff](command:renovatio.previewMigrationDiff)\n[Open Sample Generated Java](command:renovatio.openGeneratedJavaSample)"
       },
       {
-        "view": "renovatio.views.welcome",
-        "contents": "Open native Renovatio diagram editors from the current workspace.\n[Open Native Domain Diagram](command:renovatio.openNativeDomainDiagram)\n[Open Native Persistence Diagram](command:renovatio.openNativePersistenceDiagram)\n[Open Native Architecture Diagram](command:renovatio.openNativeArchitectureDiagram)\n[Open Domain Diagram Sample](command:renovatio.openDomainSample)\n[Open Architecture Diagram Sample](command:renovatio.openArchitectureSample)"
+        "view": "renovatio.evidence",
+        "contents": "Needs review: package reports, checksums, risks and handoff evidence.\n[Open Sample Evidence Summary](command:renovatio.openEvidenceSummarySample)\n[Open Control Deck](command:renovatio.openControlDeck)\n[Open Discovery Output](command:renovatio.openDiscoveryOutput)\n[Export Evidence Bundle](command:renovatio.exportEvidenceBundle)"
+      },
+      {
+        "view": "renovatio.backend",
+        "contents": "Offline or ready: confirm backend health and LLM reverse-engineering model before analysis.\n[Run Backend And LLM Checks](command:renovatio.runEvaluatorChecks)\n[Configure LLM Model](command:renovatio.configureLlmModel)\n[Open Backend Settings](command:renovatio.openBackendSettings)\n[Open Backend Logs](command:renovatio.openBackendLogs)"
       }
     ],
     "jsonValidation": [
@@ -532,7 +967,7 @@
           "*.migration-map.renovatio.json",
           "migration-map.renovatio.json"
         ],
-        "url": "./schemas/migration-map.schema.json"
+        "url": "./schemas/migration-map.renovatio.schema.json"
       }
     ],
     "languages": [
@@ -602,6 +1037,8 @@
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
     "build": "node scripts/build.mjs",
     "watch": "node scripts/build.mjs --watch",
+    "test:compile": "tsc -p tsconfig.test.json",
+    "test": "npm run test:compile && node --test test/*.test.js",
     "package": "vsce package --no-dependencies"
   },
   "dependencies": {
@@ -615,6 +1052,7 @@
     "@types/react-dom": "19.2.7",
     "@types/vscode": "^1.100.0",
     "@vscode/vsce": "^3.6.0",
+    "ajv": "^8.17.1",
     "esbuild": "^0.28.2",
     "typescript": "5.9.3"
   }
