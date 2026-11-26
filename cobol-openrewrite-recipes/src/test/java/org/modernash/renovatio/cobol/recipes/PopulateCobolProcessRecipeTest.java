@@ -651,7 +651,7 @@ class PopulateCobolProcessRecipeTest {
     }
 
     @Test
-    void shouldTranslateSubscriptedTableReferencesAndRejectReferenceModification() {
+    void shouldTranslateSubscriptedTableReferencesAndReferenceModification() {
         String updated = populate("""
                 IDENTIFICATION DIVISION.
                 PROGRAM-ID. TBL01.
@@ -677,7 +677,7 @@ class PopulateCobolProcessRecipeTest {
         assertThat(updated).contains("output.setArrAmt(1, new java.math.BigDecimal(\"1005.00\"));");
         assertThat(updated).contains("output.setArrAmt(output.getWsI(), output.getArrAmt(1));");
         assertThat(updated).contains("output.setWsTotal(output.getArrAmt(1).add(output.getArrAmt(output.getWsI()))");
-        assertThat(updated).contains("// COBOL not translated: WS-TEXT (data item not modeled)");
+        assertThat(updated).contains("output.setWsText(output.getWsText().substring(0, 3));");
         assertThat(updated).contains("// COBOL not translated: ARR-AMT");
     }
 }

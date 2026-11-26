@@ -90,14 +90,24 @@ class CardDemoGoldenMasterTest {
 
     @Test
     void redefinesViewsShareStorageWithTheirBaseAsInCobol() throws Exception {
-        Path workspace = tempDir.resolve("redefines");
+        assertStdoutMatchesCobol("redefines", "REDEF", "Redef");
+    }
+
+    @Test
+    void referenceModificationAndAlphanumericMoveMatchCobol() throws Exception {
+        assertStdoutMatchesCobol("reference-modification", "REFMOD", "Refmod");
+    }
+
+    /** Runs a self-contained program (no files) and compares its stdout with the GnuCOBOL reference. */
+    private void assertStdoutMatchesCobol(String goldenDir, String program, String classBase) throws Exception {
+        Path workspace = tempDir.resolve(goldenDir);
         Files.createDirectories(workspace);
-        Path golden = Path.of("src/test/resources/golden-master/redefines");
-        Files.copy(golden.resolve("REDEF.cbl"), workspace.resolve("REDEF.cbl"));
+        Path golden = Path.of("src/test/resources/golden-master").resolve(goldenDir);
+        Files.copy(golden.resolve(program + ".cbl"), workspace.resolve(program + ".cbl"));
 
         ClassLoader classes = compile(generate(workspace));
-        Object service = classes.loadClass(PACKAGE + ".RedefServiceImpl").getConstructor().newInstance();
-        Class<?> dtoType = classes.loadClass(PACKAGE + ".RedefDTO");
+        Object service = classes.loadClass(PACKAGE + "." + classBase + "ServiceImpl").getConstructor().newInstance();
+        Class<?> dtoType = classes.loadClass(PACKAGE + "." + classBase + "DTO");
         Object input = dtoType.getConstructor().newInstance();
 
         byte[] stdout = captureStdout(() -> service.getClass().getMethod("process", dtoType).invoke(service, input));

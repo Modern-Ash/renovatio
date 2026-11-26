@@ -54,7 +54,7 @@ public class Batch001DTO {
   }
 
   public void setWsFlag(String wsFlag) {
-    this.wsFlag = wsFlag;
+    this.wsFlag = wsFlag == null ? " " : String.format("%-1.1s", wsFlag);
   }
 
   public String getWsOutput() {
@@ -62,6 +62,6 @@ public class Batch001DTO {
   }
 
   public void setWsOutput(String wsOutput) {
-    this.wsOutput = wsOutput;
+    this.wsOutput = wsOutput == null ? "                                                                                " : String.format("%-80.80s", wsOutput);
   }
 }

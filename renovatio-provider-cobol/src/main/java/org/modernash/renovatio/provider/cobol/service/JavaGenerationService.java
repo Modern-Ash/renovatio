@@ -938,20 +938,31 @@ public class JavaGenerationService {
         Map<String, String> irTypes = irFieldTypes(model);
         Map<String, Integer> tables = tableSizes(model);
         Set<String> views = redefinesViews(model);
+        Map<String, Integer> textLengths = new HashMap<>();
+        if (model != null) {
+            for (CobolDataItem item : model.getDataItems()) {
+                if (item.getPicType() != null && item.getPicType().category()
+                        != org.modernash.renovatio.cobol.runtime.PicType.Category.NUMERIC) {
+                    textLengths.putIfAbsent(toCamelCase(item.getName()), item.getPicType().digits());
+                }
+            }
+        }
         Map<String, String> declared = new LinkedHashMap<>();
         for (Map<String, Object> item : resolveDtoFields(programData)) {
             String fieldName = (String) item.get("name");
             String javaType = (String) item.get("javaType");
             if (fieldName != null && javaType != null && !views.contains(fieldName)) {
                 String type = irTypes.getOrDefault(fieldName, javaType);
-                addDtoField(classBuilder, fieldName, type, tables.getOrDefault(fieldName, 0));
+                addDtoField(classBuilder, fieldName, type, tables.getOrDefault(fieldName, 0),
+                        textLengths.getOrDefault(fieldName, 0));
                 declared.put(fieldName, type);
             }
         }
         for (Map<String, Object> item : copybookOnlyFields(programData, model)) {
             if (views.contains((String) item.get("name"))) continue;
             addDtoField(classBuilder, (String) item.get("name"), (String) item.get("javaType"),
-                    tables.getOrDefault((String) item.get("name"), 0));
+                    tables.getOrDefault((String) item.get("name"), 0),
+                    textLengths.getOrDefault((String) item.get("name"), 0));
             declared.put((String) item.get("name"), (String) item.get("javaType"));
         }
         // Record fields the data-item scan missed (e.g. BMS "02 X-L COMP PIC S9(4).", USAGE before PIC).
@@ -963,7 +974,8 @@ public class JavaGenerationService {
                         continue;
                     }
                     String type = org.modernash.renovatio.cobol.ir.context.CobolTypeMapper.javaType(field.picType());
-                    addDtoField(classBuilder, name, type, tables.getOrDefault(name, 0));
+                    addDtoField(classBuilder, name, type, tables.getOrDefault(name, 0),
+                            "String".equals(type) ? field.length() : 0);
                     declared.put(name, type);
                 }
             }
@@ -1643,8 +1655,13 @@ public class JavaGenerationService {
 
     /** A scalar field, or for an OCCURS item an array with 1-based indexed accessors (COBOL subscripts). */
     private void addDtoField(TypeSpec.Builder classBuilder, String fieldName, String javaType, int occurs) {
+        addDtoField(classBuilder, fieldName, javaType, occurs, 0);
+    }
+
+    private void addDtoField(TypeSpec.Builder classBuilder, String fieldName, String javaType, int occurs,
+                             int textLength) {
         if (occurs <= 0) {
-            addFieldToClass(classBuilder, fieldName, javaType);
+            addFieldToClass(classBuilder, fieldName, javaType, textLength);
             return;
         }
         ClassName elementType = getClassNameForType(javaType);
@@ -1663,7 +1680,7 @@ public class JavaGenerationService {
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(int.class, "index")
                 .addParameter(elementType, "value")
-                .addStatement("$L[index - 1] = value", fieldName)
+                .addStatement("$L[index - 1] = $L", fieldName, fitTextExpression("value", javaType, textLength))
                 .build());
     }
 
@@ -1671,6 +1688,14 @@ public class JavaGenerationService {
      * Adds a field with getter and setter to a class builder
      */
     private void addFieldToClass(TypeSpec.Builder classBuilder, String fieldName, String javaType) {
+        addFieldToClass(classBuilder, fieldName, javaType, 0);
+    }
+
+    /**
+     * Field with getter and setter; an alphanumeric field of known length stores exactly that many
+     * characters (left-justified, space-filled or truncated), as a COBOL MOVE does.
+     */
+    private void addFieldToClass(TypeSpec.Builder classBuilder, String fieldName, String javaType, int textLength) {
         ClassName fieldType = getClassNameForType(javaType);
         // Add field
         FieldSpec field = FieldSpec.builder(fieldType, fieldName)
@@ -1690,9 +1715,18 @@ public class JavaGenerationService {
         MethodSpec setter = MethodSpec.methodBuilder(setterName)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(fieldType, fieldName)
-                .addStatement("this.$L = $L", fieldName, fieldName)
+                .addStatement("this.$L = $L", fieldName, fitTextExpression(fieldName, javaType, textLength))
                 .build();
         classBuilder.addMethod(setter);
+    }
+
+    /** {@code value} fitted to {@code length} characters for a String field, unchanged otherwise. */
+    private static String fitTextExpression(String value, String javaType, int length) {
+        if (!"String".equals(javaType) || length <= 0) {
+            return value;
+        }
+        return CodeBlock.of("$L == null ? $S : String.format($S, $L)", value, " ".repeat(length),
+                "%-" + length + "." + length + "s", value).toString();
     }
 
     /**

@@ -61,7 +61,7 @@ public class Db2001DTO {
   }
 
   public void setWsEmpName(String wsEmpName) {
-    this.wsEmpName = wsEmpName;
+    this.wsEmpName = wsEmpName == null ? "                                                  " : String.format("%-50.50s", wsEmpName);
   }
 
   public String getWsEmpDept() {
@@ -69,7 +69,7 @@ public class Db2001DTO {
   }
 
   public void setWsEmpDept(String wsEmpDept) {
-    this.wsEmpDept = wsEmpDept;
+    this.wsEmpDept = wsEmpDept == null ? "                    " : String.format("%-20.20s", wsEmpDept);
   }
 
   public BigDecimal getWsEmpSalary() {
@@ -93,7 +93,7 @@ public class Db2001DTO {
   }
 
   public void setWsMessage(String wsMessage) {
-    this.wsMessage = wsMessage;
+    this.wsMessage = wsMessage == null ? "                                                                                " : String.format("%-80.80s", wsMessage);
   }
 
   public Integer getEmpId() {
@@ -109,7 +109,7 @@ public class Db2001DTO {
   }
 
   public void setEmpName(String empName) {
-    this.empName = empName;
+    this.empName = empName == null ? "                                                  " : String.format("%-50.50s", empName);
   }
 
   public String getEmpDept() {
@@ -117,7 +117,7 @@ public class Db2001DTO {
   }
 
   public void setEmpDept(String empDept) {
-    this.empDept = empDept;
+    this.empDept = empDept == null ? "                    " : String.format("%-20.20s", empDept);
   }
 
   public BigDecimal getEmpSalary() {
@@ -133,7 +133,7 @@ public class Db2001DTO {
   }
 
   public void setEmpHireDate(String empHireDate) {
-    this.empHireDate = empHireDate;
+    this.empHireDate = empHireDate == null ? "          " : String.format("%-10.10s", empHireDate);
   }
 
   public String getEmpStatus() {
@@ -141,7 +141,7 @@ public class Db2001DTO {
   }
 
   public void setEmpStatus(String empStatus) {
-    this.empStatus = empStatus;
+    this.empStatus = empStatus == null ? " " : String.format("%-1.1s", empStatus);
   }
 
   /**

@@ -50,7 +50,7 @@ public class Cics001DTO {
   }
 
   public void setWsCustomerId(String wsCustomerId) {
-    this.wsCustomerId = wsCustomerId;
+    this.wsCustomerId = wsCustomerId == null ? "          " : String.format("%-10.10s", wsCustomerId);
   }
 
   public String getWsCustomerName() {
@@ -58,7 +58,7 @@ public class Cics001DTO {
   }
 
   public void setWsCustomerName(String wsCustomerName) {
-    this.wsCustomerName = wsCustomerName;
+    this.wsCustomerName = wsCustomerName == null ? "                                                  " : String.format("%-50.50s", wsCustomerName);
   }
 
   public Integer getWsResponse() {
@@ -74,7 +74,7 @@ public class Cics001DTO {
   }
 
   public void setWsMessage(String wsMessage) {
-    this.wsMessage = wsMessage;
+    this.wsMessage = wsMessage == null ? "                                                                                " : String.format("%-80.80s", wsMessage);
   }
 
   public String getCustId() {
@@ -82,7 +82,7 @@ public class Cics001DTO {
   }
 
   public void setCustId(String custId) {
-    this.custId = custId;
+    this.custId = custId == null ? "          " : String.format("%-10.10s", custId);
   }
 
   public String getCustName() {
@@ -90,7 +90,7 @@ public class Cics001DTO {
   }
 
   public void setCustName(String custName) {
-    this.custName = custName;
+    this.custName = custName == null ? "                                                  " : String.format("%-50.50s", custName);
   }
 
   public String getCustAddress() {
@@ -98,7 +98,7 @@ public class Cics001DTO {
   }
 
   public void setCustAddress(String custAddress) {
-    this.custAddress = custAddress;
+    this.custAddress = custAddress == null ? "                                                                                                    " : String.format("%-100.100s", custAddress);
   }
 
   public String getCustPhone() {
@@ -106,7 +106,7 @@ public class Cics001DTO {
   }
 
   public void setCustPhone(String custPhone) {
-    this.custPhone = custPhone;
+    this.custPhone = custPhone == null ? "               " : String.format("%-15.15s", custPhone);
   }
 
   public String getCustEmail() {
@@ -114,7 +114,7 @@ public class Cics001DTO {
   }
 
   public void setCustEmail(String custEmail) {
-    this.custEmail = custEmail;
+    this.custEmail = custEmail == null ? "                                                  " : String.format("%-50.50s", custEmail);
   }
 
   public BigDecimal getCustBalance() {
@@ -130,7 +130,7 @@ public class Cics001DTO {
   }
 
   public void setCustStatus(String custStatus) {
-    this.custStatus = custStatus;
+    this.custStatus = custStatus == null ? " " : String.format("%-1.1s", custStatus);
   }
 
   /**

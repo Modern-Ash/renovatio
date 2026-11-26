@@ -1,0 +1,11 @@
+[BCD ]
+[CD  ]
+[HIJ ]
+[ABCxyFGHIJ]
+[ABQ yFGHIJ]
+[OK ]
+EQ-LITERAL
+LEVEL-88
+EVALUATE-OK
+[TOOab   ]
+[OOab]

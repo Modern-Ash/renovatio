@@ -1489,11 +1489,12 @@ public class PopulateCobolProcessRecipe extends Recipe {
                                             @Nullable String varName) {
             List<String> lines = new ArrayList<>();
             String selector = toJavaExpression(evaluate.expression());
+            int selectorLength = textLength(evaluate.expression());
             lines.add(String.format(Locale.ROOT, "switch (%s) {", selector));
             for (EvaluateStatement.EvaluateWhenBranch branch : evaluate.branches()) {
                 String label = branch.condition().equalsIgnoreCase("OTHER")
                         ? "default"
-                        : "case " + toJavaExpression(branch.condition());
+                        : "case " + padLiteral(toJavaExpression(branch.condition()), selectorLength);
                 lines.add(indent(label + " -> {"));
                 for (CobolStatement stmt : branch.statements()) {
                     for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
@@ -1871,6 +1872,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if ("String".equals(leftType) || "String".equals(rightType)) {
                 String l = "NUM".equals(leftType) ? quoted(left) : asText(leftExpr, leftType);
                 String r = "NUM".equals(rightType) ? quoted(right.replace("+", "")) : asText(rightExpr, rightType);
+                // COBOL compares alphanumerics padded with spaces to the longer operand.
+                if (isQuoted(right) || "NUM".equals(rightType)) r = padLiteral(r, textLength(left));
+                if (isQuoted(left) || "NUM".equals(leftType)) l = padLiteral(l, textLength(right));
                 return switch (op) {
                     case "==" -> "java.util.Objects.equals(" + l + ", " + r + ")";
                     case "!=" -> "!java.util.Objects.equals(" + l + ", " + r + ")";
@@ -1950,7 +1954,8 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 if (low.isEmpty()) return null;
                 if (!value.isRange()) {
                     tests.add("String".equals(type)
-                            ? "java.util.Objects.equals(" + parentExpr + ", " + low.orElseThrow() + ")"
+                            ? "java.util.Objects.equals(" + parentExpr + ", "
+                            + padLiteral(low.orElseThrow(), textLength(parent.name())) + ")"
                             : "BigDecimal".equals(type)
                             ? "(" + parentExpr + " != null && " + parentExpr + ".compareTo(" + low.orElseThrow() + ") == 0)"
                             : "java.util.Objects.equals(" + parentExpr + ", " + low.orElseThrow() + ")");
@@ -2135,6 +2140,17 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 return targetVar + ".set" + pascal + "("
                         + (subscript == null ? UNRESOLVED_MARKER + cobolName : subscript) + ", " + value + ")";
             }
+            String[] slice = stripSubscripts(cobolName).equals(cobolName.trim()) ? null : referenceModification(cobolName);
+            if (slice != null) {
+                // Replace only the referenced characters of the receiving item.
+                String current = getterCall(slice[0]);
+                String width = slice[3];
+                String fitted = width.matches("[0-9]+")
+                        ? "String.format(\"%-" + width + "." + width + "s\", " + value + ")"
+                        : "String.format(\"%-\" + (" + width + ") + \".\" + (" + width + ") + \"s\", " + value + ")";
+                return targetVar + ".set" + pascal + "(" + current + ".substring(0, " + slice[1] + ") + " + fitted
+                        + " + " + current + ".substring(" + slice[2] + "))";
+            }
             return targetVar + "." + toSetter(cobolName) + "(" + value + ")";
         }
 
@@ -2156,24 +2172,81 @@ public class PopulateCobolProcessRecipe extends Recipe {
                         : owner + ".get" + pascal + "(" + subscript + ")";
             }
             if (!stripSubscripts(reference).equals(reference.trim())) {
-                return UNRESOLVED_MARKER + reference;
+                String[] slice = referenceModification(reference);
+                return slice == null ? UNRESOLVED_MARKER + reference
+                        : owner + ".get" + pascal + "().substring(" + slice[1] + ", " + slice[2] + ")";
             }
             return owner + ".get" + pascal + "()";
         }
 
-        /** Java int expression of a single COBOL subscript (literal, data item or loop variable), else null. */
-        private @Nullable String subscript(String reference) {
-            String t = reference.trim();
-            int open = t.indexOf('(');
-            if (open < 0 || !t.endsWith(")")) {
+        /** Characters of an alphanumeric item (elementary, group record or view), 0 when unknown or numeric. */
+        private int textLength(String cobolName) {
+            if (currentModel == null || cobolName == null) {
+                return 0;
+            }
+            String name = stripSubscripts(cobolName.trim()).toUpperCase(Locale.ROOT);
+            Optional<CobolRecordLayout> group = currentModel.findComposableLayout(name);
+            if (group.isPresent()) {
+                return group.orElseThrow().length();
+            }
+            CobolRedefinesView view = currentModel.getRedefinesViews().get(name);
+            if (view != null && view.supported() && view.picType() == null) {
+                return view.length();
+            }
+            return findDataItem(currentModel, name)
+                    .filter(item -> item.picType() != null
+                            && item.picType().category() != org.modernash.renovatio.cobol.runtime.PicType.Category.NUMERIC)
+                    .map(item -> item.picType().digits())
+                    .orElse(0);
+        }
+
+        /** A Java string literal right-padded with spaces to {@code length} (unchanged if not a literal). */
+        private static String padLiteral(String javaLiteral, int length) {
+            if (length <= 0 || !javaLiteral.startsWith("\"") || !javaLiteral.endsWith("\"")) {
+                return javaLiteral;
+            }
+            String content = javaLiteral.substring(1, javaLiteral.length() - 1);
+            int visible = content.replace("\\\\", "\\").replace("\\\"", "\"").length();
+            return visible >= length ? javaLiteral
+                    : "\"" + content + " ".repeat(length - visible) + "\"";
+        }
+
+        /** Reference modification {@code NAME(start:length)} of an alphanumeric item: [from, to) bounds. */
+        private @Nullable String[] referenceModification(String reference) {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern
+                    .compile("^([A-Za-z][A-Za-z0-9-]*)\\(\\s*([^:()]+?)\\s*:\\s*([^:()]*?)\\s*\\)$")
+                    .matcher(reference.trim());
+            if (!matcher.matches() || tableSizes.containsKey(toPascal(matcher.group(1)))) {
                 return null;
             }
-            String inner = t.substring(open + 1, t.length() - 1).trim();
+            String name = matcher.group(1);
+            int length = textLength(name);
+            if (length <= 0 || !"String".equals(dataTypes.get(toPascal(name)))) {
+                return null;
+            }
+            String start = intExpression(matcher.group(2));
+            String size = matcher.group(3).isBlank() ? null : intExpression(matcher.group(3));
+            if (start == null || !matcher.group(3).isBlank() && size == null) {
+                return null;
+            }
+            String from = start.matches("[0-9]+") ? String.valueOf(Integer.parseInt(start) - 1) : "(" + start + ") - 1";
+            String to = size == null ? String.valueOf(length)
+                    : start.matches("[0-9]+") && size.matches("[0-9]+")
+                    ? String.valueOf(Integer.parseInt(start) - 1 + Integer.parseInt(size))
+                    : from + " + " + size;
+            String width = size != null ? size
+                    : from.matches("[0-9]+") ? String.valueOf(length - Integer.parseInt(from)) : length + " - (" + from + ")";
+            return new String[] {name, from, to, width};
+        }
+
+        /** Java int expression of a COBOL integer operand: literal, numeric data item or loop variable. */
+        private @Nullable String intExpression(String operand) {
+            String inner = operand.trim();
             if (inner.matches("[0-9]+")) {
                 return inner;
             }
             if (!inner.matches("[A-Za-z][A-Za-z0-9-]*")) {
-                return null; // reference modification, several subscripts or arithmetic
+                return null;
             }
             String alias = variableAliases.get(inner.toUpperCase(Locale.ROOT));
             if (alias != null) {
@@ -2185,6 +2258,16 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 return null;
             }
             return "Integer".equals(type) ? value : value + ".intValue()";
+        }
+
+        /** Java int expression of a single COBOL subscript (literal, data item or loop variable), else null. */
+        private @Nullable String subscript(String reference) {
+            String t = reference.trim();
+            int open = t.indexOf('(');
+            if (open < 0 || !t.endsWith(")")) {
+                return null;
+            }
+            return intExpression(t.substring(open + 1, t.length() - 1)); // null for several subscripts or arithmetic
         }
 
         private String toJavaExpression(String value) {

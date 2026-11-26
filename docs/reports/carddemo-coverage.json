@@ -40,7 +40,7 @@
     "programs" : 3,
     "occurrences" : 9
   } ],
-  "e2eCandidates" : [ "COBSWAIT", "CBACT02C", "CBACT03C" ],
+  "e2eCandidates" : [ "CBACT02C", "CBACT03C", "CBCUS01C" ],
   "programs" : [ {
     "programId" : "CBACT01C",
     "file" : "app/cbl/CBACT01C.cbl",
@@ -53,7 +53,7 @@
     "manualActionItems" : 3,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 7,
+    "notTranslatedMarkers" : 3,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "VARYING", "WRITE" ]
   }, {
@@ -68,7 +68,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 2,
+    "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
@@ -83,7 +83,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 2,
+    "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
@@ -98,7 +98,7 @@
     "manualActionItems" : 9,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 12,
+    "notTranslatedMarkers" : 10,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "STRING", "WRITE" ]
   }, {
@@ -113,7 +113,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 2,
+    "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
@@ -143,7 +143,7 @@
     "manualActionItems" : 18,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 48,
+    "notTranslatedMarkers" : 44,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "WRITE" ]
   }, {
@@ -203,7 +203,7 @@
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 6,
+    "notTranslatedMarkers" : 4,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ]
   }, {
@@ -218,7 +218,7 @@
     "manualActionItems" : 8,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 12,
+    "notTranslatedMarkers" : 10,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "WRITE" ]
   }, {
@@ -233,7 +233,7 @@
     "manualActionItems" : 2,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 23,
+    "notTranslatedMarkers" : 21,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "WRITE" ]
   }, {
@@ -263,7 +263,7 @@
     "manualActionItems" : 857,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 712,
+    "notTranslatedMarkers" : 699,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ]
   }, {
@@ -308,7 +308,7 @@
     "manualActionItems" : 40,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 47,
+    "notTranslatedMarkers" : 45,
     "notTranslated" : [ ],
     "present" : [ "ADD", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING", "WRITE" ]
   }, {
@@ -386,7 +386,7 @@
     "manualActionItems" : 137,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 146,
+    "notTranslatedMarkers" : 143,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING" ]
   }, {
@@ -431,7 +431,7 @@
     "manualActionItems" : 73,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 106,
+    "notTranslatedMarkers" : 105,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "UNSTRING" ]
   }, {
@@ -446,7 +446,7 @@
     "manualActionItems" : 118,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 174,
+    "notTranslatedMarkers" : 168,
     "notTranslated" : [ ],
     "present" : [ "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "VARYING" ]
   }, {
@@ -461,7 +461,7 @@
     "manualActionItems" : 46,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 68,
+    "notTranslatedMarkers" : 53,
     "notTranslated" : [ ],
     "present" : [ "DISPLAY", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "SEARCH", "SET", "STRING" ]
   }, {
@@ -476,7 +476,7 @@
     "manualActionItems" : 14,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 41,
+    "notTranslatedMarkers" : 37,
     "notTranslated" : [ {
       "construct" : "EXEC SQL",
       "evidence" : 2
@@ -584,7 +584,7 @@
     "manualActionItems" : 237,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 152,
+    "notTranslatedMarkers" : 151,
     "notTranslated" : [ {
       "construct" : "EXEC SQL",
       "evidence" : 4
