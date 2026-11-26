@@ -165,11 +165,17 @@ final class CobolRecordLayoutExtractor {
             if (OCCURS.matcher(text).find() || REDEFINES.matcher(text).find()) {
                 return CobolRecordLayout.opaque(group.name(), entry.name() + " has OCCURS or REDEFINES");
             }
-            if (USAGE_TOKEN.matcher(text).find()) {
-                return CobolRecordLayout.opaque(group.name(), entry.name() + " is not USAGE DISPLAY");
+            Matcher usage = USAGE_TOKEN.matcher(text);
+            String usageToken = usage.find() ? usage.group(1).toUpperCase(Locale.ROOT) : null;
+            if (usageToken != null && !ENCODABLE_USAGE.matcher(usageToken).matches()) {
+                return CobolRecordLayout.opaque(group.name(), entry.name() + " has USAGE " + usageToken
+                        + " (no exact character encoding)");
             }
             Matcher picture = PICTURE.matcher(text);
             if (!picture.find()) {
+                if (usageToken != null) {
+                    return CobolRecordLayout.opaque(group.name(), entry.name() + " has group-level USAGE");
+                }
                 continue; // nested group header: its elementary items follow
             }
             String pic = picture.group(1).toUpperCase(Locale.ROOT);
@@ -180,23 +186,48 @@ final class CobolRecordLayoutExtractor {
             }
             PicType type;
             try {
-                type = PicClause.parse(pic);
+                type = PicClause.parse(usageToken == null ? pic : pic + " " + usageToken);
             } catch (RuntimeException ex) {
                 return CobolRecordLayout.opaque(group.name(), entry.name() + " has an unreadable picture");
             }
             if (type.digits() <= 0) {
                 return CobolRecordLayout.opaque(group.name(), entry.name() + " has an empty picture");
             }
+            if (type.usage() != PicType.Usage.DISPLAY && type.category() != PicType.Category.NUMERIC) {
+                return CobolRecordLayout.opaque(group.name(), entry.name() + " has binary usage on a non-numeric picture");
+            }
+            if (type.usage() != PicType.Usage.DISPLAY && type.digits() > 18) {
+                return CobolRecordLayout.opaque(group.name(), entry.name() + " has more than 18 binary digits");
+            }
             boolean filler = entry.name().equals("FILLER");
             if (!filler && nameCounts.getOrDefault(entry.name(), 0) > 1) {
                 return CobolRecordLayout.opaque(group.name(), entry.name() + " is declared more than once");
             }
-            fields.add(new CobolRecordLayout.Field(filler ? null : entry.name(), type, type.digits(),
-                    filler ? fillerValue(text, type.digits()) : null));
+            int length = storageLength(type);
+            fields.add(new CobolRecordLayout.Field(filler ? null : entry.name(), type, length,
+                    filler ? (type.usage() == PicType.Usage.DISPLAY ? fillerValue(text, length)
+                            : "\0".repeat(length)) : null));
         }
         return fields.isEmpty()
                 ? CobolRecordLayout.opaque(group.name(), "group has no elementary items")
                 : CobolRecordLayout.composable(group.name(), fields);
+    }
+
+    /** USAGE clauses whose bytes have an exact encoding: binary integers and packed decimal. */
+    private static final Pattern ENCODABLE_USAGE = Pattern.compile(
+            "COMP|COMP-4|COMP-5|COMPUTATIONAL|COMPUTATIONAL-4|COMPUTATIONAL-5|BINARY|COMP-3|COMPUTATIONAL-3"
+                    + "|PACKED-DECIMAL");
+
+    /**
+     * Bytes an elementary item occupies (IBM sizes): DISPLAY one per digit or character; binary
+     * 2, 4 or 8 by digit count; packed decimal two digits per byte plus the sign nibble.
+     */
+    static int storageLength(PicType type) {
+        return switch (type.usage()) {
+            case DISPLAY -> type.digits();
+            case COMP, COMP_5 -> type.digits() <= 4 ? 2 : type.digits() <= 9 ? 4 : 8;
+            case COMP_3 -> type.digits() / 2 + 1;
+        };
     }
 
     /** FILLER content: its alphanumeric VALUE, ZEROS or (by default) spaces, fitted to the length. */

@@ -57,6 +57,7 @@ public final class RecordAccessorGenerator {
         }
         if (!generated.isEmpty()) {
             addHelpers(dto);
+            addBinaryHelpers(dto);
         }
         return generated;
     }
@@ -77,10 +78,15 @@ public final class RecordAccessorGenerator {
                 continue;
             }
             String name = fieldName.apply(field.name());
+            String numberArgs = name + ", " + field.length() + ", " + field.picType().scale() + ", "
+                    + field.picType().signed() + ")";
             parts.add("String".equals(fieldTypes.get(name))
                     ? "fitText(" + name + ", " + field.length() + ")"
-                    : "fitNumber(" + name + ", " + field.length() + ", " + field.picType().scale() + ", "
-                    + field.picType().signed() + ")");
+                    : switch (field.picType().usage()) {
+                        case COMP, COMP_5 -> "fitBinary(" + numberArgs;
+                        case COMP_3 -> "fitPacked(" + numberArgs;
+                        default -> "fitNumber(" + numberArgs;
+                    });
         }
         return MethodSpec.methodBuilder("get" + capitalize(property))
                 .addModifiers(Modifier.PUBLIC)
@@ -105,7 +111,12 @@ public final class RecordAccessorGenerator {
             if (!field.filler()) {
                 String name = fieldName.apply(field.name());
                 String slice = "r.substring(" + offset + ", " + end + ")";
-                String decoded = "parseNumber(" + slice + ", " + field.picType().scale() + ", "
+                String decoder = switch (field.picType().usage()) {
+                    case COMP, COMP_5 -> "parseBinary(";
+                    case COMP_3 -> "parsePacked(";
+                    default -> "parseNumber(";
+                };
+                String decoded = decoder + slice + ", " + field.picType().scale() + ", "
                         + field.picType().signed() + ")";
                 String value = switch (fieldTypes.get(name)) {
                     case "String" -> slice;
@@ -181,8 +192,92 @@ public final class RecordAccessorGenerator {
                 .build());
     }
 
+    /**
+     * Binary (COMP/BINARY/COMP-5) and packed-decimal (COMP-3) encoders. Each byte travels as one
+     * char (ISO-8859-1), so binary fields survive inside a record string.
+     */
+    private static void addBinaryHelpers(TypeSpec.Builder dto) {
+        dto.addMethod(MethodSpec.methodBuilder("fitBinary")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .returns(String.class)
+                .addParameter(Number.class, "value")
+                .addParameter(int.class, "length")
+                .addParameter(int.class, "scale")
+                .addParameter(boolean.class, "signed")
+                .addStatement("java.math.BigDecimal number = value == null ? java.math.BigDecimal.ZERO "
+                        + ": new java.math.BigDecimal(value.toString())")
+                .addStatement("long unscaled = number.setScale(scale, java.math.RoundingMode.DOWN).unscaledValue()"
+                        + ".longValue()")
+                .beginControlFlow("if (!signed)")
+                .addStatement("unscaled = Math.abs(unscaled)")
+                .endControlFlow()
+                .addStatement("char[] bytes = new char[length]")
+                .beginControlFlow("for (int i = length - 1; i >= 0; i--)")
+                .addStatement("bytes[i] = (char) (unscaled & 0xFF)")
+                .addStatement("unscaled >>= 8")
+                .endControlFlow()
+                .addStatement("return new String(bytes)")
+                .build());
+        dto.addMethod(MethodSpec.methodBuilder("parseBinary")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .returns(java.math.BigDecimal.class)
+                .addParameter(String.class, "bytes")
+                .addParameter(int.class, "scale")
+                .addParameter(boolean.class, "signed")
+                .addStatement("long unscaled = signed && bytes.length() > 0 && (bytes.charAt(0) & 0x80) != 0 ? -1L : 0L")
+                .beginControlFlow("for (int i = 0; i < bytes.length(); i++)")
+                .addStatement("unscaled = (unscaled << 8) | (bytes.charAt(i) & 0xFF)")
+                .endControlFlow()
+                .addStatement("return java.math.BigDecimal.valueOf(unscaled, scale)")
+                .build());
+        dto.addMethod(MethodSpec.methodBuilder("fitPacked")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .returns(String.class)
+                .addParameter(Number.class, "value")
+                .addParameter(int.class, "length")
+                .addParameter(int.class, "scale")
+                .addParameter(boolean.class, "signed")
+                .addStatement("java.math.BigDecimal number = value == null ? java.math.BigDecimal.ZERO "
+                        + ": new java.math.BigDecimal(value.toString())")
+                .addStatement("String digits = number.setScale(scale, java.math.RoundingMode.DOWN).unscaledValue()"
+                        + ".abs().toString()")
+                .addStatement("int width = length * 2 - 1")
+                .addStatement("digits = digits.length() > width ? digits.substring(digits.length() - width) "
+                        + ": \"0\".repeat(width - digits.length()) + digits")
+                .addStatement("int sign = !signed ? 0xF : number.signum() < 0 ? 0xD : 0xC")
+                .addStatement("char[] bytes = new char[length]")
+                .beginControlFlow("for (int i = 0; i < length; i++)")
+                .addStatement("int high = digits.charAt(2 * i) - '0'")
+                .addStatement("int low = i == length - 1 ? sign : digits.charAt(2 * i + 1) - '0'")
+                .addStatement("bytes[i] = (char) ((high << 4) | low)")
+                .endControlFlow()
+                .addStatement("return new String(bytes)")
+                .build());
+        dto.addMethod(MethodSpec.methodBuilder("parsePacked")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .returns(java.math.BigDecimal.class)
+                .addParameter(String.class, "bytes")
+                .addParameter(int.class, "scale")
+                .addParameter(boolean.class, "signed")
+                .addStatement("StringBuilder digits = new StringBuilder()")
+                .addStatement("int sign = 0xF")
+                .beginControlFlow("for (int i = 0; i < bytes.length(); i++)")
+                .addStatement("int b = bytes.charAt(i) & 0xFF")
+                .addStatement("digits.append(Math.min(b >> 4, 9))")
+                .beginControlFlow("if (i == bytes.length() - 1)")
+                .addStatement("sign = b & 0x0F")
+                .nextControlFlow("else")
+                .addStatement("digits.append(Math.min(b & 0x0F, 9))")
+                .endControlFlow()
+                .endControlFlow()
+                .addStatement("java.math.BigDecimal number = new java.math.BigDecimal("
+                        + "new java.math.BigInteger(digits.length() == 0 ? \"0\" : digits.toString()), scale)")
+                .addStatement("return signed && (sign == 0xD || sign == 0xB) ? number.negate() : number")
+                .build());
+    }
+
     private static String javaString(String value) {
-        return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+        return com.squareup.javapoet.CodeBlock.of("$S", value).toString();
     }
 
     private static String capitalize(String value) {

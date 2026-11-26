@@ -52,6 +52,9 @@ class CobolRecordLayoutExtractorTest {
         CobolIntermediateModel model = parse("""
                 01  WS-PACKED.
                     05  WS-AMOUNT    PIC S9(7)V99 COMP-3.
+                    05  WS-COUNTER   PIC S9(4) COMP.
+                01  WS-FLOAT.
+                    05  WS-RATE      COMP-2.
                 01  WS-TABLE.
                     05  WS-ROW       PIC X(4) OCCURS 3 TIMES.
                 01  WS-EDITED.
@@ -62,9 +65,11 @@ class CobolRecordLayoutExtractorTest {
                     05  WS-DUP       PIC X.
                 """);
 
-        assertTrue(model.findComposableLayout("WS-PACKED").isEmpty());
-        assertTrue(model.getRecordLayouts().get("WS-PACKED").nonComposableReason().orElseThrow()
-                .contains("USAGE DISPLAY"));
+        // Binary and packed fields have exact encodings: 5 bytes COMP-3 + 2 bytes COMP.
+        assertEquals(7, model.findComposableLayout("WS-PACKED").orElseThrow().length());
+        assertTrue(model.findComposableLayout("WS-FLOAT").isEmpty());
+        assertTrue(model.getRecordLayouts().get("WS-FLOAT").nonComposableReason().orElseThrow()
+                .contains("COMP-2"));
         assertTrue(model.findComposableLayout("WS-TABLE").isEmpty());
         assertTrue(model.findComposableLayout("WS-EDITED").isEmpty());
         assertTrue(model.findComposableLayout("WS-FIRST").isEmpty());

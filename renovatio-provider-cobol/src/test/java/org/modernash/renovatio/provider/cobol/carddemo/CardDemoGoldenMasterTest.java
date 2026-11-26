@@ -68,6 +68,26 @@ class CardDemoGoldenMasterTest {
                 .isEqualTo(Files.readString(GOLDEN.resolve("CBACT02C/expected-stdout.txt"), StandardCharsets.UTF_8));
     }
 
+    @Test
+    void binaryPackedAndZonedRecordsMatchGnuCobolBytes() throws Exception {
+        Path workspace = tempDir.resolve("encoding");
+        Files.createDirectories(workspace);
+        Path golden = Path.of("src/test/resources/golden-master/record-encoding");
+        Files.copy(golden.resolve("BINREC.cbl"), workspace.resolve("BINREC.cbl"));
+
+        ClassLoader classes = compile(generate(workspace));
+        Object outFile = classes.loadClass(PACKAGE + ".BinrecOutFileInMemoryAdapter").getConstructor().newInstance();
+        Object service = wire(classes, "BinrecServiceImpl", Map.of(PACKAGE + ".BinrecOutFilePort", outFile));
+        Class<?> dtoType = classes.loadClass(PACKAGE + ".BinrecDTO");
+        service.getClass().getMethod("process", dtoType).invoke(service, dtoType.getConstructor().newInstance());
+
+        @SuppressWarnings("unchecked")
+        List<String> written = (List<String>) outFile.getClass().getMethod("records").invoke(outFile);
+        // Records carry one byte per char (ISO-8859-1), so binary fields round-trip exactly.
+        byte[] actual = String.join("", written).getBytes(StandardCharsets.ISO_8859_1);
+        assertThat(actual).isEqualTo(Files.readAllBytes(golden.resolve("expected-records.bin")));
+    }
+
     /**
      * Builds the service through its injecting constructor: the given adapters for the ports
      * under test, the generated default adapter ({@code XxxPort} -> {@code XxxAdapter} /

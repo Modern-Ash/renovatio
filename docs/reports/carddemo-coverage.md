@@ -43,7 +43,7 @@ None — every emitted program compiled.
 
 | Program | Subsystem | LOC | Parse | Emit | Compile | Java files | Action items | TODO | Unhandled | Not translated | Present (lexical) |
 | --- | --- | --: | :-: | :-: | :-: | --: | --: | --: | --: | --: | --- |
-| `CBACT01C` | batch | 430 | yes | yes | yes | 15 | 3 | 0 | 0 | 6 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT, VARYING, WRITE |
+| `CBACT01C` | batch | 430 | yes | yes | yes | 15 | 3 | 0 | 0 | 5 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT, VARYING, WRITE |
 | `CBACT02C` | batch | 178 | yes | yes | yes | 7 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT |
 | `CBACT03C` | batch | 178 | yes | yes | yes | 7 | 0 | 0 | 0 | 0 | ADD, CALL, CLOSE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ, SET, SUBTRACT |
 | `CBACT04C` | batch | 652 | yes | yes | yes | 15 | 9 | 0 | 0 | 10 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, DISPLAY, GOBACK, IF, MOVE, OPEN, PERFORM, READ, REWRITE, STRING, WRITE |
@@ -69,8 +69,8 @@ None — every emitted program compiled.
 | `CODATE01` | cics-online | 524 | yes | yes | yes | 12 | 33 | 0 | 0 | 74 | ADD, CALL, COMPUTE, DISPLAY, EVALUATE, EXEC CICS, GOBACK, IF, INITIALIZE, MOVE, OPEN, PERFORM, SET, STRING |
 | `COMEN01C` | cics-online | 308 | yes | yes | yes | 4 | 21 | 0 | 0 | 30 | CONTINUE, EVALUATE, EXEC CICS, IF, INSPECT, MOVE, PERFORM, SET, STRING, VARYING |
 | `COPAUA0C` | ims-mq | 1026 | yes | yes | yes | 12 | 73 | 0 | 0 | 106 | ADD, CALL, CLOSE, COMPUTE, CONTINUE, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, OPEN, PERFORM, READ, SET, STRING, UNSTRING |
-| `COPAUS0C` | ims-mq | 1032 | yes | yes | yes | 4 | 118 | 0 | 0 | 173 | COMPUTE, CONTINUE, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, PERFORM, READ, SET, STRING, VARYING |
-| `COPAUS1C` | ims-mq | 604 | yes | yes | yes | 4 | 46 | 0 | 0 | 56 | DISPLAY, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, PERFORM, SEARCH, SET, STRING |
+| `COPAUS0C` | ims-mq | 1032 | yes | yes | yes | 4 | 118 | 0 | 0 | 167 | COMPUTE, CONTINUE, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, PERFORM, READ, SET, STRING, VARYING |
+| `COPAUS1C` | ims-mq | 604 | yes | yes | yes | 4 | 46 | 0 | 0 | 51 | DISPLAY, EVALUATE, EXEC CICS, EXEC DLI, IF, INITIALIZE, MOVE, PERFORM, SEARCH, SET, STRING |
 | `COPAUS2C` | ims-mq | 244 | yes | yes | yes | 4 | 14 | 0 | 0 | 37 | ADD, COMPUTE, EXEC CICS, EXEC SQL, IF, MOVE, PERFORM, SET, STRING |
 | `CORPT00C` | cics-online | 649 | yes | yes | yes | 6 | 73 | 0 | 0 | 81 | ADD, CALL, COMPUTE, CONTINUE, DISPLAY, EVALUATE, EXEC CICS, GO TO, IF, INITIALIZE, MOVE, PERFORM, SET, STRING, VARYING, WRITE |
 | `COSGN00C` | cics-online | 260 | yes | yes | yes | 4 | 15 | 0 | 0 | 32 | CONTINUE, EVALUATE, EXEC CICS, IF, MOVE, PERFORM, READ, SET |
