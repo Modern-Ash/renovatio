@@ -18,6 +18,10 @@ public class Batch001DTO {
   private String wsOutput;
 
   public Batch001DTO() {
+    this.wsCounter = 0;
+    this.wsTotal = 0;
+    this.wsResult = 0;
+    this.wsFlag = "N";
   }
 
   public Integer getWsCounter() {

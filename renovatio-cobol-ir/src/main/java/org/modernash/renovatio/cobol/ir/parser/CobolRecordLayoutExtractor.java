@@ -67,6 +67,48 @@ final class CobolRecordLayoutExtractor {
         return layouts;
     }
 
+    private static final Pattern ELEMENTARY_VALUE = Pattern.compile(
+            "\\bVALUES?\\s+(?:IS\\s+|ARE\\s+)?('(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"|[+-]?[0-9]*\\.?[0-9]+"
+                    + "|SPACES?|ZEROS?|ZEROES|LOW-VALUES?|HIGH-VALUES?)",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * VALUE literal of every uniquely named elementary item (raw COBOL text: quoted literal,
+     * numeric literal or figurative constant). Items declared under an OCCURS or REDEFINES, and
+     * names declared more than once, are left out: their initial state is not a single value.
+     */
+    static Map<String, String> initialValues(String dataSection) {
+        List<Entry> entries = entries(dataSection);
+        Map<String, Integer> nameCounts = new HashMap<>();
+        for (Entry entry : entries) {
+            if (!entry.condition()) {
+                nameCounts.merge(entry.name(), 1, Integer::sum);
+            }
+        }
+        Map<String, String> values = new LinkedHashMap<>();
+        List<Entry> open = new ArrayList<>();
+        for (Entry entry : entries) {
+            if (entry.condition()) {
+                continue;
+            }
+            open.removeIf(ancestor -> ancestor.level() >= entry.level() || entry.level() == 1 || entry.level() == 77);
+            boolean repeated = OCCURS.matcher(entry.text()).find() || REDEFINES.matcher(entry.text()).find()
+                    || open.stream().anyMatch(ancestor -> OCCURS.matcher(ancestor.text()).find()
+                    || REDEFINES.matcher(ancestor.text()).find());
+            open.add(entry);
+            if (repeated || entry.name().equals("FILLER") || nameCounts.getOrDefault(entry.name(), 0) > 1
+                    || !PICTURE.matcher(entry.text()).find()) {
+                continue;
+            }
+            // VALUE must come from the entry itself, not from a PIC literal: drop the PIC token first.
+            Matcher value = ELEMENTARY_VALUE.matcher(PICTURE.matcher(entry.text()).replaceFirst(" "));
+            if (value.find()) {
+                values.put(entry.name(), value.group(1));
+            }
+        }
+        return values;
+    }
+
     private static List<Entry> entries(String dataSection) {
         List<Entry> entries = new ArrayList<>();
         Matcher start = ENTRY_START.matcher(dataSection);

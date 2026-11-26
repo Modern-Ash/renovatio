@@ -387,7 +387,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 return List.of(renderCall(call));
             }
             if (statement instanceof FileOperationStatement fileOp) {
-                return List.of(renderFileOperation(fileOp));
+                return renderFileOperation(fileOp, model, visitedParagraphs, varName);
             }
             if (statement instanceof InitializeStatement initialize) {
                 return renderInitialize(initialize, model, varName);
@@ -694,6 +694,26 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     for (String conditionName : setCondition.conditionNames()) {
                         findCondition(model, conditionName)
                                 .ifPresent(condition -> addAssigned(assigned, condition.parent().name()));
+                    }
+                } else if (statement instanceof FileOperationStatement file) {
+                    model.findFile(file.fileName()).ifPresent(descriptor -> {
+                        addAssigned(assigned, descriptor.fileStatus());
+                        if (file.operationType() == FileOperationStatement.OperationType.READ
+                                || file.recordArea() != null) {
+                            addAssigned(assigned, descriptor.recordName());
+                        }
+                    });
+                    if (file.operationType() == FileOperationStatement.OperationType.READ) {
+                        addAssigned(assigned, file.recordArea());
+                    }
+                    collectAssignedStatements(file.exceptionStatements(), assigned, model);
+                    collectAssignedStatements(file.normalStatements(), assigned, model);
+                } else if (statement instanceof IfStatement branch) {
+                    collectAssignedStatements(branch.thenStatements(), assigned, model);
+                    collectAssignedStatements(branch.elseStatements(), assigned, model);
+                } else if (statement instanceof EvaluateStatement evaluate) {
+                    for (EvaluateStatement.EvaluateWhenBranch branch : evaluate.branches()) {
+                        collectAssignedStatements(branch.statements(), assigned, model);
                     }
                 } else if (statement instanceof PerformStatement perform) {
                     addAssigned(assigned, perform.varyingVariable());
@@ -1057,6 +1077,13 @@ public class PopulateCobolProcessRecipe extends Recipe {
                         collectPerformTargetsInto(nested, model, out);
                     }
                 }
+            } else if (statement instanceof FileOperationStatement file) {
+                for (CobolStatement nested : file.exceptionStatements()) {
+                    collectPerformTargetsInto(nested, model, out);
+                }
+                for (CobolStatement nested : file.normalStatements()) {
+                    collectPerformTargetsInto(nested, model, out);
+                }
             }
         }
 
@@ -1325,8 +1352,163 @@ public class PopulateCobolProcessRecipe extends Recipe {
             return builder.toString();
         }
 
-        private String renderFileOperation(FileOperationStatement fileOp) {
-            return String.format(Locale.ROOT, "// %s %s", fileOp.operationType(), fileOp.fileName());
+        /** Counter for READ result variables, unique within the compilation unit. */
+        private int fileResultCounter;
+
+        /**
+         * Renders a file statement as a call on the program's port for that file. The FILE STATUS
+         * item receives the returned code; READ fills the FD record (and the INTO area) on success;
+         * AT END runs on a 1x status, INVALID KEY on a 2x status, the NOT clauses on success.
+         */
+        private List<String> renderFileOperation(FileOperationStatement fileOp, CobolIntermediateModel model,
+                                                 Set<String> visitedParagraphs, @Nullable String varName) {
+            String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            String port = filePortField(fileOp.fileName());
+            Optional<CobolFileDescriptor> file = model.findFile(fileOp.fileName());
+            String recordName = file.map(CobolFileDescriptor::recordName).orElse(fileOp.recordName());
+            String record = recordName != null && model.findComposableLayout(recordName).isPresent()
+                    ? recordName : null;
+            String statusSetter = file.map(CobolFileDescriptor::fileStatus)
+                    .map(status -> targetVar + "." + toSetter(status))
+                    .orElse(null);
+            List<String> lines = new ArrayList<>();
+            String call;
+            switch (fileOp.operationType()) {
+                case OPEN -> call = port + ".open(\"" + openMode(fileOp.openMode()) + "\")";
+                case CLOSE -> call = port + ".close()";
+                case READ -> {
+                    return renderRead(fileOp, model, port, file.orElse(null), record, statusSetter,
+                            visitedParagraphs, varName);
+                }
+                case WRITE, REWRITE -> {
+                    String source = fileOp.recordArea() != null ? fileOp.recordArea() : fileOp.recordName();
+                    if (source == null || !isStringOperand(source)) {
+                        return List.of("// COBOL not translated: " + fileOp.operationType() + " " + fileOp.fileName()
+                                + " (record " + source + " has no composable DISPLAY layout)");
+                    }
+                    if (fileOp.recordArea() != null && record != null) {
+                        lines.add(targetVar + "." + toSetter(record) + "(" + toJavaExpression(fileOp.recordArea()) + ");");
+                    }
+                    call = port + "." + fileOp.operationType().name().toLowerCase(Locale.ROOT)
+                            + "(" + toJavaExpression(source) + ")";
+                }
+                case DELETE, START -> {
+                    String key = keyExpression(fileOp, model, file.orElse(null), record);
+                    if (key == null) {
+                        return List.of("// COBOL not translated: " + fileOp.operationType() + " " + fileOp.fileName()
+                                + " (record key position unknown)");
+                    }
+                    call = port + "." + fileOp.operationType().name().toLowerCase(Locale.ROOT) + "(" + key + ")";
+                }
+                default -> {
+                    return List.of("// COBOL not translated: " + fileOp.operationType() + " " + fileOp.fileName());
+                }
+            }
+            if (!fileOp.hasClauses()) {
+                lines.add(statusSetter != null ? statusSetter + "(" + call + ");" : call + ";");
+                return lines;
+            }
+            String status = "fileStatus" + (++fileResultCounter);
+            lines.add("String " + status + " = " + call + ";");
+            if (statusSetter != null) {
+                lines.add(statusSetter + "(" + status + ");");
+            }
+            lines.addAll(clauseBranches(status, "2", fileOp, model, visitedParagraphs, varName));
+            return lines;
+        }
+
+        private List<String> renderRead(FileOperationStatement read, CobolIntermediateModel model, String port,
+                                        @Nullable CobolFileDescriptor file, @Nullable String record,
+                                        @Nullable String statusSetter, Set<String> visitedParagraphs,
+                                        @Nullable String varName) {
+            String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            boolean keyed = file != null && file.keyed() && !read.next()
+                    && file.accessMode() != CobolFileDescriptor.AccessMode.SEQUENTIAL;
+            String argument = "";
+            if (keyed) {
+                argument = keyExpression(read, model, file, record);
+                if (argument == null) {
+                    return List.of("// COBOL not translated: READ " + read.fileName() + " (record key position unknown)");
+                }
+            }
+            String result = "fileRead" + (++fileResultCounter);
+            List<String> lines = new ArrayList<>();
+            lines.add("var " + result + " = " + port + ".read(" + argument + ");");
+            if (statusSetter != null) {
+                lines.add(statusSetter + "(" + result + ".status());");
+            }
+            List<String> onSuccess = new ArrayList<>();
+            if (record != null) {
+                onSuccess.add(targetVar + "." + toSetter(record) + "(" + result + ".record());");
+            } else {
+                onSuccess.add("// COBOL not translated: record of " + read.fileName()
+                        + " has no composable DISPLAY layout");
+            }
+            if (read.recordArea() != null) {
+                onSuccess.add(isStringOperand(read.recordArea())
+                        ? targetVar + "." + toSetter(read.recordArea()) + "(" + result + ".record());"
+                        : "// COBOL not translated: READ INTO " + read.recordArea() + " (not an alphanumeric item)");
+            }
+            lines.add("if (" + result + ".successful()) {");
+            onSuccess.forEach(line -> lines.add(indent(line)));
+            lines.add("}");
+            if (read.hasClauses()) {
+                lines.addAll(clauseBranches(result + ".status()", keyed ? "2" : "1", read, model,
+                        visitedParagraphs, varName));
+            }
+            return lines;
+        }
+
+        /** if (exception status) { AT END / INVALID KEY } else if (success) { NOT ... }. */
+        private List<String> clauseBranches(String statusExpression, String exceptionClass,
+                                            FileOperationStatement fileOp, CobolIntermediateModel model,
+                                            Set<String> visitedParagraphs, @Nullable String varName) {
+            List<String> lines = new ArrayList<>();
+            String opening = "if";
+            if (!fileOp.exceptionStatements().isEmpty()) {
+                lines.add("if (" + statusExpression + ".startsWith(\"" + exceptionClass + "\")) {");
+                renderBranch(fileOp.exceptionStatements(), model, visitedParagraphs, varName, lines);
+                opening = "} else if";
+            }
+            if (!fileOp.normalStatements().isEmpty()) {
+                lines.add(opening + " (" + statusExpression + ".startsWith(\"0\")) {");
+                renderBranch(fileOp.normalStatements(), model, visitedParagraphs, varName, lines);
+            }
+            lines.add("}");
+            return lines;
+        }
+
+        /** The key as the port stores it: its characters inside the DISPLAY record. */
+        private @Nullable String keyExpression(FileOperationStatement fileOp, CobolIntermediateModel model,
+                                               @Nullable CobolFileDescriptor file, @Nullable String record) {
+            if (file == null || record == null) {
+                return null;
+            }
+            Optional<int[]> span = model.recordKeySpan(file);
+            if (span.isEmpty()) {
+                return null;
+            }
+            int[] position = span.orElseThrow();
+            return toJavaExpression(record) + ".substring(" + position[0] + ", " + (position[0] + position[1]) + ")";
+        }
+
+        private static String openMode(@Nullable FileOperationStatement.OpenMode mode) {
+            if (mode == null) {
+                return "INPUT";
+            }
+            return mode == FileOperationStatement.OpenMode.I_O ? "I-O" : mode.name();
+        }
+
+        /** Field name of the port for a file: the generator's naming ("ACCTFILE-FILE" -> acctfileFile). */
+        private String filePortField(String selectName) {
+            StringBuilder result = new StringBuilder();
+            for (String part : selectName.split("[^A-Za-z0-9]+")) {
+                if (part.isEmpty()) continue;
+                result.append(Character.toUpperCase(part.charAt(0)));
+                if (part.length() > 1) result.append(part.substring(1).toLowerCase(Locale.ROOT));
+            }
+            String base = result.isEmpty() || !Character.isLetter(result.charAt(0)) ? "File" + result : result.toString();
+            return Character.toLowerCase(base.charAt(0)) + base.substring(1);
         }
 
         private String translateCondition(String condition) {
@@ -1335,40 +1517,316 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         private String translateCondition(String condition, Map<String, String> aliases) {
             if (condition == null) return "false";
-            String raw = condition.replace("THEN", "").trim();
-            // Normalize common COBOL operators
-            raw = raw.replaceAll("(?i)NOT =", "<>");
-            // Pattern: LEFT OP RIGHT (supports identifiers with dashes/dots and numeric/string literals)
-            java.util.regex.Pattern p = java.util.regex.Pattern.compile("(?<left>[A-Za-z0-9_.-]+)\\s*(?<op>>=|<=|<>|=|>|<)\\s*(?<right>.+)");
-            java.util.regex.Matcher m = p.matcher(raw);
-            if (m.matches()) {
-                String left = m.group("left");
-                String op = m.group("op");
-                String right = m.group("right").trim();
-                String javaOp = switch (op) {
-                    case "=" -> "==";
-                    case "<>" -> "!=";
-                    default -> op;
-                };
-                String leftExpr = toJavaIdentifierRef(left, aliases);
-                String rightExpr = toJavaExpression(right);
-                if (("==".equals(javaOp) || "!=".equals(javaOp))
-                        && (isStringOperand(left) || isStringOperand(right))) {
-                    // Java == on String compares references; COBOL compares values. A numeric
-                    // literal against an alphanumeric item compares as its digit characters.
-                    if (right.matches("[0-9]+")) {
-                        rightExpr = "\"" + right + "\"";
-                    }
-                    String equals = "java.util.Objects.equals(" + leftExpr + ", " + rightExpr + ")";
-                    return "==".equals(javaOp) ? equals : "!" + equals;
-                }
-                return leftExpr + " " + javaOp + " " + rightExpr;
+            String raw = condition.replaceAll("(?i)(^|\\s)THEN(\\s|$)", " ").replace('\n', ' ').trim();
+            ConditionContext context = new ConditionContext(aliases);
+            String translated = translateDisjunction(raw, context);
+            if (translated != null) {
+                return translated;
             }
-            // Fallback to previous behavior for complex expressions
-            String javaCondition = raw
-                    .replace("=", "==")
-                    .replace("<>", "!=");
-            return toJavaExpression(javaCondition.trim());
+            String subject = raw.replaceFirst("^(?i)NOT\\s+", "").split("[^A-Za-z0-9-]", 2)[0];
+            return UNRESOLVED_MARKER + (subject.isEmpty() ? "CONDITION" : subject);
+        }
+
+        /** Subject and operator of the last relation, inherited by abbreviated conditions. */
+        private static final class ConditionContext {
+            final Map<String, String> aliases;
+            String subject;
+            String operator;
+
+            ConditionContext(Map<String, String> aliases) {
+                this.aliases = aliases;
+            }
+        }
+
+        /** Relational operators: word forms must stand alone, symbol forms may touch operands. */
+        private static final String RELATIONAL_OPERATOR =
+                "(?<op>(?:(?<=\\s)(?:NOT\\s+EQUAL(?:\\s+TO)?|NOT\\s+GREATER(?:\\s+THAN)?(?:\\s+OR\\s+EQUAL(?:\\s+TO)?)?"
+                + "|NOT\\s+LESS(?:\\s+THAN)?(?:\\s+OR\\s+EQUAL(?:\\s+TO)?)?|GREATER\\s+THAN\\s+OR\\s+EQUAL(?:\\s+TO)?"
+                + "|GREATER(?:\\s+THAN)?|LESS\\s+THAN\\s+OR\\s+EQUAL(?:\\s+TO)?|LESS(?:\\s+THAN)?|EQUALS?(?:\\s+TO)?"
+                + "|NOT\\s*(?:=|>|<))(?![A-Z0-9-]))|>=|<=|<>|=|>|<)";
+        private static final java.util.regex.Pattern RELATION = java.util.regex.Pattern.compile(
+                "(?i)^(?<left>.+?)\\s*(?:(?<=\\s)IS\\s+)?" + RELATIONAL_OPERATOR + "\\s*(?<right>.+)$");
+        private static final java.util.regex.Pattern OPERATOR_ONLY = java.util.regex.Pattern.compile(
+                "(?i)^(?:IS\\s+)?(?<op>NOT\\s+EQUAL(?:\\s+TO)?|NOT\\s*=|NOT\\s*>|NOT\\s*<"
+                + "|GREATER(?:\\s+THAN)?(?:\\s+OR\\s+EQUAL(?:\\s+TO)?)?|LESS(?:\\s+THAN)?(?:\\s+OR\\s+EQUAL(?:\\s+TO)?)?"
+                + "|EQUALS?(?:\\s+TO)?|>=|<=|<>|=|>|<)\\s*(?<right>.+)$");
+        private static final java.util.regex.Pattern CLASS_OR_SIGN = java.util.regex.Pattern.compile(
+                "(?i)^(?<subject>[A-Z0-9][A-Z0-9-]*(?:\\([^)]*\\))?)\\s+(?:IS\\s+)?(?<not>NOT\\s+)?"
+                + "(?<test>NUMERIC|ALPHABETIC|POSITIVE|NEGATIVE|ZERO)$");
+
+        private @Nullable String translateDisjunction(String text, ConditionContext context) {
+            List<String> parts = splitTopLevel(text, "OR");
+            List<String> translated = new ArrayList<>();
+            for (String part : parts) {
+                String value = translateConjunction(part, context);
+                if (value == null) return null;
+                translated.add(value);
+            }
+            return translated.size() == 1 ? translated.get(0) : "(" + String.join(" || ", translated) + ")";
+        }
+
+        private @Nullable String translateConjunction(String text, ConditionContext context) {
+            List<String> parts = splitTopLevel(text, "AND");
+            List<String> translated = new ArrayList<>();
+            for (String part : parts) {
+                String value = translateNegation(part.trim(), context);
+                if (value == null) return null;
+                translated.add(value);
+            }
+            return translated.size() == 1 ? translated.get(0) : "(" + String.join(" && ", translated) + ")";
+        }
+
+        private @Nullable String translateNegation(String text, ConditionContext context) {
+            String upper = text.toUpperCase(Locale.ROOT);
+            if (upper.startsWith("NOT ") && !OPERATOR_ONLY.matcher(text).matches()) {
+                String inner = translateNegation(text.substring(4).trim(), context);
+                return inner == null ? null : "!(" + inner + ")";
+            }
+            if (text.startsWith("(") && matchingParen(text, 0) == text.length() - 1) {
+                String inner = translateDisjunction(text.substring(1, text.length() - 1).trim(), context);
+                return inner == null ? null : "(" + inner + ")";
+            }
+            return translateSimpleCondition(text, context);
+        }
+
+        private @Nullable String translateSimpleCondition(String text, ConditionContext context) {
+            java.util.regex.Matcher classOrSign = CLASS_OR_SIGN.matcher(text);
+            if (classOrSign.matches()) {
+                String test = classOrSignTest(classOrSign.group("subject"), classOrSign.group("test"), context);
+                if (test == null) return null;
+                return classOrSign.group("not") != null ? "!(" + test + ")" : test;
+            }
+            java.util.regex.Matcher relation = RELATION.matcher(text);
+            if (relation.matches()) {
+                String left = relation.group("left").trim();
+                context.subject = left;
+                context.operator = normalizeOperator(relation.group("op"));
+                return relationTest(left, context.operator, relation.group("right").trim(), context);
+            }
+            java.util.regex.Matcher operatorOnly = OPERATOR_ONLY.matcher(text);
+            if (operatorOnly.matches() && context.subject != null) {
+                context.operator = normalizeOperator(operatorOnly.group("op"));
+                return relationTest(context.subject, context.operator, operatorOnly.group("right").trim(), context);
+            }
+            String bare = text.trim();
+            Optional<ResolvedCondition> level88 = currentModel == null ? Optional.empty()
+                    : findCondition(currentModel, bare);
+            if (level88.isPresent()) {
+                return level88Test(level88.orElseThrow());
+            }
+            if (context.subject != null && context.operator != null && !bare.contains(" ")) {
+                // Abbreviated combined relation: "A = 1 OR 2" -> the object 2 keeps subject and operator.
+                return relationTest(context.subject, context.operator, bare, context);
+            }
+            return null;
+        }
+
+        private static boolean isQuoted(String operand) {
+            return operand.startsWith("'") || operand.startsWith("\"");
+        }
+
+        private static String normalizeOperator(String op) {
+            String o = op.toUpperCase(Locale.ROOT).replaceAll("\\s+", " ").trim();
+            if (o.startsWith("NOT")) {
+                String rest = o.substring(3).trim();
+                if (rest.startsWith("=") || rest.startsWith("EQUAL")) return "!=";
+                if (rest.startsWith(">") || rest.startsWith("GREATER")) return "<=";
+                if (rest.startsWith("<") || rest.startsWith("LESS")) return ">=";
+            }
+            if (o.equals("<>")) return "!=";
+            if (o.startsWith("GREATER") && o.contains("EQUAL")) return ">=";
+            if (o.startsWith("LESS") && o.contains("EQUAL")) return "<=";
+            if (o.startsWith("GREATER")) return ">";
+            if (o.startsWith("LESS")) return "<";
+            if (o.startsWith("EQUAL") || o.equals("=")) return "==";
+            return o;
+        }
+
+        /** Java test for one relation, typed by its operands. */
+        private @Nullable String relationTest(String left, String op, String right, ConditionContext context) {
+            String leftType = operandType(left, context);
+            String upperRight = right.toUpperCase(Locale.ROOT);
+            String leftExpr = operandExpression(left, context);
+            if (leftExpr == null) return null;
+            if (FIGURATIVE_SPACE.contains(upperRight) || FIGURATIVE_ZERO.contains(upperRight)
+                    || upperRight.equals("LOW-VALUE") || upperRight.equals("LOW-VALUES")
+                    || upperRight.equals("HIGH-VALUE") || upperRight.equals("HIGH-VALUES")) {
+                return figurativeTest(leftExpr, leftType, op, upperRight);
+            }
+            String rightType = operandType(right, context);
+            String rightExpr = operandExpression(right, context);
+            if (rightExpr == null || leftType == null || rightType == null) return null;
+            if ("String".equals(leftType) || "String".equals(rightType)) {
+                String l = "NUM".equals(leftType) ? quoted(left) : asText(leftExpr, leftType);
+                String r = "NUM".equals(rightType) ? quoted(right.replace("+", "")) : asText(rightExpr, rightType);
+                return switch (op) {
+                    case "==" -> "java.util.Objects.equals(" + l + ", " + r + ")";
+                    case "!=" -> "!java.util.Objects.equals(" + l + ", " + r + ")";
+                    default -> "String.valueOf(" + l + ").compareTo(String.valueOf(" + r + ")) " + op + " 0";
+                };
+            }
+            if ("BigDecimal".equals(leftType) || "BigDecimal".equals(rightType)
+                    || "NUM".equals(rightType) && right.contains(".") || "NUM".equals(leftType) && left.contains(".")) {
+                return asDecimal(leftExpr, leftType, left) + ".compareTo(" + asDecimal(rightExpr, rightType, right)
+                        + ") " + op + " 0";
+            }
+            boolean bothItems = !"NUM".equals(leftType) && !"NUM".equals(rightType);
+            if (bothItems && ("==".equals(op) || "!=".equals(op))) {
+                // == between two boxed numbers compares references.
+                return "Long.compare(" + leftExpr + ", " + rightExpr + ") " + op + " 0";
+            }
+            return leftExpr + " " + op + " " + rightExpr;
+        }
+
+        private String figurativeTest(String expr, @Nullable String type, String op, String figurative) {
+            String test;
+            if (FIGURATIVE_ZERO.contains(figurative)) {
+                test = switch (type == null ? "String" : type) {
+                    case "String" -> "(" + expr + " != null && " + expr + ".chars().allMatch(c -> c == '0'))";
+                    case "BigDecimal" -> "(" + expr + ".signum() == 0)";
+                    default -> "(Long.compare(" + expr + ", 0L) == 0)";
+                };
+            } else if (FIGURATIVE_SPACE.contains(figurative)) {
+                test = "(" + expr + " == null || " + expr + ".isBlank())";
+            } else if (figurative.startsWith("LOW")) {
+                test = "(" + expr + " == null || " + expr + ".chars().allMatch(c -> c == 0))";
+            } else {
+                test = "(" + expr + " != null && " + expr + ".chars().allMatch(c -> c == 0xFF))";
+            }
+            return switch (op) {
+                case "==" -> test;
+                case "!=" -> "!" + test;
+                default -> UNRESOLVED_MARKER + "FIGURATIVE-ORDERING";
+            };
+        }
+
+        private @Nullable String classOrSignTest(String subject, String test, ConditionContext context) {
+            String expr = operandExpression(subject, context);
+            String type = operandType(subject, context);
+            if (expr == null || type == null) return null;
+            return switch (test.toUpperCase(Locale.ROOT)) {
+                case "NUMERIC" -> "String".equals(type)
+                        ? "(" + expr + " != null && !" + expr + ".isEmpty() && " + expr
+                        + ".chars().allMatch(Character::isDigit))"
+                        : "true";
+                case "ALPHABETIC" -> "String".equals(type)
+                        ? "(" + expr + " != null && " + expr + ".chars().allMatch(c -> Character.isLetter(c) || c == ' '))"
+                        : "false";
+                case "POSITIVE" -> signTest(expr, type, "> 0");
+                case "NEGATIVE" -> signTest(expr, type, "< 0");
+                default -> signTest(expr, type, "== 0");
+            };
+        }
+
+        private @Nullable String signTest(String expr, String type, String comparison) {
+            return switch (type) {
+                case "BigDecimal" -> expr + ".signum() " + comparison;
+                case "Integer", "Long", "NUM" -> "Long.compare(" + expr + ", 0L) " + comparison;
+                default -> null;
+            };
+        }
+
+        /** Level-88 condition name: the parent item holds one of the condition's values or ranges. */
+        private @Nullable String level88Test(ResolvedCondition resolved) {
+            CobolDataItem parent = resolved.parent();
+            String parentExpr = toJavaIdentifierRef(parent.name());
+            if (parentExpr.contains(UNRESOLVED_MARKER)) return null;
+            String type = parent.picture() == null ? "String" : parent.javaType();
+            List<String> tests = new ArrayList<>();
+            for (Level88Value value : resolved.condition().values()) {
+                Optional<String> low = CobolDataVerbValueResolver.renderCobolValue(value.value(), parent);
+                if (low.isEmpty()) return null;
+                if (!value.isRange()) {
+                    tests.add("String".equals(type)
+                            ? "java.util.Objects.equals(" + parentExpr + ", " + low.orElseThrow() + ")"
+                            : "BigDecimal".equals(type)
+                            ? "(" + parentExpr + " != null && " + parentExpr + ".compareTo(" + low.orElseThrow() + ") == 0)"
+                            : "java.util.Objects.equals(" + parentExpr + ", " + low.orElseThrow() + ")");
+                    continue;
+                }
+                Optional<String> high = CobolDataVerbValueResolver.renderCobolValue(value.through(), parent);
+                if (high.isEmpty()) return null;
+                tests.add("(" + parentExpr + " != null && " + parentExpr + ".compareTo(" + low.orElseThrow()
+                        + ") >= 0 && " + parentExpr + ".compareTo(" + high.orElseThrow() + ") <= 0)");
+            }
+            return tests.size() == 1 ? tests.get(0) : "(" + String.join(" || ", tests) + ")";
+        }
+
+        /** "String", "Integer", "Long", "BigDecimal" for data items; "NUM" for numeric literals. */
+        private @Nullable String operandType(String operand, ConditionContext context) {
+            String t = operand.trim();
+            if (isQuoted(t)) return "String";
+            if (t.matches("[+-]?[0-9]*\\.?[0-9]+")) return "NUM";
+            String upper = t.toUpperCase(Locale.ROOT);
+            if (context.aliases.containsKey(upper) || variableAliases.containsKey(upper)) return "Integer";
+            return dataTypes.get(toPascal(stripSubscripts(t)));
+        }
+
+        private @Nullable String operandExpression(String operand, ConditionContext context) {
+            String t = operand.trim();
+            if (isQuoted(t) || t.matches("[+-]?[0-9]*\\.?[0-9]+")) {
+                return toJavaExpression(t);
+            }
+            if (!t.matches("[A-Za-z0-9][A-Za-z0-9-]*(?:\\([^()]*\\))?")) {
+                return null; // arithmetic expressions, functions, reference modification ranges
+            }
+            String expr = toJavaIdentifierRef(t, context.aliases);
+            return expr.contains(UNRESOLVED_MARKER) ? null : expr;
+        }
+
+        private static String asText(String expr, String type) {
+            return "String".equals(type) ? expr : "String.valueOf(" + expr + ")";
+        }
+
+        private static String asDecimal(String expr, String type, String raw) {
+            if ("NUM".equals(type)) return "new java.math.BigDecimal(\"" + raw.replace("+", "") + "\")";
+            return "BigDecimal".equals(type) ? expr : "java.math.BigDecimal.valueOf(" + expr + ")";
+        }
+
+        /** Splits on a logical keyword outside quotes and parentheses. */
+        private static List<String> splitTopLevel(String text, String keyword) {
+            List<String> parts = new ArrayList<>();
+            int depth = 0;
+            char quote = 0;
+            int last = 0;
+            String upper = text.toUpperCase(Locale.ROOT);
+            String token = " " + keyword + " ";
+            for (int i = 0; i < text.length(); i++) {
+                char c = text.charAt(i);
+                if (quote != 0) {
+                    if (c == quote) quote = 0;
+                    continue;
+                }
+                if (c == '\'' || c == '"') {
+                    quote = c;
+                } else if (c == '(') {
+                    depth++;
+                } else if (c == ')') {
+                    depth--;
+                } else if (depth == 0 && upper.startsWith(token, i)) {
+                    parts.add(text.substring(last, i).trim());
+                    last = i + token.length();
+                    i = last - 1;
+                }
+            }
+            parts.add(text.substring(last).trim());
+            return parts;
+        }
+
+        private static int matchingParen(String text, int open) {
+            int depth = 0;
+            char quote = 0;
+            for (int i = open; i < text.length(); i++) {
+                char c = text.charAt(i);
+                if (quote != 0) {
+                    if (c == quote) quote = 0;
+                    continue;
+                }
+                if (c == '\'' || c == '"') quote = c;
+                else if (c == '(') depth++;
+                else if (c == ')' && --depth == 0) return i;
+            }
+            return -1;
         }
 
         /** True when a condition operand is an alphanumeric literal or a String data item. */

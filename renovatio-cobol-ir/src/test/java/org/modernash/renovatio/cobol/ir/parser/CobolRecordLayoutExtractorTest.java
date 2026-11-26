@@ -69,4 +69,24 @@ class CobolRecordLayoutExtractorTest {
         assertTrue(model.findComposableLayout("WS-EDITED").isEmpty());
         assertTrue(model.findComposableLayout("WS-FIRST").isEmpty());
     }
+
+    @Test
+    void capturesInitialValuesOfUniquelyNamedElementaryItems() {
+        CobolIntermediateModel model = parse("""
+                01  END-OF-FILE             PIC X(01)    VALUE 'N'.
+                01  APPL-RESULT             PIC S9(9)   COMP VALUE 8.
+                01  WS-RATE                 PIC S9(3)V99 VALUE -1.25.
+                01  WS-NAME                 PIC X(10) VALUE SPACES.
+                01  WS-NONE                 PIC X(10).
+                01  WS-TABLE.
+                    05  WS-ROW              PIC X(4) VALUE 'AB' OCCURS 3 TIMES.
+                """);
+
+        assertEquals("'N'", model.getInitialValues().get("END-OF-FILE"));
+        assertEquals("8", model.getInitialValues().get("APPL-RESULT"));
+        assertEquals("-1.25", model.getInitialValues().get("WS-RATE"));
+        assertEquals("SPACES", model.getInitialValues().get("WS-NAME"));
+        assertFalse(model.getInitialValues().containsKey("WS-NONE"));
+        assertFalse(model.getInitialValues().containsKey("WS-ROW"));
+    }
 }

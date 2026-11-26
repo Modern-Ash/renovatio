@@ -411,7 +411,9 @@ public class SimpleCobolIrParser {
                 .fileToRecordMapping(fileToRecordMapping)
                 .fileKeyFields(fileKeyFields)
                 .fileAssignTarget(fileAssignTarget)
-                .recordLayouts(CobolRecordLayoutExtractor.extract(dataSection(source)));
+                .recordLayouts(CobolRecordLayoutExtractor.extract(dataSection(source)))
+                .fileDescriptors(extractFileDescriptors(source, fileToRecordMapping))
+                .initialValues(CobolRecordLayoutExtractor.initialValues(dataSection(source)));
         paragraphs.values().forEach(builder::addParagraph);
         return builder.build();
     }
@@ -466,6 +468,11 @@ public class SimpleCobolIrParser {
                     line = body.substring(0, FIXED_FORMAT_TEXT_END)
                             + " ".repeat(body.length() - FIXED_FORMAT_TEXT_END) + trailingCr;
                 }
+                // Columns 1-6 are the sequence number area ("034500 0000-MAIN.").
+                if (fixedFormat && !isComment && line.length() >= 6
+                        && line.substring(0, 6).chars().allMatch(c -> c == ' ' || Character.isDigit(c))) {
+                    line = "      " + line.substring(6);
+                }
                 result.append(isComment ? " ".repeat(line.length()) : line);
                 if (i < length) result.append('\n');
                 lineStart = i + 1;
@@ -508,7 +515,11 @@ public class SimpleCobolIrParser {
             boolean namesARecord = file.operationType() == FileOperationStatement.OperationType.WRITE
                     || file.operationType() == FileOperationStatement.OperationType.REWRITE;
             String actualFile = namesARecord ? recordToFile.get(file.fileName()) : null;
-            return actualFile != null ? new FileOperationStatement(file.operationType(), actualFile) : file;
+            FileOperationStatement resolved = actualFile != null ? file.withFileName(actualFile) : file;
+            return resolved.hasClauses()
+                    ? resolved.withClauses(rewriteStatements(resolved.exceptionStatements(), recordToFile),
+                            rewriteStatements(resolved.normalStatements(), recordToFile))
+                    : resolved;
         }
         if (statement instanceof IfStatement branch) {
             return new IfStatement(branch.condition(), rewriteStatements(branch.thenStatements(), recordToFile),
@@ -682,6 +693,71 @@ public class SimpleCobolIrParser {
     // of that file's identity keys. Real VSAM/indexed-file key evidence —
     // the actual signal a relational schema's foreign keys should be
     // inferred from, not name-similarity guessing.
+    private static final Pattern FILE_STATUS_PATTERN = Pattern.compile(
+            "(?i)\\bFILE\\s+STATUS\\s+(?:IS\\s+)?([A-Z0-9-]+)");
+    private static final Pattern ORGANIZATION_PATTERN = Pattern.compile(
+            "(?i)\\bORGANIZATION\\s+(?:IS\\s+)?(LINE\\s+SEQUENTIAL|SEQUENTIAL|INDEXED|RELATIVE)");
+    private static final Pattern ACCESS_PATTERN = Pattern.compile(
+            "(?i)\\bACCESS\\s+(?:MODE\\s+)?(?:IS\\s+)?(SEQUENTIAL|RANDOM|DYNAMIC)");
+    private static final Pattern ALTERNATE_KEY_PATTERN = Pattern.compile(
+            "(?i)\\bALTERNATE\\s+(?:RECORD\\s+)?KEY\\s+(?:IS\\s+)?([A-Z0-9-]+)");
+    private static final Pattern PRIMARY_KEY_PATTERN = Pattern.compile(
+            "(?i)(?<!ALTERNATE\\s)\\bRECORD\\s+KEY\\s+(?:IS\\s+)?([A-Z0-9-]+)");
+    private static final Pattern BARE_ORGANIZATION_PATTERN = Pattern.compile(
+            "(?i)(?<!ORGANIZATION\\s)(?<!IS\\s)\\b(LINE\\s+SEQUENTIAL|INDEXED|RELATIVE)\\b");
+
+    /** One descriptor per FILE-CONTROL SELECT entry, in declaration order. */
+    private Map<String, CobolFileDescriptor> extractFileDescriptors(String source,
+                                                                    Map<String, String> fileToRecordMapping) {
+        Map<String, CobolFileDescriptor> result = new LinkedHashMap<>();
+        int fcStart = StringUtils.indexOfIgnoreCase(source, "FILE-CONTROL.");
+        if (fcStart < 0) {
+            return result;
+        }
+        int fsStart = StringUtils.indexOfIgnoreCase(source, Sections.FILE_SECTION, fcStart);
+        int dataStart = StringUtils.indexOfIgnoreCase(source, "DATA DIVISION", fcStart);
+        int end = source.length();
+        if (fsStart >= 0) end = Math.min(end, fsStart);
+        if (dataStart >= 0) end = Math.min(end, dataStart);
+        String fileControl = source.substring(fcStart, end);
+        Matcher select = SELECT_PATTERN.matcher(fileControl);
+        List<Integer> starts = new ArrayList<>();
+        List<String> names = new ArrayList<>();
+        while (select.find()) {
+            starts.add(select.start());
+            names.add(select.group(1).toUpperCase(Locale.ROOT));
+        }
+        for (int k = 0; k < starts.size(); k++) {
+            String block = fileControl.substring(starts.get(k),
+                    k + 1 < starts.size() ? starts.get(k + 1) : fileControl.length());
+            String name = names.get(k);
+            Matcher assign = ASSIGN_TO_PATTERN.matcher(block);
+            Matcher organization = ORGANIZATION_PATTERN.matcher(block);
+            Matcher bareOrganization = BARE_ORGANIZATION_PATTERN.matcher(block);
+            Matcher access = ACCESS_PATTERN.matcher(block);
+            Matcher status = FILE_STATUS_PATTERN.matcher(block);
+            Matcher primary = PRIMARY_KEY_PATTERN.matcher(block);
+            Matcher alternate = ALTERNATE_KEY_PATTERN.matcher(block);
+            List<String> alternates = new ArrayList<>();
+            while (alternate.find()) {
+                alternates.add(alternate.group(1).toUpperCase(Locale.ROOT));
+            }
+            String organizationText = organization.find() ? organization.group(1)
+                    : bareOrganization.find() ? bareOrganization.group(1) : "SEQUENTIAL";
+            result.put(name, new CobolFileDescriptor(name,
+                    assign.find() ? assign.group(1).toUpperCase(Locale.ROOT) : null,
+                    CobolFileDescriptor.Organization.valueOf(organizationText.toUpperCase(Locale.ROOT)
+                            .replaceAll("\\s+", "_")),
+                    access.find() ? CobolFileDescriptor.AccessMode.valueOf(access.group(1).toUpperCase(Locale.ROOT))
+                            : CobolFileDescriptor.AccessMode.SEQUENTIAL,
+                    primary.find() ? primary.group(1).toUpperCase(Locale.ROOT) : null,
+                    alternates,
+                    status.find() ? status.group(1).toUpperCase(Locale.ROOT) : null,
+                    fileToRecordMapping.get(name)));
+        }
+        return result;
+    }
+
     private Map<String, List<String>> extractFileKeyFields(String source) {
         Map<String, List<String>> result = new LinkedHashMap<>();
         int fcStart = StringUtils.indexOfIgnoreCase(source, "FILE-CONTROL.");
@@ -871,7 +947,7 @@ public class SimpleCobolIrParser {
             if (withinEntryBlock(baseLine + i, entryBlockLines)) {
                 continue;
             }
-            String trimmed = lines.get(i).stripLeading();
+            String trimmed = lines.get(i).strip();
             if (trimmed.isEmpty()) {
                 continue;
             }
@@ -937,6 +1013,12 @@ public class SimpleCobolIrParser {
     private record ParagraphHeaderAtLine(String name, int line) {
     }
 
+    /**
+     * Name of the paragraph holding statements written directly after the PROCEDURE DIVISION
+     * header, before any paragraph. A reserved word, so it cannot collide with a real paragraph.
+     */
+    public static final String IMPLICIT_MAIN_PARAGRAPH = "PROCEDURE-DIVISION";
+
     private Map<String, CobolParagraph> parseNonEntryParagraphs(String procedureSource) {
         Map<String, CobolParagraph> result = new LinkedHashMap<>();
         List<String> lines = List.of(procedureSource.split(Symbols.NEWLINE, -1));
@@ -945,7 +1027,7 @@ public class SimpleCobolIrParser {
         String previousNonBlank = null;
 
         for (String rawLine : lines) {
-            String line = rawLine.stripLeading();
+            String line = rawLine.strip();
             if (line.isEmpty()) {
                 if (currentHeader != null) currentBody.append(rawLine).append(Symbols.NEWLINE_CHAR);
                 continue;
@@ -958,6 +1040,10 @@ public class SimpleCobolIrParser {
                 currentHeader = detected;
                 currentBody.setLength(0);
             } else if (currentHeader != null) {
+                currentBody.append(rawLine).append(Symbols.NEWLINE_CHAR);
+            } else {
+                // Statements before the first paragraph header: the program's main line.
+                currentHeader = IMPLICIT_MAIN_PARAGRAPH;
                 currentBody.append(rawLine).append(Symbols.NEWLINE_CHAR);
             }
         }
@@ -1096,9 +1182,25 @@ public class SimpleCobolIrParser {
                 i = parseExecSql(lines, i, statements);
                 continue;
             }
+            if (upperLine.startsWith("EXEC ") || upperLine.equals("EXEC")) {
+                // EXEC CICS / DLI / ... : one embedded command up to END-EXEC, never COBOL verbs.
+                StringBuilder command = new StringBuilder(line);
+                int j = i;
+                while (!command.toString().toUpperCase(Locale.ROOT).contains("END-EXEC") && j + 1 < lines.size()) {
+                    j++;
+                    String next = lines.get(j).trim();
+                    if (!next.isEmpty()) {
+                        command.append(' ').append(next);
+                    }
+                }
+                String text = stripTrailingPeriod(command.toString().replaceAll("\\s+", " "));
+                statements.add(new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, text));
+                i = j;
+                continue;
+            }
             FileOperationStatement.OperationType op = detectFileOperation(upperLine);
             if (op != null) {
-                statements.add(new FileOperationStatement(op, parseFileName(line, op)));
+                i = parseFileOperation(lines, i, op, statements);
                 continue;
             }
             if (upperLine.startsWith(Keywords.COMPUTE)) {
@@ -1533,11 +1635,178 @@ public class SimpleCobolIrParser {
 
     private FileOperationStatement.OperationType detectFileOperation(String line) {
         for (FileOperationStatement.OperationType type : FileOperationStatement.OperationType.values()) {
-            if (line.startsWith(type.name())) {
+            if (line.startsWith(type.name()) && (line.length() == type.name().length()
+                    || !Character.isLetterOrDigit(line.charAt(type.name().length()))
+                    && line.charAt(type.name().length()) != '-')) {
                 return type;
             }
         }
         return null;
+    }
+
+    /** Verbs and scope words that start a new statement rather than continue the current one. */
+    private static final Set<String> STATEMENT_WORDS = Set.of("ACCEPT", "ADD", "CALL", "CANCEL", "CLOSE",
+            "COMPUTE", "CONTINUE", "DELETE", "DISPLAY", "DIVIDE", "ELSE", "EVALUATE", "EXEC", "EXIT", "GO",
+            "GOBACK", "IF", "INITIALIZE", "INSPECT", "MERGE", "MOVE", "MULTIPLY", "OPEN", "PERFORM", "READ",
+            "RELEASE", "RETURN", "REWRITE", "SEARCH", "SET", "SORT", "START", "STOP", "STRING", "SUBTRACT",
+            "UNSTRING", "WHEN", "WRITE");
+    private static final Pattern FILE_CLAUSE = Pattern.compile(
+            "(?i)(?:^|\\s)(NOT\\s+(?:AT\\s+)?END|NOT\\s+INVALID(?:\\s+KEY)?|AT\\s+END|INVALID(?:\\s+KEY)?)(?=\\s|$|\\.)");
+    private static final Pattern READ_INTO = Pattern.compile("(?i)\\bINTO\\s+([A-Z0-9-]+(?:\\([^)]*\\))?)");
+    private static final Pattern WRITE_FROM = Pattern.compile("(?i)\\bFROM\\s+([A-Z0-9-]+(?:\\([^)]*\\))?)");
+    private static final Pattern KEY_IS = Pattern.compile(
+            "(?i)\\bKEY\\s+(?:IS\\s+)?(?:=|>=|>|EQUALS?\\s+(?:TO\\s+)?|GREATER\\s+(?:THAN\\s+)?(?:OR\\s+EQUAL\\s+(?:TO\\s+)?)?|NOT\\s+LESS\\s+(?:THAN\\s+)?)?\\s*([A-Z0-9-]+)");
+
+    private static boolean startsStatement(String trimmedLine) {
+        String upper = trimmedLine.toUpperCase(Locale.ROOT);
+        String first = upper.split("[\\s.]", 2)[0];
+        return STATEMENT_WORDS.contains(first) || first.startsWith("END-")
+                || FILE_CLAUSE.matcher(upper).lookingAt() || upper.startsWith("AT END");
+    }
+
+    /**
+     * Parses a file I/O statement: its operands (which may continue over several lines), and its
+     * AT END / NOT AT END / INVALID KEY / NOT INVALID KEY imperative statements up to the
+     * matching END-verb or the sentence period. OPEN and CLOSE yield one statement per file.
+     */
+    private int parseFileOperation(List<String> lines, int index, FileOperationStatement.OperationType op,
+                                   List<CobolStatement> statements) {
+        StringBuilder head = new StringBuilder(lines.get(index).trim());
+        int i = index + 1;
+        boolean sentenceEnded = head.toString().endsWith(Symbols.DOT);
+        while (!sentenceEnded && i < lines.size()) {
+            String next = lines.get(i).trim();
+            if (next.isEmpty()) {
+                i++;
+                continue;
+            }
+            if (startsStatement(next)) {
+                break;
+            }
+            head.append(' ').append(next);
+            sentenceEnded = next.endsWith(Symbols.DOT);
+            i++;
+        }
+        // A clause may start on the head line itself ("READ F AT END MOVE 'Y' TO EOF").
+        List<String> clauseLines = new ArrayList<>();
+        String headText = stripTrailingPeriod(head.toString());
+        Matcher inlineClause = FILE_CLAUSE.matcher(headText);
+        if (inlineClause.find()) {
+            clauseLines.add(headText.substring(inlineClause.start()).trim());
+            headText = headText.substring(0, inlineClause.start()).trim();
+        }
+        String endVerb = "END-" + op.name();
+        int depth = 0;
+        int last = i - 1;
+        if (!sentenceEnded) {
+            boolean inClauses = !clauseLines.isEmpty();
+            for (; i < lines.size(); i++) {
+                String current = lines.get(i).trim();
+                if (current.isEmpty()) {
+                    continue;
+                }
+                String up = current.toUpperCase(Locale.ROOT);
+                if (!inClauses) {
+                    if (!(FILE_CLAUSE.matcher(up).lookingAt() || up.startsWith(endVerb))) {
+                        break;
+                    }
+                    inClauses = true;
+                }
+                if (depth == 0 && up.startsWith(endVerb)) {
+                    last = i;
+                    break;
+                }
+                if (up.startsWith(op.name() + " ")) {
+                    depth++;
+                } else if (up.startsWith(endVerb)) {
+                    depth--;
+                }
+                clauseLines.add(current);
+                last = i;
+                if (up.endsWith(Symbols.DOT)) {
+                    break;
+                }
+            }
+        }
+        List<CobolStatement> exception = new ArrayList<>();
+        List<CobolStatement> normal = new ArrayList<>();
+        splitFileClauses(clauseLines, exception, normal);
+
+        String upperHead = headText.toUpperCase(Locale.ROOT);
+        String[] tokens = headText.substring(op.name().length()).trim().split("\\s+");
+        switch (op) {
+            case OPEN -> {
+                FileOperationStatement.OpenMode mode = null;
+                for (String token : tokens) {
+                    FileOperationStatement.OpenMode candidate = openMode(token);
+                    if (candidate != null) {
+                        mode = candidate;
+                    } else if (!token.isBlank() && !token.equalsIgnoreCase("WITH")
+                            && !token.equalsIgnoreCase("NO") && !token.equalsIgnoreCase("REWIND")) {
+                        statements.add(new FileOperationStatement(op, token.toUpperCase(Locale.ROOT), mode,
+                                null, null, false, List.of(), List.of(), null));
+                    }
+                }
+            }
+            case CLOSE -> {
+                for (String token : tokens) {
+                    if (!token.isBlank() && !Set.of("WITH", "LOCK", "NO", "REWIND", "UNIT", "REEL", "FOR", "REMOVAL")
+                            .contains(token.toUpperCase(Locale.ROOT))) {
+                        statements.add(new FileOperationStatement(op, token.toUpperCase(Locale.ROOT)));
+                    }
+                }
+            }
+            default -> {
+                String operand = tokens.length > 0 && !tokens[0].isBlank()
+                        ? tokens[0].toUpperCase(Locale.ROOT) : Defaults.UNKNOWN_NAME;
+                boolean namesRecord = op == FileOperationStatement.OperationType.WRITE
+                        || op == FileOperationStatement.OperationType.REWRITE;
+                Matcher area = (namesRecord ? WRITE_FROM : READ_INTO).matcher(headText);
+                Matcher key = KEY_IS.matcher(headText);
+                statements.add(new FileOperationStatement(op, operand, null,
+                        area.find() ? area.group(1).toUpperCase(Locale.ROOT) : null,
+                        op != FileOperationStatement.OperationType.WRITE && key.find()
+                                ? key.group(1).toUpperCase(Locale.ROOT) : null,
+                        op == FileOperationStatement.OperationType.READ
+                                && upperHead.matches(".*\\bNEXT\\b.*"),
+                        exception, normal, namesRecord ? operand : null));
+            }
+        }
+        return last;
+    }
+
+    private static FileOperationStatement.OpenMode openMode(String token) {
+        return switch (token.toUpperCase(Locale.ROOT)) {
+            case "INPUT" -> FileOperationStatement.OpenMode.INPUT;
+            case "OUTPUT" -> FileOperationStatement.OpenMode.OUTPUT;
+            case "I-O" -> FileOperationStatement.OpenMode.I_O;
+            case "EXTEND" -> FileOperationStatement.OpenMode.EXTEND;
+            default -> null;
+        };
+    }
+
+    /** Distributes clause lines: AT END / INVALID KEY bodies vs their NOT counterparts. */
+    private void splitFileClauses(List<String> clauseLines, List<CobolStatement> exception,
+                                  List<CobolStatement> normal) {
+        List<String> current = null;
+        List<String> exceptionLines = new ArrayList<>();
+        List<String> normalLines = new ArrayList<>();
+        for (String line : clauseLines) {
+            Matcher clause = FILE_CLAUSE.matcher(line);
+            if (clause.lookingAt() || (clause.find() && clause.start() == 0)) {
+                clause = FILE_CLAUSE.matcher(line);
+                clause.find();
+                current = clause.group(1).toUpperCase(Locale.ROOT).startsWith("NOT") ? normalLines : exceptionLines;
+                String rest = line.substring(clause.end()).trim();
+                if (!rest.isEmpty() && !rest.equals(Symbols.DOT)) {
+                    current.add(rest);
+                }
+            } else if (current != null) {
+                current.add(line);
+            }
+        }
+        exception.addAll(parseStatements(String.join(Symbols.NEWLINE, exceptionLines)));
+        normal.addAll(parseStatements(String.join(Symbols.NEWLINE, normalLines)));
     }
 
     private String parseFileName(String line, FileOperationStatement.OperationType operation) {

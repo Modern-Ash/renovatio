@@ -18,8 +18,7 @@ public class Cics001ServiceImpl implements Cics001Service {
           performProcessCustomer(input, output);
           performSendResponse(input, output);
           performCleanup(input, output);
-          // COBOL not translated: EXEC CICS
-          // COBOL not translated: RETURN
+          // COBOL not translated: EXEC CICS RETURN END-EXEC
           // COBOL not translated: INITIALIZE
           output.setWsCustomerId("          ");
           output.setWsCustomerName("                                                  ");
@@ -41,11 +40,7 @@ public class Cics001ServiceImpl implements Cics001Service {
   }
     @GeneratedFrom(paragraph = "RECEIVE-DATA", lines = "40-51")
     private void performReceiveData(Cics001DTO input, Cics001DTO out) {
-        // COBOL not translated: EXEC CICS
-        // COBOL not translated: RECEIVE
-        // COBOL not translated: INTO (WS-CUSTOMER-ID)
-        // COBOL not translated: LENGTH (10)
-        // COBOL not translated: RESP (WS-RESPONSE)
+        // COBOL not translated: EXEC CICS RECEIVE INTO (WS-CUSTOMER-ID) LENGTH (10) RESP (WS-RESPONSE) END-EXEC
         if (out.getWsResponse() != 0) {
             out.setWsMessage("Error receiving data");
             performSendError(input, out);
@@ -54,13 +49,7 @@ public class Cics001ServiceImpl implements Cics001Service {
     @GeneratedFrom(paragraph = "PROCESS-CUSTOMER", lines = "52-70")
     private void performProcessCustomer(Cics001DTO input, Cics001DTO out) {
         // COBOL not translated: CUST-ID (data item not modeled)
-        // COBOL not translated: EXEC CICS
-        // READ UNKNOWN
-        // COBOL not translated: FILE('CUSTOMERS')
-        // COBOL not translated: INTO (CUSTOMER-RECORD)
-        // COBOL not translated: LENGTH (LENGTH OF CUSTOMER-RECORD)
-        // COBOL not translated: KEY (WS-CUSTOMER-ID)
-        // COBOL not translated: RESP (WS-RESPONSE)
+        // COBOL not translated: EXEC CICS READ FILE('CUSTOMERS') INTO (CUSTOMER-RECORD) LENGTH (LENGTH OF CUSTOMER-RECORD) KEY (WS-CUSTOMER-ID) RESP (WS
         if (out.getWsResponse() == 0) {
             // COBOL not translated: CUST-NAME (data item not modeled)
             // COBOL not translated: STRING 'Customer: ' DELIMITED BY SIZE
@@ -72,11 +61,7 @@ public class Cics001ServiceImpl implements Cics001Service {
     }
     @GeneratedFrom(paragraph = "SEND-RESPONSE", lines = "71-78")
     private void performSendResponse(Cics001DTO input, Cics001DTO out) {
-        // COBOL not translated: EXEC CICS
-        // COBOL not translated: SEND
-        // COBOL not translated: FROM (WS-MESSAGE)
-        // COBOL not translated: LENGTH (LENGTH OF WS-MESSAGE)
-        // COBOL not translated: RESP (WS-RESPONSE)
+        // COBOL not translated: EXEC CICS SEND FROM (WS-MESSAGE) LENGTH (LENGTH OF WS-MESSAGE) RESP (WS-RESPONSE) END-EXEC
     }
     @GeneratedFrom(paragraph = "CLEANUP", lines = "90-94")
     private void performCleanup(Cics001DTO input, Cics001DTO out) {
@@ -87,13 +72,8 @@ public class Cics001ServiceImpl implements Cics001Service {
     }
     @GeneratedFrom(paragraph = "SEND-ERROR", lines = "79-89")
     private void performSendError(Cics001DTO input, Cics001DTO out) {
-        // COBOL not translated: EXEC CICS
-        // COBOL not translated: SEND
-        // COBOL not translated: FROM (WS-MESSAGE)
-        // COBOL not translated: LENGTH (LENGTH OF WS-MESSAGE)
-        // COBOL not translated: RESP (WS-RESPONSE)
-        // COBOL not translated: EXEC CICS
-        // COBOL not translated: RETURN
+        // COBOL not translated: EXEC CICS SEND FROM (WS-MESSAGE) LENGTH (LENGTH OF WS-MESSAGE) RESP (WS-RESPONSE) END-EXEC
+        // COBOL not translated: EXEC CICS RETURN END-EXEC
     }
 }@interface GeneratedFrom {
     String paragraph();

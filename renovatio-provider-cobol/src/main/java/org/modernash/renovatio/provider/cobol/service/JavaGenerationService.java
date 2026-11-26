@@ -9,6 +9,7 @@ import org.modernash.renovatio.architecture.ArtifactLayoutPlanner;
 import org.modernash.renovatio.architecture.GroupingConfiguration;
 import org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.modernash.renovatio.cobol.ir.model.CobolDataItem;
+import org.modernash.renovatio.provider.cobol.service.generation.FilePortGenerator;
 import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.modernash.renovatio.cobol.ir.model.CobolStatement;
 import org.modernash.renovatio.cobol.ir.model.EvaluateStatement;
@@ -506,7 +507,17 @@ public class JavaGenerationService {
                     String serviceInterface = generateServiceInterface(classBase, metadata);
                     putArtifact(generatedFiles, classBase + "Service.java", serviceInterface);
                     // Generate implementation template
-                    String serviceImpl = generateServiceImplementation(classBase, metadata);
+                    List<FilePortGenerator.FilePort> filePorts = FilePortGenerator.ports(classBase,
+                            currentSemantic != null
+                                    ? org.modernash.renovatio.architecture.java.JavaArchitectureLayoutPlanner
+                                            .fileResources(currentSemantic)
+                                    : referencedFiles(model));
+                    for (FilePortGenerator.FilePort port : filePorts) {
+                        putArtifact(generatedFiles, port.portType() + ".java", FilePortGenerator.port(port, model));
+                        putArtifact(generatedFiles, port.adapterType() + ".java",
+                                FilePortGenerator.inMemoryAdapter(port, model));
+                    }
+                    String serviceImpl = generateServiceImplementation(classBase, metadata, filePorts);
                     collectUntranslatedStatements(model, sourceReference, actionItems);
                     serviceImpl = translateServiceImplementation(serviceImpl, model,
                             annotatedResolution.context().orElse(null), sourceReference, currentSemantic, actionItems);
@@ -665,6 +676,13 @@ public class JavaGenerationService {
                     collectPerformTargets(nested, model, out);
                 }
             }
+        } else if (statement instanceof org.modernash.renovatio.cobol.ir.model.FileOperationStatement file) {
+            for (CobolStatement nested : file.exceptionStatements()) {
+                collectPerformTargets(nested, model, out);
+            }
+            for (CobolStatement nested : file.normalStatements()) {
+                collectPerformTargets(nested, model, out);
+            }
         }
     }
 
@@ -785,6 +803,11 @@ public class JavaGenerationService {
             } else if (statement instanceof EvaluateStatement evaluation) {
                 evaluation.branches().forEach(branch -> collectUntranslatedStatements(branch.statements(), model,
                         sourceFile, programId, paragraph, statementIndex, actionItems));
+            } else if (statement instanceof org.modernash.renovatio.cobol.ir.model.FileOperationStatement file) {
+                collectUntranslatedStatements(file.exceptionStatements(), model, sourceFile,
+                        programId, paragraph, statementIndex, actionItems);
+                collectUntranslatedStatements(file.normalStatements(), model, sourceFile,
+                        programId, paragraph, statementIndex, actionItems);
             }
         }
     }
@@ -884,10 +907,6 @@ public class JavaGenerationService {
                 .addModifiers(Modifier.PUBLIC)
                 .addJavadoc("Data Transfer Object generated from COBOL program: $L\n", sanitizedClassName);
 
-        // Add default constructor
-        classBuilder.addMethod(MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .build());
 
         Map<String, String> irTypes = irFieldTypes(model);
         Map<String, String> declared = new LinkedHashMap<>();
@@ -906,6 +925,7 @@ public class JavaGenerationService {
         }
         org.modernash.renovatio.provider.cobol.service.generation.RecordAccessorGenerator
                 .addTo(classBuilder, model, declared, this::toCamelCase);
+        classBuilder.addMethod(initialValuesConstructor(model, declared));
 
         TypeSpec classSpec = classBuilder.build();
 
@@ -1000,6 +1020,67 @@ public class JavaGenerationService {
      * Generates a service implementation template
      */
     private String generateServiceImplementation(String cleanClassName, Map<String, Object> programData) {
+        return generateServiceImplementation(cleanClassName, programData, List.of());
+    }
+
+    /**
+     * One final field per file port, a constructor receiving them (the injection point) and a
+     * no-argument constructor wiring the in-memory adapters, so the service also runs standalone.
+     */
+    private static void addFilePorts(TypeSpec.Builder classBuilder, List<FilePortGenerator.FilePort> ports) {
+        if (ports.isEmpty()) {
+            return;
+        }
+        MethodSpec.Builder injecting = MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(ClassName.get("org.springframework.beans.factory.annotation", "Autowired"));
+        List<String> defaults = new ArrayList<>();
+        for (FilePortGenerator.FilePort port : ports) {
+            ClassName type = ClassName.get(FilePortGenerator.PACKAGE, port.portType());
+            classBuilder.addField(FieldSpec.builder(type, port.fieldName(), Modifier.PRIVATE, Modifier.FINAL).build());
+            injecting.addParameter(type, port.fieldName());
+            injecting.addStatement("this.$L = $L", port.fieldName(), port.fieldName());
+            defaults.add("new " + port.adapterType() + "()");
+        }
+        classBuilder.addMethod(MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC)
+                .addJavadoc("Standalone wiring with in-memory file adapters.\n")
+                .addStatement("this($L)", String.join(", ", defaults))
+                .build());
+        classBuilder.addMethod(injecting.build());
+    }
+
+    /**
+     * Distinct files the program performs I/O on (SELECT names, upper case, sorted) — the same
+     * set the semantic projection reports, used when no semantic program is available.
+     */
+    static List<String> referencedFiles(CobolIntermediateModel model) {
+        java.util.TreeSet<String> files = new java.util.TreeSet<>();
+        if (model != null) {
+            model.getParagraphs().values().forEach(paragraph -> collectFiles(paragraph.statements(), files));
+        }
+        return List.copyOf(files);
+    }
+
+    private static void collectFiles(List<CobolStatement> statements, java.util.Set<String> files) {
+        for (CobolStatement statement : statements) {
+            if (statement instanceof org.modernash.renovatio.cobol.ir.model.FileOperationStatement file) {
+                files.add(file.fileName().toUpperCase(Locale.ROOT));
+                collectFiles(file.exceptionStatements(), files);
+                collectFiles(file.normalStatements(), files);
+            } else if (statement instanceof IfStatement branch) {
+                collectFiles(branch.thenStatements(), files);
+                collectFiles(branch.elseStatements(), files);
+            } else if (statement instanceof EvaluateStatement evaluation) {
+                evaluation.branches().forEach(branch -> collectFiles(branch.statements(), files));
+            } else if (statement instanceof PerformStatement perform && perform.isInline()) {
+                collectFiles(perform.inlineBody(), files);
+            }
+        }
+    }
+
+    private String generateServiceImplementation(String cleanClassName, Map<String, Object> programData,
+                                                 List<FilePortGenerator.FilePort> filePorts) {
         // Asegurar que el cleanClassName esté completamente limpio
         String sanitizedClassName = sanitizeClassName(cleanClassName);
         String className = sanitizedClassName + "ServiceImpl";
@@ -1018,6 +1099,7 @@ public class JavaGenerationService {
                 .addAnnotation(ClassName.get("org.springframework.stereotype", "Service"))
                 .addJavadoc("Implementation of $L\n", interfaceName)
                 .addJavadoc("Generated from COBOL program: $L\n", sanitizedClassName);
+        addFilePorts(classBuilder, filePorts);
 
         // Check if there are ENTRY points
         @SuppressWarnings("unchecked")
@@ -1219,6 +1301,66 @@ public class JavaGenerationService {
     }
 
     /**
+     * Default constructor applying WORKING-STORAGE VALUE clauses, so a fresh DTO starts in the
+     * state the COBOL program starts in (e.g. END-OF-FILE = 'N' before the read loop).
+     */
+    private MethodSpec initialValuesConstructor(CobolIntermediateModel model, Map<String, String> declared) {
+        MethodSpec.Builder constructor = MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC);
+        if (model == null) {
+            return constructor.build();
+        }
+        for (CobolDataItem item : model.getDataItems()) {
+            String raw = model.getInitialValues().get(item.getName().toUpperCase(Locale.ROOT));
+            String field = toCamelCase(item.getName());
+            String type = declared.get(field);
+            if (raw == null || type == null || item.getPicType() == null) {
+                continue;
+            }
+            String literal = initialLiteral(raw, type, item.getPicType().digits());
+            if (literal != null) {
+                constructor.addStatement("this.$L = $L", field, literal);
+            }
+        }
+        return constructor.build();
+    }
+
+    private static String initialLiteral(String raw, String type, int length) {
+        String upper = raw.toUpperCase(Locale.ROOT);
+        boolean quoted = raw.startsWith("'") || raw.startsWith("\"");
+        boolean zero = upper.startsWith("ZERO");
+        if ("String".equals(type)) {
+            String text;
+            if (quoted) {
+                char quote = raw.charAt(0);
+                text = raw.substring(1, raw.length() - 1).replace(String.valueOf(quote) + quote, String.valueOf(quote));
+            } else if (upper.startsWith("SPACE")) {
+                text = "";
+            } else if (zero) {
+                text = "0".repeat(length);
+            } else if (upper.startsWith("LOW-VALUE")) {
+                text = "\u0000".repeat(length);
+            } else if (upper.startsWith("HIGH-VALUE")) {
+                text = "\u00FF".repeat(length);
+            } else {
+                text = raw;
+            }
+            text = text.length() >= length ? text.substring(0, length) : text + " ".repeat(length - text.length());
+            return CodeBlock.of("$S", text).toString();
+        }
+        String number = zero ? "0" : raw.replace("+", "");
+        if (!number.matches("-?[0-9]*\\.?[0-9]+")) {
+            return null;
+        }
+        java.math.BigDecimal value = new java.math.BigDecimal(number);
+        return switch (type) {
+            case "Integer" -> String.valueOf(value.intValue());
+            case "Long" -> value.longValue() + "L";
+            case "BigDecimal" -> "new java.math.BigDecimal(\"" + value.toPlainString() + "\")";
+            default -> null;
+        };
+    }
+
+    /**
      * Java type of every elementary IR data item, keyed by DTO field name. The IR type mapper is
      * the single source of truth for field types: the DTO, its validate() and the translated
      * PROCEDURE DIVISION statements must all agree, or the generated service does not compile.
@@ -1254,7 +1396,7 @@ public class JavaGenerationService {
         }
         Set<String> declared = new java.util.HashSet<>();
         for (Map<String, Object> item : resolveDtoFields(programData)) {
-            declared.add(((String) item.get("name")).toLowerCase(Locale.ROOT));
+            declared.add((String) item.get("name"));
         }
         List<Map<String, Object>> extra = new ArrayList<>();
         for (CobolDataItem item : model.getDataItems()) {
@@ -1262,7 +1404,8 @@ public class JavaGenerationService {
                 continue;
             }
             String name = toCamelCase(item.getName());
-            if (name == null || !declared.add(name.toLowerCase(Locale.ROOT))) {
+            // Java names are case-sensitive: TRAN-CAT-CD (tranCatCd) and TRANCAT-CD (trancatCd) differ.
+            if (name == null || !declared.add(name)) {
                 continue;
             }
             Map<String, Object> field = new LinkedHashMap<>();

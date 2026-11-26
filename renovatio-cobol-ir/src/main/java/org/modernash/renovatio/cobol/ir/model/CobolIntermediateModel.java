@@ -43,6 +43,8 @@ public final class CobolIntermediateModel {
     private final Map<String, List<String>> fileKeyFields;
     private final Map<String, String> fileAssignTarget;
     private final Map<String, CobolRecordLayout> recordLayouts;
+    private final Map<String, CobolFileDescriptor> fileDescriptors;
+    private final Map<String, String> initialValues;
 
     private CobolIntermediateModel(Builder builder) {
         this.programId = builder.programId;
@@ -64,6 +66,57 @@ public final class CobolIntermediateModel {
             ? Collections.emptyMap()
             : Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileAssignTarget));
         this.recordLayouts = Collections.unmodifiableMap(new LinkedHashMap<>(builder.recordLayouts));
+        this.fileDescriptors = Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileDescriptors));
+        this.initialValues = Collections.unmodifiableMap(new LinkedHashMap<>(builder.initialValues));
+    }
+
+    /**
+     * VALUE clause of each uniquely named elementary data item, keyed by upper-case name, as the
+     * raw COBOL literal (quoted, numeric or figurative).
+     */
+    public Map<String, String> getInitialValues() {
+        return initialValues;
+    }
+
+    /** Files declared in FILE-CONTROL, keyed by upper-case SELECT name, in declaration order. */
+    public Map<String, CobolFileDescriptor> getFileDescriptors() {
+        return fileDescriptors;
+    }
+
+    /**
+     * Offset and length of a file's RECORD KEY inside its FD record, when the record layout is
+     * composable and contains the key (an elementary item or a group of consecutive items).
+     */
+    public Optional<int[]> recordKeySpan(CobolFileDescriptor file) {
+        if (file == null || file.recordKey() == null || file.recordName() == null) {
+            return Optional.empty();
+        }
+        Optional<CobolRecordLayout> record = findComposableLayout(file.recordName());
+        if (record.isEmpty()) {
+            return Optional.empty();
+        }
+        String keyName = file.recordKey().toUpperCase();
+        List<String> keyFields = findComposableLayout(keyName)
+                .map(group -> group.fields().stream().map(CobolRecordLayout.Field::name).toList())
+                .orElse(List.of(keyName));
+        List<CobolRecordLayout.Field> fields = record.orElseThrow().fields();
+        int offset = 0;
+        for (int i = 0; i < fields.size(); i++) {
+            if (keyFields.get(0) != null && keyFields.get(0).equals(fields.get(i).name())) {
+                int length = 0;
+                for (int j = i; j < i + keyFields.size() && j < fields.size(); j++) {
+                    length += fields.get(j).length();
+                }
+                return Optional.of(new int[] {offset, length});
+            }
+            offset += fields.get(i).length();
+        }
+        return Optional.empty();
+    }
+
+    public Optional<CobolFileDescriptor> findFile(String selectName) {
+        return selectName == null ? Optional.empty()
+                : Optional.ofNullable(fileDescriptors.get(selectName.toUpperCase()));
     }
 
     /**
@@ -168,6 +221,24 @@ public final class CobolIntermediateModel {
         private List<CobolDiagnostic> diagnostics = new ArrayList<>();
         private final Map<String, ParagraphLineRange> paragraphLineRanges = new LinkedHashMap<>();
         private final Map<String, CobolRecordLayout> recordLayouts = new LinkedHashMap<>();
+        private final Map<String, CobolFileDescriptor> fileDescriptors = new LinkedHashMap<>();
+        private final Map<String, String> initialValues = new LinkedHashMap<>();
+
+        public Builder initialValues(Map<String, String> values) {
+            this.initialValues.clear();
+            if (values != null) {
+                this.initialValues.putAll(values);
+            }
+            return this;
+        }
+
+        public Builder fileDescriptors(Map<String, CobolFileDescriptor> files) {
+            this.fileDescriptors.clear();
+            if (files != null) {
+                this.fileDescriptors.putAll(files);
+            }
+            return this;
+        }
 
         public Builder recordLayouts(Map<String, CobolRecordLayout> layouts) {
             this.recordLayouts.clear();

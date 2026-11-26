@@ -551,4 +551,72 @@ class PopulateCobolProcessRecipeTest {
         assertThat(updated).contains("output.setWsText(\"     \");");
         assertThat(updated).contains("output.setWsAmount(java.math.BigDecimal.ZERO);");
     }
+
+    @Test
+    void shouldTranslateCompoundAbbreviatedAndLevel88Conditions() {
+        String updated = populate("""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. COND01.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-STATUS PIC X(2).
+                01 WS-COUNT PIC 9(2).
+                01 WS-AMOUNT PIC S9(5)V99.
+                01 WS-RESULT PIC S9(9) COMP.
+                   88 APPL-AOK VALUE 0.
+                   88 APPL-EOF VALUE 16.
+                01 WS-LESS-AMT PIC 9(3).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    IF WS-STATUS NOT = '00' AND WS-STATUS NOT = '10'
+                        MOVE 1 TO WS-COUNT
+                    END-IF
+                    IF WS-COUNT = 1 OR 2 OR 3
+                        MOVE 2 TO WS-COUNT
+                    END-IF
+                    IF APPL-AOK
+                        MOVE 3 TO WS-COUNT
+                    END-IF
+                    IF WS-AMOUNT > 100.50
+                        MOVE 4 TO WS-COUNT
+                    END-IF
+                    IF WS-STATUS = SPACES
+                        MOVE 5 TO WS-COUNT
+                    END-IF
+                    IF WS-LESS-AMT GREATER THAN 5
+                        MOVE 6 TO WS-COUNT
+                    END-IF
+                    GOBACK.
+                """);
+
+        assertThat(updated).contains("if ((!java.util.Objects.equals(input.getWsStatus(), \"00\")"
+                + " && !java.util.Objects.equals(input.getWsStatus(), \"10\"))) {");
+        assertThat(updated).contains("if ((output.getWsCount() == 1"
+                + " || output.getWsCount() == 2 || output.getWsCount() == 3)) {");
+        assertThat(updated).contains("if (java.util.Objects.equals(input.getWsResult(), 0)) {");
+        assertThat(updated).contains("if (input.getWsAmount().compareTo(new java.math.BigDecimal(\"100.50\")) > 0) {");
+        assertThat(updated).contains("if ((input.getWsStatus() == null || input.getWsStatus().isBlank())) {");
+        assertThat(updated).contains("if (input.getWsLessAmt() > 5) {");
+        assertThat(updated).doesNotContain("not translated");
+    }
+
+    @Test
+    void shouldLeaveUnparseableConditionsExplicitlyUntranslated() {
+        String updated = populate("""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. COND02.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-COUNT PIC 9(2).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    IF FUNCTION LENGTH(WS-COUNT) = 0
+                        MOVE 1 TO WS-COUNT
+                    END-IF
+                    GOBACK.
+                """);
+
+        assertThat(updated).contains("// COBOL not translated:");
+        assertThat(updated).doesNotContain("if (FUNCTION");
+    }
 }

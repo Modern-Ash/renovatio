@@ -33,6 +33,9 @@ public class Db2001DTO {
   private String empStatus;
 
   public Db2001DTO() {
+    this.wsEmpId = 0;
+    this.wsEmpSalary = new java.math.BigDecimal("0");
+    this.wsResponse = 0;
   }
 
   public Integer getWsEmpId() {

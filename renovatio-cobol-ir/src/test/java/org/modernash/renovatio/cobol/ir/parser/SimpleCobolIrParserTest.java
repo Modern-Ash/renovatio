@@ -233,4 +233,46 @@ class SimpleCobolIrParserTest {
         assertEquals("WS-C > 1.5", branch.condition());
         assertEquals("-1025.50", ((MoveStatement) branch.thenStatements().get(0)).source());
     }
+
+    @Test
+    void shouldKeepStatementsBeforeTheFirstParagraphAsTheEntryParagraph() {
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(String.join("\n",
+                "       IDENTIFICATION DIVISION.",
+                "       PROGRAM-ID. MAINLINE.",
+                "       DATA DIVISION.",
+                "       WORKING-STORAGE SECTION.",
+                "       01 WS-C PIC 9.",
+                "       PROCEDURE DIVISION.",
+                "           PERFORM 1000-WORK.",
+                "           GOBACK.",
+                "       1000-WORK.",
+                "           MOVE 1 TO WS-C.",
+                "           EXIT."));
+
+        assertEquals(SimpleCobolIrParser.IMPLICIT_MAIN_PARAGRAPH, model.getEntryParagraph().name());
+        assertEquals(2, model.getEntryParagraph().statements().size());
+        assertTrue(model.findParagraph("1000-WORK").isPresent());
+    }
+
+    @Test
+    void shouldIgnoreSequenceNumbersInColumns1To6() {
+        String[] body = {
+                "000100 IDENTIFICATION DIVISION.",
+                "000200 PROGRAM-ID. SEQ06.",
+                "000300 DATA DIVISION.",
+                "000400 WORKING-STORAGE SECTION.",
+                "000500 01 WS-C PIC 9.",
+                "000600 PROCEDURE DIVISION.",
+                "000700 0000-MAIN.",
+                "000800     MOVE 1 TO WS-C.",
+                "000900     GOBACK."};
+        StringBuilder source = new StringBuilder();
+        for (String line : body) {
+            source.append(line).append(" ".repeat(80 - line.length())).append('\n');
+        }
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(source.toString());
+
+        assertEquals("0000-MAIN", model.getEntryParagraph().name());
+        assertEquals("1", ((MoveStatement) model.getEntryParagraph().statements().get(0)).source());
+    }
 }

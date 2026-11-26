@@ -51,7 +51,7 @@ public class Batch001ServiceImpl implements Batch001Service {
         } else {
             out.setWsOutput("Total within limit");
         }
-        System.out.println(input.getWsOutput());
+        System.out.println(out.getWsOutput());
     }
     @GeneratedFrom(paragraph = "CLEANUP", lines = "44-47")
     private void performCleanup(Batch001DTO input, Batch001DTO out) {
