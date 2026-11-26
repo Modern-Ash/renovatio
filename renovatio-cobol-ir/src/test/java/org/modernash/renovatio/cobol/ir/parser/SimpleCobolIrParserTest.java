@@ -275,4 +275,32 @@ class SimpleCobolIrParserTest {
         assertEquals("0000-MAIN", model.getEntryParagraph().name());
         assertEquals("1", ((MoveStatement) model.getEntryParagraph().statements().get(0)).source());
     }
+
+    @Test
+    void shouldParseArithmeticVerbFormsIntoOneComputePerReceivingItem() {
+        CobolIntermediateModel model = procedure(
+                "    ADD 8 TO ZERO GIVING WS-C",
+                "    SUBTRACT WS-C FROM WS-C",
+                "    ADD 1 2 TO WS-A WS-B",
+                "    MULTIPLY 3 BY WS-C GIVING WS-A",
+                "    DIVIDE 2 INTO WS-C",
+                "    DIVIDE WS-C BY 4 GIVING WS-B",
+                "    ADD 1 TO WS-C ROUNDED",
+                "    GOBACK.");
+
+        List<org.modernash.renovatio.cobol.ir.model.CobolStatement> statements =
+                model.getEntryParagraph().statements();
+        java.util.function.Function<Integer, org.modernash.renovatio.cobol.ir.model.ComputeStatement> compute =
+                index -> (org.modernash.renovatio.cobol.ir.model.ComputeStatement) statements.get(index);
+        assertEquals("WS-C", compute.apply(0).target());
+        assertEquals("8 + 0", compute.apply(0).expression());
+        assertEquals("WS-C - WS-C", compute.apply(1).expression());
+        assertEquals("WS-A + 1 + 2", compute.apply(2).expression());
+        assertEquals("WS-B + 1 + 2", compute.apply(3).expression());
+        assertEquals("3 * WS-C", compute.apply(4).expression());
+        assertEquals("WS-C / 2", compute.apply(5).expression());
+        assertEquals("WS-C / 4", compute.apply(6).expression());
+        assertEquals(org.modernash.renovatio.cobol.ir.model.SimpleStatement.Kind.UNTRANSLATED,
+                ((org.modernash.renovatio.cobol.ir.model.SimpleStatement) statements.get(7)).kind());
+    }
 }

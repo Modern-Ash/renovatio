@@ -22,6 +22,7 @@ public class Batch001DTO {
     this.wsTotal = 0;
     this.wsResult = 0;
     this.wsFlag = "N";
+    this.wsOutput = "                                                                                ";
   }
 
   public Integer getWsCounter() {

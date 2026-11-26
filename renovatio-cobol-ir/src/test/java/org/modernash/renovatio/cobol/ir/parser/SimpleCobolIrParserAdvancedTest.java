@@ -113,8 +113,13 @@ class SimpleCobolIrParserAdvancedTest {
                 """;
         CobolIntermediateModel m2 = parser.parse(cobol2);
         CobolParagraph mp = m2.getEntryParagraph();
-        // Ensure statements created even for malformed/degenerate forms
-        assertTrue(mp.statements().stream().filter(s -> s instanceof ComputeStatement).count() >= 5);
+        // Degenerate arithmetic has no receiving item: it stays explicitly untranslated instead of
+        // inventing a target.
+        assertTrue(mp.statements().stream().anyMatch(s -> s instanceof ComputeStatement));
+        assertEquals(4, mp.statements().stream()
+                .filter(s -> s instanceof org.modernash.renovatio.cobol.ir.model.SimpleStatement simple
+                        && simple.kind() == org.modernash.renovatio.cobol.ir.model.SimpleStatement.Kind.UNTRANSLATED)
+                .count());
         // Unknown file name results in UNKNOWN
         FileOperationStatement read = (FileOperationStatement) mp.statements().stream()
                 .filter(s -> s instanceof FileOperationStatement)

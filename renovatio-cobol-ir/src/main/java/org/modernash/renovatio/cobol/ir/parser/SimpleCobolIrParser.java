@@ -1208,19 +1208,19 @@ public class SimpleCobolIrParser {
                 continue;
             }
             if (upperLine.startsWith(Keywords.ADD)) {
-                statements.add(parseAdd(line));
+                statements.addAll(parseArithmetic(line, Keywords.ADD));
                 continue;
             }
             if (upperLine.startsWith(Keywords.SUBTRACT)) {
-                statements.add(parseSubtract(line));
+                statements.addAll(parseArithmetic(line, Keywords.SUBTRACT));
                 continue;
             }
             if (upperLine.startsWith(Keywords.MULTIPLY)) {
-                statements.add(parseMultiply(line));
+                statements.addAll(parseArithmetic(line, Keywords.MULTIPLY));
                 continue;
             }
             if (upperLine.startsWith(Keywords.DIVIDE)) {
-                statements.add(parseDivide(line));
+                statements.addAll(parseArithmetic(line, Keywords.DIVIDE));
                 continue;
             }
             if (upperLine.startsWith(Keywords.MOVE)) {
@@ -1828,96 +1828,113 @@ public class SimpleCobolIrParser {
         return new ComputeStatement(target, expression);
     }
 
-    private ComputeStatement parseAdd(String line) {
-        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
-        String trimmed = stripTrailingPeriod(line);
-        String remainder = trimmed.substring(Keywords.ADD.length()).trim();
-        // ADD source TO target
-        String[] parts = remainder.split(Regexes.TO, 2);
-        if (parts.length == 2) {
-            String source = parts[0].trim();
-            String target = parts[1].trim();
-            return new ComputeStatement(target, target + " + " + source);
-        }
-        // ADD source1 source2 ... GIVING target
-        parts = remainder.split(Regexes.GIVING, 2);
-        if (parts.length == 2) {
-            String target = parts[1].trim();
-            String sources = parts[0].replace("+", Symbols.SPACE).trim();
-            return new ComputeStatement(target, sources.replaceAll("\\s+", " + "));
-        }
-        return new ComputeStatement(Defaults.RESULT_VAR, remainder);
-    }
+    private static final Pattern ARITHMETIC_OPTIONS = Pattern.compile(
+            "(?i)\\b(ROUNDED|REMAINDER|CORRESPONDING|CORR|SIZE|END-ADD|END-SUBTRACT|END-MULTIPLY|END-DIVIDE)\\b");
+    private static final Pattern ARITHMETIC_OPERAND = Pattern.compile(
+            "(?i)[A-Z0-9][A-Z0-9-]*(?:\\([^()]*\\))?|[+-]?[0-9]*\\.?[0-9]+");
 
-    private ComputeStatement parseSubtract(String line) {
-        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
-        String trimmed = stripTrailingPeriod(line);
-        String remainder = trimmed.substring(Keywords.SUBTRACT.length()).trim();
-        // SUBTRACT source FROM target
-        String[] parts = remainder.split(Regexes.FROM, 2);
-        if (parts.length == 2) {
-            String source = parts[0].trim();
-            String target = parts[1].trim();
-            return new ComputeStatement(target, target + " - " + source);
+    /**
+     * ADD / SUBTRACT / MULTIPLY / DIVIDE in all their TO, FROM, BY, INTO and GIVING forms, as one
+     * COMPUTE per receiving item. Options whose semantics are not modeled (ROUNDED, ON SIZE ERROR,
+     * REMAINDER, CORRESPONDING) leave the statement explicitly untranslated.
+     */
+    private List<CobolStatement> parseArithmetic(String line, String verb) {
+        String text = stripTrailingPeriod(line);
+        String body = text.substring(verb.length()).trim();
+        if (ARITHMETIC_OPTIONS.matcher(body).find()) {
+            return List.of(new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, text));
         }
-        // SUBTRACT source1 FROM source2 GIVING target
-        if (remainder.toUpperCase(Locale.ROOT).contains(Keywords.GIVING)) {
-            String[] givingParts = remainder.split(Regexes.GIVING, 2);
-            if (givingParts.length == 2) {
-                String target = givingParts[1].trim();
-                String[] fromParts = givingParts[0].split(Regexes.FROM, 2);
-                if (fromParts.length == 2) {
-                    return new ComputeStatement(target, fromParts[1].trim() + " - " + fromParts[0].trim());
+        String[] giving = body.split("(?i)\\s+GIVING\\s+", 2);
+        List<String> givingTargets = giving.length == 2 ? operands(giving[1]) : null;
+        String head = giving[0];
+        List<CobolStatement> result = new ArrayList<>();
+        String[] split;
+        switch (verb) {
+            case Keywords.ADD -> {
+                split = head.split("(?i)\\s+TO\\s+", 2);
+                List<String> addends = operands(split[0]);
+                List<String> receivers = split.length == 2 ? operands(split[1]) : List.of();
+                if (addends == null || receivers == null) break;
+                if (givingTargets != null) {
+                    List<String> all = new ArrayList<>(addends);
+                    all.addAll(receivers);
+                    givingTargets.forEach(target -> result.add(new ComputeStatement(target, String.join(" + ", all))));
+                } else if (!receivers.isEmpty()) {
+                    receivers.forEach(target -> result.add(new ComputeStatement(target,
+                            target + " + " + String.join(" + ", addends))));
                 }
             }
+            case Keywords.SUBTRACT -> {
+                split = head.split("(?i)\\s+FROM\\s+", 2);
+                if (split.length != 2) break;
+                List<String> subtrahends = operands(split[0]);
+                List<String> minuends = operands(split[1]);
+                if (subtrahends == null || minuends == null) break;
+                String minus = " - " + String.join(" - ", subtrahends);
+                if (givingTargets != null && minuends.size() == 1) {
+                    givingTargets.forEach(target -> result.add(new ComputeStatement(target, minuends.get(0) + minus)));
+                } else if (givingTargets == null) {
+                    minuends.forEach(target -> result.add(new ComputeStatement(target, target + minus)));
+                }
+            }
+            case Keywords.MULTIPLY -> {
+                split = head.split("(?i)\\s+BY\\s+", 2);
+                if (split.length != 2) break;
+                List<String> factor = operands(split[0]);
+                List<String> others = operands(split[1]);
+                if (factor == null || others == null || factor.size() != 1) break;
+                if (givingTargets != null && others.size() == 1) {
+                    givingTargets.forEach(target -> result.add(new ComputeStatement(target,
+                            factor.get(0) + " * " + others.get(0))));
+                } else if (givingTargets == null) {
+                    others.forEach(target -> result.add(new ComputeStatement(target, target + " * " + factor.get(0))));
+                }
+            }
+            case Keywords.DIVIDE -> {
+                String[] into = head.split("(?i)\\s+INTO\\s+", 2);
+                String[] by = head.split("(?i)\\s+BY\\s+", 2);
+                if (into.length == 2) {
+                    List<String> divisor = operands(into[0]);
+                    List<String> dividends = operands(into[1]);
+                    if (divisor == null || dividends == null || divisor.size() != 1) break;
+                    if (givingTargets != null && dividends.size() == 1) {
+                        givingTargets.forEach(target -> result.add(new ComputeStatement(target,
+                                dividends.get(0) + " / " + divisor.get(0))));
+                    } else if (givingTargets == null) {
+                        dividends.forEach(target -> result.add(new ComputeStatement(target,
+                                target + " / " + divisor.get(0))));
+                    }
+                } else if (by.length == 2 && givingTargets != null) {
+                    List<String> dividend = operands(by[0]);
+                    List<String> divisor = operands(by[1]);
+                    if (dividend == null || divisor == null || dividend.size() != 1 || divisor.size() != 1) break;
+                    givingTargets.forEach(target -> result.add(new ComputeStatement(target,
+                            dividend.get(0) + " / " + divisor.get(0))));
+                }
+            }
+            default -> { }
         }
-        return new ComputeStatement(Defaults.RESULT_VAR, remainder);
+        if (result.isEmpty()) {
+            return List.of(new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, text));
+        }
+        return result;
     }
 
-    private ComputeStatement parseMultiply(String line) {
-        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
-        String trimmed = stripTrailingPeriod(line);
-        String remainder = trimmed.substring(Keywords.MULTIPLY.length()).trim();
-        // MULTIPLY source BY target
-        String[] parts = remainder.split(Regexes.BY, 2);
-        if (parts.length == 2) {
-            String source = parts[0].trim();
-            String target = parts[1].trim();
-            return new ComputeStatement(target, target + " * " + source);
-        }
-        // MULTIPLY source1 BY source2 GIVING target
-        parts = remainder.split(Regexes.GIVING, 2);
-        if (parts.length == 2) {
-            String target = parts[1].trim();
-            String[] byParts = parts[0].split(Regexes.BY, 2);
-            if (byParts.length == 2) {
-                return new ComputeStatement(target, byParts[0].trim() + " * " + byParts[1].trim());
+    /** Operands of an arithmetic verb clause, ZERO as 0; {@code null} when one is not a plain operand. */
+    private static List<String> operands(String clause) {
+        List<String> values = new ArrayList<>();
+        for (String token : clause.replace(",", " ").trim().split("\\s+")) {
+            if (token.isEmpty()) continue;
+            String upper = token.toUpperCase(Locale.ROOT);
+            if (upper.equals("ZERO") || upper.equals("ZEROS") || upper.equals("ZEROES")) {
+                values.add("0");
+            } else if (ARITHMETIC_OPERAND.matcher(token).matches()) {
+                values.add(upper.matches("[+-]?[0-9.]+") ? token : upper);
+            } else {
+                return null;
             }
         }
-        return new ComputeStatement(Defaults.RESULT_VAR, remainder);
-    }
-
-    private ComputeStatement parseDivide(String line) {
-        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
-        String trimmed = stripTrailingPeriod(line);
-        String remainder = trimmed.substring(Keywords.DIVIDE.length()).trim();
-        // DIVIDE source INTO target
-        String[] parts = remainder.split(Regexes.INTO, 2);
-        if (parts.length == 2) {
-            String source = parts[0].trim();
-            String target = parts[1].trim();
-            return new ComputeStatement(target, target + " / " + source);
-        }
-        // DIVIDE source1 BY source2 GIVING target
-        parts = remainder.split(Regexes.GIVING, 2);
-        if (parts.length == 2) {
-            String target = parts[1].trim();
-            String[] byParts = parts[0].split(Regexes.BY, 2);
-            if (byParts.length == 2) {
-                return new ComputeStatement(target, byParts[0].trim() + " / " + byParts[1].trim());
-            }
-        }
-        return new ComputeStatement(Defaults.RESULT_VAR, remainder);
+        return values.isEmpty() ? null : values;
     }
 
     private MoveStatement parseMove(String line) {

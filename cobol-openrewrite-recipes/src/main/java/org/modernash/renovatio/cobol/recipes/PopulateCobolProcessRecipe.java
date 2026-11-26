@@ -561,8 +561,144 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         private String renderCompute(ComputeStatement compute, @Nullable String varName) {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
-            return String.format(Locale.ROOT, "%s.%s(%s);",
-                    targetVar, toSetter(compute.target()), translateExpression(compute.expression()));
+            String setter = toSetter(compute.target());
+            Optional<CobolDataItem> target = currentModel == null ? Optional.empty()
+                    : findDataItem(currentModel, stripSubscripts(compute.target()));
+            Arithmetic value = new ArithmeticParser(compute.expression()).parse();
+            String converted = target.isEmpty() || value == null ? null : toTargetType(value, target.orElseThrow());
+            if (converted == null) {
+                return "// COBOL not translated: COMPUTE " + truncate(compute.target() + " = " + compute.expression());
+            }
+            return String.format(Locale.ROOT, "%s.%s(%s);", targetVar, setter, converted);
+        }
+
+        /** A translated arithmetic expression: Java code and whether it is BigDecimal-valued. */
+        private record Arithmetic(String code, boolean decimal) { }
+
+        /**
+         * Result of an arithmetic expression stored into a receiving item: decimal results are
+         * truncated to the item's scale (COBOL truncates unless ROUNDED).
+         */
+        private @Nullable String toTargetType(Arithmetic value, CobolDataItem target) {
+            int scale = target.picType() == null ? 0 : target.picType().scale();
+            return switch (target.javaType()) {
+                case "Integer" -> value.decimal() ? value.code() + ".intValue()" : "(int) (" + value.code() + ")";
+                case "Long" -> value.decimal() ? value.code() + ".longValue()" : "(long) (" + value.code() + ")";
+                case "BigDecimal" -> (value.decimal() ? value.code() : "java.math.BigDecimal.valueOf(" + value.code() + ")")
+                        + ".setScale(" + scale + ", java.math.RoundingMode.DOWN)";
+                default -> null;
+            };
+        }
+
+        /** Recursive-descent translation of a COBOL arithmetic expression (+ - * / ** unary, parens). */
+        private final class ArithmeticParser {
+            private final List<String> tokens = new ArrayList<>();
+            private int position;
+
+            ArithmeticParser(String expression) {
+                java.util.regex.Matcher matcher = java.util.regex.Pattern.compile(
+                        "\\*\\*|[-+*/()]|[0-9]*\\.?[0-9]+|[A-Za-z0-9][A-Za-z0-9-]*(?:\\([^()]*\\))?|\\S")
+                        .matcher(expression == null ? "" : expression);
+                while (matcher.find()) {
+                    tokens.add(matcher.group());
+                }
+            }
+
+            @Nullable Arithmetic parse() {
+                Arithmetic result = expression();
+                return result != null && position == tokens.size() ? result : null;
+            }
+
+            private @Nullable String peek() {
+                return position < tokens.size() ? tokens.get(position) : null;
+            }
+
+            private @Nullable Arithmetic expression() {
+                Arithmetic left = term();
+                while (left != null && ("+".equals(peek()) || "-".equals(peek()))) {
+                    String op = tokens.get(position++);
+                    Arithmetic right = term();
+                    if (right == null) return null;
+                    left = combine(left, op, right);
+                }
+                return left;
+            }
+
+            private @Nullable Arithmetic term() {
+                Arithmetic left = factor();
+                while (left != null && ("*".equals(peek()) || "/".equals(peek()))) {
+                    String op = tokens.get(position++);
+                    Arithmetic right = factor();
+                    if (right == null) return null;
+                    left = combine(left, op, right);
+                }
+                return left;
+            }
+
+            private @Nullable Arithmetic factor() {
+                if ("-".equals(peek()) || "+".equals(peek())) {
+                    boolean negate = "-".equals(tokens.get(position++));
+                    Arithmetic operand = factor();
+                    if (operand == null || !negate) return operand;
+                    return new Arithmetic(operand.decimal() ? operand.code() + ".negate()" : "(-" + operand.code() + ")",
+                            operand.decimal());
+                }
+                Arithmetic base = primary();
+                if (base != null && "**".equals(peek())) {
+                    position++;
+                    String exponent = peek();
+                    if (exponent == null || !exponent.matches("[0-9]+")) return null;
+                    position++;
+                    return new Arithmetic(asDecimal(base) + ".pow(" + exponent + ")", true);
+                }
+                return base;
+            }
+
+            private @Nullable Arithmetic primary() {
+                String token = peek();
+                if (token == null) return null;
+                position++;
+                if ("(".equals(token)) {
+                    Arithmetic inner = expression();
+                    if (inner == null || !")".equals(peek())) return null;
+                    position++;
+                    return new Arithmetic("(" + inner.code() + ")", inner.decimal());
+                }
+                if (token.matches("[0-9]*\\.[0-9]+")) {
+                    return new Arithmetic("new java.math.BigDecimal(\"" + token + "\")", true);
+                }
+                if (token.matches("[0-9]+")) {
+                    return new Arithmetic(token.length() > 9 ? token + "L" : token, false);
+                }
+                String upper = token.toUpperCase(Locale.ROOT);
+                if (FIGURATIVE_ZERO.contains(upper)) {
+                    return new Arithmetic("0", false);
+                }
+                String type = variableAliases.containsKey(upper) ? "Integer"
+                        : dataTypes.get(toPascal(stripSubscripts(token)));
+                if (type == null || "String".equals(type)) return null;
+                String expression = toJavaIdentifierRef(token);
+                if (expression.contains(UNRESOLVED_MARKER)) return null;
+                return new Arithmetic(expression, "BigDecimal".equals(type));
+            }
+
+            private Arithmetic combine(Arithmetic left, String op, Arithmetic right) {
+                if (!left.decimal() && !right.decimal() && !"/".equals(op)) {
+                    return new Arithmetic(left.code() + " " + op + " " + right.code(), false);
+                }
+                String method = switch (op) {
+                    case "+" -> "add";
+                    case "-" -> "subtract";
+                    case "*" -> "multiply";
+                    default -> "divide";
+                };
+                String argument = asDecimal(right) + ("divide".equals(method) ? ", java.math.MathContext.DECIMAL128" : "");
+                return new Arithmetic(asDecimal(left) + "." + method + "(" + argument + ")", true);
+            }
+
+            private String asDecimal(Arithmetic value) {
+                return value.decimal() ? value.code() : "java.math.BigDecimal.valueOf(" + value.code() + ")";
+            }
         }
 
         private List<String> renderInitialize(InitializeStatement initialize,

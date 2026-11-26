@@ -1,0 +1,118 @@
+package org.modernash.renovatio.provider.cobol.carddemo;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.modernash.renovatio.provider.cobol.service.CobolParsingService;
+import org.modernash.renovatio.provider.cobol.service.JavaGenerationService;
+import org.modernash.renovatio.provider.cobol.service.TemplateCodeGenerationService;
+import org.modernash.renovatio.provider.cobol.translation.CobolIntermediateModelService;
+import org.modernash.renovatio.provider.cobol.translation.CobolSemanticTranspiler;
+import org.modernash.renovatio.shared.domain.StubResult;
+import org.modernash.renovatio.shared.domain.Workspace;
+import org.modernash.renovatio.shared.nql.NqlQuery;
+
+import javax.tools.ToolProvider;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+/**
+ * Behavioral equivalence of migrated CardDemo programs: the Java generated from the COBOL source
+ * is compiled and run on the same input records as the original program, and its standard
+ * output must match the reference output of the original COBOL program byte for byte.
+ */
+class CardDemoGoldenMasterTest {
+
+    private static final Path CORPUS = Path.of("src/test/resources/corpus/carddemo/app");
+    private static final Path GOLDEN = Path.of("src/test/resources/golden-master/carddemo");
+    private static final String PACKAGE = "org.modernash.renovatio.generated.cobol";
+
+    @TempDir
+    Path tempDir;
+
+    @Test
+    void cbact02cPrintsTheSameCardFileListingAsTheCobolProgram() throws Exception {
+        Path workspace = tempDir.resolve("workspace");
+        Files.createDirectories(workspace);
+        Files.copy(CORPUS.resolve("cbl/CBACT02C.cbl"), workspace.resolve("CBACT02C.cbl"));
+        try (Stream<Path> copybooks = Files.list(CORPUS.resolve("cpy"))) {
+            for (Path copybook : copybooks.toList()) {
+                Files.copy(copybook, workspace.resolve(copybook.getFileName()));
+            }
+        }
+
+        Map<String, String> generated = generate(workspace);
+        ClassLoader classes = compile(generated);
+        List<String> records = Files.readAllLines(GOLDEN.resolve("CBACT02C/carddata.txt"), StandardCharsets.UTF_8);
+
+        Class<?> portType = classes.loadClass(PACKAGE + ".Cbact02cCardfileFilePort");
+        Object adapter = classes.loadClass(PACKAGE + ".Cbact02cCardfileFileInMemoryAdapter")
+                .getConstructor(List.class).newInstance(records);
+        Object service = classes.loadClass(PACKAGE + ".Cbact02cServiceImpl")
+                .getConstructor(portType).newInstance(adapter);
+        Class<?> dtoType = classes.loadClass(PACKAGE + ".Cbact02cDTO");
+        Object input = dtoType.getConstructor().newInstance();
+
+        byte[] stdout = captureStdout(() -> service.getClass().getMethod("process", dtoType).invoke(service, input));
+
+        assertThat(new String(stdout, StandardCharsets.UTF_8))
+                .isEqualTo(Files.readString(GOLDEN.resolve("CBACT02C/expected-stdout.txt"), StandardCharsets.UTF_8));
+    }
+
+    private Map<String, String> generate(Path workspace) {
+        CobolParsingService parsing = new CobolParsingService(CobolParsingService.Dialect.IBM);
+        JavaGenerationService generator = new JavaGenerationService(parsing, new TemplateCodeGenerationService(),
+                new CobolIntermediateModelService(), new CobolSemanticTranspiler(),
+                new ObjectMapper().findAndRegisterModules(), true);
+        StubResult result = generator.generateInterfaceStubs(new NqlQuery(),
+                new Workspace("golden-master", workspace.toString(), "main"));
+        assertThat(result.isSuccess()).as(result.getMessage()).isTrue();
+        return result.getGeneratedCode();
+    }
+
+    private ClassLoader compile(Map<String, String> sources) throws Exception {
+        Path sourceDir = tempDir.resolve("src");
+        Path classDir = tempDir.resolve("classes");
+        Files.createDirectories(sourceDir);
+        Files.createDirectories(classDir);
+        List<String> arguments = new ArrayList<>(List.of("-proc:none", "-classpath",
+                System.getProperty("java.class.path"), "-d", classDir.toString()));
+        for (Map.Entry<String, String> source : sources.entrySet()) {
+            Path file = sourceDir.resolve(Path.of(source.getKey()).getFileName());
+            Files.writeString(file, source.getValue(), StandardCharsets.UTF_8);
+            arguments.add(file.toString());
+        }
+        ByteArrayOutputStream diagnostics = new ByteArrayOutputStream();
+        int status = ToolProvider.getSystemJavaCompiler()
+                .run(null, null, diagnostics, arguments.toArray(String[]::new));
+        assertThat(status).as(diagnostics.toString(StandardCharsets.UTF_8)).isZero();
+        return new URLClassLoader(new URL[] {classDir.toUri().toURL()}, getClass().getClassLoader());
+    }
+
+    private interface Action {
+        void run() throws Exception;
+    }
+
+    private static byte[] captureStdout(Action action) throws Exception {
+        PrintStream original = System.out;
+        ByteArrayOutputStream captured = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(captured, true, StandardCharsets.UTF_8));
+        try {
+            action.run();
+        } finally {
+            System.setOut(original);
+        }
+        return captured.toByteArray();
+    }
+}

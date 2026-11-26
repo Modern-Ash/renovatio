@@ -34,8 +34,17 @@ public class Db2001DTO {
 
   public Db2001DTO() {
     this.wsEmpId = 0;
+    this.wsEmpName = "                                                  ";
+    this.wsEmpDept = "                    ";
     this.wsEmpSalary = new java.math.BigDecimal("0");
     this.wsResponse = 0;
+    this.wsMessage = "                                                                                ";
+    this.empId = 0;
+    this.empName = "                                                  ";
+    this.empDept = "                    ";
+    this.empSalary = new java.math.BigDecimal("0");
+    this.empHireDate = "          ";
+    this.empStatus = " ";
   }
 
   public Integer getWsEmpId() {

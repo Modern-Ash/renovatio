@@ -31,6 +31,17 @@ public class Cics001DTO {
   private String custStatus;
 
   public Cics001DTO() {
+    this.wsCustomerId = "          ";
+    this.wsCustomerName = "                                                  ";
+    this.wsResponse = 0;
+    this.wsMessage = "                                                                                ";
+    this.custId = "          ";
+    this.custName = "                                                  ";
+    this.custAddress = "                                                                                                    ";
+    this.custPhone = "               ";
+    this.custEmail = "                                                  ";
+    this.custBalance = new java.math.BigDecimal("0");
+    this.custStatus = " ";
   }
 
   public String getWsCustomerId() {

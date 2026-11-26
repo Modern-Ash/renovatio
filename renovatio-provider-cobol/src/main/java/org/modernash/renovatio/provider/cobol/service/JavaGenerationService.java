@@ -1309,12 +1309,17 @@ public class JavaGenerationService {
         if (model == null) {
             return constructor.build();
         }
+        Set<String> initialized = new java.util.HashSet<>();
         for (CobolDataItem item : model.getDataItems()) {
             String raw = model.getInitialValues().get(item.getName().toUpperCase(Locale.ROOT));
             String field = toCamelCase(item.getName());
             String type = declared.get(field);
-            if (raw == null || type == null || item.getPicType() == null) {
+            if (type == null || item.getPicType() == null || !initialized.add(field)) {
                 continue;
+            }
+            if (raw == null) {
+                // No VALUE clause: start as GnuCOBOL does, numerics zero and alphanumerics spaces.
+                raw = "String".equals(type) ? "SPACES" : "ZERO";
             }
             String literal = initialLiteral(raw, type, item.getPicType().digits());
             if (literal != null) {
@@ -1355,7 +1360,8 @@ public class JavaGenerationService {
         return switch (type) {
             case "Integer" -> String.valueOf(value.intValue());
             case "Long" -> value.longValue() + "L";
-            case "BigDecimal" -> "new java.math.BigDecimal(\"" + value.toPlainString() + "\")";
+            case "BigDecimal" -> "new java.math.BigDecimal(\"" + value.setScale(Math.max(value.scale(), 0),
+                    java.math.RoundingMode.DOWN).toPlainString() + "\")";
             default -> null;
         };
     }
