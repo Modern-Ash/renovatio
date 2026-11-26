@@ -890,16 +890,22 @@ public class JavaGenerationService {
                 .build());
 
         Map<String, String> irTypes = irFieldTypes(model);
+        Map<String, String> declared = new LinkedHashMap<>();
         for (Map<String, Object> item : resolveDtoFields(programData)) {
             String fieldName = (String) item.get("name");
             String javaType = (String) item.get("javaType");
             if (fieldName != null && javaType != null) {
-                addFieldToClass(classBuilder, fieldName, irTypes.getOrDefault(fieldName, javaType));
+                String type = irTypes.getOrDefault(fieldName, javaType);
+                addFieldToClass(classBuilder, fieldName, type);
+                declared.put(fieldName, type);
             }
         }
         for (Map<String, Object> item : copybookOnlyFields(programData, model)) {
             addFieldToClass(classBuilder, (String) item.get("name"), (String) item.get("javaType"));
+            declared.put((String) item.get("name"), (String) item.get("javaType"));
         }
+        org.modernash.renovatio.provider.cobol.service.generation.RecordAccessorGenerator
+                .addTo(classBuilder, model, declared, this::toCamelCase);
 
         TypeSpec classSpec = classBuilder.build();
 

@@ -42,6 +42,7 @@ public final class CobolIntermediateModel {
     private final Map<String, String> fileToRecordMapping;
     private final Map<String, List<String>> fileKeyFields;
     private final Map<String, String> fileAssignTarget;
+    private final Map<String, CobolRecordLayout> recordLayouts;
 
     private CobolIntermediateModel(Builder builder) {
         this.programId = builder.programId;
@@ -62,6 +63,24 @@ public final class CobolIntermediateModel {
         this.fileAssignTarget = builder.fileAssignTarget == null
             ? Collections.emptyMap()
             : Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileAssignTarget));
+        this.recordLayouts = Collections.unmodifiableMap(new LinkedHashMap<>(builder.recordLayouts));
+    }
+
+    /**
+     * Layout of every group item, keyed by upper-case COBOL name. Only
+     * {@link CobolRecordLayout#composable() composable} layouts may be read or written as one
+     * string by generated code.
+     */
+    public Map<String, CobolRecordLayout> getRecordLayouts() {
+        return recordLayouts;
+    }
+
+    public Optional<CobolRecordLayout> findComposableLayout(String groupName) {
+        if (groupName == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(recordLayouts.get(groupName.toUpperCase()))
+                .filter(CobolRecordLayout::composable);
     }
 
     /**
@@ -148,6 +167,15 @@ public final class CobolIntermediateModel {
         private DecomposedBusinessLogic decomposedLogic;
         private List<CobolDiagnostic> diagnostics = new ArrayList<>();
         private final Map<String, ParagraphLineRange> paragraphLineRanges = new LinkedHashMap<>();
+        private final Map<String, CobolRecordLayout> recordLayouts = new LinkedHashMap<>();
+
+        public Builder recordLayouts(Map<String, CobolRecordLayout> layouts) {
+            this.recordLayouts.clear();
+            if (layouts != null) {
+                this.recordLayouts.putAll(layouts);
+            }
+            return this;
+        }
         private Map<String, String> fileToRecordMapping = new LinkedHashMap<>();
         private Map<String, List<String>> fileKeyFields = new LinkedHashMap<>();
         private Map<String, String> fileAssignTarget = new LinkedHashMap<>();

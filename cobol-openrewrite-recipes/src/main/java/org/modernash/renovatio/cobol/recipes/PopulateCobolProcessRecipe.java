@@ -101,6 +101,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
         /** Pascal-cased names of COBOL data items present in the model; the DTO exposes getters for these. */
         private Set<String> knownDataNames = Set.of();
 
+        /** Model of the program being rendered. */
+        private CobolIntermediateModel currentModel;
+
         /** Java type of each known data item, keyed like {@link #knownDataNames}. */
         private Map<String, String> dataTypes = Map.of();
 
@@ -297,6 +300,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 return List.of();
             }
 
+            currentModel = model;
             String upperName = paragraph.name().toUpperCase(Locale.ROOT);
             if (!visitedParagraphs.add(upperName)) {
                 return List.of(String.format(Locale.ROOT,
@@ -469,7 +473,6 @@ public class PopulateCobolProcessRecipe extends Recipe {
                                   @Nullable String varName) {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
             Optional<CobolDataItem> target = findDataItem(model, stripSubscripts(move.target()));
-            String targetType = target.map(CobolDataItem::javaType).orElse(null);
             String expression = moveSourceExpression(move.source().trim(), target.orElse(null));
             return String.format(Locale.ROOT, "%s.%s(%s);",
                     targetVar, toSetter(move.target()), expression);
@@ -545,7 +548,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         private int alphanumericLength(CobolDataItem item) {
-            return item.picType() != null && item.picType().digits() > 0 ? item.picType().digits() : 1;
+            if (item.picType() != null && item.picType().digits() > 0) {
+                return item.picType().digits();
+            }
+            return currentModel == null ? 1 : currentModel.findComposableLayout(item.name())
+                    .map(CobolRecordLayout::length).orElse(1);
         }
 
         private String quoted(String value) {
@@ -630,6 +637,14 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 names.add(pascal);
                 types.putIfAbsent(pascal, item.javaType());
             }
+            // A composable group is read and written as its DISPLAY record string.
+            for (CobolRecordLayout layout : model.getRecordLayouts().values()) {
+                if (layout.composable()) {
+                    String pascal = toPascal(layout.groupName());
+                    names.add(pascal);
+                    types.putIfAbsent(pascal, "String");
+                }
+            }
             dataTypes = types;
             return names;
         }
@@ -638,6 +653,27 @@ public class PopulateCobolProcessRecipe extends Recipe {
             Set<String> assigned = new LinkedHashSet<>();
             for (CobolParagraph paragraph : model.getParagraphs().values()) {
                 collectAssignedStatements(paragraph.statements(), assigned, model);
+            }
+            // A group and its fields share storage: writing either one changes what the other
+            // reads, so both must then be read from the output DTO.
+            boolean changed = true;
+            while (changed) {
+                changed = false;
+                for (CobolRecordLayout layout : model.getRecordLayouts().values()) {
+                    if (!layout.composable()) {
+                        continue;
+                    }
+                    String group = layout.groupName().toUpperCase(Locale.ROOT);
+                    List<String> fields = layout.fields().stream()
+                            .filter(field -> !field.filler())
+                            .map(field -> field.name().toUpperCase(Locale.ROOT))
+                            .toList();
+                    if (assigned.contains(group)) {
+                        changed |= assigned.addAll(fields);
+                    } else if (fields.stream().anyMatch(assigned::contains)) {
+                        changed |= assigned.add(group);
+                    }
+                }
             }
             return assigned;
         }

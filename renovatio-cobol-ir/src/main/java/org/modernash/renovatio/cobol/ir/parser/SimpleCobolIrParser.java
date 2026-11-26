@@ -410,7 +410,8 @@ public class SimpleCobolIrParser {
                 .paragraphLineRanges(paragraphLineRanges)
                 .fileToRecordMapping(fileToRecordMapping)
                 .fileKeyFields(fileKeyFields)
-                .fileAssignTarget(fileAssignTarget);
+                .fileAssignTarget(fileAssignTarget)
+                .recordLayouts(CobolRecordLayoutExtractor.extract(dataSection(source)));
         paragraphs.values().forEach(builder::addParagraph);
         return builder.build();
     }
@@ -536,6 +537,26 @@ public class SimpleCobolIrParser {
         return Defaults.PROGRAM_ID;
     }
 
+    private static int dataSectionStart(String source) {
+        int fsStart = StringUtils.indexOfIgnoreCase(source, Sections.FILE_SECTION);
+        int wsStart = StringUtils.indexOfIgnoreCase(source, Sections.WORKING_STORAGE);
+        return fsStart >= 0 && (wsStart < 0 || fsStart < wsStart) ? fsStart : wsStart;
+    }
+
+    /** FILE SECTION + WORKING-STORAGE text (up to LINKAGE or PROCEDURE DIVISION), or "" when absent. */
+    private static String dataSection(String source) {
+        int start = dataSectionStart(source);
+        if (start < 0) {
+            return "";
+        }
+        int lkStart = StringUtils.indexOfIgnoreCase(source, Sections.LINKAGE, start);
+        int pdStart = StringUtils.indexOfIgnoreCase(source, Sections.PROCEDURE_DIVISION, start);
+        int end = source.length();
+        if (lkStart >= 0) end = Math.min(end, lkStart);
+        if (pdStart >= 0) end = Math.min(end, pdStart);
+        return source.substring(start, end);
+    }
+
     private List<CobolDataItem> extractDataItems(String source, List<CobolDiagnostic> diagnostics) {
         // Was limited to the WORKING-STORAGE SECTION block only — a FD's
         // own record layout (the 01-level declared right under it, and its
@@ -544,18 +565,11 @@ public class SimpleCobolIrParser {
         // own GROUP type: nothing to merge a REPOSITORY with, nothing to
         // show fields from. Scanning from whichever of FILE SECTION /
         // WORKING-STORAGE comes first picks up both.
-        int fsStart = StringUtils.indexOfIgnoreCase(source, Sections.FILE_SECTION);
-        int wsStart = StringUtils.indexOfIgnoreCase(source, Sections.WORKING_STORAGE);
-        int start = fsStart >= 0 && (wsStart < 0 || fsStart < wsStart) ? fsStart : wsStart;
+        int start = dataSectionStart(source);
         if (start < 0) {
             return new ArrayList<>();
         }
-        int lkStart = StringUtils.indexOfIgnoreCase(source, Sections.LINKAGE, start);
-        int pdStart = StringUtils.indexOfIgnoreCase(source, Sections.PROCEDURE_DIVISION, start);
-        int end = source.length();
-        if (lkStart >= 0) end = Math.min(end, lkStart);
-        if (pdStart >= 0) end = Math.min(end, pdStart);
-        String dataSection = source.substring(start, end);
+        String dataSection = dataSection(source);
 
         // Both matchers' hits are merged in source position order — the
         // hierarchy linker downstream (CobolSemanticProjector) walks items
