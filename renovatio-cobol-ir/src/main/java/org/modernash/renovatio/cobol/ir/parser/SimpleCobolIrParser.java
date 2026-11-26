@@ -46,6 +46,18 @@ public class SimpleCobolIrParser {
             "(?ms)^\\s*([A-Z][A-Z0-9-]*)\\.(.*?)(?=^\\s*[A-Z][A-Z0-9-]*\\.|\\Z)"
     );
     private static final Pattern EXEC_SQL_PATTERN = Pattern.compile(Regexes.EXEC_SQL + "(.*?)" + Keywords.END_EXEC, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    /**
+     * Clauses that may follow a PICTURE string in a data description entry. The fallback branch of
+     * {@link #DATA_ITEM_PATTERN} captures everything up to the period, so they must be cut off
+     * before the picture is typed: {@code PIC 9 VALUE 0} is numeric, not "9 VALUE 0" (alphabetic).
+     */
+    private static final Pattern TRAILING_DATA_CLAUSE = Pattern.compile(
+            "\\s+(?:VALUES?|OCCURS|SIGN|JUST(?:IFIED)?|SYNC(?:HRONIZED)?|BLANK|EXTERNAL|GLOBAL"
+                    + "|INDEXED|DEPENDING|RENAMES)\\b.*$",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern USAGE_KEYWORD = Pattern.compile(
+            "\\s+USAGE(?:\\s+IS)?\\s+", Pattern.CASE_INSENSITIVE);
+
     private static final Pattern DATA_NAME_PATTERN = Pattern.compile("[A-Z][A-Z0-9-]*", Pattern.CASE_INSENSITIVE);
     private static final Pattern SET_CONDITION_PATTERN = Pattern.compile(
             "(?i)^SET\\s+(.+?)\\s+TO\\s+(TRUE|FALSE)$");
@@ -407,7 +419,36 @@ public class SimpleCobolIrParser {
     // entire line as a comment. Replaced with same-length whitespace
     // rather than deleted so line/column numbers and character offsets
     // used elsewhere (diagnostics, span tracking) stay unchanged.
+    /** Last column of the fixed-format program text area; columns 73-80 hold a sequence number. */
+    private static final int FIXED_FORMAT_TEXT_END = 72;
+    private static final Pattern FREE_FORMAT_DIRECTIVE = Pattern.compile(
+            "(?i)>>\\s*SOURCE\\s+(?:FORMAT\\s+)?(?:IS\\s+)?FREE|\\$\\s*SET\\s+SOURCEFORMAT\\s*\\(?\\s*\"?FREE");
+
+    /**
+     * True for 80-column card-image source: no free-format directive, and every line that reaches
+     * past column 72 is exactly 80 columns long. Only then are columns 73-80 a sequence area;
+     * hand-written free-ish text with long lines keeps all of its columns.
+     */
+    private static boolean isCardImage(String source) {
+        if (FREE_FORMAT_DIRECTIVE.matcher(source).find()) {
+            return false;
+        }
+        boolean hasSequenceArea = false;
+        for (String raw : source.split("\n", -1)) {
+            String line = raw.endsWith("\r") ? raw.substring(0, raw.length() - 1) : raw;
+            if (line.length() <= FIXED_FORMAT_TEXT_END) {
+                continue;
+            }
+            if (line.length() != 80) {
+                return false;
+            }
+            hasSequenceArea = true;
+        }
+        return hasSequenceArea;
+    }
+
     private static String stripCommentLines(String source) {
+        boolean fixedFormat = isCardImage(source);
         StringBuilder result = new StringBuilder(source.length());
         int lineStart = 0;
         int length = source.length();
@@ -415,6 +456,15 @@ public class SimpleCobolIrParser {
             if (i == length || source.charAt(i) == '\n') {
                 String line = source.substring(lineStart, i);
                 boolean isComment = line.length() >= 7 && (line.charAt(6) == '*' || line.charAt(6) == '/');
+                // Fixed format: columns 73-80 are a sequence/identification area, never program
+                // text ("DISPLAY X        01790043" must not read 01790043 as an operand).
+                // Blanked, not cut, so offsets stay byte-identical like comment lines.
+                String trailingCr = line.endsWith("\r") ? "\r" : "";
+                String body = trailingCr.isEmpty() ? line : line.substring(0, line.length() - 1);
+                if (fixedFormat && !isComment && body.length() > FIXED_FORMAT_TEXT_END) {
+                    line = body.substring(0, FIXED_FORMAT_TEXT_END)
+                            + " ".repeat(body.length() - FIXED_FORMAT_TEXT_END) + trailingCr;
+                }
                 result.append(isComment ? " ".repeat(line.length()) : line);
                 if (i < length) result.append('\n');
                 lineStart = i + 1;
@@ -521,7 +571,7 @@ public class SimpleCobolIrParser {
             int level = Integer.parseInt(matcher.group(1));
             String name = matcher.group(2).toUpperCase(Locale.ROOT);
             String redefines = matcher.group(3) != null ? matcher.group(3).toUpperCase(Locale.ROOT) : null;
-            String pic = (matcher.group(4) != null ? matcher.group(4) : matcher.group(5)).trim();
+            String pic = normalizePicture(matcher.group(4) != null ? matcher.group(4) : matcher.group(5));
             var picType = CobolTypeMapper.picType(pic);
             if (picType == null) {
                 int pictureStart = matcher.group(4) != null ? matcher.start(4) : matcher.start(5);
@@ -960,6 +1010,20 @@ public class SimpleCobolIrParser {
             }
         }
         return entries;
+    }
+
+    /** Reduces a captured PICTURE operand to the picture string plus an optional USAGE keyword. */
+    static String normalizePicture(String captured) {
+        if (captured == null) {
+            return null;
+        }
+        String pic = captured.replaceAll("\\s+", " ").trim();
+        if (pic.regionMatches(true, 0, "IS ", 0, 3)) {
+            pic = pic.substring(3).trim();
+        }
+        pic = TRAILING_DATA_CLAUSE.matcher(pic).replaceFirst("");
+        pic = USAGE_KEYWORD.matcher(pic).replaceAll(" ");
+        return pic.trim();
     }
 
     private String extractProcedureDivision(String source) {

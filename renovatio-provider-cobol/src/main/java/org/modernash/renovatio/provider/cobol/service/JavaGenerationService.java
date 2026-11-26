@@ -879,33 +879,11 @@ public class JavaGenerationService {
                 .addModifiers(Modifier.PUBLIC)
                 .build());
 
-        // Check if there are ENTRY points - if so, use linkageItems instead of dataItems
-        @SuppressWarnings("unchecked")
-        List<Map<String, Object>> entries = (List<Map<String, Object>>) programData.get("entries");
-        List<Map<String, Object>> dataItems;
-        
-        if (entries != null && !entries.isEmpty()) {
-            // Use linkage section items for programs with ENTRY points
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> linkageItems = (List<Map<String, Object>>) programData.get("linkageItems");
-            dataItems = linkageItems != null ? linkageItems : new java.util.ArrayList<>();
-            log.debug("Using linkage items for DTO generation; count={}", dataItems.size());
-        } else {
-            // Use working-storage items for regular programs
-            @SuppressWarnings("unchecked")
-            List<Map<String, Object>> wsItems = (List<Map<String, Object>>) programData.get("dataItems");
-            dataItems = wsItems != null ? wsItems : new java.util.ArrayList<>();
-            log.debug("Using working-storage items for DTO generation; count={}", dataItems.size());
-        }
-
-        if (dataItems != null) {
-            for (Map<String, Object> item : dataItems) {
-                String fieldName = (String) item.get("name");
-                String javaType = (String) item.get("javaType");
-
-                if (fieldName != null && javaType != null) {
-                    addFieldToClass(classBuilder, fieldName, javaType);
-                }
+        for (Map<String, Object> item : resolveDtoFields(programData)) {
+            String fieldName = (String) item.get("name");
+            String javaType = (String) item.get("javaType");
+            if (fieldName != null && javaType != null) {
+                addFieldToClass(classBuilder, fieldName, javaType);
             }
         }
 
@@ -1179,10 +1157,9 @@ public class JavaGenerationService {
                 String camel = toCamelCase(item.getName());
                 FieldValidation validation = validations.get(camel);
                 if (validation != null) {
+                    // The DTO field type is the contract validate() checks against; the IR only
+                    // contributes PICTURE limits (length, digits, sign).
                     validation.applyPicture(item.getPicture());
-                    if (item.getJavaType() != null) {
-                        validation.javaType = item.getJavaType();
-                    }
                 }
             }
         }
@@ -1190,18 +1167,34 @@ public class JavaGenerationService {
         return new ArrayList<>(validations.values());
     }
 
+    /**
+     * DTO fields for a program: LINKAGE items when it has ENTRY points, WORKING-STORAGE items
+     * otherwise. Anonymous FILLER items are not addressable from PROCEDURE DIVISION and are
+     * skipped, and a repeated name keeps its first declaration, so the DTO always compiles.
+     * The DTO and its {@code validate()} both read this list, so they cannot disagree.
+     */
     @SuppressWarnings("unchecked")
     private List<Map<String, Object>> resolveDtoFields(Map<String, Object> programData) {
         if (programData == null) {
             return List.of();
         }
         List<Map<String, Object>> entries = (List<Map<String, Object>>) programData.get("entries");
-        if (entries != null && !entries.isEmpty()) {
-            List<Map<String, Object>> linkage = (List<Map<String, Object>>) programData.get("linkageItems");
-            return linkage != null ? linkage : List.of();
+        List<Map<String, Object>> source = entries != null && !entries.isEmpty()
+                ? (List<Map<String, Object>>) programData.get("linkageItems")
+                : (List<Map<String, Object>>) programData.get("dataItems");
+        if (source == null) {
+            return List.of();
         }
-        List<Map<String, Object>> dataItems = (List<Map<String, Object>>) programData.get("dataItems");
-        return dataItems != null ? dataItems : List.of();
+        Map<String, Map<String, Object>> unique = new LinkedHashMap<>();
+        for (Map<String, Object> item : source) {
+            Object name = item == null ? null : item.get("name");
+            if (!(name instanceof String fieldName) || fieldName.isBlank()
+                    || fieldName.equalsIgnoreCase("filler")) {
+                continue;
+            }
+            unique.putIfAbsent(fieldName, item);
+        }
+        return new ArrayList<>(unique.values());
     }
 
     private String getterName(String fieldName) {

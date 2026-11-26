@@ -59,6 +59,9 @@ public class JavaProjectService {
 
         return dataItems.stream()
                 .filter(item -> item.get("name") != null && item.get("javaType") != null)
+                // FILLER is anonymous (not addressable) and would repeat as a field name.
+                .filter(item -> !"filler".equalsIgnoreCase(item.get("name").toString()))
+                .filter(distinctBy(item -> item.get("name").toString()))
                 .map(item -> new FieldDefinition(
                         (String) item.get("name"),
                         (String) item.get("javaType"),
@@ -146,5 +149,10 @@ public class JavaProjectService {
             Integer scale,
             boolean allowsNegative
     ) {
+    }
+
+    private static <T> java.util.function.Predicate<T> distinctBy(java.util.function.Function<T, Object> key) {
+        java.util.Set<Object> seen = new java.util.HashSet<>();
+        return item -> seen.add(key.apply(item));
     }
 }
