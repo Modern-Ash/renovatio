@@ -1174,8 +1174,8 @@ public class SimpleCobolIrParser {
                 i = parsePerform(lines, i, statements);
                 continue;
             }
-            if (upperLine.startsWith(Keywords.CALL)) {
-                statements.add(parseCall(line));
+            if (upperLine.startsWith(Keywords.CALL + " ") || upperLine.equals(Keywords.CALL)) {
+                i = parseCallStatement(lines, i, statements);
                 continue;
             }
             if (upperLine.startsWith(Keywords.EXEC_SQL)) {
@@ -1621,6 +1621,116 @@ public class SimpleCobolIrParser {
     private static final java.util.regex.Pattern PERFORM_MODIFIER = java.util.regex.Pattern.compile(
             "(?:\\s+|^)(WITH\\s+TEST\\s+(?:BEFORE|AFTER)\\b|VARYING\\b|UNTIL\\b|\\d+\\s+TIMES\\b)",
             java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern CALL_CLAUSE = Pattern.compile(
+            "(?i)(?:^|\\s)(NOT\\s+ON\\s+EXCEPTION|NOT\\s+EXCEPTION|ON\\s+EXCEPTION|EXCEPTION|ON\\s+OVERFLOW|OVERFLOW)(?=\\s|$|\\.)");
+
+    /**
+     * Parses CALL with its USING list (which may continue over several lines), BY REFERENCE /
+     * CONTENT / VALUE modes, and ON EXCEPTION / NOT ON EXCEPTION statements up to END-CALL or
+     * the sentence period.
+     */
+    private int parseCallStatement(List<String> lines, int index, List<CobolStatement> statements) {
+        StringBuilder head = new StringBuilder(lines.get(index).trim());
+        int i = index + 1;
+        boolean sentenceEnded = head.toString().endsWith(Symbols.DOT);
+        while (!sentenceEnded && i < lines.size()) {
+            String next = lines.get(i).trim();
+            if (next.isEmpty()) {
+                i++;
+                continue;
+            }
+            if (startsStatement(next) || CALL_CLAUSE.matcher(next).lookingAt()) {
+                break;
+            }
+            head.append(' ').append(next);
+            sentenceEnded = next.endsWith(Symbols.DOT);
+            i++;
+        }
+        String headText = stripTrailingPeriod(head.toString());
+        List<String> clauseLines = new ArrayList<>();
+        Matcher inline = CALL_CLAUSE.matcher(headText);
+        if (inline.find()) {
+            clauseLines.add(headText.substring(inline.start()).trim());
+            headText = headText.substring(0, inline.start()).trim();
+        }
+        int last = i - 1;
+        if (!sentenceEnded) {
+            boolean inClauses = !clauseLines.isEmpty();
+            int depth = 0;
+            for (; i < lines.size(); i++) {
+                String current = lines.get(i).trim();
+                if (current.isEmpty()) {
+                    continue;
+                }
+                String up = current.toUpperCase(Locale.ROOT);
+                if (!inClauses) {
+                    if (!(CALL_CLAUSE.matcher(up).lookingAt() || up.startsWith("END-CALL"))) {
+                        break;
+                    }
+                    inClauses = true;
+                }
+                if (depth == 0 && up.startsWith("END-CALL")) {
+                    last = i;
+                    break;
+                }
+                if (up.startsWith("CALL ")) depth++;
+                else if (up.startsWith("END-CALL")) depth--;
+                clauseLines.add(current);
+                last = i;
+                if (up.endsWith(Symbols.DOT)) {
+                    break;
+                }
+            }
+        }
+        List<String> exceptionLines = new ArrayList<>();
+        List<String> normalLines = new ArrayList<>();
+        List<String> current = null;
+        for (String line : clauseLines) {
+            Matcher clause = CALL_CLAUSE.matcher(line);
+            if (clause.lookingAt()) {
+                current = clause.group(1).toUpperCase(Locale.ROOT).startsWith("NOT") ? normalLines : exceptionLines;
+                String rest = line.substring(clause.end()).trim();
+                if (!rest.isEmpty()) current.add(rest);
+            } else if (current != null) {
+                current.add(line);
+            }
+        }
+
+        String body = headText.substring(Keywords.CALL.length()).trim();
+        String[] parts = body.split("(?i)\\s+USING\\s+", 2);
+        String rawTarget = parts[0].trim();
+        boolean dynamic = !(rawTarget.startsWith("'") || rawTarget.startsWith("\""));
+        String target = dynamic ? rawTarget.toUpperCase(Locale.ROOT)
+                : rawTarget.substring(1, rawTarget.length() - 1).trim();
+        List<String> arguments = new ArrayList<>();
+        List<Boolean> byReference = new ArrayList<>();
+        if (parts.length > 1) {
+            boolean reference = true;
+            List<String> tokens = new ArrayList<>(List.of(parts[1].replace(",", " ").trim().split("\\s+")));
+            for (int k = 0; k < tokens.size(); k++) {
+                String token = tokens.get(k);
+                String upper = token.toUpperCase(Locale.ROOT);
+                if (upper.equals("BY")) continue;
+                if (upper.equals("REFERENCE")) { reference = true; continue; }
+                if (upper.equals("CONTENT") || upper.equals("VALUE")) { reference = false; continue; }
+                if ((upper.equals("ADDRESS") || upper.equals("LENGTH")) && k + 2 < tokens.size()
+                        && tokens.get(k + 1).equalsIgnoreCase("OF")) {
+                    // Pointer / length special registers: kept whole, not a plain data item.
+                    arguments.add(upper + " OF " + tokens.get(k + 2).toUpperCase(Locale.ROOT));
+                    byReference.add(false);
+                    k += 2;
+                    continue;
+                }
+                arguments.add(token.startsWith("'") || token.startsWith("\"") ? token : upper);
+                byReference.add(reference);
+            }
+        }
+        statements.add(new CallStatement(target, arguments, byReference, dynamic,
+                parseStatements(String.join(Symbols.NEWLINE, exceptionLines)),
+                parseStatements(String.join(Symbols.NEWLINE, normalLines))));
+        return last;
+    }
 
     private CobolStatement parseCall(String line) {
         String remainder = line.substring(Keywords.CALL.length()).trim();

@@ -56,7 +56,25 @@ public final class JavaArchitectureLayoutPlanner implements ArtifactLayoutPlanne
             result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "adapter/out/file/")
                     + type + "InMemoryAdapter.java", "adapter"), fileAdapter, "file-in-memory-adapter:" + file));
         }
+        for (String program : calledPrograms(context.program())) {
+            String type = classBase + filePortBase(program) + "Program";
+            result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "application/port/out/")
+                    + type + "Port.java", "port"), port, "program-port:" + program));
+            result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "adapter/out/program/")
+                    + type + "Adapter.java", "adapter"), fileAdapter, "program-adapter:" + program));
+        }
         return List.copyOf(result);
+    }
+
+    /** Distinct statically named programs the program CALLs, sorted for a deterministic layout. */
+    public static List<String> calledPrograms(SemanticProgram program) {
+        return program.sideEffects().stream()
+                .map(SemanticProgram.SideEffect::calledProgram)
+                .flatMap(java.util.Optional::stream)
+                .map(name -> name.toUpperCase(java.util.Locale.ROOT))
+                .distinct()
+                .sorted()
+                .toList();
     }
 
     /** Distinct files the program performs I/O on, sorted for a deterministic layout. */

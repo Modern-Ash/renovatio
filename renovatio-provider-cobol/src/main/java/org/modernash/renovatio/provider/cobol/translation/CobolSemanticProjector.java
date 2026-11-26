@@ -241,11 +241,15 @@ public final class CobolSemanticProjector {
             } else if (statement instanceof CallStatement call) {
                 effects.add(new SemanticProgram.SideEffect(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.SIDE_EFFECT, "external-call:" + role, span),
-                        SemanticProgram.EffectKind.EXTERNAL_CALL, List.of(), "Calls " + call.target()));
+                        SemanticProgram.EffectKind.EXTERNAL_CALL, List.of(),
+                        (call.dynamic() ? SemanticProgram.SideEffect.DYNAMIC_CALL_PREFIX
+                                : SemanticProgram.SideEffect.STATIC_CALL_PREFIX) + call.target()));
                 for (int index = 0; index < call.arguments().size(); index++) {
                     recordExpressionReads(programId, call.arguments().get(index), span, typeIds,
                             role + ":call-argument:" + index, effects, residual);
                 }
+                visitStatements(programId, call.exceptionStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
+                visitStatements(programId, call.normalStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
             } else if (statement instanceof MoveStatement move) {
                 recordExpressionReads(programId, move.source(), span, typeIds,
                         role + ":move-source", effects, residual);

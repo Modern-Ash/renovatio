@@ -151,4 +151,32 @@ class FileStatementParsingTest {
         assertTrue(statements.stream().noneMatch(FileOperationStatement.class::isInstance));
         assertEquals(2, statements.size(), () -> String.valueOf(statements));
     }
+
+    @Test
+    void parsesStaticCallWithMultiLineUsingModesAndExceptionClauses() {
+        List<CobolStatement> statements = parse(
+                "    CALL 'CSUTLDTC' USING   WS-REC",
+                "                            BY CONTENT WS-EOF",
+                "         ON EXCEPTION",
+                "            MOVE 'Y' TO WS-EOF",
+                "         NOT ON EXCEPTION",
+                "            MOVE 'N' TO WS-EOF",
+                "    END-CALL",
+                "    CALL WS-REC USING ADDRESS OF WS-EOF",
+                "    GOBACK.");
+
+        org.modernash.renovatio.cobol.ir.model.CallStatement call =
+                (org.modernash.renovatio.cobol.ir.model.CallStatement) statements.get(0);
+        assertEquals("CSUTLDTC", call.target());
+        assertFalse(call.dynamic());
+        assertEquals(List.of("WS-REC", "WS-EOF"), call.arguments());
+        assertEquals(List.of(true, false), call.byReference());
+        assertEquals(1, call.exceptionStatements().size());
+        assertEquals(1, call.normalStatements().size());
+        org.modernash.renovatio.cobol.ir.model.CallStatement dynamic =
+                (org.modernash.renovatio.cobol.ir.model.CallStatement) statements.get(1);
+        assertTrue(dynamic.dynamic());
+        assertEquals(List.of("ADDRESS OF WS-EOF"), dynamic.arguments());
+        assertEquals(3, statements.size());
+    }
 }

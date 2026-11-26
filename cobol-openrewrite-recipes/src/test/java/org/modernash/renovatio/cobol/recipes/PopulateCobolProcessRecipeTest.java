@@ -619,4 +619,34 @@ class PopulateCobolProcessRecipeTest {
         assertThat(updated).contains("// COBOL not translated:");
         assertThat(updated).doesNotContain("if (FUNCTION");
     }
+
+    @Test
+    void shouldTranslateStaticCallWithByReferenceWriteBackAndOnException() {
+        String updated = populate("""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. CALL01.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-AREA.
+                   05 WS-CODE PIC X(2).
+                   05 WS-RC   PIC 9(2).
+                01 WS-NAME PIC X(8).
+                01 WS-FLAG PIC X.
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    CALL 'SUBPGM' USING WS-AREA BY CONTENT 'LIT'
+                        ON EXCEPTION
+                            MOVE 'E' TO WS-FLAG
+                    END-CALL
+                    CALL WS-NAME USING WS-AREA
+                    GOBACK.
+                """);
+
+        assertThat(updated).contains("String[] callUsing1 = {output.getWsArea(), \"LIT\"};");
+        assertThat(updated).contains("subpgmProgram.call(callUsing1);");
+        assertThat(updated).contains("output.setWsArea(callUsing1[0]);");
+        assertThat(updated).contains("} catch (UnsupportedOperationException programNotAvailable) {");
+        assertThat(updated).contains("output.setWsFlag(\"E\");");
+        assertThat(updated).contains("// COBOL not translated: CALL WS-NAME (program name resolved at run time)");
+    }
 }

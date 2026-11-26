@@ -10,6 +10,7 @@ import org.modernash.renovatio.architecture.GroupingConfiguration;
 import org.modernash.renovatio.cobol.ir.annotated.AnnotatedCobolContext;
 import org.modernash.renovatio.cobol.ir.model.CobolDataItem;
 import org.modernash.renovatio.provider.cobol.service.generation.FilePortGenerator;
+import org.modernash.renovatio.provider.cobol.service.generation.ProgramPortGenerator;
 import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.modernash.renovatio.cobol.ir.model.CobolStatement;
 import org.modernash.renovatio.cobol.ir.model.EvaluateStatement;
@@ -517,7 +518,21 @@ public class JavaGenerationService {
                         putArtifact(generatedFiles, port.adapterType() + ".java",
                                 FilePortGenerator.inMemoryAdapter(port, model));
                     }
-                    String serviceImpl = generateServiceImplementation(classBase, metadata, filePorts);
+                    List<ProgramPortGenerator.ProgramPort> programPorts = ProgramPortGenerator.ports(classBase,
+                            currentSemantic != null
+                                    ? org.modernash.renovatio.architecture.java.JavaArchitectureLayoutPlanner
+                                            .calledPrograms(currentSemantic)
+                                    : calledPrograms(model));
+                    for (ProgramPortGenerator.ProgramPort port : programPorts) {
+                        putArtifact(generatedFiles, port.portType() + ".java", ProgramPortGenerator.port(port));
+                        putArtifact(generatedFiles, port.adapterType() + ".java", ProgramPortGenerator.adapter(port));
+                    }
+                    List<InjectedPort> injected = new ArrayList<>();
+                    filePorts.forEach(port -> injected.add(new InjectedPort(port.portType(), port.fieldName(),
+                            port.adapterType())));
+                    programPorts.forEach(port -> injected.add(new InjectedPort(port.portType(), port.fieldName(),
+                            port.adapterType())));
+                    String serviceImpl = generateServiceImplementation(classBase, metadata, injected);
                     collectUntranslatedStatements(model, sourceReference, actionItems);
                     serviceImpl = translateServiceImplementation(serviceImpl, model,
                             annotatedResolution.context().orElse(null), sourceReference, currentSemantic, actionItems);
@@ -676,6 +691,13 @@ public class JavaGenerationService {
                     collectPerformTargets(nested, model, out);
                 }
             }
+        } else if (statement instanceof org.modernash.renovatio.cobol.ir.model.CallStatement call) {
+            for (CobolStatement nested : call.exceptionStatements()) {
+                collectPerformTargets(nested, model, out);
+            }
+            for (CobolStatement nested : call.normalStatements()) {
+                collectPerformTargets(nested, model, out);
+            }
         } else if (statement instanceof org.modernash.renovatio.cobol.ir.model.FileOperationStatement file) {
             for (CobolStatement nested : file.exceptionStatements()) {
                 collectPerformTargets(nested, model, out);
@@ -803,6 +825,11 @@ public class JavaGenerationService {
             } else if (statement instanceof EvaluateStatement evaluation) {
                 evaluation.branches().forEach(branch -> collectUntranslatedStatements(branch.statements(), model,
                         sourceFile, programId, paragraph, statementIndex, actionItems));
+            } else if (statement instanceof org.modernash.renovatio.cobol.ir.model.CallStatement call) {
+                collectUntranslatedStatements(call.exceptionStatements(), model, sourceFile,
+                        programId, paragraph, statementIndex, actionItems);
+                collectUntranslatedStatements(call.normalStatements(), model, sourceFile,
+                        programId, paragraph, statementIndex, actionItems);
             } else if (statement instanceof org.modernash.renovatio.cobol.ir.model.FileOperationStatement file) {
                 collectUntranslatedStatements(file.exceptionStatements(), model, sourceFile,
                         programId, paragraph, statementIndex, actionItems);
@@ -1020,14 +1047,17 @@ public class JavaGenerationService {
      * Generates a service implementation template
      */
     private String generateServiceImplementation(String cleanClassName, Map<String, Object> programData) {
-        return generateServiceImplementation(cleanClassName, programData, List.of());
+        return generateServiceImplementation(cleanClassName, programData, List.<InjectedPort>of());
     }
 
     /**
      * One final field per file port, a constructor receiving them (the injection point) and a
      * no-argument constructor wiring the in-memory adapters, so the service also runs standalone.
      */
-    private static void addFilePorts(TypeSpec.Builder classBuilder, List<FilePortGenerator.FilePort> ports) {
+    /** An outbound port the service depends on, with the adapter used for standalone wiring. */
+    private record InjectedPort(String portType, String fieldName, String adapterType) { }
+
+    private static void addFilePorts(TypeSpec.Builder classBuilder, List<InjectedPort> ports) {
         if (ports.isEmpty()) {
             return;
         }
@@ -1035,7 +1065,7 @@ public class JavaGenerationService {
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(ClassName.get("org.springframework.beans.factory.annotation", "Autowired"));
         List<String> defaults = new ArrayList<>();
-        for (FilePortGenerator.FilePort port : ports) {
+        for (InjectedPort port : ports) {
             ClassName type = ClassName.get(FilePortGenerator.PACKAGE, port.portType());
             classBuilder.addField(FieldSpec.builder(type, port.fieldName(), Modifier.PRIVATE, Modifier.FINAL).build());
             injecting.addParameter(type, port.fieldName());
@@ -1044,7 +1074,7 @@ public class JavaGenerationService {
         }
         classBuilder.addMethod(MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addJavadoc("Standalone wiring with in-memory file adapters.\n")
+                .addJavadoc("Standalone wiring with in-memory file adapters and default program adapters.\n")
                 .addStatement("this($L)", String.join(", ", defaults))
                 .build());
         classBuilder.addMethod(injecting.build());
@@ -1062,12 +1092,44 @@ public class JavaGenerationService {
         return List.copyOf(files);
     }
 
+    /** Distinct statically named CALL targets (upper case, sorted), as the semantic projection reports them. */
+    static List<String> calledPrograms(CobolIntermediateModel model) {
+        java.util.TreeSet<String> programs = new java.util.TreeSet<>();
+        if (model != null) {
+            model.getParagraphs().values().forEach(paragraph -> collectCalls(paragraph.statements(), programs));
+        }
+        return List.copyOf(programs);
+    }
+
+    private static void collectCalls(List<CobolStatement> statements, java.util.Set<String> programs) {
+        for (CobolStatement statement : statements) {
+            if (statement instanceof org.modernash.renovatio.cobol.ir.model.CallStatement call) {
+                if (!call.dynamic()) programs.add(call.target().toUpperCase(Locale.ROOT));
+                collectCalls(call.exceptionStatements(), programs);
+                collectCalls(call.normalStatements(), programs);
+            } else if (statement instanceof org.modernash.renovatio.cobol.ir.model.FileOperationStatement file) {
+                collectCalls(file.exceptionStatements(), programs);
+                collectCalls(file.normalStatements(), programs);
+            } else if (statement instanceof IfStatement branch) {
+                collectCalls(branch.thenStatements(), programs);
+                collectCalls(branch.elseStatements(), programs);
+            } else if (statement instanceof EvaluateStatement evaluation) {
+                evaluation.branches().forEach(branch -> collectCalls(branch.statements(), programs));
+            } else if (statement instanceof PerformStatement perform && perform.isInline()) {
+                collectCalls(perform.inlineBody(), programs);
+            }
+        }
+    }
+
     private static void collectFiles(List<CobolStatement> statements, java.util.Set<String> files) {
         for (CobolStatement statement : statements) {
             if (statement instanceof org.modernash.renovatio.cobol.ir.model.FileOperationStatement file) {
                 files.add(file.fileName().toUpperCase(Locale.ROOT));
                 collectFiles(file.exceptionStatements(), files);
                 collectFiles(file.normalStatements(), files);
+            } else if (statement instanceof org.modernash.renovatio.cobol.ir.model.CallStatement call) {
+                collectFiles(call.exceptionStatements(), files);
+                collectFiles(call.normalStatements(), files);
             } else if (statement instanceof IfStatement branch) {
                 collectFiles(branch.thenStatements(), files);
                 collectFiles(branch.elseStatements(), files);
@@ -1080,7 +1142,7 @@ public class JavaGenerationService {
     }
 
     private String generateServiceImplementation(String cleanClassName, Map<String, Object> programData,
-                                                 List<FilePortGenerator.FilePort> filePorts) {
+                                                 List<InjectedPort> filePorts) {
         // Asegurar que el cleanClassName esté completamente limpio
         String sanitizedClassName = sanitizeClassName(cleanClassName);
         String className = sanitizedClassName + "ServiceImpl";

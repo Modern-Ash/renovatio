@@ -191,7 +191,8 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 dtoVarName = "out";
             }
 
-            // Re-render with the chosen variable name
+            // Re-render with the chosen variable name; local variable numbering restarts per method.
+            fileResultCounter = 0;
             rendered = renderParagraph(paragraph, model, new LinkedHashSet<>(), dtoVarName);
 
             String bodyTemplate = buildBody(rendered, dtoType, dtoVarName);
@@ -384,7 +385,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 return List.of(renderDb2(db2));
             }
             if (statement instanceof CallStatement call) {
-                return List.of(renderCall(call));
+                return renderCall(call, model, visitedParagraphs, varName);
             }
             if (statement instanceof FileOperationStatement fileOp) {
                 return renderFileOperation(fileOp, model, visitedParagraphs, varName);
@@ -831,6 +832,14 @@ public class PopulateCobolProcessRecipe extends Recipe {
                         findCondition(model, conditionName)
                                 .ifPresent(condition -> addAssigned(assigned, condition.parent().name()));
                     }
+                } else if (statement instanceof CallStatement call) {
+                    for (int index = 0; index < call.arguments().size(); index++) {
+                        if (call.byReference().get(index)) {
+                            addAssigned(assigned, call.arguments().get(index));
+                        }
+                    }
+                    collectAssignedStatements(call.exceptionStatements(), assigned, model);
+                    collectAssignedStatements(call.normalStatements(), assigned, model);
                 } else if (statement instanceof FileOperationStatement file) {
                     model.findFile(file.fileName()).ifPresent(descriptor -> {
                         addAssigned(assigned, descriptor.fileStatus());
@@ -1213,6 +1222,13 @@ public class PopulateCobolProcessRecipe extends Recipe {
                         collectPerformTargetsInto(nested, model, out);
                     }
                 }
+            } else if (statement instanceof CallStatement call) {
+                for (CobolStatement nested : call.exceptionStatements()) {
+                    collectPerformTargetsInto(nested, model, out);
+                }
+                for (CobolStatement nested : call.normalStatements()) {
+                    collectPerformTargetsInto(nested, model, out);
+                }
             } else if (statement instanceof FileOperationStatement file) {
                 for (CobolStatement nested : file.exceptionStatements()) {
                     collectPerformTargetsInto(nested, model, out);
@@ -1326,6 +1342,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
             CobolParagraph paragraph = model.findParagraph(name).orElseThrow();
             String lines = paragraphLines(name, model);
             voidMethodMode = true;
+            fileResultCounter = 0;
             List<String> rendered = renderParagraph(paragraph, model, new LinkedHashSet<>(), "out");
             voidMethodMode = false;
 
@@ -1478,14 +1495,56 @@ public class PopulateCobolProcessRecipe extends Recipe {
             return String.format(Locale.ROOT, "// EXEC SQL %s", db2.sql());
         }
 
-        private String renderCall(CallStatement call) {
-            StringBuilder builder = new StringBuilder();
-            builder.append("// CALL ").append(call.target());
-            if (!call.arguments().isEmpty()) {
-                builder.append(" USING ")
-                        .append(String.join(", ", call.arguments()));
+        /**
+         * CALL as a call on the program's port: USING parameters travel as DISPLAY strings and
+         * BY REFERENCE ones are written back; ON EXCEPTION runs when the program is not available.
+         */
+        private List<String> renderCall(CallStatement call, CobolIntermediateModel model,
+                                        Set<String> visitedParagraphs, @Nullable String varName) {
+            String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            if (call.dynamic()) {
+                return List.of("// COBOL not translated: CALL " + call.target() + " (program name resolved at run time)");
             }
-            return builder.toString();
+            List<String> values = new ArrayList<>();
+            List<String> writeBack = new ArrayList<>();
+            String args = "callUsing" + (++fileResultCounter);
+            for (int index = 0; index < call.arguments().size(); index++) {
+                String argument = call.arguments().get(index);
+                if (isQuoted(argument)) {
+                    values.add(toJavaExpression(argument));
+                    continue;
+                }
+                String type = dataTypes.get(toPascal(stripSubscripts(argument)));
+                String getter = argument.matches("[A-Z0-9][A-Z0-9-]*") ? toJavaExpression(argument) : UNRESOLVED_MARKER;
+                if (type == null || getter.contains(UNRESOLVED_MARKER)) {
+                    return List.of("// COBOL not translated: CALL '" + call.target() + "' USING " + truncate(argument)
+                            + " (parameter not modeled)");
+                }
+                values.add(convert(getter, type, "String"));
+                if (call.byReference().get(index)) {
+                    writeBack.add(targetVar + "." + toSetter(argument) + "("
+                            + convert(args + "[" + index + "]", "String", type) + ");");
+                }
+            }
+            String port = filePortField(call.target()) + "Program";
+            List<String> lines = new ArrayList<>();
+            lines.add("String[] " + args + " = {" + String.join(", ", values) + "};");
+            if (call.exceptionStatements().isEmpty()) {
+                lines.add(port + ".call(" + args + ");");
+                lines.addAll(writeBack);
+                if (!call.normalStatements().isEmpty()) {
+                    renderBranch(call.normalStatements(), model, visitedParagraphs, varName, lines);
+                }
+                return lines;
+            }
+            lines.add("try {");
+            lines.add(indent(port + ".call(" + args + ");"));
+            writeBack.forEach(line -> lines.add(indent(line)));
+            renderBranch(call.normalStatements(), model, visitedParagraphs, varName, lines);
+            lines.add("} catch (UnsupportedOperationException programNotAvailable) {");
+            renderBranch(call.exceptionStatements(), model, visitedParagraphs, varName, lines);
+            lines.add("}");
+            return lines;
         }
 
         /** Counter for READ result variables, unique within the compilation unit. */

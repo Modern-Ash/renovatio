@@ -36,10 +36,6 @@
     }
   },
   "unsupportedConstructs" : [ {
-    "construct" : "CALL",
-    "programs" : 19,
-    "occurrences" : 50
-  }, {
     "construct" : "EXEC SQL",
     "programs" : 3,
     "occurrences" : 9
@@ -53,15 +49,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 11,
+    "javaFiles" : 15,
     "manualActionItems" : 3,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 6,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "VARYING", "WRITE" ]
   }, {
     "programId" : "CBACT02C",
@@ -71,15 +64,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 5,
+    "javaFiles" : 7,
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBACT03C",
@@ -89,15 +79,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 5,
+    "javaFiles" : 7,
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBACT04C",
@@ -107,15 +94,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 13,
+    "javaFiles" : 15,
     "manualActionItems" : 9,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 10,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "STRING", "WRITE" ]
   }, {
     "programId" : "CBCUS01C",
@@ -125,15 +109,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 5,
+    "javaFiles" : 7,
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBEXPORT",
@@ -143,15 +124,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 15,
+    "javaFiles" : 17,
     "manualActionItems" : 30,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 40,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "CBIMPORT",
@@ -161,15 +139,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 17,
+    "javaFiles" : 19,
     "manualActionItems" : 18,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 27,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "WRITE" ]
   }, {
     "programId" : "CBPAUP0C",
@@ -194,15 +169,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 7,
+    "javaFiles" : 11,
     "manualActionItems" : 45,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 34,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 8
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "GO TO", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING", "VARYING", "WRITE" ]
   }, {
     "programId" : "CBSTM03B",
@@ -227,15 +199,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 15,
+    "javaFiles" : 17,
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 4,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ]
   }, {
     "programId" : "CBTRN02C",
@@ -245,15 +214,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 15,
+    "javaFiles" : 17,
     "manualActionItems" : 8,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 10,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "WRITE" ]
   }, {
     "programId" : "CBTRN03C",
@@ -263,15 +229,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 15,
+    "javaFiles" : 17,
     "manualActionItems" : 2,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 21,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "WRITE" ]
   }, {
     "programId" : "COACCT01",
@@ -281,15 +244,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
-    "manualActionItems" : 95,
+    "javaFiles" : 12,
+    "manualActionItems" : 46,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 111,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 9
-    } ],
+    "notTranslatedMarkers" : 68,
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC CICS", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING" ]
   }, {
     "programId" : "COACTUPC",
@@ -359,15 +319,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 3,
+    "javaFiles" : 5,
     "manualActionItems" : 1,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 1,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslated" : [ ],
     "present" : [ "ACCEPT", "CALL", "MOVE", "STOP RUN" ]
   }, {
     "programId" : "COBTUPDT",
@@ -440,15 +397,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
-    "manualActionItems" : 82,
+    "javaFiles" : 12,
+    "manualActionItems" : 33,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 117,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 9
-    } ],
+    "notTranslatedMarkers" : 74,
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC CICS", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING" ]
   }, {
     "programId" : "COMEN01C",
@@ -473,15 +427,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
-    "manualActionItems" : 97,
+    "javaFiles" : 12,
+    "manualActionItems" : 73,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 126,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 4
-    } ],
+    "notTranslatedMarkers" : 106,
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "UNSTRING" ]
   }, {
     "programId" : "COPAUS0C",
@@ -539,15 +490,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
-    "manualActionItems" : 77,
+    "javaFiles" : 6,
+    "manualActionItems" : 73,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 85,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 2
-    } ],
+    "notTranslatedMarkers" : 81,
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "SET", "STRING", "VARYING", "WRITE" ]
   }, {
     "programId" : "COSGN00C",
@@ -602,15 +550,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
-    "manualActionItems" : 86,
+    "javaFiles" : 6,
+    "manualActionItems" : 82,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 101,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 2
-    } ],
+    "notTranslatedMarkers" : 97,
+    "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COTRTLIC",
@@ -713,15 +658,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 3,
-    "manualActionItems" : 10,
+    "javaFiles" : 5,
+    "manualActionItems" : 6,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 21,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    } ],
+    "notTranslatedMarkers" : 18,
+    "notTranslated" : [ ],
     "present" : [ "CALL", "DISPLAY", "EVALUATE", "GOBACK", "INITIALIZE", "MOVE", "PERFORM", "STRING" ]
   }, {
     "programId" : "DBUNLDGS",
@@ -731,15 +673,12 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 3,
-    "manualActionItems" : 13,
+    "javaFiles" : 5,
+    "manualActionItems" : 7,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 21,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 4
-    } ],
+    "notTranslatedMarkers" : 19,
+    "notTranslated" : [ ],
     "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ]
   }, {
     "programId" : "PAUDBLOD",
@@ -749,8 +688,8 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 7,
-    "manualActionItems" : 28,
+    "javaFiles" : 9,
+    "manualActionItems" : 19,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
@@ -764,8 +703,8 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 7,
-    "manualActionItems" : 21,
+    "javaFiles" : 9,
+    "manualActionItems" : 15,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,

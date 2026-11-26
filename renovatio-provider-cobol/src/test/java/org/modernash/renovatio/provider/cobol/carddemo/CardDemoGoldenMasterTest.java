@@ -56,11 +56,9 @@ class CardDemoGoldenMasterTest {
         ClassLoader classes = compile(generated);
         List<String> records = Files.readAllLines(GOLDEN.resolve("CBACT02C/carddata.txt"), StandardCharsets.UTF_8);
 
-        Class<?> portType = classes.loadClass(PACKAGE + ".Cbact02cCardfileFilePort");
-        Object adapter = classes.loadClass(PACKAGE + ".Cbact02cCardfileFileInMemoryAdapter")
+        Object cardFile = classes.loadClass(PACKAGE + ".Cbact02cCardfileFileInMemoryAdapter")
                 .getConstructor(List.class).newInstance(records);
-        Object service = classes.loadClass(PACKAGE + ".Cbact02cServiceImpl")
-                .getConstructor(portType).newInstance(adapter);
+        Object service = wire(classes, "Cbact02cServiceImpl", Map.of(PACKAGE + ".Cbact02cCardfileFilePort", cardFile));
         Class<?> dtoType = classes.loadClass(PACKAGE + ".Cbact02cDTO");
         Object input = dtoType.getConstructor().newInstance();
 
@@ -68,6 +66,30 @@ class CardDemoGoldenMasterTest {
 
         assertThat(new String(stdout, StandardCharsets.UTF_8))
                 .isEqualTo(Files.readString(GOLDEN.resolve("CBACT02C/expected-stdout.txt"), StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Builds the service through its injecting constructor: the given adapters for the ports
+     * under test, the generated default adapter ({@code XxxPort} -> {@code XxxAdapter} /
+     * {@code XxxInMemoryAdapter}) for every other port.
+     */
+    private static Object wire(ClassLoader classes, String serviceName, Map<String, Object> adapters) throws Exception {
+        Class<?> serviceType = classes.loadClass(PACKAGE + "." + serviceName);
+        var constructor = java.util.Arrays.stream(serviceType.getConstructors())
+                .max(java.util.Comparator.comparingInt(java.lang.reflect.Constructor::getParameterCount))
+                .orElseThrow();
+        Object[] arguments = new Object[constructor.getParameterCount()];
+        for (int i = 0; i < arguments.length; i++) {
+            String port = constructor.getParameterTypes()[i].getName();
+            Object adapter = adapters.get(port);
+            if (adapter == null) {
+                String stem = port.substring(0, port.length() - "Port".length());
+                String adapterName = stem.endsWith("Program") ? stem + "Adapter" : stem + "InMemoryAdapter";
+                adapter = classes.loadClass(adapterName).getConstructor().newInstance();
+            }
+            arguments[i] = adapter;
+        }
+        return constructor.newInstance(arguments);
     }
 
     private Map<String, String> generate(Path workspace) {
