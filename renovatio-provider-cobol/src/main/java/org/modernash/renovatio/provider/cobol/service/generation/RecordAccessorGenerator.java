@@ -3,12 +3,17 @@ package org.modernash.renovatio.provider.cobol.service.generation;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
+import com.squareup.javapoet.ClassName;
+import org.modernash.renovatio.cobol.ir.model.CobolDataItem;
 import org.modernash.renovatio.cobol.ir.model.CobolRecordLayout;
+import org.modernash.renovatio.cobol.ir.model.CobolRedefinesView;
+import org.modernash.renovatio.cobol.runtime.PicType;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 
 /**
@@ -55,11 +60,106 @@ public final class RecordAccessorGenerator {
             dto.addMethod(setter(layout, property, fieldTypes, fieldName));
             generated.add(layout.groupName());
         }
-        if (!generated.isEmpty()) {
+        int views = addRedefinesViews(dto, model, fieldTypes, fieldName, generated);
+        if (!generated.isEmpty() || views > 0) {
             addHelpers(dto);
             addBinaryHelpers(dto);
         }
         return generated;
+    }
+
+    /**
+     * REDEFINES views: accessors with no field of their own that decode / re-encode their bytes
+     * inside the base item's storage (its composed record, or its own encoding when elementary).
+     *
+     * @return number of views generated
+     */
+    private static int addRedefinesViews(TypeSpec.Builder dto, CobolIntermediateModel model,
+                                         Map<String, String> fieldTypes, Function<String, String> fieldName,
+                                         List<String> recordAccessors) {
+        int count = 0;
+        for (CobolRedefinesView view : model.getRedefinesViews().values()) {
+            if (!view.supported()) {
+                continue;
+            }
+            String base = fieldName.apply(view.base());
+            String storage;
+            String write;
+            if (view.baseIsGroup()) {
+                if (!recordAccessors.contains(view.base())) continue;
+                storage = "get" + capitalize(base) + "()";
+                write = "set" + capitalize(base) + "(storage)";
+            } else {
+                Optional<CobolDataItem> item = item(model, view.base());
+                String type = fieldTypes.get(base);
+                if (item.isEmpty() || type == null || item.get().picType() == null) continue;
+                PicType pic = item.get().picType();
+                int length = CobolRecordLayout.storageLength(pic);
+                storage = encode(base, type, pic, length);
+                write = "this." + base + " = " + decode("storage", type, pic);
+            }
+            String property = fieldName.apply(view.name());
+            String type = view.picType() == null ? "String"
+                    : item(model, view.name()).map(CobolDataItem::javaType).orElse(null);
+            if (type == null) continue;
+            String slice = "storage.substring(" + view.offset() + ", " + (view.offset() + view.length()) + ")";
+            ClassName javaType = ClassName.get(type.equals("BigDecimal") ? "java.math" : "java.lang", type);
+            dto.addMethod(MethodSpec.methodBuilder("get" + capitalize(property))
+                    .addModifiers(Modifier.PUBLIC)
+                    .returns(javaType)
+                    .addJavadoc("$L REDEFINES $L: bytes $L-$L of its storage.\n", view.name(), view.base(),
+                            view.offset(), view.offset() + view.length() - 1)
+                    .addStatement("String storage = $L", storage)
+                    .addStatement("return $L", view.picType() == null ? slice : decode(slice, type, view.picType()))
+                    .build());
+            String encoded = view.picType() == null ? "fitText(value, " + view.length() + ")"
+                    : encode("value", type, view.picType(), view.length());
+            dto.addMethod(MethodSpec.methodBuilder("set" + capitalize(property))
+                    .addModifiers(Modifier.PUBLIC)
+                    .addParameter(javaType, "value")
+                    .addStatement("String storage = $L", storage)
+                    .addStatement("storage = storage.substring(0, $L) + $L + storage.substring($L)",
+                            view.offset(), encoded, view.offset() + view.length())
+                    .addStatement(write)
+                    .build());
+            count++;
+        }
+        return count;
+    }
+
+    private static Optional<CobolDataItem> item(CobolIntermediateModel model, String name) {
+        return model.getDataItems().stream().filter(item -> item.name().equalsIgnoreCase(name)).findFirst();
+    }
+
+    /** Encoder call for a value of DTO type {@code type} stored with picture {@code pic}. */
+    private static String encode(String expression, String type, PicType pic, int length) {
+        if ("String".equals(type)) {
+            return "fitText(" + expression + ", " + length + ")";
+        }
+        String args = expression + ", " + length + ", " + pic.scale() + ", " + pic.signed() + ")";
+        return switch (pic.usage()) {
+            case COMP, COMP_5 -> "fitBinary(" + args;
+            case COMP_3 -> "fitPacked(" + args;
+            default -> "fitNumber(" + args;
+        };
+    }
+
+    /** Decoder call turning encoded {@code bytes} back into DTO type {@code type}. */
+    private static String decode(String bytes, String type, PicType pic) {
+        if ("String".equals(type)) {
+            return bytes;
+        }
+        String decoder = switch (pic.usage()) {
+            case COMP, COMP_5 -> "parseBinary(";
+            case COMP_3 -> "parsePacked(";
+            default -> "parseNumber(";
+        };
+        String decoded = decoder + bytes + ", " + pic.scale() + ", " + pic.signed() + ")";
+        return switch (type) {
+            case "Integer" -> decoded + ".intValue()";
+            case "Long" -> decoded + ".longValue()";
+            default -> decoded;
+        };
     }
 
     private static boolean allFieldsDeclared(CobolRecordLayout layout, Map<String, String> fieldTypes,

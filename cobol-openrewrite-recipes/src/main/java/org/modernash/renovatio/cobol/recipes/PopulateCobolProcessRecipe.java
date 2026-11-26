@@ -792,6 +792,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 }
             });
             tableSizes = tables;
+            model.getRedefinesViews().values().stream()
+                    .filter(view -> !view.supported())
+                    .forEach(view -> names.remove(toPascal(view.name()))); // shared storage not modeled
             return names;
         }
 
@@ -818,6 +821,12 @@ public class PopulateCobolProcessRecipe extends Recipe {
                         changed |= assigned.addAll(fields);
                     } else if (fields.stream().anyMatch(assigned::contains)) {
                         changed |= assigned.add(group);
+                    }
+                }
+                // A REDEFINES view and its base are the same bytes.
+                for (CobolRedefinesView view : model.getRedefinesViews().values()) {
+                    if (view.supported() && assigned.contains(view.name()) != assigned.contains(view.base())) {
+                        changed |= assigned.add(view.name()) | assigned.add(view.base());
                     }
                 }
             }

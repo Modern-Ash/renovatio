@@ -3,6 +3,7 @@ package org.modernash.renovatio.cobol.ir.parser;
 import org.junit.jupiter.api.Test;
 import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.modernash.renovatio.cobol.ir.model.CobolRecordLayout;
+import org.modernash.renovatio.cobol.ir.model.CobolRedefinesView;
 
 import java.util.Arrays;
 
@@ -122,5 +123,36 @@ class CobolRecordLayoutExtractorTest {
         assertFalse(model.getTableDimensions().containsKey("ARR-ACCT-ID"));
         assertTrue(model.findComposableLayout("WS-GRID").isEmpty());
         assertTrue(model.findComposableLayout("WS-ROW").isEmpty(), "a table element group needs a subscript");
+    }
+
+    @Test
+    void modelsRedefinesAsViewsOverTheBaseStorage() {
+        CobolIntermediateModel model = parse("""
+                01  WS-MESSAGE.
+                    02 WS-SEVERITY   PIC X(04).
+                    02 WS-SEVERITY-N REDEFINES WS-SEVERITY PIC 9(4).
+                    02 FILLER        PIC X(11) VALUE 'Mesg Code:'.
+                01  WS-DATE-AREA.
+                    05 WS-DATE       PIC X(8).
+                01  WS-DATE-PARTS REDEFINES WS-DATE-AREA.
+                    05 WS-YYYY       PIC 9(4).
+                    05 WS-MMDD       PIC X(4).
+                01  WS-SHORT         PIC X(2).
+                01  WS-LONG REDEFINES WS-SHORT PIC X(5).
+                """);
+
+        CobolRedefinesView numeric = model.getRedefinesViews().get("WS-SEVERITY-N");
+        assertEquals("WS-SEVERITY", numeric.base());
+        assertFalse(numeric.baseIsGroup());
+        assertEquals(4, numeric.length());
+        assertEquals(15, model.findComposableLayout("WS-MESSAGE").orElseThrow().length(),
+                "the redefinition adds no storage");
+
+        CobolRedefinesView month = model.getRedefinesViews().get("WS-MMDD");
+        assertEquals("WS-DATE-AREA", month.base());
+        assertTrue(month.baseIsGroup());
+        assertEquals(4, month.offset());
+        assertEquals(8, model.getRedefinesViews().get("WS-DATE-PARTS").length());
+        assertFalse(model.getRedefinesViews().get("WS-LONG").supported(), "longer than its base");
     }
 }

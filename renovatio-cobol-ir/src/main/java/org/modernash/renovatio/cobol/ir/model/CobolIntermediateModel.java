@@ -46,6 +46,7 @@ public final class CobolIntermediateModel {
     private final Map<String, CobolFileDescriptor> fileDescriptors;
     private final Map<String, String> initialValues;
     private final Map<String, Integer> tableDimensions;
+    private final Map<String, CobolRedefinesView> redefinesViews;
 
     private CobolIntermediateModel(Builder builder) {
         this.programId = builder.programId;
@@ -70,6 +71,12 @@ public final class CobolIntermediateModel {
         this.fileDescriptors = Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileDescriptors));
         this.initialValues = Collections.unmodifiableMap(new LinkedHashMap<>(builder.initialValues));
         this.tableDimensions = Collections.unmodifiableMap(new LinkedHashMap<>(builder.tableDimensions));
+        this.redefinesViews = Collections.unmodifiableMap(new LinkedHashMap<>(builder.redefinesViews));
+    }
+
+    /** REDEFINES views keyed by upper-case item name (see {@link CobolRedefinesView}). */
+    public Map<String, CobolRedefinesView> getRedefinesViews() {
+        return redefinesViews;
     }
 
     /**
@@ -235,6 +242,15 @@ public final class CobolIntermediateModel {
         private final Map<String, CobolFileDescriptor> fileDescriptors = new LinkedHashMap<>();
         private final Map<String, String> initialValues = new LinkedHashMap<>();
         private final Map<String, Integer> tableDimensions = new LinkedHashMap<>();
+        private final Map<String, CobolRedefinesView> redefinesViews = new LinkedHashMap<>();
+
+        public Builder redefinesViews(Map<String, CobolRedefinesView> views) {
+            this.redefinesViews.clear();
+            if (views != null) {
+                this.redefinesViews.putAll(views);
+            }
+            return this;
+        }
 
         public Builder tableDimensions(Map<String, Integer> dimensions) {
             this.tableDimensions.clear();

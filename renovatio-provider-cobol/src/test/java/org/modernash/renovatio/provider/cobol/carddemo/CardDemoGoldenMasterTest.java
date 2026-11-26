@@ -88,6 +88,24 @@ class CardDemoGoldenMasterTest {
         assertThat(actual).isEqualTo(Files.readAllBytes(golden.resolve("expected-records.bin")));
     }
 
+    @Test
+    void redefinesViewsShareStorageWithTheirBaseAsInCobol() throws Exception {
+        Path workspace = tempDir.resolve("redefines");
+        Files.createDirectories(workspace);
+        Path golden = Path.of("src/test/resources/golden-master/redefines");
+        Files.copy(golden.resolve("REDEF.cbl"), workspace.resolve("REDEF.cbl"));
+
+        ClassLoader classes = compile(generate(workspace));
+        Object service = classes.loadClass(PACKAGE + ".RedefServiceImpl").getConstructor().newInstance();
+        Class<?> dtoType = classes.loadClass(PACKAGE + ".RedefDTO");
+        Object input = dtoType.getConstructor().newInstance();
+
+        byte[] stdout = captureStdout(() -> service.getClass().getMethod("process", dtoType).invoke(service, input));
+
+        assertThat(new String(stdout, StandardCharsets.UTF_8))
+                .isEqualTo(Files.readString(golden.resolve("expected-stdout.txt"), StandardCharsets.UTF_8));
+    }
+
     /**
      * Builds the service through its injecting constructor: the given adapters for the ports
      * under test, the generated default adapter ({@code XxxPort} -> {@code XxxAdapter} /

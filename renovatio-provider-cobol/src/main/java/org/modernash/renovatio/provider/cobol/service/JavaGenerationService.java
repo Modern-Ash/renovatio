@@ -937,20 +937,36 @@ public class JavaGenerationService {
 
         Map<String, String> irTypes = irFieldTypes(model);
         Map<String, Integer> tables = tableSizes(model);
+        Set<String> views = redefinesViews(model);
         Map<String, String> declared = new LinkedHashMap<>();
         for (Map<String, Object> item : resolveDtoFields(programData)) {
             String fieldName = (String) item.get("name");
             String javaType = (String) item.get("javaType");
-            if (fieldName != null && javaType != null) {
+            if (fieldName != null && javaType != null && !views.contains(fieldName)) {
                 String type = irTypes.getOrDefault(fieldName, javaType);
                 addDtoField(classBuilder, fieldName, type, tables.getOrDefault(fieldName, 0));
                 declared.put(fieldName, type);
             }
         }
         for (Map<String, Object> item : copybookOnlyFields(programData, model)) {
+            if (views.contains((String) item.get("name"))) continue;
             addDtoField(classBuilder, (String) item.get("name"), (String) item.get("javaType"),
                     tables.getOrDefault((String) item.get("name"), 0));
             declared.put((String) item.get("name"), (String) item.get("javaType"));
+        }
+        // Record fields the data-item scan missed (e.g. BMS "02 X-L COMP PIC S9(4).", USAGE before PIC).
+        if (model != null) {
+            for (org.modernash.renovatio.cobol.ir.model.CobolRecordLayout layout : model.getRecordLayouts().values()) {
+                for (org.modernash.renovatio.cobol.ir.model.CobolRecordLayout.Field field : layout.fields()) {
+                    String name = field.filler() ? null : toCamelCase(field.name());
+                    if (!layout.composable() || name == null || declared.containsKey(name) || views.contains(name)) {
+                        continue;
+                    }
+                    String type = org.modernash.renovatio.cobol.ir.context.CobolTypeMapper.javaType(field.picType());
+                    addDtoField(classBuilder, name, type, tables.getOrDefault(name, 0));
+                    declared.put(name, type);
+                }
+            }
         }
         org.modernash.renovatio.provider.cobol.service.generation.RecordAccessorGenerator
                 .addTo(classBuilder, model, declared, this::toCamelCase);
@@ -1312,8 +1328,8 @@ public class JavaGenerationService {
             if (name == null || name.isBlank()) {
                 continue;
             }
-            if (tableSizes(model).containsKey(name)) {
-                continue; // OCCURS items are arrays, validated element by element by the service
+            if (tableSizes(model).containsKey(name) || redefinesViews(model).contains(name)) {
+                continue; // OCCURS arrays and REDEFINES views have no plain field to check
             }
             String javaType = field.get("javaType") != null ? field.get("javaType").toString() : "String";
             validations.putIfAbsent(name, new FieldValidation(name, irTypes.getOrDefault(name, javaType)));
@@ -1601,6 +1617,17 @@ public class JavaGenerationService {
             return intermediateModelService.parse(source);
         }
         return null;
+    }
+
+    /** DTO names of the modeled REDEFINES views: they are accessors over their base, not fields. */
+    private Set<String> redefinesViews(CobolIntermediateModel model) {
+        Set<String> views = new java.util.HashSet<>();
+        if (model != null) {
+            model.getRedefinesViews().values().stream()
+                    .filter(org.modernash.renovatio.cobol.ir.model.CobolRedefinesView::supported)
+                    .forEach(view -> views.add(toCamelCase(view.name())));
+        }
+        return views;
     }
 
     /** Size of every supported fixed OCCURS table, keyed by DTO field name. */

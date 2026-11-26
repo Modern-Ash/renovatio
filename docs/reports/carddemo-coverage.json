@@ -128,7 +128,7 @@
     "manualActionItems" : 30,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 40,
+    "notTranslatedMarkers" : 43,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "WRITE" ]
   }, {
@@ -143,7 +143,7 @@
     "manualActionItems" : 18,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 31,
+    "notTranslatedMarkers" : 48,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "WRITE" ]
   }, {
@@ -263,7 +263,7 @@
     "manualActionItems" : 857,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 716,
+    "notTranslatedMarkers" : 712,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ]
   }, {
@@ -278,7 +278,7 @@
     "manualActionItems" : 95,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 59,
+    "notTranslatedMarkers" : 58,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "STRING" ]
   }, {
@@ -356,7 +356,7 @@
     "manualActionItems" : 107,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 110,
+    "notTranslatedMarkers" : 108,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "SUBTRACT", "VARYING" ]
   }, {
@@ -371,7 +371,7 @@
     "manualActionItems" : 58,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 64,
+    "notTranslatedMarkers" : 63,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET" ]
   }, {
@@ -386,7 +386,7 @@
     "manualActionItems" : 137,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 147,
+    "notTranslatedMarkers" : 146,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING" ]
   }, {
@@ -416,7 +416,7 @@
     "manualActionItems" : 21,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 31,
+    "notTranslatedMarkers" : 30,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING", "VARYING" ]
   }, {
@@ -584,7 +584,7 @@
     "manualActionItems" : 237,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 153,
+    "notTranslatedMarkers" : 152,
     "notTranslated" : [ {
       "construct" : "EXEC SQL",
       "evidence" : 4
@@ -662,7 +662,7 @@
     "manualActionItems" : 6,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 18,
+    "notTranslatedMarkers" : 17,
     "notTranslated" : [ ],
     "present" : [ "CALL", "DISPLAY", "EVALUATE", "GOBACK", "INITIALIZE", "MOVE", "PERFORM", "STRING" ]
   }, {

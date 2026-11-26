@@ -37,6 +37,18 @@ public record CobolRecordLayout(String groupName, List<Field> fields, Optional<S
         return nonComposableReason.isEmpty() && !fields.isEmpty();
     }
 
+    /**
+     * Bytes an elementary item occupies (IBM sizes): DISPLAY one per digit or character; binary
+     * 2, 4 or 8 by digit count; packed decimal two digits per byte plus the sign nibble.
+     */
+    public static int storageLength(PicType type) {
+        return switch (type.usage()) {
+            case DISPLAY -> type.digits();
+            case COMP, COMP_5 -> type.digits() <= 4 ? 2 : type.digits() <= 9 ? 4 : 8;
+            case COMP_3 -> type.digits() / 2 + 1;
+        };
+    }
+
     /** Record length in characters. */
     public int length() {
         return fields.stream().mapToInt(Field::length).sum();

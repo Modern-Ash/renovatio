@@ -1,6 +1,7 @@
 package org.modernash.renovatio.cobol.ir.parser;
 
 import org.modernash.renovatio.cobol.ir.model.CobolRecordLayout;
+import org.modernash.renovatio.cobol.ir.model.CobolRedefinesView;
 import org.modernash.renovatio.cobol.runtime.PicClause;
 import org.modernash.renovatio.cobol.runtime.PicType;
 
@@ -192,7 +193,16 @@ final class CobolRecordLayoutExtractor {
             Entry entry = entries.get(k);
             String text = entry.text();
             if (REDEFINES.matcher(text).find()) {
-                return entry.name() + " has REDEFINES";
+                if (occurrence != 0) {
+                    return entry.name() + " has REDEFINES inside an OCCURS table";
+                }
+                // A redefinition adds no storage: the record holds only the redefined item's bytes.
+                if (!PICTURE.matcher(text).find()) {
+                    while (k + 1 < entries.size() && entries.get(k + 1).level() > entry.level()) {
+                        k++;
+                    }
+                }
+                continue;
             }
             if (OCCURS.matcher(text).find()) {
                 Matcher fixed = FIXED_OCCURS.matcher(text);
@@ -264,7 +274,7 @@ final class CobolRecordLayoutExtractor {
         if (!filler && nameCounts.getOrDefault(entry.name(), 0) > 1) {
             return entry.name() + " is declared more than once";
         }
-        int length = storageLength(type);
+        int length = CobolRecordLayout.storageLength(type);
         fields.add(new CobolRecordLayout.Field(filler ? null : entry.name(), type, length,
                 filler ? (type.usage() == PicType.Usage.DISPLAY ? fillerValue(text, length)
                         : "\0".repeat(length)) : null, occurrence));
@@ -301,22 +311,96 @@ final class CobolRecordLayoutExtractor {
         return dimensions;
     }
 
+    private static final Pattern REDEFINES_TARGET = Pattern.compile("(?i)\\bREDEFINES\\s+([A-Z0-9-]+)");
+
+    /**
+     * Every REDEFINES view (the redefining item and the elementary items under it), keyed by name.
+     * A view gets its base, offset and length when the base has an exact encoding, the view fits
+     * inside it, and neither sits in an OCCURS table nor redefines another view; otherwise the
+     * view is returned unsupported (base {@code null}).
+     */
+    static Map<String, CobolRedefinesView> redefinesViews(String dataSection) {
+        List<Entry> entries = entries(dataSection);
+        Map<String, Integer> nameCounts = new HashMap<>();
+        for (Entry entry : entries) {
+            if (!entry.condition() && !entry.name().equals("FILLER")) {
+                nameCounts.merge(entry.name(), 1, Integer::sum);
+            }
+        }
+        Map<String, CobolRedefinesView> views = new LinkedHashMap<>();
+        List<Entry> open = new ArrayList<>();
+        for (int i = 0; i < entries.size(); i++) {
+            Entry entry = entries.get(i);
+            if (entry.condition()) {
+                continue;
+            }
+            open.removeIf(ancestor -> ancestor.level() >= entry.level() || entry.level() == 1 || entry.level() == 77);
+            boolean insideTable = open.stream().anyMatch(ancestor -> OCCURS.matcher(ancestor.text()).find());
+            open.add(entry);
+            Matcher target = REDEFINES_TARGET.matcher(entry.text());
+            if (!target.find()) {
+                continue;
+            }
+            boolean group = !PICTURE.matcher(entry.text()).find();
+            List<Entry> subtree = group ? descendants(entries, i) : List.of();
+            List<String> names = new ArrayList<>();
+            names.add(entry.name());
+            subtree.stream().filter(e -> !e.condition() && !e.name().equals("FILLER")).forEach(e -> names.add(e.name()));
+
+            String baseName = target.group(1).toUpperCase(Locale.ROOT);
+            int baseIndex = -1;
+            for (int j = i - 1; j >= 0; j--) {
+                if (entries.get(j).name().equals(baseName) && entries.get(j).level() == entry.level()) {
+                    baseIndex = j;
+                    break;
+                }
+            }
+            List<CobolRecordLayout.Field> viewFields = new ArrayList<>();
+            String reason = insideTable || OCCURS.matcher(entry.text()).find() || baseIndex < 0
+                    || views.containsKey(baseName) || nameCounts.getOrDefault(baseName, 0) > 1 ? "unsupported"
+                    : group ? appendFields(subtree, 0, nameCounts, viewFields)
+                    : appendElementary(new Entry(entry.level(), entry.name(),
+                            REDEFINES_TARGET.matcher(entry.text()).replaceAll(" ")), 0, nameCounts, viewFields);
+            int baseLength = -1;
+            boolean baseIsGroup = false;
+            if (reason == null) {
+                Entry base = entries.get(baseIndex);
+                baseIsGroup = !PICTURE.matcher(base.text()).find();
+                if (baseIsGroup) {
+                    CobolRecordLayout layout = layout(base, descendants(entries, baseIndex), nameCounts);
+                    baseLength = layout.composable() ? layout.length() : -1;
+                } else {
+                    List<CobolRecordLayout.Field> baseField = new ArrayList<>();
+                    baseLength = appendElementary(base, 0, nameCounts, baseField) == null && !baseField.isEmpty()
+                            ? baseField.get(0).length() : -1;
+                }
+            }
+            int viewLength = viewFields.stream().mapToInt(CobolRecordLayout.Field::length).sum();
+            boolean supported = reason == null && baseLength > 0 && viewLength > 0 && viewLength <= baseLength
+                    && viewFields.stream().allMatch(field -> field.occurrence() == 0);
+            if (!supported) {
+                names.forEach(name -> views.putIfAbsent(name, new CobolRedefinesView(name, null, false, 0, 0, null)));
+                continue;
+            }
+            views.putIfAbsent(entry.name(), new CobolRedefinesView(entry.name(), baseName, baseIsGroup, 0, viewLength,
+                    group ? null : viewFields.get(0).picType()));
+            int offset = 0;
+            for (CobolRecordLayout.Field field : viewFields) {
+                if (!field.filler() && !field.name().equals(entry.name())) {
+                    views.putIfAbsent(field.name(), new CobolRedefinesView(field.name(), baseName, baseIsGroup,
+                            offset, field.length(), field.picType()));
+                }
+                offset += field.length();
+            }
+        }
+        return views;
+    }
+
     /** USAGE clauses whose bytes have an exact encoding: binary integers and packed decimal. */
     private static final Pattern ENCODABLE_USAGE = Pattern.compile(
             "COMP|COMP-4|COMP-5|COMPUTATIONAL|COMPUTATIONAL-4|COMPUTATIONAL-5|BINARY|COMP-3|COMPUTATIONAL-3"
                     + "|PACKED-DECIMAL");
 
-    /**
-     * Bytes an elementary item occupies (IBM sizes): DISPLAY one per digit or character; binary
-     * 2, 4 or 8 by digit count; packed decimal two digits per byte plus the sign nibble.
-     */
-    static int storageLength(PicType type) {
-        return switch (type.usage()) {
-            case DISPLAY -> type.digits();
-            case COMP, COMP_5 -> type.digits() <= 4 ? 2 : type.digits() <= 9 ? 4 : 8;
-            case COMP_3 -> type.digits() / 2 + 1;
-        };
-    }
 
     /** FILLER content: its alphanumeric VALUE, ZEROS or (by default) spaces, fitted to the length. */
     private static String fillerValue(String text, int length) {
