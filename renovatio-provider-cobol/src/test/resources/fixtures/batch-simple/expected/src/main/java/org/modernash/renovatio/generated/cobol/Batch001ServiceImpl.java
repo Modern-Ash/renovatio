@@ -46,7 +46,7 @@ public class Batch001ServiceImpl implements Batch001Service {
     }
     @GeneratedFrom(paragraph = "DISPLAY-RESULT", lines = "36-43")
     private void performDisplayResult(Batch001DTO input, Batch001DTO out) {
-        if (out.getWsFlag() == "Y") {
+        if (java.util.Objects.equals(out.getWsFlag(), "Y")) {
             out.setWsOutput("Total exceeded 50");
         } else {
             out.setWsOutput("Total within limit");

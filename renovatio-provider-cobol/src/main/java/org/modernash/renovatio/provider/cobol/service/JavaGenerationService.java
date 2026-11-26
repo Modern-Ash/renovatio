@@ -369,10 +369,15 @@ public class JavaGenerationService {
                     : new EmittedArtifacts(List.of());
             return raw;
         });
+        StubResult result = resultReference.get();
+        if (result != null && !result.isSuccess()) {
+            // Report why generation failed instead of an empty-output manifest mismatch.
+            result.setTargetLanguage(targetModel.profile().target().language().name());
+            return result;
+        }
         if (targetModel.targetLanguage() == org.modernash.renovatio.profile.MigrationProfile.Language.JAVA) {
             emitted = applyManifest(targetModel, emitted);
         }
-        StubResult result = resultReference.get();
         if (result == null) {
             result = new StubResult(!emitted.artifacts().isEmpty(), emitted.artifacts().isEmpty()
                     ? "No target files generated" : "Generated " + emitted.artifacts().size() + " target files");
@@ -488,7 +493,7 @@ public class JavaGenerationService {
                             .forEach(item -> actionItems.putIfAbsent(item.id(), item));
 
                     // Generate DTO class for data structures
-                    String dtoClass = generateDataTransferObject(classBase, metadata);
+                    String dtoClass = generateDataTransferObject(classBase, metadata, model);
                     if (annotatedResolution.context().isPresent()) {
                         dtoClass = semanticTranspiler.enrichServiceImplementation(dtoClass,
                                 annotatedResolution.context().orElseThrow(),
@@ -864,6 +869,11 @@ public class JavaGenerationService {
      * Generates a Java DTO class from COBOL data structures
      */
     private String generateDataTransferObject(String cleanClassName, Map<String, Object> programData) {
+        return generateDataTransferObject(cleanClassName, programData, resolveIntermediateModel(programData));
+    }
+
+    private String generateDataTransferObject(String cleanClassName, Map<String, Object> programData,
+                                              CobolIntermediateModel model) {
         // Asegurar que el cleanClassName esté completamente limpio
         String sanitizedClassName = sanitizeClassName(cleanClassName);
         String className = sanitizedClassName + "DTO";
@@ -879,12 +889,16 @@ public class JavaGenerationService {
                 .addModifiers(Modifier.PUBLIC)
                 .build());
 
+        Map<String, String> irTypes = irFieldTypes(model);
         for (Map<String, Object> item : resolveDtoFields(programData)) {
             String fieldName = (String) item.get("name");
             String javaType = (String) item.get("javaType");
             if (fieldName != null && javaType != null) {
-                addFieldToClass(classBuilder, fieldName, javaType);
+                addFieldToClass(classBuilder, fieldName, irTypes.getOrDefault(fieldName, javaType));
             }
+        }
+        for (Map<String, Object> item : copybookOnlyFields(programData, model)) {
+            addFieldToClass(classBuilder, (String) item.get("name"), (String) item.get("javaType"));
         }
 
         TypeSpec classSpec = classBuilder.build();
@@ -1139,6 +1153,7 @@ public class JavaGenerationService {
 
     private List<FieldValidation> buildFieldValidations(Map<String, Object> programData, CobolIntermediateModel model) {
         Map<String, FieldValidation> validations = new LinkedHashMap<>();
+        Map<String, String> irTypes = irFieldTypes(model);
 
         for (Map<String, Object> field : resolveDtoFields(programData)) {
             String name = field != null ? (String) field.get("name") : null;
@@ -1146,7 +1161,7 @@ public class JavaGenerationService {
                 continue;
             }
             String javaType = field.get("javaType") != null ? field.get("javaType").toString() : "String";
-            validations.putIfAbsent(name, new FieldValidation(name, javaType));
+            validations.putIfAbsent(name, new FieldValidation(name, irTypes.getOrDefault(name, javaType)));
         }
 
         if (model != null) {
@@ -1195,6 +1210,61 @@ public class JavaGenerationService {
             unique.putIfAbsent(fieldName, item);
         }
         return new ArrayList<>(unique.values());
+    }
+
+    /**
+     * Java type of every elementary IR data item, keyed by DTO field name. The IR type mapper is
+     * the single source of truth for field types: the DTO, its validate() and the translated
+     * PROCEDURE DIVISION statements must all agree, or the generated service does not compile.
+     */
+    private Map<String, String> irFieldTypes(CobolIntermediateModel model) {
+        Map<String, String> types = new HashMap<>();
+        if (model == null) {
+            return types;
+        }
+        for (CobolDataItem item : model.getDataItems()) {
+            if (item != null && item.getPicture() != null && item.getJavaType() != null) {
+                types.putIfAbsent(toCamelCase(item.getName()), item.getJavaType());
+            }
+        }
+        return types;
+    }
+
+    /**
+     * Elementary data items the COBOL IR knows (it expands COPY members) that the program
+     * metadata does not, e.g. a COMMAREA field declared in a copybook. PROCEDURE DIVISION code
+     * reads and writes them, so the DTO must carry them for the translated service to compile.
+     * Programs with ENTRY points keep their LINKAGE-only contract.
+     */
+    @SuppressWarnings("unchecked")
+    private List<Map<String, Object>> copybookOnlyFields(Map<String, Object> programData,
+                                                        CobolIntermediateModel model) {
+        if (model == null || programData == null) {
+            return List.of();
+        }
+        List<Map<String, Object>> entries = (List<Map<String, Object>>) programData.get("entries");
+        if (entries != null && !entries.isEmpty()) {
+            return List.of();
+        }
+        Set<String> declared = new java.util.HashSet<>();
+        for (Map<String, Object> item : resolveDtoFields(programData)) {
+            declared.add(((String) item.get("name")).toLowerCase(Locale.ROOT));
+        }
+        List<Map<String, Object>> extra = new ArrayList<>();
+        for (CobolDataItem item : model.getDataItems()) {
+            if (item == null || item.getPicture() == null || item.getName().equalsIgnoreCase("FILLER")) {
+                continue;
+            }
+            String name = toCamelCase(item.getName());
+            if (name == null || !declared.add(name.toLowerCase(Locale.ROOT))) {
+                continue;
+            }
+            Map<String, Object> field = new LinkedHashMap<>();
+            field.put("name", name);
+            field.put("javaType", item.getJavaType());
+            extra.add(field);
+        }
+        return extra;
     }
 
     private String getterName(String fieldName) {
