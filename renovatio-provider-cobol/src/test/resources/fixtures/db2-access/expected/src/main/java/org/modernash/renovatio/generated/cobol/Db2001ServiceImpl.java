@@ -40,7 +40,7 @@ public class Db2001ServiceImpl implements Db2001Service {
   }
     @GeneratedFrom(paragraph = "FETCH-EMPLOYEE", lines = "41-59")
     private void performFetchEmployee(Db2001DTO input, Db2001DTO out) {
-        // COBOL not translated: EMP-ID (data item not modeled)
+        out.setEmpId(out.getWsEmpId());
         // EXEC SQL SELECT EMP_NAME, EMP_DEPT, EMP_SALARY                INTO :WS-EMP-NAME, :WS-EMP-DEPT, :WS-EMP-SALARY                FROM EMPLOYEES                WHERE EMP_ID = :WS-EMP-ID
         // COBOL not translated: SQLCODE (data item not modeled)
     }

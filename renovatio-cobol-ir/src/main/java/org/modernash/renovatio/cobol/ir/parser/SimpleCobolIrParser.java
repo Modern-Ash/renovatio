@@ -415,7 +415,8 @@ public class SimpleCobolIrParser {
                 .fileDescriptors(extractFileDescriptors(source, fileToRecordMapping))
                 .initialValues(CobolRecordLayoutExtractor.initialValues(dataSection(source)))
                 .tableDimensions(CobolRecordLayoutExtractor.tableDimensions(dataSection(source)))
-                .redefinesViews(CobolRecordLayoutExtractor.redefinesViews(dataSection(source)));
+                .redefinesViews(CobolRecordLayoutExtractor.redefinesViews(dataSection(source)))
+                .ambiguousDataNames(CobolRecordLayoutExtractor.ambiguousNames(dataSection(source)));
         paragraphs.values().forEach(builder::addParagraph);
         return builder.build();
     }

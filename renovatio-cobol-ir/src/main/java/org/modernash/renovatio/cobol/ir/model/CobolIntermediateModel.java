@@ -47,6 +47,7 @@ public final class CobolIntermediateModel {
     private final Map<String, String> initialValues;
     private final Map<String, Integer> tableDimensions;
     private final Map<String, CobolRedefinesView> redefinesViews;
+    private final java.util.Set<String> ambiguousDataNames;
 
     private CobolIntermediateModel(Builder builder) {
         this.programId = builder.programId;
@@ -72,6 +73,12 @@ public final class CobolIntermediateModel {
         this.initialValues = Collections.unmodifiableMap(new LinkedHashMap<>(builder.initialValues));
         this.tableDimensions = Collections.unmodifiableMap(new LinkedHashMap<>(builder.tableDimensions));
         this.redefinesViews = Collections.unmodifiableMap(new LinkedHashMap<>(builder.redefinesViews));
+        this.ambiguousDataNames = java.util.Set.copyOf(builder.ambiguousDataNames);
+    }
+
+    /** Upper-case data names declared more than once (a qualified OF/IN reference is needed). */
+    public java.util.Set<String> getAmbiguousDataNames() {
+        return ambiguousDataNames;
     }
 
     /** REDEFINES views keyed by upper-case item name (see {@link CobolRedefinesView}). */
@@ -243,6 +250,12 @@ public final class CobolIntermediateModel {
         private final Map<String, String> initialValues = new LinkedHashMap<>();
         private final Map<String, Integer> tableDimensions = new LinkedHashMap<>();
         private final Map<String, CobolRedefinesView> redefinesViews = new LinkedHashMap<>();
+        private java.util.Set<String> ambiguousDataNames = java.util.Set.of();
+
+        public Builder ambiguousDataNames(java.util.Set<String> names) {
+            this.ambiguousDataNames = names == null ? java.util.Set.of() : names;
+            return this;
+        }
 
         public Builder redefinesViews(Map<String, CobolRedefinesView> views) {
             this.redefinesViews.clear();

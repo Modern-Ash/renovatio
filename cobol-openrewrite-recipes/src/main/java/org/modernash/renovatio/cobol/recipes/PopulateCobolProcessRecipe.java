@@ -436,9 +436,38 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 if (token.isEmpty()) {
                     continue;
                 }
-                parts.add(toJavaExpression(token));
+                parts.add(displayOperand(token));
             }
             return parts.isEmpty() ? "" : String.join(" + ", parts);
+        }
+
+        /**
+         * DISPLAY form of an operand. An unsigned USAGE DISPLAY numeric item shows its zero-padded
+         * digits without the implied decimal point, as COBOL prints it.
+         * shortcut: signed, binary and packed items print Java's toString; IBM and GnuCOBOL differ
+         * there (overpunch vs separate sign), pick one when a golden master needs it.
+         */
+        private String displayOperand(String token) {
+            String expression = toJavaExpression(token);
+            Optional<CobolDataItem> item = currentModel == null || isQuoted(token) ? Optional.empty()
+                    : findDataItem(currentModel, stripSubscripts(unqualifiedOrSelf(token)));
+            if (item.isEmpty() || item.get().picType() == null || expression.contains(UNRESOLVED_MARKER)) {
+                return expression;
+            }
+            var pic = item.get().picType();
+            if (pic.category() != org.modernash.renovatio.cobol.runtime.PicType.Category.NUMERIC || pic.signed()
+                    || pic.usage() != org.modernash.renovatio.cobol.runtime.PicType.Usage.DISPLAY) {
+                return expression;
+            }
+            String digits = "BigDecimal".equals(item.get().javaType())
+                    ? expression + ".setScale(" + pic.scale() + ", java.math.RoundingMode.DOWN).unscaledValue()"
+                    : expression;
+            return "String.format(\"%0" + pic.digits() + "d\", " + digits + ")";
+        }
+
+        private String unqualifiedOrSelf(String reference) {
+            String unqualified = unqualify(reference);
+            return unqualified == null ? reference : unqualified;
         }
 
         private static String truncate(String value) {
@@ -499,6 +528,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
             }
             if (targetType != null && FIGURATIVE_SPACE.contains(upper) && "String".equals(targetType)) {
                 return quoted(" ".repeat(alphanumericLength(target)));
+            }
+            if ("String".equals(targetType) && upper.matches("(LOW|HIGH)-VALUES?")) {
+                return quoted((upper.startsWith("LOW") ? "\\u0000" : "\\u00FF").repeat(alphanumericLength(target)));
             }
             if (source.matches("[+-]?[0-9]*\\.?[0-9]+")) {
                 return numericLiteral(source, targetType);
@@ -896,12 +928,33 @@ public class PopulateCobolProcessRecipe extends Recipe {
             }
         }
 
+        /** {@code OF group} / {@code IN group} qualifiers of a data reference. */
+        private static final java.util.regex.Pattern QUALIFIER = java.util.regex.Pattern.compile(
+                "(?i)\\s+(?:OF|IN)\\s+[A-Z0-9][A-Z0-9-]*");
+
+        /**
+         * The reference without OF/IN qualifiers (subscripts kept): DTO members are named by the
+         * unqualified name. {@code null} when that name is declared more than once, since the DTO
+         * then holds only one of them.
+         */
+        private @Nullable String unqualify(String reference) {
+            String t = reference.trim();
+            if (!QUALIFIER.matcher(t).find()) {
+                return t;
+            }
+            String base = t.split("[\\s(]", 2)[0].toUpperCase(Locale.ROOT);
+            if (currentModel != null && currentModel.getAmbiguousDataNames().contains(base)) {
+                return null;
+            }
+            return QUALIFIER.matcher(t).replaceAll("");
+        }
+
         /** Removes trailing COBOL subscripts (e.g. {@code (1)}, {@code (1:2)}) from a data reference. */
         private static String stripSubscripts(String cobolRef) {
             if (cobolRef == null) {
                 return null;
             }
-            String s = cobolRef.trim();
+            String s = QUALIFIER.matcher(cobolRef.trim()).replaceAll("");
             while (s.length() > 2 && s.endsWith(")") && s.indexOf('(') >= 0) {
                 int open = s.lastIndexOf('(');
                 if (open <= 0) {
@@ -1488,6 +1541,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
                                             Set<String> visitedParagraphs,
                                             @Nullable String varName) {
             List<String> lines = new ArrayList<>();
+            if (evaluate.expression().trim().equalsIgnoreCase("TRUE")) {
+                return renderEvaluateTrue(evaluate, model, visitedParagraphs, varName);
+            }
             String selector = toJavaExpression(evaluate.expression());
             int selectorLength = textLength(evaluate.expression());
             lines.add(String.format(Locale.ROOT, "switch (%s) {", selector));
@@ -1507,6 +1563,25 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 lines.add(indent("}"));
             }
             lines.add("}");
+            return lines;
+        }
+
+        /** EVALUATE TRUE: each WHEN is a condition, tested in order; WHEN OTHER is the else branch. */
+        private List<String> renderEvaluateTrue(EvaluateStatement evaluate, CobolIntermediateModel model,
+                                                Set<String> visitedParagraphs, @Nullable String varName) {
+            List<String> lines = new ArrayList<>();
+            String keyword = "if";
+            for (EvaluateStatement.EvaluateWhenBranch branch : evaluate.branches()) {
+                if (branch.condition().equalsIgnoreCase("OTHER")) {
+                    lines.add(lines.isEmpty() ? "{" : "} else {");
+                } else {
+                    lines.add((lines.isEmpty() ? "" : "} else ") + keyword + " (" + translateCondition(branch.condition()) + ") {");
+                }
+                renderBranch(branch.statements(), model, visitedParagraphs, varName, lines);
+            }
+            if (!lines.isEmpty()) {
+                lines.add("}");
+            }
             return lines;
         }
 
@@ -1764,7 +1839,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 + "|GREATER(?:\\s+THAN)?(?:\\s+OR\\s+EQUAL(?:\\s+TO)?)?|LESS(?:\\s+THAN)?(?:\\s+OR\\s+EQUAL(?:\\s+TO)?)?"
                 + "|EQUALS?(?:\\s+TO)?|>=|<=|<>|=|>|<)\\s*(?<right>.+)$");
         private static final java.util.regex.Pattern CLASS_OR_SIGN = java.util.regex.Pattern.compile(
-                "(?i)^(?<subject>[A-Z0-9][A-Z0-9-]*(?:\\([^)]*\\))?)\\s+(?:IS\\s+)?(?<not>NOT\\s+)?"
+                "(?i)^(?<subject>[A-Z0-9][A-Z0-9-]*(?:\\s+(?:OF|IN)\\s+[A-Z0-9][A-Z0-9-]*)*(?:\\([^)]*\\))?)\\s+(?:IS\\s+)?(?<not>NOT\\s+)?"
                 + "(?<test>NUMERIC|ALPHABETIC|POSITIVE|NEGATIVE|ZERO)$");
 
         private @Nullable String translateDisjunction(String text, ConditionContext context) {
@@ -1895,6 +1970,10 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         private String figurativeTest(String expr, @Nullable String type, String op, String figurative) {
+            if (!FIGURATIVE_ZERO.contains(figurative) && type != null && !"String".equals(type)) {
+                // A numeric Java value cannot hold spaces or low/high-values (invalid COBOL data).
+                return UNRESOLVED_MARKER + figurative;
+            }
             String test;
             if (FIGURATIVE_ZERO.contains(figurative)) {
                 test = switch (type == null ? "String" : type) {
@@ -1980,7 +2059,10 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         private @Nullable String operandExpression(String operand, ConditionContext context) {
-            String t = operand.trim();
+            String t = unqualify(operand);
+            if (t == null) {
+                return null;
+            }
             if (isQuoted(t) || t.matches("[+-]?[0-9]*\\.?[0-9]+")) {
                 return toJavaExpression(t);
             }
@@ -2122,7 +2204,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
             return result.toString().trim();
         }
 
-        private String toSetter(String cobolName) {
+        private String toSetter(String qualifiedName) {
+            String cobolName = unqualify(qualifiedName);
+            if (cobolName == null) {
+                return UNRESOLVED_MARKER + qualifiedName.trim().split("\\s", 2)[0];
+            }
             String pascal = toPascal(stripSubscripts(cobolName));
             if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)
                     || tableSizes.containsKey(pascal) || !stripSubscripts(cobolName).equals(cobolName.trim())) {
@@ -2133,7 +2219,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
         }
 
         /** {@code target.setX(value)}, or {@code target.setX(subscript, value)} for an OCCURS item. */
-        private String setterCall(String targetVar, String cobolName, String value) {
+        private String setterCall(String targetVar, String qualifiedName, String value) {
+            String cobolName = unqualify(qualifiedName);
+            if (cobolName == null) {
+                return targetVar + "." + UNRESOLVED_MARKER + qualifiedName.trim().split("\\s", 2)[0] + "(" + value + ")";
+            }
             String pascal = toPascal(stripSubscripts(cobolName));
             if (tableSizes.containsKey(pascal)) {
                 String subscript = subscript(cobolName);
@@ -2159,7 +2249,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
          * from the input otherwise; OCCURS items take their subscript. Reference modification and
          * subscripts on tables this generation does not model stay unresolved.
          */
-        private String getterCall(String reference) {
+        private String getterCall(String qualifiedReference) {
+            String reference = unqualify(qualifiedReference);
+            if (reference == null) {
+                return UNRESOLVED_MARKER + qualifiedReference.trim().split("\\s", 2)[0];
+            }
             String upper = stripSubscripts(reference).toUpperCase(Locale.ROOT);
             String pascal = toPascal(stripSubscripts(reference));
             if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)) {

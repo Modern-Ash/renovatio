@@ -48,10 +48,10 @@ public class Cics001ServiceImpl implements Cics001Service {
     }
     @GeneratedFrom(paragraph = "PROCESS-CUSTOMER", lines = "52-70")
     private void performProcessCustomer(Cics001DTO input, Cics001DTO out) {
-        // COBOL not translated: CUST-ID (data item not modeled)
+        out.setCustId(out.getWsCustomerId());
         // COBOL not translated: EXEC CICS READ FILE('CUSTOMERS') INTO (CUSTOMER-RECORD) LENGTH (LENGTH OF CUSTOMER-RECORD) KEY (WS-CUSTOMER-ID) RESP (WS
         if (out.getWsResponse() == 0) {
-            // COBOL not translated: CUST-NAME (data item not modeled)
+            out.setWsCustomerName(out.getCustName());
             // COBOL not translated: STRING 'Customer: ' DELIMITED BY SIZE
             // COBOL not translated: WS-CUSTOMER-NAME DELIMITED BY SIZE
             // COBOL not translated: INTO WS-MESSAGE

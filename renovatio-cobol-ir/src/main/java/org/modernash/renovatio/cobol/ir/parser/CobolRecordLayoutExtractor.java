@@ -311,6 +311,21 @@ final class CobolRecordLayoutExtractor {
         return dimensions;
     }
 
+    /** Names declared more than once in the region: only a qualified reference (OF/IN) tells them apart. */
+    static java.util.Set<String> ambiguousNames(String dataSection) {
+        Map<String, Integer> counts = new HashMap<>();
+        for (Entry entry : entries(dataSection)) {
+            if (!entry.condition() && !entry.name().equals("FILLER")) {
+                counts.merge(entry.name(), 1, Integer::sum);
+            }
+        }
+        java.util.Set<String> ambiguous = new java.util.TreeSet<>();
+        counts.forEach((name, count) -> {
+            if (count > 1) ambiguous.add(name);
+        });
+        return ambiguous;
+    }
+
     private static final Pattern REDEFINES_TARGET = Pattern.compile("(?i)\\bREDEFINES\\s+([A-Z0-9-]+)");
 
     /**

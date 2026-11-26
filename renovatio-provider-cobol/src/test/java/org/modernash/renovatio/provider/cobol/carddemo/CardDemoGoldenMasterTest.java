@@ -98,6 +98,11 @@ class CardDemoGoldenMasterTest {
         assertStdoutMatchesCobol("reference-modification", "REFMOD", "Refmod");
     }
 
+    @Test
+    void qualifiedNamesAndEvaluateTrueMatchCobol() throws Exception {
+        assertStdoutMatchesCobol("qualified-evaluate", "QUALEVAL", "Qualeval");
+    }
+
     /** Runs a self-contained program (no files) and compares its stdout with the GnuCOBOL reference. */
     private void assertStdoutMatchesCobol(String goldenDir, String program, String classBase) throws Exception {
         Path workspace = tempDir.resolve(goldenDir);

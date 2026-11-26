@@ -352,7 +352,7 @@ class PopulateCobolProcessRecipeTest {
 
         String updated = applyRecipe(cobol);
 
-        assertThat(updated).contains("System.out.println(\"RATING \" + input.getCustomerRating());");
+        assertThat(updated).contains("System.out.println(\"RATING \" + String.format(\"%02d\", input.getCustomerRating()));");
         assertThat(updated).contains("output.setCustomerName(\" \".repeat(30));");
         assertThat(updated).contains("output.setCustomerStatus(\"Y\");");
         assertThat(updated).contains("output.setCustomerStatus(\" \");");
