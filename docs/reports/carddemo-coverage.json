@@ -5,7 +5,7 @@
     "programs" : 44,
     "parsed" : 44,
     "emitted" : 44,
-    "compiled" : 17,
+    "compiled" : 44,
     "cobolFiles" : 44,
     "copybooks" : 62
   },
@@ -14,13 +14,13 @@
       "programs" : 14,
       "parsed" : 14,
       "emitted" : 14,
-      "compiled" : 8
+      "compiled" : 14
     },
     "cics-online" : {
       "programs" : 19,
       "parsed" : 19,
       "emitted" : 19,
-      "compiled" : 5
+      "compiled" : 19
     },
     "db2" : {
       "programs" : 3,
@@ -32,7 +32,7 @@
       "programs" : 8,
       "parsed" : 8,
       "emitted" : 8,
-      "compiled" : 1
+      "compiled" : 8
     }
   },
   "unsupportedConstructs" : [ {
@@ -41,20 +41,20 @@
     "occurrences" : 19
   }, {
     "construct" : "READ",
-    "programs" : 6,
-    "occurrences" : 13
-  }, {
-    "construct" : "CLOSE",
     "programs" : 5,
-    "occurrences" : 23
-  }, {
-    "construct" : "OPEN",
-    "programs" : 5,
-    "occurrences" : 23
+    "occurrences" : 11
   }, {
     "construct" : "WRITE",
     "programs" : 4,
     "occurrences" : 52
+  }, {
+    "construct" : "CLOSE",
+    "programs" : 3,
+    "occurrences" : 19
+  }, {
+    "construct" : "OPEN",
+    "programs" : 3,
+    "occurrences" : 19
   }, {
     "construct" : "REWRITE",
     "programs" : 1,
@@ -68,12 +68,12 @@
     "subsystem" : "batch",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 28,
+    "manualActionItems" : 3,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 45,
+    "notTranslatedMarkers" : 9,
     "notTranslated" : [ {
       "construct" : "CALL",
       "evidence" : 1
@@ -84,8 +84,7 @@
       "construct" : "WRITE",
       "evidence" : 4
     } ],
-    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "VARYING", "WRITE" ],
-    "compileError" : "Cbact01cServiceImpl.java:102: error: cannot find symbol         out.setArrAcctCurrCycDebit(100500);            ^   symbol:   method setArrAcctCurrCycDebit(int)   location: variable out of type Cbact01…"
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT", "VARYING", "WRITE" ]
   }, {
     "programId" : "CBACT02C",
     "file" : "app/cbl/CBACT02C.cbl",
@@ -138,12 +137,12 @@
     "subsystem" : "batch",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 7,
+    "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 8,
+    "notTranslatedMarkers" : 3,
     "notTranslated" : [ {
       "construct" : "CALL",
       "evidence" : 1
@@ -151,8 +150,7 @@
       "construct" : "READ",
       "evidence" : 1
     } ],
-    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ],
-    "compileError" : "Cbcus01cServiceImpl.java:45: error: cannot find symbol         out.setTiming(0);            ^   symbol:   method setTiming(int)   location: variable out of type Cbcus01cDTO Cbcus01cServiceImpl.java:46…"
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBEXPORT",
     "file" : "app/cbl/CBEXPORT.cbl",
@@ -160,12 +158,12 @@
     "subsystem" : "batch",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 95,
+    "manualActionItems" : 32,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 161,
+    "notTranslatedMarkers" : 57,
     "notTranslated" : [ {
       "construct" : "CALL",
       "evidence" : 1
@@ -182,8 +180,7 @@
       "construct" : "WRITE",
       "evidence" : 5
     } ],
-    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "WRITE" ],
-    "compileError" : "CbexportServiceImpl.java:129: error: cannot find symbol         System.out.println(\"CBEXPORT: XRefs Exported: \" + out.getWsXrefRecordsExported());                                                      …"
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "CBIMPORT",
     "file" : "app/cbl/CBIMPORT.cbl",
@@ -191,12 +188,12 @@
     "subsystem" : "batch",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 62,
+    "manualActionItems" : 18,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 130,
+    "notTranslatedMarkers" : 38,
     "notTranslated" : [ {
       "construct" : "CALL",
       "evidence" : 1
@@ -213,8 +210,7 @@
       "construct" : "WRITE",
       "evidence" : 6
     } ],
-    "present" : [ "ADD", "CALL", "CLOSE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "WRITE" ],
-    "compileError" : "CbimportServiceImpl.java:95: error: cannot find symbol         System.out.println(\"CBIMPORT: XRefs Imported: \" + out.getWsXrefRecordsImported());                                                       …"
+    "present" : [ "ADD", "CALL", "CLOSE", "DISPLAY", "EVALUATE", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "WRITE" ]
   }, {
     "programId" : "CBPAUP0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/CBPAUP0C.cbl",
@@ -222,15 +218,14 @@
     "subsystem" : "ims-mq",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 64,
+    "manualActionItems" : 20,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 73,
+    "notTranslatedMarkers" : 37,
     "notTranslated" : [ ],
-    "present" : [ "ACCEPT", "ADD", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC DLI", "GOBACK", "IF", "MOVE", "PERFORM", "READ", "SET", "SUBTRACT" ],
-    "compileError" : "Cbpaup0cDTO.java:29: error: variable filler is already defined in class Cbpaup0cDTO   private String filler;                  ^ Cbpaup0cDTO.java:33: error: variable filler is already defined in class …"
+    "present" : [ "ACCEPT", "ADD", "COMPUTE", "DISPLAY", "EVALUATE", "EXEC DLI", "GOBACK", "IF", "MOVE", "PERFORM", "READ", "SET", "SUBTRACT" ]
   }, {
     "programId" : "CBSTM03A",
     "file" : "app/cbl/CBSTM03A.CBL",
@@ -238,12 +233,12 @@
     "subsystem" : "batch",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 54,
+    "manualActionItems" : 40,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 57,
+    "notTranslatedMarkers" : 35,
     "notTranslated" : [ {
       "construct" : "CALL",
       "evidence" : 8
@@ -251,8 +246,7 @@
       "construct" : "WRITE",
       "evidence" : 37
     } ],
-    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "GO TO", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING", "VARYING", "WRITE" ],
-    "compileError" : "Cbstm03aDTO.java:64: error: variable filler is already defined in class Cbstm03aDTO   private String filler;                  ^ Cbstm03aDTO.java:74: error: variable filler is already defined in class …"
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "GO TO", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "SET", "STRING", "VARYING", "WRITE" ]
   }, {
     "programId" : "CBSTM03B",
     "file" : "app/cbl/CBSTM03B.CBL",
@@ -275,12 +269,12 @@
     "subsystem" : "batch",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 27,
+    "manualActionItems" : 6,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 67,
+    "notTranslatedMarkers" : 42,
     "notTranslated" : [ {
       "construct" : "CALL",
       "evidence" : 1
@@ -294,8 +288,7 @@
       "construct" : "READ",
       "evidence" : 3
     } ],
-    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ],
-    "compileError" : "Cbtrn01cServiceImpl.java:23: error: cannot find symbol           while (!(input.getEndOfDailyTransFile() == \"Y\")) {                         ^   symbol:   method getEndOfDailyTransFile()   location: va…"
+    "present" : [ "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "MOVE", "OPEN", "PERFORM", "READ" ]
   }, {
     "programId" : "CBTRN02C",
     "file" : "app/cbl/CBTRN02C.cbl",
@@ -348,18 +341,17 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 1459,
+    "manualActionItems" : 928,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 1032,
+    "notTranslatedMarkers" : 697,
     "notTranslated" : [ {
       "construct" : "REWRITE",
       "evidence" : 2
     } ],
-    "present" : [ "ACCEPT", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ],
-    "compileError" : "CoactupcDTO.java:34: error: variable filler is already defined in class CoactupcDTO   private String filler;                  ^ CoactupcDTO.java:38: error: variable filler is already defined in class …"
+    "present" : [ "ACCEPT", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COACTVWC",
     "file" : "app/cbl/COACTVWC.cbl",
@@ -384,10 +376,10 @@
     "emit" : true,
     "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 11,
+    "manualActionItems" : 6,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 13,
+    "notTranslatedMarkers" : 7,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING", "VARYING" ]
   }, {
@@ -397,15 +389,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 153,
+    "manualActionItems" : 100,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 151,
+    "notTranslatedMarkers" : 101,
     "notTranslated" : [ ],
-    "present" : [ "ADD", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING", "WRITE" ],
-    "compileError" : "Cobil00cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cobil00cDTO Cobil…"
+    "present" : [ "ADD", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COBSWAIT",
     "file" : "app/cbl/COBSWAIT.cbl",
@@ -458,15 +449,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
-    "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET" ],
-    "compileError" : "CocrdslcDTO.java:38: error: variable filler is already defined in class CocrdslcDTO   private String filler;                  ^ CocrdslcDTO.java:173: error: method getFiller() is already defined in cl…"
+    "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET" ]
   }, {
     "programId" : "COCRDUPC",
     "file" : "app/cbl/COCRDUPC.cbl",
@@ -474,15 +464,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
-    "present" : [ "ACCEPT", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING" ],
-    "compileError" : "CocrdupcDTO.java:51: error: variable filler is already defined in class CocrdupcDTO   private String filler;                  ^ CocrdupcDTO.java:109: error: variable filler is already defined in class…"
+    "present" : [ "ACCEPT", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING" ]
   }, {
     "programId" : "CODATE01",
     "file" : "app/app-vsam-mq/cbl/CODATE01.cbl",
@@ -505,15 +494,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 68,
+    "manualActionItems" : 39,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 81,
+    "notTranslatedMarkers" : 41,
     "notTranslated" : [ ],
-    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING", "VARYING" ],
-    "compileError" : "Comen01cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Comen01cDTO Comen…"
+    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "INSPECT", "MOVE", "PERFORM", "SET", "STRING", "VARYING" ]
   }, {
     "programId" : "COPAUA0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUA0C.cbl",
@@ -521,18 +509,17 @@
     "subsystem" : "ims-mq",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 285,
+    "manualActionItems" : 168,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 303,
+    "notTranslatedMarkers" : 185,
     "notTranslated" : [ {
       "construct" : "CALL",
       "evidence" : 2
     } ],
-    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "UNSTRING" ],
-    "compileError" : "Copaua0cServiceImpl.java:48: error: cannot find symbol           output.setPaRqTransactionAmt(null);                 ^   symbol:   method setPaRqTransactionAmt(<null>)   location: variable output of t…"
+    "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "UNSTRING" ]
   }, {
     "programId" : "COPAUS0C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS0C.cbl",
@@ -540,15 +527,14 @@
     "subsystem" : "ims-mq",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 223,
+    "manualActionItems" : 171,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 241,
+    "notTranslatedMarkers" : 197,
     "notTranslated" : [ ],
-    "present" : [ "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "VARYING" ],
-    "compileError" : "Copaus0cServiceImpl.java:17: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Copaus0cDTO Copau…"
+    "present" : [ "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "VARYING" ]
   }, {
     "programId" : "COPAUS1C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS1C.cbl",
@@ -556,15 +542,14 @@
     "subsystem" : "ims-mq",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 96,
+    "manualActionItems" : 81,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 101,
+    "notTranslatedMarkers" : 64,
     "notTranslated" : [ ],
-    "present" : [ "DISPLAY", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "SEARCH", "SET", "STRING" ],
-    "compileError" : "Copaus1cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Copaus1cDTO Copau…"
+    "present" : [ "DISPLAY", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "SEARCH", "SET", "STRING" ]
   }, {
     "programId" : "COPAUS2C",
     "file" : "app/app-authorization-ims-db2-mq/cbl/COPAUS2C.cbl",
@@ -587,15 +572,17 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 139,
+    "manualActionItems" : 102,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 74,
-    "notTranslated" : [ ],
-    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "SET", "STRING", "VARYING", "WRITE" ],
-    "compileError" : "Corpt00cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Corpt00cDTO Corpt…"
+    "notTranslatedMarkers" : 100,
+    "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 2
+    } ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "SET", "STRING", "VARYING", "WRITE" ]
   }, {
     "programId" : "COSGN00C",
     "file" : "app/cbl/COSGN00C.cbl",
@@ -603,15 +590,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 62,
+    "manualActionItems" : 44,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 79,
+    "notTranslatedMarkers" : 57,
     "notTranslated" : [ ],
-    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ],
-    "compileError" : "Cosgn00cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cosgn00cDTO Cosgn…"
+    "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ]
   }, {
     "programId" : "COTRN00C",
     "file" : "app/cbl/COTRN00C.cbl",
@@ -619,15 +605,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 122,
+    "manualActionItems" : 67,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 197,
+    "notTranslatedMarkers" : 150,
     "notTranslated" : [ ],
-    "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT", "VARYING" ],
-    "compileError" : "Cotrn00cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cotrn00cDTO Cotrn…"
+    "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT", "VARYING" ]
   }, {
     "programId" : "COTRN01C",
     "file" : "app/cbl/COTRN01C.cbl",
@@ -635,15 +620,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 87,
+    "manualActionItems" : 58,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 87,
+    "notTranslatedMarkers" : 57,
     "notTranslated" : [ ],
-    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ],
-    "compileError" : "Cotrn01cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cotrn01cDTO Cotrn…"
+    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ]
   }, {
     "programId" : "COTRN02C",
     "file" : "app/cbl/COTRN02C.cbl",
@@ -651,15 +635,17 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 194,
+    "manualActionItems" : 136,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 169,
-    "notTranslated" : [ ],
-    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "WRITE" ],
-    "compileError" : "Cotrn02cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cotrn02cDTO Cotrn…"
+    "notTranslatedMarkers" : 136,
+    "notTranslated" : [ {
+      "construct" : "CALL",
+      "evidence" : 2
+    } ],
+    "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COTRTLIC",
     "file" : "app/app-transaction-type-db2/cbl/COTRTLIC.cbl",
@@ -697,15 +683,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 121,
+    "manualActionItems" : 68,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 211,
+    "notTranslatedMarkers" : 148,
     "notTranslated" : [ ],
-    "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT", "VARYING" ],
-    "compileError" : "Cousr00cDTO.java:16: error: variable filler is already defined in class Cousr00cDTO   private String filler;                  ^ Cousr00cDTO.java:20: error: variable filler is already defined in class …"
+    "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT", "VARYING" ]
   }, {
     "programId" : "COUSR01C",
     "file" : "app/cbl/COUSR01C.cbl",
@@ -713,15 +698,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 73,
+    "manualActionItems" : 42,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 77,
+    "notTranslatedMarkers" : 46,
     "notTranslated" : [ ],
-    "present" : [ "ADD", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "STRING", "WRITE" ],
-    "compileError" : "Cousr01cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cousr01cDTO Cousr…"
+    "present" : [ "ADD", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "STRING", "WRITE" ]
   }, {
     "programId" : "COUSR02C",
     "file" : "app/cbl/COUSR02C.cbl",
@@ -729,15 +713,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 94,
+    "manualActionItems" : 59,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 97,
+    "notTranslatedMarkers" : 57,
     "notTranslated" : [ ],
-    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING" ],
-    "compileError" : "Cousr02cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cousr02cDTO Cousr…"
+    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING" ]
   }, {
     "programId" : "COUSR03C",
     "file" : "app/cbl/COUSR03C.cbl",
@@ -745,15 +728,14 @@
     "subsystem" : "cics-online",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 85,
+    "manualActionItems" : 50,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 90,
+    "notTranslatedMarkers" : 54,
     "notTranslated" : [ ],
-    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET", "STRING" ],
-    "compileError" : "Cousr03cServiceImpl.java:16: error: cannot find symbol           output.setWsErrFlg(\"N\");                 ^   symbol:   method setWsErrFlg(String)   location: variable output of type Cousr03cDTO Cousr…"
+    "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET", "STRING" ]
   }, {
     "programId" : "CSUTLDTC",
     "file" : "app/cbl/CSUTLDTC.cbl",
@@ -776,15 +758,14 @@
     "subsystem" : "ims-mq",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
     "manualActionItems" : 0,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 0,
     "notTranslated" : [ ],
-    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ],
-    "compileError" : "DbunldgsDTO.java:36: error: variable filler is already defined in class DbunldgsDTO   private String filler;                  ^ DbunldgsDTO.java:40: error: variable filler is already defined in class …"
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ]
   }, {
     "programId" : "PAUDBLOD",
     "file" : "app/app-authorization-ims-db2-mq/cbl/PAUDBLOD.CBL",
@@ -792,27 +773,14 @@
     "subsystem" : "ims-mq",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 113,
+    "manualActionItems" : 28,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 112,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 3
-    }, {
-      "construct" : "CLOSE",
-      "evidence" : 2
-    }, {
-      "construct" : "OPEN",
-      "evidence" : 2
-    }, {
-      "construct" : "READ",
-      "evidence" : 2
-    } ],
-    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ" ],
-    "compileError" : "PaudblodServiceImpl.java:46: error: ')' or ',' expected           System.out.println(\"TODAYS DATE            :\" + input.getCurrentDate() + 01790043);                                                   …"
+    "notTranslatedMarkers" : 0,
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ" ]
   }, {
     "programId" : "PAUDBUNL",
     "file" : "app/app-authorization-ims-db2-mq/cbl/PAUDBUNL.CBL",
@@ -820,24 +788,14 @@
     "subsystem" : "ims-mq",
     "parse" : true,
     "emit" : true,
-    "compile" : false,
+    "compile" : true,
     "javaFiles" : 3,
-    "manualActionItems" : 98,
+    "manualActionItems" : 21,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 71,
-    "notTranslated" : [ {
-      "construct" : "CALL",
-      "evidence" : 1
-    }, {
-      "construct" : "CLOSE",
-      "evidence" : 2
-    }, {
-      "construct" : "OPEN",
-      "evidence" : 2
-    } ],
-    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ],
-    "compileError" : "PaudbunlServiceImpl.java:43: error: ')' or ',' expected           System.out.println(\"TODAYS DATE            :\" + input.getCurrentDate() + 01790043);                                                   …"
+    "notTranslatedMarkers" : 0,
+    "notTranslated" : [ ],
+    "present" : [ "ACCEPT", "ADD", "CALL", "CLOSE", "CONTINUE", "DISPLAY", "GOBACK", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "WRITE" ]
   } ],
   "inventory" : {
     "cobolFiles" : 44,
