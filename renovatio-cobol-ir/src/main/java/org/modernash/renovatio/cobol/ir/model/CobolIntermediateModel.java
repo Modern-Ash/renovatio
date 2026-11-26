@@ -45,6 +45,7 @@ public final class CobolIntermediateModel {
     private final Map<String, CobolRecordLayout> recordLayouts;
     private final Map<String, CobolFileDescriptor> fileDescriptors;
     private final Map<String, String> initialValues;
+    private final Map<String, Integer> tableDimensions;
 
     private CobolIntermediateModel(Builder builder) {
         this.programId = builder.programId;
@@ -68,6 +69,16 @@ public final class CobolIntermediateModel {
         this.recordLayouts = Collections.unmodifiableMap(new LinkedHashMap<>(builder.recordLayouts));
         this.fileDescriptors = Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileDescriptors));
         this.initialValues = Collections.unmodifiableMap(new LinkedHashMap<>(builder.initialValues));
+        this.tableDimensions = Collections.unmodifiableMap(new LinkedHashMap<>(builder.tableDimensions));
+    }
+
+    /**
+     * Occurrences of each elementary item declared inside a fixed one-dimensional OCCURS, keyed
+     * by upper-case name; 0 marks a table generation does not support (OCCURS DEPENDING ON,
+     * variable or multi-dimensional). Scalars are absent.
+     */
+    public Map<String, Integer> getTableDimensions() {
+        return tableDimensions;
     }
 
     /**
@@ -223,6 +234,15 @@ public final class CobolIntermediateModel {
         private final Map<String, CobolRecordLayout> recordLayouts = new LinkedHashMap<>();
         private final Map<String, CobolFileDescriptor> fileDescriptors = new LinkedHashMap<>();
         private final Map<String, String> initialValues = new LinkedHashMap<>();
+        private final Map<String, Integer> tableDimensions = new LinkedHashMap<>();
+
+        public Builder tableDimensions(Map<String, Integer> dimensions) {
+            this.tableDimensions.clear();
+            if (dimensions != null) {
+                this.tableDimensions.putAll(dimensions);
+            }
+            return this;
+        }
 
         public Builder initialValues(Map<String, String> values) {
             this.initialValues.clear();

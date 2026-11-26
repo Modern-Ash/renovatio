@@ -56,7 +56,7 @@ class CobolRecordLayoutExtractorTest {
                 01  WS-FLOAT.
                     05  WS-RATE      COMP-2.
                 01  WS-TABLE.
-                    05  WS-ROW       PIC X(4) OCCURS 3 TIMES.
+                    05  WS-ROW       PIC X(4) OCCURS 3 TIMES DEPENDING ON WS-DUP.
                 01  WS-EDITED.
                     05  WS-PRINT     PIC ZZ9.99.
                 01  WS-FIRST.
@@ -93,5 +93,34 @@ class CobolRecordLayoutExtractorTest {
         assertEquals("SPACES", model.getInitialValues().get("WS-NAME"));
         assertFalse(model.getInitialValues().containsKey("WS-NONE"));
         assertFalse(model.getInitialValues().containsKey("WS-ROW"));
+    }
+
+    @Test
+    void repeatsFixedOccursFieldsPerOccurrenceAndReportsTableDimensions() {
+        CobolIntermediateModel model = parse("""
+                01  ARR-ARRAY-REC.
+                    05  ARR-ACCT-ID                PIC 9(11).
+                    05  ARR-ACCT-BAL OCCURS 2 TIMES.
+                        10  ARR-ACCT-CURR-BAL       PIC S9(10)V99.
+                        10  ARR-ACCT-CURR-CYC-DEBIT PIC S9(10)V99 COMP-3.
+                    05  ARR-CODES                  PIC X(2) OCCURS 3 TIMES.
+                01  WS-GRID.
+                    05  WS-ROW OCCURS 2 TIMES.
+                        10  WS-CELL OCCURS 3 TIMES PIC X.
+                """);
+
+        CobolRecordLayout record = model.findComposableLayout("ARR-ARRAY-REC").orElseThrow();
+        assertEquals(java.util.Arrays.asList("ARR-ACCT-ID", "ARR-ACCT-CURR-BAL", "ARR-ACCT-CURR-CYC-DEBIT",
+                        "ARR-ACCT-CURR-BAL", "ARR-ACCT-CURR-CYC-DEBIT", "ARR-CODES", "ARR-CODES", "ARR-CODES"),
+                record.fields().stream().map(CobolRecordLayout.Field::name).toList());
+        assertEquals(java.util.List.of(0, 1, 1, 2, 2, 1, 2, 3),
+                record.fields().stream().map(CobolRecordLayout.Field::occurrence).toList());
+        assertEquals(11 + 2 * (12 + 7) + 3 * 2, record.length());
+        assertEquals(2, model.getTableDimensions().get("ARR-ACCT-CURR-BAL"));
+        assertEquals(3, model.getTableDimensions().get("ARR-CODES"));
+        assertEquals(0, model.getTableDimensions().get("WS-CELL"));
+        assertFalse(model.getTableDimensions().containsKey("ARR-ACCT-ID"));
+        assertTrue(model.findComposableLayout("WS-GRID").isEmpty());
+        assertTrue(model.findComposableLayout("WS-ROW").isEmpty(), "a table element group needs a subscript");
     }
 }

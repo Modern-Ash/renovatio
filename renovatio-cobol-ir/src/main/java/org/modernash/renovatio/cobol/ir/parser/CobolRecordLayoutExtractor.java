@@ -57,12 +57,21 @@ final class CobolRecordLayoutExtractor {
             }
         }
         Map<String, CobolRecordLayout> layouts = new LinkedHashMap<>();
+        List<Entry> open = new ArrayList<>();
         for (int i = 0; i < entries.size(); i++) {
             Entry group = entries.get(i);
-            if (group.condition() || PICTURE.matcher(group.text()).find() || group.name().equals("FILLER")) {
+            if (group.condition()) {
                 continue;
             }
-            layouts.putIfAbsent(group.name(), layout(group, descendants(entries, i), nameCounts));
+            open.removeIf(ancestor -> ancestor.level() >= group.level() || group.level() == 1 || group.level() == 77);
+            boolean insideTable = open.stream().anyMatch(ancestor -> OCCURS.matcher(ancestor.text()).find());
+            open.add(group);
+            if (PICTURE.matcher(group.text()).find() || group.name().equals("FILLER")) {
+                continue;
+            }
+            layouts.putIfAbsent(group.name(), insideTable
+                    ? CobolRecordLayout.opaque(group.name(), "group is an element of an OCCURS table")
+                    : layout(group, descendants(entries, i), nameCounts));
         }
         return layouts;
     }
@@ -160,57 +169,136 @@ final class CobolRecordLayoutExtractor {
             return CobolRecordLayout.opaque(group.name(), "group has no elementary items");
         }
         List<CobolRecordLayout.Field> fields = new ArrayList<>();
-        for (Entry entry : descendants) {
-            String text = entry.text();
-            if (OCCURS.matcher(text).find() || REDEFINES.matcher(text).find()) {
-                return CobolRecordLayout.opaque(group.name(), entry.name() + " has OCCURS or REDEFINES");
-            }
-            Matcher usage = USAGE_TOKEN.matcher(text);
-            String usageToken = usage.find() ? usage.group(1).toUpperCase(Locale.ROOT) : null;
-            if (usageToken != null && !ENCODABLE_USAGE.matcher(usageToken).matches()) {
-                return CobolRecordLayout.opaque(group.name(), entry.name() + " has USAGE " + usageToken
-                        + " (no exact character encoding)");
-            }
-            Matcher picture = PICTURE.matcher(text);
-            if (!picture.find()) {
-                if (usageToken != null) {
-                    return CobolRecordLayout.opaque(group.name(), entry.name() + " has group-level USAGE");
-                }
-                continue; // nested group header: its elementary items follow
-            }
-            String pic = picture.group(1).toUpperCase(Locale.ROOT);
-            if (EDITED_OR_SCALED.matcher(pic.replaceAll("\\(\\d+\\)", "")).find()
-                    || SEPARATE_SIGN.matcher(text).find()) {
-                return CobolRecordLayout.opaque(group.name(), entry.name() + " has an edited, scaled or "
-                        + "separate-sign picture");
-            }
-            PicType type;
-            try {
-                type = PicClause.parse(usageToken == null ? pic : pic + " " + usageToken);
-            } catch (RuntimeException ex) {
-                return CobolRecordLayout.opaque(group.name(), entry.name() + " has an unreadable picture");
-            }
-            if (type.digits() <= 0) {
-                return CobolRecordLayout.opaque(group.name(), entry.name() + " has an empty picture");
-            }
-            if (type.usage() != PicType.Usage.DISPLAY && type.category() != PicType.Category.NUMERIC) {
-                return CobolRecordLayout.opaque(group.name(), entry.name() + " has binary usage on a non-numeric picture");
-            }
-            if (type.usage() != PicType.Usage.DISPLAY && type.digits() > 18) {
-                return CobolRecordLayout.opaque(group.name(), entry.name() + " has more than 18 binary digits");
-            }
-            boolean filler = entry.name().equals("FILLER");
-            if (!filler && nameCounts.getOrDefault(entry.name(), 0) > 1) {
-                return CobolRecordLayout.opaque(group.name(), entry.name() + " is declared more than once");
-            }
-            int length = storageLength(type);
-            fields.add(new CobolRecordLayout.Field(filler ? null : entry.name(), type, length,
-                    filler ? (type.usage() == PicType.Usage.DISPLAY ? fillerValue(text, length)
-                            : "\0".repeat(length)) : null));
+        String reason = appendFields(descendants, 0, nameCounts, fields);
+        if (reason != null) {
+            return CobolRecordLayout.opaque(group.name(), reason);
         }
         return fields.isEmpty()
                 ? CobolRecordLayout.opaque(group.name(), "group has no elementary items")
                 : CobolRecordLayout.composable(group.name(), fields);
+    }
+
+    private static final Pattern FIXED_OCCURS = Pattern.compile(
+            "(?i)\\bOCCURS\\s+(\\d+)(?:\\s+TIMES)?\\b(?!\\s+TO\\b)");
+
+    /**
+     * Appends the elementary fields of {@code entries} in storage order. A fixed one-level OCCURS
+     * repeats its subtree once per occurrence (fields carry the 1-based index); variable or nested
+     * OCCURS, and REDEFINES, return the reason the layout is opaque.
+     */
+    private static String appendFields(List<Entry> entries, int occurrence, Map<String, Integer> nameCounts,
+                                       List<CobolRecordLayout.Field> fields) {
+        for (int k = 0; k < entries.size(); k++) {
+            Entry entry = entries.get(k);
+            String text = entry.text();
+            if (REDEFINES.matcher(text).find()) {
+                return entry.name() + " has REDEFINES";
+            }
+            if (OCCURS.matcher(text).find()) {
+                Matcher fixed = FIXED_OCCURS.matcher(text);
+                if (occurrence != 0 || !fixed.find() || text.toUpperCase(Locale.ROOT).contains("DEPENDING")) {
+                    return entry.name() + " has a variable or nested OCCURS";
+                }
+                int times = Integer.parseInt(fixed.group(1));
+                List<Entry> subtree = new ArrayList<>();
+                if (PICTURE.matcher(text).find()) {
+                    subtree.add(new Entry(entry.level(), entry.name(), OCCURS_CLAUSE.matcher(text).replaceAll(" ")));
+                } else {
+                    for (int j = k + 1; j < entries.size() && entries.get(j).level() > entry.level(); j++) {
+                        subtree.add(entries.get(j));
+                    }
+                }
+                for (int index = 1; index <= times; index++) {
+                    String reason = appendFields(subtree, index, nameCounts, fields);
+                    if (reason != null) {
+                        return reason;
+                    }
+                }
+                k += PICTURE.matcher(text).find() ? 0 : subtree.size();
+                continue;
+            }
+            String reason = appendElementary(entry, occurrence, nameCounts, fields);
+            if (reason != null) {
+                return reason;
+            }
+        }
+        return null;
+    }
+
+    private static final Pattern OCCURS_CLAUSE = Pattern.compile(
+            "(?i)\\bOCCURS\\s+\\d+(?:\\s+TIMES)?(?:\\s+INDEXED\\s+BY\\s+[A-Z0-9-]+)?");
+
+    private static String appendElementary(Entry entry, int occurrence, Map<String, Integer> nameCounts,
+                                           List<CobolRecordLayout.Field> fields) {
+        String text = entry.text();
+        Matcher usage = USAGE_TOKEN.matcher(text);
+        String usageToken = usage.find() ? usage.group(1).toUpperCase(Locale.ROOT) : null;
+        if (usageToken != null && !ENCODABLE_USAGE.matcher(usageToken).matches()) {
+            return entry.name() + " has USAGE " + usageToken + " (no exact character encoding)";
+        }
+        Matcher picture = PICTURE.matcher(text);
+        if (!picture.find()) {
+            return usageToken != null ? entry.name() + " has group-level USAGE" : null;
+        }
+        String pic = picture.group(1).toUpperCase(Locale.ROOT);
+        if (EDITED_OR_SCALED.matcher(pic.replaceAll("\\(\\d+\\)", "")).find()
+                || SEPARATE_SIGN.matcher(text).find()) {
+            return entry.name() + " has an edited, scaled or separate-sign picture";
+        }
+        PicType type;
+        try {
+            type = PicClause.parse(usageToken == null ? pic : pic + " " + usageToken);
+        } catch (RuntimeException ex) {
+            return entry.name() + " has an unreadable picture";
+        }
+        if (type.digits() <= 0) {
+            return entry.name() + " has an empty picture";
+        }
+        if (type.usage() != PicType.Usage.DISPLAY && type.category() != PicType.Category.NUMERIC) {
+            return entry.name() + " has binary usage on a non-numeric picture";
+        }
+        if (type.usage() != PicType.Usage.DISPLAY && type.digits() > 18) {
+            return entry.name() + " has more than 18 binary digits";
+        }
+        boolean filler = entry.name().equals("FILLER");
+        if (!filler && nameCounts.getOrDefault(entry.name(), 0) > 1) {
+            return entry.name() + " is declared more than once";
+        }
+        int length = storageLength(type);
+        fields.add(new CobolRecordLayout.Field(filler ? null : entry.name(), type, length,
+                filler ? (type.usage() == PicType.Usage.DISPLAY ? fillerValue(text, length)
+                        : "\0".repeat(length)) : null, occurrence));
+        return null;
+    }
+
+    /**
+     * Number of occurrences of every named elementary item inside exactly one fixed OCCURS
+     * (its own or an ancestor's); 0 marks a table this generation does not support (variable
+     * length, OCCURS DEPENDING ON or more than one dimension). Scalars are absent.
+     */
+    static Map<String, Integer> tableDimensions(String dataSection) {
+        List<Entry> entries = entries(dataSection);
+        Map<String, Integer> dimensions = new LinkedHashMap<>();
+        List<Entry> open = new ArrayList<>();
+        for (Entry entry : entries) {
+            if (entry.condition()) {
+                continue;
+            }
+            open.removeIf(ancestor -> ancestor.level() >= entry.level() || entry.level() == 1 || entry.level() == 77);
+            open.add(entry);
+            if (entry.name().equals("FILLER") || !PICTURE.matcher(entry.text()).find()) {
+                continue;
+            }
+            List<Entry> tables = open.stream().filter(e -> OCCURS.matcher(e.text()).find()).toList();
+            if (tables.isEmpty()) {
+                continue;
+            }
+            Matcher fixed = FIXED_OCCURS.matcher(tables.get(0).text());
+            boolean supported = tables.size() == 1 && fixed.find()
+                    && !tables.get(0).text().toUpperCase(Locale.ROOT).contains("DEPENDING");
+            dimensions.put(entry.name(), supported ? Integer.parseInt(fixed.group(1)) : 0);
+        }
+        return dimensions;
     }
 
     /** USAGE clauses whose bytes have an exact encoding: binary integers and packed decimal. */

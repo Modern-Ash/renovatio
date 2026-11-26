@@ -104,6 +104,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
         /** Model of the program being rendered. */
         private CobolIntermediateModel currentModel;
 
+        /** Pascal-cased OCCURS items the DTO models as arrays, with their size. */
+        private Map<String, Integer> tableSizes = Map.of();
+
         /** Java type of each known data item, keyed like {@link #knownDataNames}. */
         private Map<String, String> dataTypes = Map.of();
 
@@ -475,8 +478,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
             Optional<CobolDataItem> target = findDataItem(model, stripSubscripts(move.target()));
             String expression = moveSourceExpression(move.source().trim(), target.orElse(null));
-            return String.format(Locale.ROOT, "%s.%s(%s);",
-                    targetVar, toSetter(move.target()), expression);
+            return setterCall(targetVar, move.target(), expression) + ";";
         }
 
         /**
@@ -562,7 +564,6 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         private String renderCompute(ComputeStatement compute, @Nullable String varName) {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
-            String setter = toSetter(compute.target());
             Optional<CobolDataItem> target = currentModel == null ? Optional.empty()
                     : findDataItem(currentModel, stripSubscripts(compute.target()));
             Arithmetic value = new ArithmeticParser(compute.expression()).parse();
@@ -570,7 +571,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (converted == null) {
                 return "// COBOL not translated: COMPUTE " + truncate(compute.target() + " = " + compute.expression());
             }
-            return String.format(Locale.ROOT, "%s.%s(%s);", targetVar, setter, converted);
+            return setterCall(targetVar, compute.target(), converted) + ";";
         }
 
         /** A translated arithmetic expression: Java code and whether it is BigDecimal-valued. */
@@ -720,8 +721,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
                             + " (unsupported Java type " + item.orElseThrow().javaType() + ")");
                     continue;
                 }
-                lines.add(String.format(Locale.ROOT, "%s.%s(%s);",
-                        targetVar, toSetter(target), initialValue.orElseThrow()));
+                lines.add(setterCall(targetVar, target, initialValue.orElseThrow()) + ";");
             }
             return lines;
         }
@@ -783,6 +783,15 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 }
             }
             dataTypes = types;
+            Map<String, Integer> tables = new HashMap<>();
+            model.getTableDimensions().forEach((name, size) -> {
+                if (size > 0) {
+                    tables.put(toPascal(name), size);
+                } else {
+                    names.remove(toPascal(name)); // tables generation does not model stay unresolved
+                }
+            });
+            tableSizes = tables;
             return names;
         }
 
@@ -1522,8 +1531,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 }
                 values.add(convert(getter, type, "String"));
                 if (call.byReference().get(index)) {
-                    writeBack.add(targetVar + "." + toSetter(argument) + "("
-                            + convert(args + "[" + index + "]", "String", type) + ");");
+                    writeBack.add(setterCall(targetVar, argument, convert(args + "[" + index + "]", "String", type)) + ";");
                 }
             }
             String port = filePortField(call.target()) + "Program";
@@ -2052,16 +2060,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (scopedAlias != null) {
                 return scopedAlias;
             }
-            String upper = stripSubscripts(t).toUpperCase(Locale.ROOT);
-            String pascal = toPascal(stripSubscripts(t));
-            if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)) {
-                return UNRESOLVED_MARKER + t;
-            }
-            if (assignedVariables.contains(upper)) {
-                return currentOutputVar + ".get" + pascal + "()";
-            }
-            // Map COBOL variable name to getter on input
-            return String.format(java.util.Locale.ROOT, "input.get%s()", pascal);
+            return getterCall(t);
         }
 
         private String translateExpression(String expression) {
@@ -2111,10 +2110,72 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         private String toSetter(String cobolName) {
             String pascal = toPascal(stripSubscripts(cobolName));
-            if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)) {
+            if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)
+                    || tableSizes.containsKey(pascal) || !stripSubscripts(cobolName).equals(cobolName.trim())) {
+                // Tables need setterCall (subscript); a reference modification is not a whole-item write.
                 return UNRESOLVED_MARKER + cobolName;
             }
             return "set" + pascal;
+        }
+
+        /** {@code target.setX(value)}, or {@code target.setX(subscript, value)} for an OCCURS item. */
+        private String setterCall(String targetVar, String cobolName, String value) {
+            String pascal = toPascal(stripSubscripts(cobolName));
+            if (tableSizes.containsKey(pascal)) {
+                String subscript = subscript(cobolName);
+                return targetVar + ".set" + pascal + "("
+                        + (subscript == null ? UNRESOLVED_MARKER + cobolName : subscript) + ", " + value + ")";
+            }
+            return targetVar + "." + toSetter(cobolName) + "(" + value + ")";
+        }
+
+        /**
+         * Getter for a data reference: from the output DTO once the program has written the item,
+         * from the input otherwise; OCCURS items take their subscript. Reference modification and
+         * subscripts on tables this generation does not model stay unresolved.
+         */
+        private String getterCall(String reference) {
+            String upper = stripSubscripts(reference).toUpperCase(Locale.ROOT);
+            String pascal = toPascal(stripSubscripts(reference));
+            if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)) {
+                return UNRESOLVED_MARKER + reference;
+            }
+            String owner = assignedVariables.contains(upper) ? currentOutputVar : "input";
+            if (tableSizes.containsKey(pascal)) {
+                String subscript = subscript(reference);
+                return subscript == null ? UNRESOLVED_MARKER + reference
+                        : owner + ".get" + pascal + "(" + subscript + ")";
+            }
+            if (!stripSubscripts(reference).equals(reference.trim())) {
+                return UNRESOLVED_MARKER + reference;
+            }
+            return owner + ".get" + pascal + "()";
+        }
+
+        /** Java int expression of a single COBOL subscript (literal, data item or loop variable), else null. */
+        private @Nullable String subscript(String reference) {
+            String t = reference.trim();
+            int open = t.indexOf('(');
+            if (open < 0 || !t.endsWith(")")) {
+                return null;
+            }
+            String inner = t.substring(open + 1, t.length() - 1).trim();
+            if (inner.matches("[0-9]+")) {
+                return inner;
+            }
+            if (!inner.matches("[A-Za-z][A-Za-z0-9-]*")) {
+                return null; // reference modification, several subscripts or arithmetic
+            }
+            String alias = variableAliases.get(inner.toUpperCase(Locale.ROOT));
+            if (alias != null) {
+                return alias;
+            }
+            String type = dataTypes.get(toPascal(inner));
+            String value = getterCall(inner);
+            if (value.contains(UNRESOLVED_MARKER) || type == null || "String".equals(type)) {
+                return null;
+            }
+            return "Integer".equals(type) ? value : value + ".intValue()";
         }
 
         private String toJavaExpression(String value) {
@@ -2140,15 +2201,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (alias != null) {
                 return alias;
             }
-            String upper = stripSubscripts(trimmed).toUpperCase(Locale.ROOT);
-            String pascal = toPascal(stripSubscripts(trimmed));
-            if (!knownDataNames.isEmpty() && !knownDataNames.contains(pascal)) {
-                return UNRESOLVED_MARKER + trimmed;
-            }
-            if (assignedVariables.contains(upper)) {
-                return currentOutputVar + ".get" + pascal + "()";
-            }
-            return String.format(Locale.ROOT, "input.get%s()", pascal);
+            return getterCall(trimmed);
         }
 
         private String toPascal(String cobolName) {

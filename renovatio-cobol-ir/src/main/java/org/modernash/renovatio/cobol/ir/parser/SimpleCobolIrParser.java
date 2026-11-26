@@ -413,7 +413,8 @@ public class SimpleCobolIrParser {
                 .fileAssignTarget(fileAssignTarget)
                 .recordLayouts(CobolRecordLayoutExtractor.extract(dataSection(source)))
                 .fileDescriptors(extractFileDescriptors(source, fileToRecordMapping))
-                .initialValues(CobolRecordLayoutExtractor.initialValues(dataSection(source)));
+                .initialValues(CobolRecordLayoutExtractor.initialValues(dataSection(source)))
+                .tableDimensions(CobolRecordLayoutExtractor.tableDimensions(dataSection(source)));
         paragraphs.values().forEach(builder::addParagraph);
         return builder.build();
     }

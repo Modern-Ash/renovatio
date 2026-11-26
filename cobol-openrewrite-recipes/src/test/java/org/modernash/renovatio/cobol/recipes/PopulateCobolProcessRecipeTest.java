@@ -649,4 +649,35 @@ class PopulateCobolProcessRecipeTest {
         assertThat(updated).contains("output.setWsFlag(\"E\");");
         assertThat(updated).contains("// COBOL not translated: CALL WS-NAME (program name resolved at run time)");
     }
+
+    @Test
+    void shouldTranslateSubscriptedTableReferencesAndRejectReferenceModification() {
+        String updated = populate("""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. TBL01.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 ARR-REC.
+                   05 ARR-BAL OCCURS 3 TIMES.
+                      10 ARR-AMT PIC S9(5)V99.
+                01 WS-I     PIC 9(2).
+                01 WS-TOTAL PIC S9(7)V99.
+                01 WS-TEXT  PIC X(10).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    MOVE 1005.00 TO ARR-AMT(1)
+                    MOVE 2 TO WS-I
+                    MOVE ARR-AMT(1) TO ARR-AMT(WS-I)
+                    COMPUTE WS-TOTAL = ARR-AMT(1) + ARR-AMT(WS-I)
+                    MOVE WS-TEXT(1:3) TO WS-TEXT
+                    MOVE ARR-AMT TO WS-TOTAL
+                    GOBACK.
+                """);
+
+        assertThat(updated).contains("output.setArrAmt(1, new java.math.BigDecimal(\"1005.00\"));");
+        assertThat(updated).contains("output.setArrAmt(output.getWsI(), output.getArrAmt(1));");
+        assertThat(updated).contains("output.setWsTotal(output.getArrAmt(1).add(output.getArrAmt(output.getWsI()))");
+        assertThat(updated).contains("// COBOL not translated: WS-TEXT (data item not modeled)");
+        assertThat(updated).contains("// COBOL not translated: ARR-AMT");
+    }
 }

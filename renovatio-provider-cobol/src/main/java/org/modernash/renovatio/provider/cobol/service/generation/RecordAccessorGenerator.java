@@ -78,10 +78,11 @@ public final class RecordAccessorGenerator {
                 continue;
             }
             String name = fieldName.apply(field.name());
-            String numberArgs = name + ", " + field.length() + ", " + field.picType().scale() + ", "
+            String ref = element(name, field);
+            String numberArgs = ref + ", " + field.length() + ", " + field.picType().scale() + ", "
                     + field.picType().signed() + ")";
             parts.add("String".equals(fieldTypes.get(name))
-                    ? "fitText(" + name + ", " + field.length() + ")"
+                    ? "fitText(" + ref + ", " + field.length() + ")"
                     : switch (field.picType().usage()) {
                         case COMP, COMP_5 -> "fitBinary(" + numberArgs;
                         case COMP_3 -> "fitPacked(" + numberArgs;
@@ -124,7 +125,7 @@ public final class RecordAccessorGenerator {
                     case "Long" -> decoded + ".longValue()";
                     default -> decoded;
                 };
-                setter.addStatement("this.$L = $L", name, value);
+                setter.addStatement("this.$L = $L", element(name, field), value);
             }
             offset = end;
         }
@@ -274,6 +275,11 @@ public final class RecordAccessorGenerator {
                         + "new java.math.BigInteger(digits.length() == 0 ? \"0\" : digits.toString()), scale)")
                 .addStatement("return signed && (sign == 0xD || sign == 0xB) ? number.negate() : number")
                 .build());
+    }
+
+    /** The DTO storage of a record field: the field itself, or its array element for an OCCURS entry. */
+    private static String element(String name, CobolRecordLayout.Field field) {
+        return field.occurrence() > 0 ? name + "[" + (field.occurrence() - 1) + "]" : name;
     }
 
     private static String javaString(String value) {

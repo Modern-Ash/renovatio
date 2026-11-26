@@ -49,13 +49,23 @@ public record CobolRecordLayout(String groupName, List<Field> fields, Optional<S
      * @param picType     parsed picture
      * @param length      characters occupied in DISPLAY form
      * @param fillerValue content of a FILLER (its VALUE literal, padded), {@code null} for named fields
+     * @param occurrence  1-based OCCURS index of a table element, 0 for a scalar field
      */
-    public record Field(String name, PicType picType, int length, String fillerValue) {
+    public record Field(String name, PicType picType, int length, String fillerValue, int occurrence) {
         public Field {
             Objects.requireNonNull(picType, "picType");
             if (length <= 0) {
                 throw new IllegalArgumentException("field length must be positive");
             }
+        }
+
+        public Field(String name, PicType picType, int length, String fillerValue) {
+            this(name, picType, length, fillerValue, 0);
+        }
+
+        /** 1-based OCCURS index of a table element, 0 for a scalar field. */
+        public int occurrence() {
+            return occurrence;
         }
 
         public boolean filler() {

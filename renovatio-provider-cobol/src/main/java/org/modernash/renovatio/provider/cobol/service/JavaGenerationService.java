@@ -936,18 +936,20 @@ public class JavaGenerationService {
 
 
         Map<String, String> irTypes = irFieldTypes(model);
+        Map<String, Integer> tables = tableSizes(model);
         Map<String, String> declared = new LinkedHashMap<>();
         for (Map<String, Object> item : resolveDtoFields(programData)) {
             String fieldName = (String) item.get("name");
             String javaType = (String) item.get("javaType");
             if (fieldName != null && javaType != null) {
                 String type = irTypes.getOrDefault(fieldName, javaType);
-                addFieldToClass(classBuilder, fieldName, type);
+                addDtoField(classBuilder, fieldName, type, tables.getOrDefault(fieldName, 0));
                 declared.put(fieldName, type);
             }
         }
         for (Map<String, Object> item : copybookOnlyFields(programData, model)) {
-            addFieldToClass(classBuilder, (String) item.get("name"), (String) item.get("javaType"));
+            addDtoField(classBuilder, (String) item.get("name"), (String) item.get("javaType"),
+                    tables.getOrDefault((String) item.get("name"), 0));
             declared.put((String) item.get("name"), (String) item.get("javaType"));
         }
         org.modernash.renovatio.provider.cobol.service.generation.RecordAccessorGenerator
@@ -1310,6 +1312,9 @@ public class JavaGenerationService {
             if (name == null || name.isBlank()) {
                 continue;
             }
+            if (tableSizes(model).containsKey(name)) {
+                continue; // OCCURS items are arrays, validated element by element by the service
+            }
             String javaType = field.get("javaType") != null ? field.get("javaType").toString() : "String";
             validations.putIfAbsent(name, new FieldValidation(name, irTypes.getOrDefault(name, javaType)));
         }
@@ -1372,6 +1377,7 @@ public class JavaGenerationService {
             return constructor.build();
         }
         Set<String> initialized = new java.util.HashSet<>();
+        Map<String, Integer> tables = tableSizes(model);
         for (CobolDataItem item : model.getDataItems()) {
             String raw = model.getInitialValues().get(item.getName().toUpperCase(Locale.ROOT));
             String field = toCamelCase(item.getName());
@@ -1384,7 +1390,9 @@ public class JavaGenerationService {
                 raw = "String".equals(type) ? "SPACES" : "ZERO";
             }
             String literal = initialLiteral(raw, type, item.getPicType().digits());
-            if (literal != null) {
+            if (literal != null && tables.containsKey(field)) {
+                constructor.addStatement("java.util.Arrays.fill(this.$L, $L)", field, literal);
+            } else if (literal != null) {
                 constructor.addStatement("this.$L = $L", field, literal);
             }
         }
@@ -1593,6 +1601,43 @@ public class JavaGenerationService {
             return intermediateModelService.parse(source);
         }
         return null;
+    }
+
+    /** Size of every supported fixed OCCURS table, keyed by DTO field name. */
+    private Map<String, Integer> tableSizes(CobolIntermediateModel model) {
+        Map<String, Integer> sizes = new HashMap<>();
+        if (model != null) {
+            model.getTableDimensions().forEach((name, size) -> {
+                if (size > 0) sizes.put(toCamelCase(name), size);
+            });
+        }
+        return sizes;
+    }
+
+    /** A scalar field, or for an OCCURS item an array with 1-based indexed accessors (COBOL subscripts). */
+    private void addDtoField(TypeSpec.Builder classBuilder, String fieldName, String javaType, int occurs) {
+        if (occurs <= 0) {
+            addFieldToClass(classBuilder, fieldName, javaType);
+            return;
+        }
+        ClassName elementType = getClassNameForType(javaType);
+        classBuilder.addField(FieldSpec.builder(ArrayTypeName.of(elementType), fieldName, Modifier.PRIVATE)
+                .initializer("new $T[$L]", elementType, occurs)
+                .build());
+        String accessor = capitalizeForAccessor(fieldName);
+        classBuilder.addMethod(MethodSpec.methodBuilder("get" + accessor)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(elementType)
+                .addParameter(int.class, "index")
+                .addJavadoc("Element {@code index} (1-based, as the COBOL subscript) of the OCCURS $L table.\n", occurs)
+                .addStatement("return $L[index - 1]", fieldName)
+                .build());
+        classBuilder.addMethod(MethodSpec.methodBuilder("set" + accessor)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(int.class, "index")
+                .addParameter(elementType, "value")
+                .addStatement("$L[index - 1] = value", fieldName)
+                .build());
     }
 
     /**
