@@ -410,7 +410,13 @@ public class SimpleCobolIrParser {
                 .paragraphLineRanges(paragraphLineRanges)
                 .fileToRecordMapping(fileToRecordMapping)
                 .fileKeyFields(fileKeyFields)
-                .fileAssignTarget(fileAssignTarget);
+                .fileAssignTarget(fileAssignTarget)
+                .recordLayouts(CobolRecordLayoutExtractor.extract(dataSection(source)))
+                .fileDescriptors(extractFileDescriptors(source, fileToRecordMapping))
+                .initialValues(CobolRecordLayoutExtractor.initialValues(dataSection(source)))
+                .tableDimensions(CobolRecordLayoutExtractor.tableDimensions(dataSection(source)))
+                .redefinesViews(CobolRecordLayoutExtractor.redefinesViews(dataSection(source)))
+                .ambiguousDataNames(CobolRecordLayoutExtractor.ambiguousNames(dataSection(source)));
         paragraphs.values().forEach(builder::addParagraph);
         return builder.build();
     }
@@ -465,6 +471,11 @@ public class SimpleCobolIrParser {
                     line = body.substring(0, FIXED_FORMAT_TEXT_END)
                             + " ".repeat(body.length() - FIXED_FORMAT_TEXT_END) + trailingCr;
                 }
+                // Columns 1-6 are the sequence number area ("034500 0000-MAIN.").
+                if (fixedFormat && !isComment && line.length() >= 6
+                        && line.substring(0, 6).chars().allMatch(c -> c == ' ' || Character.isDigit(c))) {
+                    line = "      " + line.substring(6);
+                }
                 result.append(isComment ? " ".repeat(line.length()) : line);
                 if (i < length) result.append('\n');
                 lineStart = i + 1;
@@ -507,7 +518,11 @@ public class SimpleCobolIrParser {
             boolean namesARecord = file.operationType() == FileOperationStatement.OperationType.WRITE
                     || file.operationType() == FileOperationStatement.OperationType.REWRITE;
             String actualFile = namesARecord ? recordToFile.get(file.fileName()) : null;
-            return actualFile != null ? new FileOperationStatement(file.operationType(), actualFile) : file;
+            FileOperationStatement resolved = actualFile != null ? file.withFileName(actualFile) : file;
+            return resolved.hasClauses()
+                    ? resolved.withClauses(rewriteStatements(resolved.exceptionStatements(), recordToFile),
+                            rewriteStatements(resolved.normalStatements(), recordToFile))
+                    : resolved;
         }
         if (statement instanceof IfStatement branch) {
             return new IfStatement(branch.condition(), rewriteStatements(branch.thenStatements(), recordToFile),
@@ -536,6 +551,26 @@ public class SimpleCobolIrParser {
         return Defaults.PROGRAM_ID;
     }
 
+    private static int dataSectionStart(String source) {
+        int fsStart = StringUtils.indexOfIgnoreCase(source, Sections.FILE_SECTION);
+        int wsStart = StringUtils.indexOfIgnoreCase(source, Sections.WORKING_STORAGE);
+        return fsStart >= 0 && (wsStart < 0 || fsStart < wsStart) ? fsStart : wsStart;
+    }
+
+    /** FILE SECTION + WORKING-STORAGE text (up to LINKAGE or PROCEDURE DIVISION), or "" when absent. */
+    private static String dataSection(String source) {
+        int start = dataSectionStart(source);
+        if (start < 0) {
+            return "";
+        }
+        int lkStart = StringUtils.indexOfIgnoreCase(source, Sections.LINKAGE, start);
+        int pdStart = StringUtils.indexOfIgnoreCase(source, Sections.PROCEDURE_DIVISION, start);
+        int end = source.length();
+        if (lkStart >= 0) end = Math.min(end, lkStart);
+        if (pdStart >= 0) end = Math.min(end, pdStart);
+        return source.substring(start, end);
+    }
+
     private List<CobolDataItem> extractDataItems(String source, List<CobolDiagnostic> diagnostics) {
         // Was limited to the WORKING-STORAGE SECTION block only — a FD's
         // own record layout (the 01-level declared right under it, and its
@@ -544,18 +579,11 @@ public class SimpleCobolIrParser {
         // own GROUP type: nothing to merge a REPOSITORY with, nothing to
         // show fields from. Scanning from whichever of FILE SECTION /
         // WORKING-STORAGE comes first picks up both.
-        int fsStart = StringUtils.indexOfIgnoreCase(source, Sections.FILE_SECTION);
-        int wsStart = StringUtils.indexOfIgnoreCase(source, Sections.WORKING_STORAGE);
-        int start = fsStart >= 0 && (wsStart < 0 || fsStart < wsStart) ? fsStart : wsStart;
+        int start = dataSectionStart(source);
         if (start < 0) {
             return new ArrayList<>();
         }
-        int lkStart = StringUtils.indexOfIgnoreCase(source, Sections.LINKAGE, start);
-        int pdStart = StringUtils.indexOfIgnoreCase(source, Sections.PROCEDURE_DIVISION, start);
-        int end = source.length();
-        if (lkStart >= 0) end = Math.min(end, lkStart);
-        if (pdStart >= 0) end = Math.min(end, pdStart);
-        String dataSection = source.substring(start, end);
+        String dataSection = dataSection(source);
 
         // Both matchers' hits are merged in source position order — the
         // hierarchy linker downstream (CobolSemanticProjector) walks items
@@ -668,6 +696,71 @@ public class SimpleCobolIrParser {
     // of that file's identity keys. Real VSAM/indexed-file key evidence —
     // the actual signal a relational schema's foreign keys should be
     // inferred from, not name-similarity guessing.
+    private static final Pattern FILE_STATUS_PATTERN = Pattern.compile(
+            "(?i)\\bFILE\\s+STATUS\\s+(?:IS\\s+)?([A-Z0-9-]+)");
+    private static final Pattern ORGANIZATION_PATTERN = Pattern.compile(
+            "(?i)\\bORGANIZATION\\s+(?:IS\\s+)?(LINE\\s+SEQUENTIAL|SEQUENTIAL|INDEXED|RELATIVE)");
+    private static final Pattern ACCESS_PATTERN = Pattern.compile(
+            "(?i)\\bACCESS\\s+(?:MODE\\s+)?(?:IS\\s+)?(SEQUENTIAL|RANDOM|DYNAMIC)");
+    private static final Pattern ALTERNATE_KEY_PATTERN = Pattern.compile(
+            "(?i)\\bALTERNATE\\s+(?:RECORD\\s+)?KEY\\s+(?:IS\\s+)?([A-Z0-9-]+)");
+    private static final Pattern PRIMARY_KEY_PATTERN = Pattern.compile(
+            "(?i)(?<!ALTERNATE\\s)\\bRECORD\\s+KEY\\s+(?:IS\\s+)?([A-Z0-9-]+)");
+    private static final Pattern BARE_ORGANIZATION_PATTERN = Pattern.compile(
+            "(?i)(?<!ORGANIZATION\\s)(?<!IS\\s)\\b(LINE\\s+SEQUENTIAL|INDEXED|RELATIVE)\\b");
+
+    /** One descriptor per FILE-CONTROL SELECT entry, in declaration order. */
+    private Map<String, CobolFileDescriptor> extractFileDescriptors(String source,
+                                                                    Map<String, String> fileToRecordMapping) {
+        Map<String, CobolFileDescriptor> result = new LinkedHashMap<>();
+        int fcStart = StringUtils.indexOfIgnoreCase(source, "FILE-CONTROL.");
+        if (fcStart < 0) {
+            return result;
+        }
+        int fsStart = StringUtils.indexOfIgnoreCase(source, Sections.FILE_SECTION, fcStart);
+        int dataStart = StringUtils.indexOfIgnoreCase(source, "DATA DIVISION", fcStart);
+        int end = source.length();
+        if (fsStart >= 0) end = Math.min(end, fsStart);
+        if (dataStart >= 0) end = Math.min(end, dataStart);
+        String fileControl = source.substring(fcStart, end);
+        Matcher select = SELECT_PATTERN.matcher(fileControl);
+        List<Integer> starts = new ArrayList<>();
+        List<String> names = new ArrayList<>();
+        while (select.find()) {
+            starts.add(select.start());
+            names.add(select.group(1).toUpperCase(Locale.ROOT));
+        }
+        for (int k = 0; k < starts.size(); k++) {
+            String block = fileControl.substring(starts.get(k),
+                    k + 1 < starts.size() ? starts.get(k + 1) : fileControl.length());
+            String name = names.get(k);
+            Matcher assign = ASSIGN_TO_PATTERN.matcher(block);
+            Matcher organization = ORGANIZATION_PATTERN.matcher(block);
+            Matcher bareOrganization = BARE_ORGANIZATION_PATTERN.matcher(block);
+            Matcher access = ACCESS_PATTERN.matcher(block);
+            Matcher status = FILE_STATUS_PATTERN.matcher(block);
+            Matcher primary = PRIMARY_KEY_PATTERN.matcher(block);
+            Matcher alternate = ALTERNATE_KEY_PATTERN.matcher(block);
+            List<String> alternates = new ArrayList<>();
+            while (alternate.find()) {
+                alternates.add(alternate.group(1).toUpperCase(Locale.ROOT));
+            }
+            String organizationText = organization.find() ? organization.group(1)
+                    : bareOrganization.find() ? bareOrganization.group(1) : "SEQUENTIAL";
+            result.put(name, new CobolFileDescriptor(name,
+                    assign.find() ? assign.group(1).toUpperCase(Locale.ROOT) : null,
+                    CobolFileDescriptor.Organization.valueOf(organizationText.toUpperCase(Locale.ROOT)
+                            .replaceAll("\\s+", "_")),
+                    access.find() ? CobolFileDescriptor.AccessMode.valueOf(access.group(1).toUpperCase(Locale.ROOT))
+                            : CobolFileDescriptor.AccessMode.SEQUENTIAL,
+                    primary.find() ? primary.group(1).toUpperCase(Locale.ROOT) : null,
+                    alternates,
+                    status.find() ? status.group(1).toUpperCase(Locale.ROOT) : null,
+                    fileToRecordMapping.get(name)));
+        }
+        return result;
+    }
+
     private Map<String, List<String>> extractFileKeyFields(String source) {
         Map<String, List<String>> result = new LinkedHashMap<>();
         int fcStart = StringUtils.indexOfIgnoreCase(source, "FILE-CONTROL.");
@@ -857,7 +950,7 @@ public class SimpleCobolIrParser {
             if (withinEntryBlock(baseLine + i, entryBlockLines)) {
                 continue;
             }
-            String trimmed = lines.get(i).stripLeading();
+            String trimmed = lines.get(i).strip();
             if (trimmed.isEmpty()) {
                 continue;
             }
@@ -923,6 +1016,12 @@ public class SimpleCobolIrParser {
     private record ParagraphHeaderAtLine(String name, int line) {
     }
 
+    /**
+     * Name of the paragraph holding statements written directly after the PROCEDURE DIVISION
+     * header, before any paragraph. A reserved word, so it cannot collide with a real paragraph.
+     */
+    public static final String IMPLICIT_MAIN_PARAGRAPH = "PROCEDURE-DIVISION";
+
     private Map<String, CobolParagraph> parseNonEntryParagraphs(String procedureSource) {
         Map<String, CobolParagraph> result = new LinkedHashMap<>();
         List<String> lines = List.of(procedureSource.split(Symbols.NEWLINE, -1));
@@ -931,7 +1030,7 @@ public class SimpleCobolIrParser {
         String previousNonBlank = null;
 
         for (String rawLine : lines) {
-            String line = rawLine.stripLeading();
+            String line = rawLine.strip();
             if (line.isEmpty()) {
                 if (currentHeader != null) currentBody.append(rawLine).append(Symbols.NEWLINE_CHAR);
                 continue;
@@ -944,6 +1043,10 @@ public class SimpleCobolIrParser {
                 currentHeader = detected;
                 currentBody.setLength(0);
             } else if (currentHeader != null) {
+                currentBody.append(rawLine).append(Symbols.NEWLINE_CHAR);
+            } else {
+                // Statements before the first paragraph header: the program's main line.
+                currentHeader = IMPLICIT_MAIN_PARAGRAPH;
                 currentBody.append(rawLine).append(Symbols.NEWLINE_CHAR);
             }
         }
@@ -1074,17 +1177,33 @@ public class SimpleCobolIrParser {
                 i = parsePerform(lines, i, statements);
                 continue;
             }
-            if (upperLine.startsWith(Keywords.CALL)) {
-                statements.add(parseCall(line));
+            if (upperLine.startsWith(Keywords.CALL + " ") || upperLine.equals(Keywords.CALL)) {
+                i = parseCallStatement(lines, i, statements);
                 continue;
             }
             if (upperLine.startsWith(Keywords.EXEC_SQL)) {
                 i = parseExecSql(lines, i, statements);
                 continue;
             }
+            if (upperLine.startsWith("EXEC ") || upperLine.equals("EXEC")) {
+                // EXEC CICS / DLI / ... : one embedded command up to END-EXEC, never COBOL verbs.
+                StringBuilder command = new StringBuilder(line);
+                int j = i;
+                while (!command.toString().toUpperCase(Locale.ROOT).contains("END-EXEC") && j + 1 < lines.size()) {
+                    j++;
+                    String next = lines.get(j).trim();
+                    if (!next.isEmpty()) {
+                        command.append(' ').append(next);
+                    }
+                }
+                String text = stripTrailingPeriod(command.toString().replaceAll("\\s+", " "));
+                statements.add(new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, text));
+                i = j;
+                continue;
+            }
             FileOperationStatement.OperationType op = detectFileOperation(upperLine);
             if (op != null) {
-                statements.add(new FileOperationStatement(op, parseFileName(line, op)));
+                i = parseFileOperation(lines, i, op, statements);
                 continue;
             }
             if (upperLine.startsWith(Keywords.COMPUTE)) {
@@ -1092,19 +1211,19 @@ public class SimpleCobolIrParser {
                 continue;
             }
             if (upperLine.startsWith(Keywords.ADD)) {
-                statements.add(parseAdd(line));
+                statements.addAll(parseArithmetic(line, Keywords.ADD));
                 continue;
             }
             if (upperLine.startsWith(Keywords.SUBTRACT)) {
-                statements.add(parseSubtract(line));
+                statements.addAll(parseArithmetic(line, Keywords.SUBTRACT));
                 continue;
             }
             if (upperLine.startsWith(Keywords.MULTIPLY)) {
-                statements.add(parseMultiply(line));
+                statements.addAll(parseArithmetic(line, Keywords.MULTIPLY));
                 continue;
             }
             if (upperLine.startsWith(Keywords.DIVIDE)) {
-                statements.add(parseDivide(line));
+                statements.addAll(parseArithmetic(line, Keywords.DIVIDE));
                 continue;
             }
             if (upperLine.startsWith(Keywords.MOVE)) {
@@ -1255,42 +1374,47 @@ public class SimpleCobolIrParser {
         return conditionEndedSentence ? i - 1 : Math.min(i, lines.size());
     }
 
+    /**
+     * Parses EVALUATE. Nested EVALUATEs are tracked by depth so only this EVALUATE's WHEN and
+     * END-EVALUATE split or close it; consecutive WHENs with no statement between them share
+     * the next body, so their conditions are joined with OR ("WHEN 1 WHEN 2" = "WHEN 1 OR 2").
+     */
     private int parseEvaluate(List<String> lines, int index, List<CobolStatement> statements) {
         String expression = lines.get(index).trim().substring(Keywords.EVALUATE.length()).trim();
         List<EvaluateStatement.EvaluateWhenBranch> branches = new ArrayList<>();
         List<String> accumulator = new ArrayList<>();
-        String currentCondition = Defaults.OTHER_BRANCH;
+        List<String> pending = new ArrayList<>();
+        int depth = 0;
         int i = index + 1;
         for (; i < lines.size(); i++) {
             String current = lines.get(i).trim();
             String up = current.toUpperCase(Locale.ROOT);
-            if (up.startsWith(Keywords.WHEN_OTHER)) {
-                if (!accumulator.isEmpty()) {
-                    branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
-                            parseStatements(String.join(Symbols.NEWLINE, accumulator))));
-                    accumulator.clear();
-                }
-                currentCondition = Defaults.OTHER_BRANCH;
-                continue;
-            }
-            if (up.startsWith(Keywords.WHEN)) {
-                if (!accumulator.isEmpty()) {
-                    branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
-                            parseStatements(String.join(Symbols.NEWLINE, accumulator))));
-                    accumulator.clear();
-                }
-                currentCondition = current.substring(Keywords.WHEN.length()).trim();
-                continue;
-            }
-            if (up.startsWith(Keywords.END_EVALUATE)) {
+            if (depth == 0 && up.startsWith(Keywords.END_EVALUATE)) {
                 break;
+            }
+            if (depth == 0 && (up.startsWith(Keywords.WHEN + " ") || up.equals(Keywords.WHEN))) {
+                if (!accumulator.isEmpty()) {
+                    branches.add(new EvaluateStatement.EvaluateWhenBranch(String.join(" OR ", pending),
+                            parseStatements(String.join(Symbols.NEWLINE, accumulator))));
+                    accumulator.clear();
+                    pending.clear();
+                }
+                String condition = up.startsWith(Keywords.WHEN_OTHER) ? Defaults.OTHER_BRANCH
+                        : current.substring(Keywords.WHEN.length()).trim();
+                pending.add(condition);
+                continue;
+            }
+            if (up.startsWith(Keywords.EVALUATE + " ")) {
+                depth++;
+            } else if (up.startsWith(Keywords.END_EVALUATE)) {
+                depth--;
             }
             if (!current.isEmpty()) {
                 accumulator.add(current);
             }
         }
-        if (!accumulator.isEmpty()) {
-            branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
+        if (!pending.isEmpty()) {
+            branches.add(new EvaluateStatement.EvaluateWhenBranch(String.join(" OR ", pending),
                     parseStatements(String.join(Symbols.NEWLINE, accumulator))));
         }
         statements.add(new EvaluateStatement(expression, branches));
@@ -1506,6 +1630,116 @@ public class SimpleCobolIrParser {
             "(?:\\s+|^)(WITH\\s+TEST\\s+(?:BEFORE|AFTER)\\b|VARYING\\b|UNTIL\\b|\\d+\\s+TIMES\\b)",
             java.util.regex.Pattern.CASE_INSENSITIVE);
 
+    private static final Pattern CALL_CLAUSE = Pattern.compile(
+            "(?i)(?:^|\\s)(NOT\\s+ON\\s+EXCEPTION|NOT\\s+EXCEPTION|ON\\s+EXCEPTION|EXCEPTION|ON\\s+OVERFLOW|OVERFLOW)(?=\\s|$|\\.)");
+
+    /**
+     * Parses CALL with its USING list (which may continue over several lines), BY REFERENCE /
+     * CONTENT / VALUE modes, and ON EXCEPTION / NOT ON EXCEPTION statements up to END-CALL or
+     * the sentence period.
+     */
+    private int parseCallStatement(List<String> lines, int index, List<CobolStatement> statements) {
+        StringBuilder head = new StringBuilder(lines.get(index).trim());
+        int i = index + 1;
+        boolean sentenceEnded = head.toString().endsWith(Symbols.DOT);
+        while (!sentenceEnded && i < lines.size()) {
+            String next = lines.get(i).trim();
+            if (next.isEmpty()) {
+                i++;
+                continue;
+            }
+            if (startsStatement(next) || CALL_CLAUSE.matcher(next).lookingAt()) {
+                break;
+            }
+            head.append(' ').append(next);
+            sentenceEnded = next.endsWith(Symbols.DOT);
+            i++;
+        }
+        String headText = stripTrailingPeriod(head.toString());
+        List<String> clauseLines = new ArrayList<>();
+        Matcher inline = CALL_CLAUSE.matcher(headText);
+        if (inline.find()) {
+            clauseLines.add(headText.substring(inline.start()).trim());
+            headText = headText.substring(0, inline.start()).trim();
+        }
+        int last = i - 1;
+        if (!sentenceEnded) {
+            boolean inClauses = !clauseLines.isEmpty();
+            int depth = 0;
+            for (; i < lines.size(); i++) {
+                String current = lines.get(i).trim();
+                if (current.isEmpty()) {
+                    continue;
+                }
+                String up = current.toUpperCase(Locale.ROOT);
+                if (!inClauses) {
+                    if (!(CALL_CLAUSE.matcher(up).lookingAt() || up.startsWith("END-CALL"))) {
+                        break;
+                    }
+                    inClauses = true;
+                }
+                if (depth == 0 && up.startsWith("END-CALL")) {
+                    last = i;
+                    break;
+                }
+                if (up.startsWith("CALL ")) depth++;
+                else if (up.startsWith("END-CALL")) depth--;
+                clauseLines.add(current);
+                last = i;
+                if (up.endsWith(Symbols.DOT)) {
+                    break;
+                }
+            }
+        }
+        List<String> exceptionLines = new ArrayList<>();
+        List<String> normalLines = new ArrayList<>();
+        List<String> current = null;
+        for (String line : clauseLines) {
+            Matcher clause = CALL_CLAUSE.matcher(line);
+            if (clause.lookingAt()) {
+                current = clause.group(1).toUpperCase(Locale.ROOT).startsWith("NOT") ? normalLines : exceptionLines;
+                String rest = line.substring(clause.end()).trim();
+                if (!rest.isEmpty()) current.add(rest);
+            } else if (current != null) {
+                current.add(line);
+            }
+        }
+
+        String body = headText.substring(Keywords.CALL.length()).trim();
+        String[] parts = body.split("(?i)\\s+USING\\s+", 2);
+        String rawTarget = parts[0].trim();
+        boolean dynamic = !(rawTarget.startsWith("'") || rawTarget.startsWith("\""));
+        String target = dynamic ? rawTarget.toUpperCase(Locale.ROOT)
+                : rawTarget.substring(1, rawTarget.length() - 1).trim();
+        List<String> arguments = new ArrayList<>();
+        List<Boolean> byReference = new ArrayList<>();
+        if (parts.length > 1) {
+            boolean reference = true;
+            List<String> tokens = new ArrayList<>(List.of(parts[1].replace(",", " ").trim().split("\\s+")));
+            for (int k = 0; k < tokens.size(); k++) {
+                String token = tokens.get(k);
+                String upper = token.toUpperCase(Locale.ROOT);
+                if (upper.equals("BY")) continue;
+                if (upper.equals("REFERENCE")) { reference = true; continue; }
+                if (upper.equals("CONTENT") || upper.equals("VALUE")) { reference = false; continue; }
+                if ((upper.equals("ADDRESS") || upper.equals("LENGTH")) && k + 2 < tokens.size()
+                        && tokens.get(k + 1).equalsIgnoreCase("OF")) {
+                    // Pointer / length special registers: kept whole, not a plain data item.
+                    arguments.add(upper + " OF " + tokens.get(k + 2).toUpperCase(Locale.ROOT));
+                    byReference.add(false);
+                    k += 2;
+                    continue;
+                }
+                arguments.add(token.startsWith("'") || token.startsWith("\"") ? token : upper);
+                byReference.add(reference);
+            }
+        }
+        statements.add(new CallStatement(target, arguments, byReference, dynamic,
+                parseStatements(String.join(Symbols.NEWLINE, exceptionLines)),
+                parseStatements(String.join(Symbols.NEWLINE, normalLines))));
+        return last;
+    }
+
     private CobolStatement parseCall(String line) {
         String remainder = line.substring(Keywords.CALL.length()).trim();
         String[] parts = remainder.split(Regexes.USING, 2);
@@ -1519,11 +1753,178 @@ public class SimpleCobolIrParser {
 
     private FileOperationStatement.OperationType detectFileOperation(String line) {
         for (FileOperationStatement.OperationType type : FileOperationStatement.OperationType.values()) {
-            if (line.startsWith(type.name())) {
+            if (line.startsWith(type.name()) && (line.length() == type.name().length()
+                    || !Character.isLetterOrDigit(line.charAt(type.name().length()))
+                    && line.charAt(type.name().length()) != '-')) {
                 return type;
             }
         }
         return null;
+    }
+
+    /** Verbs and scope words that start a new statement rather than continue the current one. */
+    private static final Set<String> STATEMENT_WORDS = Set.of("ACCEPT", "ADD", "CALL", "CANCEL", "CLOSE",
+            "COMPUTE", "CONTINUE", "DELETE", "DISPLAY", "DIVIDE", "ELSE", "EVALUATE", "EXEC", "EXIT", "GO",
+            "GOBACK", "IF", "INITIALIZE", "INSPECT", "MERGE", "MOVE", "MULTIPLY", "OPEN", "PERFORM", "READ",
+            "RELEASE", "RETURN", "REWRITE", "SEARCH", "SET", "SORT", "START", "STOP", "STRING", "SUBTRACT",
+            "UNSTRING", "WHEN", "WRITE");
+    private static final Pattern FILE_CLAUSE = Pattern.compile(
+            "(?i)(?:^|\\s)(NOT\\s+(?:AT\\s+)?END|NOT\\s+INVALID(?:\\s+KEY)?|AT\\s+END|INVALID(?:\\s+KEY)?)(?=\\s|$|\\.)");
+    private static final Pattern READ_INTO = Pattern.compile("(?i)\\bINTO\\s+([A-Z0-9-]+(?:\\([^)]*\\))?)");
+    private static final Pattern WRITE_FROM = Pattern.compile("(?i)\\bFROM\\s+([A-Z0-9-]+(?:\\([^)]*\\))?)");
+    private static final Pattern KEY_IS = Pattern.compile(
+            "(?i)\\bKEY\\s+(?:IS\\s+)?(?:=|>=|>|EQUALS?\\s+(?:TO\\s+)?|GREATER\\s+(?:THAN\\s+)?(?:OR\\s+EQUAL\\s+(?:TO\\s+)?)?|NOT\\s+LESS\\s+(?:THAN\\s+)?)?\\s*([A-Z0-9-]+)");
+
+    private static boolean startsStatement(String trimmedLine) {
+        String upper = trimmedLine.toUpperCase(Locale.ROOT);
+        String first = upper.split("[\\s.]", 2)[0];
+        return STATEMENT_WORDS.contains(first) || first.startsWith("END-")
+                || FILE_CLAUSE.matcher(upper).lookingAt() || upper.startsWith("AT END");
+    }
+
+    /**
+     * Parses a file I/O statement: its operands (which may continue over several lines), and its
+     * AT END / NOT AT END / INVALID KEY / NOT INVALID KEY imperative statements up to the
+     * matching END-verb or the sentence period. OPEN and CLOSE yield one statement per file.
+     */
+    private int parseFileOperation(List<String> lines, int index, FileOperationStatement.OperationType op,
+                                   List<CobolStatement> statements) {
+        StringBuilder head = new StringBuilder(lines.get(index).trim());
+        int i = index + 1;
+        boolean sentenceEnded = head.toString().endsWith(Symbols.DOT);
+        while (!sentenceEnded && i < lines.size()) {
+            String next = lines.get(i).trim();
+            if (next.isEmpty()) {
+                i++;
+                continue;
+            }
+            if (startsStatement(next)) {
+                break;
+            }
+            head.append(' ').append(next);
+            sentenceEnded = next.endsWith(Symbols.DOT);
+            i++;
+        }
+        // A clause may start on the head line itself ("READ F AT END MOVE 'Y' TO EOF").
+        List<String> clauseLines = new ArrayList<>();
+        String headText = stripTrailingPeriod(head.toString());
+        Matcher inlineClause = FILE_CLAUSE.matcher(headText);
+        if (inlineClause.find()) {
+            clauseLines.add(headText.substring(inlineClause.start()).trim());
+            headText = headText.substring(0, inlineClause.start()).trim();
+        }
+        String endVerb = "END-" + op.name();
+        int depth = 0;
+        int last = i - 1;
+        if (!sentenceEnded) {
+            boolean inClauses = !clauseLines.isEmpty();
+            for (; i < lines.size(); i++) {
+                String current = lines.get(i).trim();
+                if (current.isEmpty()) {
+                    continue;
+                }
+                String up = current.toUpperCase(Locale.ROOT);
+                if (!inClauses) {
+                    if (!(FILE_CLAUSE.matcher(up).lookingAt() || up.startsWith(endVerb))) {
+                        break;
+                    }
+                    inClauses = true;
+                }
+                if (depth == 0 && up.startsWith(endVerb)) {
+                    last = i;
+                    break;
+                }
+                if (up.startsWith(op.name() + " ")) {
+                    depth++;
+                } else if (up.startsWith(endVerb)) {
+                    depth--;
+                }
+                clauseLines.add(current);
+                last = i;
+                if (up.endsWith(Symbols.DOT)) {
+                    break;
+                }
+            }
+        }
+        List<CobolStatement> exception = new ArrayList<>();
+        List<CobolStatement> normal = new ArrayList<>();
+        splitFileClauses(clauseLines, exception, normal);
+
+        String upperHead = headText.toUpperCase(Locale.ROOT);
+        String[] tokens = headText.substring(op.name().length()).trim().split("\\s+");
+        switch (op) {
+            case OPEN -> {
+                FileOperationStatement.OpenMode mode = null;
+                for (String token : tokens) {
+                    FileOperationStatement.OpenMode candidate = openMode(token);
+                    if (candidate != null) {
+                        mode = candidate;
+                    } else if (!token.isBlank() && !token.equalsIgnoreCase("WITH")
+                            && !token.equalsIgnoreCase("NO") && !token.equalsIgnoreCase("REWIND")) {
+                        statements.add(new FileOperationStatement(op, token.toUpperCase(Locale.ROOT), mode,
+                                null, null, false, List.of(), List.of(), null));
+                    }
+                }
+            }
+            case CLOSE -> {
+                for (String token : tokens) {
+                    if (!token.isBlank() && !Set.of("WITH", "LOCK", "NO", "REWIND", "UNIT", "REEL", "FOR", "REMOVAL")
+                            .contains(token.toUpperCase(Locale.ROOT))) {
+                        statements.add(new FileOperationStatement(op, token.toUpperCase(Locale.ROOT)));
+                    }
+                }
+            }
+            default -> {
+                String operand = tokens.length > 0 && !tokens[0].isBlank()
+                        ? tokens[0].toUpperCase(Locale.ROOT) : Defaults.UNKNOWN_NAME;
+                boolean namesRecord = op == FileOperationStatement.OperationType.WRITE
+                        || op == FileOperationStatement.OperationType.REWRITE;
+                Matcher area = (namesRecord ? WRITE_FROM : READ_INTO).matcher(headText);
+                Matcher key = KEY_IS.matcher(headText);
+                statements.add(new FileOperationStatement(op, operand, null,
+                        area.find() ? area.group(1).toUpperCase(Locale.ROOT) : null,
+                        op != FileOperationStatement.OperationType.WRITE && key.find()
+                                ? key.group(1).toUpperCase(Locale.ROOT) : null,
+                        op == FileOperationStatement.OperationType.READ
+                                && upperHead.matches(".*\\bNEXT\\b.*"),
+                        exception, normal, namesRecord ? operand : null));
+            }
+        }
+        return last;
+    }
+
+    private static FileOperationStatement.OpenMode openMode(String token) {
+        return switch (token.toUpperCase(Locale.ROOT)) {
+            case "INPUT" -> FileOperationStatement.OpenMode.INPUT;
+            case "OUTPUT" -> FileOperationStatement.OpenMode.OUTPUT;
+            case "I-O" -> FileOperationStatement.OpenMode.I_O;
+            case "EXTEND" -> FileOperationStatement.OpenMode.EXTEND;
+            default -> null;
+        };
+    }
+
+    /** Distributes clause lines: AT END / INVALID KEY bodies vs their NOT counterparts. */
+    private void splitFileClauses(List<String> clauseLines, List<CobolStatement> exception,
+                                  List<CobolStatement> normal) {
+        List<String> current = null;
+        List<String> exceptionLines = new ArrayList<>();
+        List<String> normalLines = new ArrayList<>();
+        for (String line : clauseLines) {
+            Matcher clause = FILE_CLAUSE.matcher(line);
+            if (clause.lookingAt() || (clause.find() && clause.start() == 0)) {
+                clause = FILE_CLAUSE.matcher(line);
+                clause.find();
+                current = clause.group(1).toUpperCase(Locale.ROOT).startsWith("NOT") ? normalLines : exceptionLines;
+                String rest = line.substring(clause.end()).trim();
+                if (!rest.isEmpty() && !rest.equals(Symbols.DOT)) {
+                    current.add(rest);
+                }
+            } else if (current != null) {
+                current.add(line);
+            }
+        }
+        exception.addAll(parseStatements(String.join(Symbols.NEWLINE, exceptionLines)));
+        normal.addAll(parseStatements(String.join(Symbols.NEWLINE, normalLines)));
     }
 
     private String parseFileName(String line, FileOperationStatement.OperationType operation) {
@@ -1545,96 +1946,113 @@ public class SimpleCobolIrParser {
         return new ComputeStatement(target, expression);
     }
 
-    private ComputeStatement parseAdd(String line) {
-        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
-        String trimmed = stripTrailingPeriod(line);
-        String remainder = trimmed.substring(Keywords.ADD.length()).trim();
-        // ADD source TO target
-        String[] parts = remainder.split(Regexes.TO, 2);
-        if (parts.length == 2) {
-            String source = parts[0].trim();
-            String target = parts[1].trim();
-            return new ComputeStatement(target, target + " + " + source);
-        }
-        // ADD source1 source2 ... GIVING target
-        parts = remainder.split(Regexes.GIVING, 2);
-        if (parts.length == 2) {
-            String target = parts[1].trim();
-            String sources = parts[0].replace("+", Symbols.SPACE).trim();
-            return new ComputeStatement(target, sources.replaceAll("\\s+", " + "));
-        }
-        return new ComputeStatement(Defaults.RESULT_VAR, remainder);
-    }
+    private static final Pattern ARITHMETIC_OPTIONS = Pattern.compile(
+            "(?i)\\b(ROUNDED|REMAINDER|CORRESPONDING|CORR|SIZE|END-ADD|END-SUBTRACT|END-MULTIPLY|END-DIVIDE)\\b");
+    private static final Pattern ARITHMETIC_OPERAND = Pattern.compile(
+            "(?i)[A-Z0-9][A-Z0-9-]*(?:\\([^()]*\\))?|[+-]?[0-9]*\\.?[0-9]+");
 
-    private ComputeStatement parseSubtract(String line) {
-        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
-        String trimmed = stripTrailingPeriod(line);
-        String remainder = trimmed.substring(Keywords.SUBTRACT.length()).trim();
-        // SUBTRACT source FROM target
-        String[] parts = remainder.split(Regexes.FROM, 2);
-        if (parts.length == 2) {
-            String source = parts[0].trim();
-            String target = parts[1].trim();
-            return new ComputeStatement(target, target + " - " + source);
+    /**
+     * ADD / SUBTRACT / MULTIPLY / DIVIDE in all their TO, FROM, BY, INTO and GIVING forms, as one
+     * COMPUTE per receiving item. Options whose semantics are not modeled (ROUNDED, ON SIZE ERROR,
+     * REMAINDER, CORRESPONDING) leave the statement explicitly untranslated.
+     */
+    private List<CobolStatement> parseArithmetic(String line, String verb) {
+        String text = stripTrailingPeriod(line);
+        String body = text.substring(verb.length()).trim();
+        if (ARITHMETIC_OPTIONS.matcher(body).find()) {
+            return List.of(new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, text));
         }
-        // SUBTRACT source1 FROM source2 GIVING target
-        if (remainder.toUpperCase(Locale.ROOT).contains(Keywords.GIVING)) {
-            String[] givingParts = remainder.split(Regexes.GIVING, 2);
-            if (givingParts.length == 2) {
-                String target = givingParts[1].trim();
-                String[] fromParts = givingParts[0].split(Regexes.FROM, 2);
-                if (fromParts.length == 2) {
-                    return new ComputeStatement(target, fromParts[1].trim() + " - " + fromParts[0].trim());
+        String[] giving = body.split("(?i)\\s+GIVING\\s+", 2);
+        List<String> givingTargets = giving.length == 2 ? operands(giving[1]) : null;
+        String head = giving[0];
+        List<CobolStatement> result = new ArrayList<>();
+        String[] split;
+        switch (verb) {
+            case Keywords.ADD -> {
+                split = head.split("(?i)\\s+TO\\s+", 2);
+                List<String> addends = operands(split[0]);
+                List<String> receivers = split.length == 2 ? operands(split[1]) : List.of();
+                if (addends == null || receivers == null) break;
+                if (givingTargets != null) {
+                    List<String> all = new ArrayList<>(addends);
+                    all.addAll(receivers);
+                    givingTargets.forEach(target -> result.add(new ComputeStatement(target, String.join(" + ", all))));
+                } else if (!receivers.isEmpty()) {
+                    receivers.forEach(target -> result.add(new ComputeStatement(target,
+                            target + " + " + String.join(" + ", addends))));
                 }
             }
+            case Keywords.SUBTRACT -> {
+                split = head.split("(?i)\\s+FROM\\s+", 2);
+                if (split.length != 2) break;
+                List<String> subtrahends = operands(split[0]);
+                List<String> minuends = operands(split[1]);
+                if (subtrahends == null || minuends == null) break;
+                String minus = " - " + String.join(" - ", subtrahends);
+                if (givingTargets != null && minuends.size() == 1) {
+                    givingTargets.forEach(target -> result.add(new ComputeStatement(target, minuends.get(0) + minus)));
+                } else if (givingTargets == null) {
+                    minuends.forEach(target -> result.add(new ComputeStatement(target, target + minus)));
+                }
+            }
+            case Keywords.MULTIPLY -> {
+                split = head.split("(?i)\\s+BY\\s+", 2);
+                if (split.length != 2) break;
+                List<String> factor = operands(split[0]);
+                List<String> others = operands(split[1]);
+                if (factor == null || others == null || factor.size() != 1) break;
+                if (givingTargets != null && others.size() == 1) {
+                    givingTargets.forEach(target -> result.add(new ComputeStatement(target,
+                            factor.get(0) + " * " + others.get(0))));
+                } else if (givingTargets == null) {
+                    others.forEach(target -> result.add(new ComputeStatement(target, target + " * " + factor.get(0))));
+                }
+            }
+            case Keywords.DIVIDE -> {
+                String[] into = head.split("(?i)\\s+INTO\\s+", 2);
+                String[] by = head.split("(?i)\\s+BY\\s+", 2);
+                if (into.length == 2) {
+                    List<String> divisor = operands(into[0]);
+                    List<String> dividends = operands(into[1]);
+                    if (divisor == null || dividends == null || divisor.size() != 1) break;
+                    if (givingTargets != null && dividends.size() == 1) {
+                        givingTargets.forEach(target -> result.add(new ComputeStatement(target,
+                                dividends.get(0) + " / " + divisor.get(0))));
+                    } else if (givingTargets == null) {
+                        dividends.forEach(target -> result.add(new ComputeStatement(target,
+                                target + " / " + divisor.get(0))));
+                    }
+                } else if (by.length == 2 && givingTargets != null) {
+                    List<String> dividend = operands(by[0]);
+                    List<String> divisor = operands(by[1]);
+                    if (dividend == null || divisor == null || dividend.size() != 1 || divisor.size() != 1) break;
+                    givingTargets.forEach(target -> result.add(new ComputeStatement(target,
+                            dividend.get(0) + " / " + divisor.get(0))));
+                }
+            }
+            default -> { }
         }
-        return new ComputeStatement(Defaults.RESULT_VAR, remainder);
+        if (result.isEmpty()) {
+            return List.of(new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, text));
+        }
+        return result;
     }
 
-    private ComputeStatement parseMultiply(String line) {
-        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
-        String trimmed = stripTrailingPeriod(line);
-        String remainder = trimmed.substring(Keywords.MULTIPLY.length()).trim();
-        // MULTIPLY source BY target
-        String[] parts = remainder.split(Regexes.BY, 2);
-        if (parts.length == 2) {
-            String source = parts[0].trim();
-            String target = parts[1].trim();
-            return new ComputeStatement(target, target + " * " + source);
-        }
-        // MULTIPLY source1 BY source2 GIVING target
-        parts = remainder.split(Regexes.GIVING, 2);
-        if (parts.length == 2) {
-            String target = parts[1].trim();
-            String[] byParts = parts[0].split(Regexes.BY, 2);
-            if (byParts.length == 2) {
-                return new ComputeStatement(target, byParts[0].trim() + " * " + byParts[1].trim());
+    /** Operands of an arithmetic verb clause, ZERO as 0; {@code null} when one is not a plain operand. */
+    private static List<String> operands(String clause) {
+        List<String> values = new ArrayList<>();
+        for (String token : clause.replace(",", " ").trim().split("\\s+")) {
+            if (token.isEmpty()) continue;
+            String upper = token.toUpperCase(Locale.ROOT);
+            if (upper.equals("ZERO") || upper.equals("ZEROS") || upper.equals("ZEROES")) {
+                values.add("0");
+            } else if (ARITHMETIC_OPERAND.matcher(token).matches()) {
+                values.add(upper.matches("[+-]?[0-9.]+") ? token : upper);
+            } else {
+                return null;
             }
         }
-        return new ComputeStatement(Defaults.RESULT_VAR, remainder);
-    }
-
-    private ComputeStatement parseDivide(String line) {
-        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
-        String trimmed = stripTrailingPeriod(line);
-        String remainder = trimmed.substring(Keywords.DIVIDE.length()).trim();
-        // DIVIDE source INTO target
-        String[] parts = remainder.split(Regexes.INTO, 2);
-        if (parts.length == 2) {
-            String source = parts[0].trim();
-            String target = parts[1].trim();
-            return new ComputeStatement(target, target + " / " + source);
-        }
-        // DIVIDE source1 BY source2 GIVING target
-        parts = remainder.split(Regexes.GIVING, 2);
-        if (parts.length == 2) {
-            String target = parts[1].trim();
-            String[] byParts = parts[0].split(Regexes.BY, 2);
-            if (byParts.length == 2) {
-                return new ComputeStatement(target, byParts[0].trim() + " / " + byParts[1].trim());
-            }
-        }
-        return new ComputeStatement(Defaults.RESULT_VAR, remainder);
+        return values.isEmpty() ? null : values;
     }
 
     private MoveStatement parseMove(String line) {

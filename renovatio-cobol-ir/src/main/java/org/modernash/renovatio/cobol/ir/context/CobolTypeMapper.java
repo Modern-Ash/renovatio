@@ -33,7 +33,11 @@ public final class CobolTypeMapper {
      * compatibility; now derived from {@link #picType(String)}.
      */
     public static String picToJavaType(String pic) {
-        PicType type = picType(pic);
+        return javaType(picType(pic));
+    }
+
+    /** Target Java type name for a parsed picture ({@code String} when unknown). */
+    public static String javaType(PicType type) {
         if (type == null) {
             return String.class.getSimpleName();
         }

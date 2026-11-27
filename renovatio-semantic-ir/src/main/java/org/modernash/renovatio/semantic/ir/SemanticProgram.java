@@ -146,10 +146,24 @@ public record SemanticProgram(String schemaVersion, Header header, String progra
 
     public record SideEffect(Header header, EffectKind effectKind, List<String> affectedNodeIds,
                              String description) implements Node {
+        /** Description prefix of an {@link EffectKind#EXTERNAL_CALL} to a statically named program. */
+        public static final String STATIC_CALL_PREFIX = "Calls ";
+        /** Description prefix of an {@link EffectKind#EXTERNAL_CALL} whose target is resolved at run time. */
+        public static final String DYNAMIC_CALL_PREFIX = "Calls dynamic ";
+
         public SideEffect {
             Objects.requireNonNull(effectKind, "effectKind");
             affectedNodeIds = sorted(affectedNodeIds, "affectedNodeId");
             description = SemanticIdentity.text(description, "description");
+        }
+
+        /** The statically named program an external call invokes, if this is one. */
+        public java.util.Optional<String> calledProgram() {
+            if (effectKind != EffectKind.EXTERNAL_CALL || description.startsWith(DYNAMIC_CALL_PREFIX)
+                    || !description.startsWith(STATIC_CALL_PREFIX)) {
+                return java.util.Optional.empty();
+            }
+            return java.util.Optional.of(description.substring(STATIC_CALL_PREFIX.length()).trim());
         }
     }
 

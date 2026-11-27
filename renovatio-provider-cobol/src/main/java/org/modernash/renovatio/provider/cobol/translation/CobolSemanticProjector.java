@@ -215,7 +215,7 @@ public final class CobolSemanticProjector {
             String role = paragraph + ":" + ordinal;
             if (statement instanceof FileOperationStatement file) {
                 SemanticProgram.Direction direction = switch (file.operationType()) {
-                    case READ -> SemanticProgram.Direction.READ;
+                    case READ, START -> SemanticProgram.Direction.READ;
                     case WRITE, REWRITE, DELETE -> SemanticProgram.Direction.WRITE;
                     case OPEN, CLOSE -> SemanticProgram.Direction.UNKNOWN;
                 };
@@ -229,6 +229,8 @@ public final class CobolSemanticProjector {
                         boundRecord == null || boundRecord.isBlank() ? Optional.empty() : Optional.of(boundRecord),
                         keyFields,
                         assignTarget == null || assignTarget.isBlank() ? Optional.empty() : Optional.of(assignTarget)));
+                visitStatements(programId, file.exceptionStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
+                visitStatements(programId, file.normalStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
             } else if (statement instanceof Db2Statement db2) {
                 String operation = firstToken(db2.sql());
                 SemanticProgram.Direction direction = databaseDirection(operation);
@@ -239,11 +241,15 @@ public final class CobolSemanticProjector {
             } else if (statement instanceof CallStatement call) {
                 effects.add(new SemanticProgram.SideEffect(SemanticProgram.Header.create(programId,
                         SemanticProgram.NodeKind.SIDE_EFFECT, "external-call:" + role, span),
-                        SemanticProgram.EffectKind.EXTERNAL_CALL, List.of(), "Calls " + call.target()));
+                        SemanticProgram.EffectKind.EXTERNAL_CALL, List.of(),
+                        (call.dynamic() ? SemanticProgram.SideEffect.DYNAMIC_CALL_PREFIX
+                                : SemanticProgram.SideEffect.STATIC_CALL_PREFIX) + call.target()));
                 for (int index = 0; index < call.arguments().size(); index++) {
                     recordExpressionReads(programId, call.arguments().get(index), span, typeIds,
                             role + ":call-argument:" + index, effects, residual);
                 }
+                visitStatements(programId, call.exceptionStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
+                visitStatements(programId, call.normalStatements(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
             } else if (statement instanceof MoveStatement move) {
                 recordExpressionReads(programId, move.source(), span, typeIds,
                         role + ":move-source", effects, residual);
@@ -254,6 +260,9 @@ public final class CobolSemanticProjector {
                         role + ":compute-expression", effects, residual);
                 recordWrite(programId, compute.target(), span, typeIds,
                         role + ":compute-target", effects, residual);
+            } else if (statement instanceof org.modernash.renovatio.cobol.ir.model.PerformStatement perform
+                    && perform.isInline()) {
+                visitStatements(programId, perform.inlineBody(), span, typeIds, paragraph, sequence, effects, io, residual, fileToRecordMapping, fileKeyFields, fileAssignTarget);
             } else if (statement instanceof IfStatement branch) {
                 recordExpressionReads(programId, branch.condition(), span, typeIds,
                         role + ":if-condition", effects, residual);

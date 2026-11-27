@@ -42,6 +42,12 @@ public final class CobolIntermediateModel {
     private final Map<String, String> fileToRecordMapping;
     private final Map<String, List<String>> fileKeyFields;
     private final Map<String, String> fileAssignTarget;
+    private final Map<String, CobolRecordLayout> recordLayouts;
+    private final Map<String, CobolFileDescriptor> fileDescriptors;
+    private final Map<String, String> initialValues;
+    private final Map<String, Integer> tableDimensions;
+    private final Map<String, CobolRedefinesView> redefinesViews;
+    private final java.util.Set<String> ambiguousDataNames;
 
     private CobolIntermediateModel(Builder builder) {
         this.programId = builder.programId;
@@ -62,6 +68,151 @@ public final class CobolIntermediateModel {
         this.fileAssignTarget = builder.fileAssignTarget == null
             ? Collections.emptyMap()
             : Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileAssignTarget));
+        this.recordLayouts = Collections.unmodifiableMap(new LinkedHashMap<>(builder.recordLayouts));
+        this.fileDescriptors = Collections.unmodifiableMap(new LinkedHashMap<>(builder.fileDescriptors));
+        this.initialValues = Collections.unmodifiableMap(new LinkedHashMap<>(builder.initialValues));
+        this.tableDimensions = Collections.unmodifiableMap(new LinkedHashMap<>(builder.tableDimensions));
+        this.redefinesViews = Collections.unmodifiableMap(new LinkedHashMap<>(builder.redefinesViews));
+        this.ambiguousDataNames = java.util.Set.copyOf(builder.ambiguousDataNames);
+    }
+
+    /** Upper-case data names declared more than once (a qualified OF/IN reference is needed). */
+    public java.util.Set<String> getAmbiguousDataNames() {
+        return ambiguousDataNames;
+    }
+
+    /** REDEFINES views keyed by upper-case item name (see {@link CobolRedefinesView}). */
+    public Map<String, CobolRedefinesView> getRedefinesViews() {
+        return redefinesViews;
+    }
+
+    /**
+     * Occurrences of each elementary item declared inside a fixed one-dimensional OCCURS, keyed
+     * by upper-case name; 0 marks a table generation does not support (OCCURS DEPENDING ON,
+     * variable or multi-dimensional). Scalars are absent.
+     */
+    public Map<String, Integer> getTableDimensions() {
+        return tableDimensions;
+    }
+
+    /**
+     * VALUE clause of each uniquely named elementary data item, keyed by upper-case name, as the
+     * raw COBOL literal (quoted, numeric or figurative).
+     */
+    public Map<String, String> getInitialValues() {
+        return initialValues;
+    }
+
+    /** Files declared in FILE-CONTROL, keyed by upper-case SELECT name, in declaration order. */
+    public Map<String, CobolFileDescriptor> getFileDescriptors() {
+        return fileDescriptors;
+    }
+
+    /**
+     * Offset and length of a file's RECORD KEY inside its FD record, when the record layout is
+     * composable and contains the key (an elementary item or a group of consecutive items).
+     */
+    public Optional<int[]> recordKeySpan(CobolFileDescriptor file) {
+        if (file == null || file.recordKey() == null || file.recordName() == null) {
+            return Optional.empty();
+        }
+        Optional<CobolRecordLayout> record = findComposableLayout(file.recordName());
+        if (record.isEmpty()) {
+            return Optional.empty();
+        }
+        String keyName = file.recordKey().toUpperCase();
+        List<String> keyFields = findComposableLayout(keyName)
+                .map(group -> group.fields().stream().map(CobolRecordLayout.Field::name).toList())
+                .orElse(List.of(keyName));
+        List<CobolRecordLayout.Field> fields = record.orElseThrow().fields();
+        int offset = 0;
+        for (int i = 0; i < fields.size(); i++) {
+            if (keyFields.get(0) != null && keyFields.get(0).equals(fields.get(i).name())) {
+                int length = 0;
+                for (int j = i; j < i + keyFields.size() && j < fields.size(); j++) {
+                    length += fields.get(j).length();
+                }
+                return Optional.of(new int[] {offset, length});
+            }
+            offset += fields.get(i).length();
+        }
+        return Optional.empty();
+    }
+
+    /** True when the program issues EXEC CICS commands (an online, screen-driven program). */
+    public boolean usesCics() {
+        return paragraphs.values().stream().anyMatch(paragraph -> anyStatement(paragraph.statements(),
+                statement -> statement instanceof SimpleStatement simple
+                        && simple.text().toUpperCase().startsWith("EXEC CICS")));
+    }
+
+    /**
+     * True when the run unit can end inside a performed paragraph (GOBACK / STOP RUN outside the
+     * entry paragraph) or through CICS (XCTL, RETURN): generated code then needs a way to end
+     * the whole program, not just the current method.
+     */
+    public boolean endsFromPerformedParagraphs() {
+        if (usesCics()) {
+            return true;
+        }
+        CobolParagraph entry = getEntryParagraph();
+        return paragraphs.values().stream().filter(paragraph -> paragraph != entry)
+                .anyMatch(paragraph -> anyStatement(paragraph.statements(),
+                        statement -> statement instanceof SimpleStatement simple
+                                && (simple.kind() == SimpleStatement.Kind.GOBACK
+                                || simple.kind() == SimpleStatement.Kind.STOP_RUN)));
+    }
+
+    private static boolean anyStatement(List<CobolStatement> statements,
+                                        java.util.function.Predicate<CobolStatement> test) {
+        for (CobolStatement statement : statements) {
+            if (test.test(statement)) {
+                return true;
+            }
+            List<List<CobolStatement>> nested = new ArrayList<>();
+            if (statement instanceof IfStatement branch) {
+                nested.add(branch.thenStatements());
+                nested.add(branch.elseStatements());
+            } else if (statement instanceof EvaluateStatement evaluate) {
+                evaluate.branches().forEach(branch -> nested.add(branch.statements()));
+            } else if (statement instanceof PerformStatement perform) {
+                nested.add(perform.inlineBody());
+            } else if (statement instanceof FileOperationStatement file) {
+                nested.add(file.exceptionStatements());
+                nested.add(file.normalStatements());
+            } else if (statement instanceof CallStatement call) {
+                nested.add(call.exceptionStatements());
+                nested.add(call.normalStatements());
+            }
+            for (List<CobolStatement> body : nested) {
+                if (anyStatement(body, test)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public Optional<CobolFileDescriptor> findFile(String selectName) {
+        return selectName == null ? Optional.empty()
+                : Optional.ofNullable(fileDescriptors.get(selectName.toUpperCase()));
+    }
+
+    /**
+     * Layout of every group item, keyed by upper-case COBOL name. Only
+     * {@link CobolRecordLayout#composable() composable} layouts may be read or written as one
+     * string by generated code.
+     */
+    public Map<String, CobolRecordLayout> getRecordLayouts() {
+        return recordLayouts;
+    }
+
+    public Optional<CobolRecordLayout> findComposableLayout(String groupName) {
+        if (groupName == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(recordLayouts.get(groupName.toUpperCase()))
+                .filter(CobolRecordLayout::composable);
     }
 
     /**
@@ -148,6 +299,57 @@ public final class CobolIntermediateModel {
         private DecomposedBusinessLogic decomposedLogic;
         private List<CobolDiagnostic> diagnostics = new ArrayList<>();
         private final Map<String, ParagraphLineRange> paragraphLineRanges = new LinkedHashMap<>();
+        private final Map<String, CobolRecordLayout> recordLayouts = new LinkedHashMap<>();
+        private final Map<String, CobolFileDescriptor> fileDescriptors = new LinkedHashMap<>();
+        private final Map<String, String> initialValues = new LinkedHashMap<>();
+        private final Map<String, Integer> tableDimensions = new LinkedHashMap<>();
+        private final Map<String, CobolRedefinesView> redefinesViews = new LinkedHashMap<>();
+        private java.util.Set<String> ambiguousDataNames = java.util.Set.of();
+
+        public Builder ambiguousDataNames(java.util.Set<String> names) {
+            this.ambiguousDataNames = names == null ? java.util.Set.of() : names;
+            return this;
+        }
+
+        public Builder redefinesViews(Map<String, CobolRedefinesView> views) {
+            this.redefinesViews.clear();
+            if (views != null) {
+                this.redefinesViews.putAll(views);
+            }
+            return this;
+        }
+
+        public Builder tableDimensions(Map<String, Integer> dimensions) {
+            this.tableDimensions.clear();
+            if (dimensions != null) {
+                this.tableDimensions.putAll(dimensions);
+            }
+            return this;
+        }
+
+        public Builder initialValues(Map<String, String> values) {
+            this.initialValues.clear();
+            if (values != null) {
+                this.initialValues.putAll(values);
+            }
+            return this;
+        }
+
+        public Builder fileDescriptors(Map<String, CobolFileDescriptor> files) {
+            this.fileDescriptors.clear();
+            if (files != null) {
+                this.fileDescriptors.putAll(files);
+            }
+            return this;
+        }
+
+        public Builder recordLayouts(Map<String, CobolRecordLayout> layouts) {
+            this.recordLayouts.clear();
+            if (layouts != null) {
+                this.recordLayouts.putAll(layouts);
+            }
+            return this;
+        }
         private Map<String, String> fileToRecordMapping = new LinkedHashMap<>();
         private Map<String, List<String>> fileKeyFields = new LinkedHashMap<>();
         private Map<String, String> fileAssignTarget = new LinkedHashMap<>();

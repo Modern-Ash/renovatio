@@ -215,9 +215,9 @@ class PipelineE2ETest {
     
     @Test
     void shouldTrackSemanticGaps() throws IOException {
-        // Arrange
-        Path fixtureDir = Path.of("src/test/resources/fixtures/batch-simple");
-        Path outputDir = tempDir.resolve("batch-simple-gaps-output");
+        // Arrange: batch-simple now translates completely; cics-mvc still has EXEC CICS gaps.
+        Path fixtureDir = Path.of("src/test/resources/fixtures/cics-mvc");
+        Path outputDir = tempDir.resolve("cics-mvc-gaps-output");
         Files.createDirectories(outputDir);
         
         PipelineRequest request = PipelineRequest.of(fixtureDir, outputDir);

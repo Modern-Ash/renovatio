@@ -45,7 +45,60 @@ public final class JavaArchitectureLayoutPlanner implements ArtifactLayoutPlanne
             result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "adapter/in/web/")
                     + classBase + "CicsController.java", "controller"), adapter, "cics-controller"));
         }
+        String port = component(context, ArchitectureGraph.ComponentKind.OUTBOUND_PORT,
+                ArchitectureGraph.ComponentKind.SERVICE, ArchitectureGraph.ComponentKind.USE_CASE);
+        String fileAdapter = component(context, ArchitectureGraph.ComponentKind.ADAPTER,
+                ArchitectureGraph.ComponentKind.OUTBOUND_PORT, ArchitectureGraph.ComponentKind.SERVICE);
+        for (String file : fileResources(context.program())) {
+            String type = classBase + filePortBase(file);
+            result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "application/port/out/")
+                    + type + "Port.java", "port"), port, "file-port:" + file));
+            result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "adapter/out/file/")
+                    + type + "InMemoryAdapter.java", "adapter"), fileAdapter, "file-in-memory-adapter:" + file));
+        }
+        for (String program : calledPrograms(context.program())) {
+            String type = classBase + filePortBase(program) + "Program";
+            result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "application/port/out/")
+                    + type + "Port.java", "port"), port, "program-port:" + program));
+            result.add(new PlannedArtifact(overrides.javaPath(prefix + (prefix.isEmpty() ? "" : "adapter/out/program/")
+                    + type + "Adapter.java", "adapter"), fileAdapter, "program-adapter:" + program));
+        }
         return List.copyOf(result);
+    }
+
+    /** Distinct statically named programs the program CALLs, sorted for a deterministic layout. */
+    public static List<String> calledPrograms(SemanticProgram program) {
+        return program.sideEffects().stream()
+                .map(SemanticProgram.SideEffect::calledProgram)
+                .flatMap(java.util.Optional::stream)
+                .map(name -> name.toUpperCase(java.util.Locale.ROOT))
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
+    /** Distinct files the program performs I/O on, sorted for a deterministic layout. */
+    public static List<String> fileResources(SemanticProgram program) {
+        return program.ioOperations().stream()
+                .filter(operation -> operation.ioKind() == SemanticProgram.IoKind.FILE)
+                .map(SemanticProgram.IoOperation::resourceReference)
+                .flatMap(java.util.Optional::stream)
+                .map(name -> name.toUpperCase(java.util.Locale.ROOT))
+                .distinct()
+                .sorted()
+                .toList();
+    }
+
+    /** Type-name stem of a file port: SELECT name in Pascal case ("ACCTFILE-FILE" -> "AcctfileFile"). */
+    public static String filePortBase(String selectName) {
+        StringBuilder result = new StringBuilder();
+        for (String part : selectName.split("[^A-Za-z0-9]+")) {
+            if (part.isEmpty()) continue;
+            result.append(Character.toUpperCase(part.charAt(0)));
+            if (part.length() > 1) result.append(part.substring(1).toLowerCase(java.util.Locale.ROOT));
+        }
+        String candidate = result.toString();
+        return candidate.isEmpty() || !Character.isLetter(candidate.charAt(0)) ? "File" + candidate : candidate;
     }
 
     private static String component(LayoutContext context, ArchitectureGraph.ComponentKind... preferred) {

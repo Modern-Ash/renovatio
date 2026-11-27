@@ -81,7 +81,7 @@ public final class CobolDataVerbValueResolver {
         return left.compareTo(right);
     }
 
-    private static Optional<String> renderCobolValue(String rawValue, CobolDataItem parent) {
+    static Optional<String> renderCobolValue(String rawValue, CobolDataItem parent) {
         String value = normalizeFigurative(rawValue, parent);
         if (!isNumeric(parent)) {
             return Optional.of("\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"");

@@ -233,4 +233,101 @@ class SimpleCobolIrParserTest {
         assertEquals("WS-C > 1.5", branch.condition());
         assertEquals("-1025.50", ((MoveStatement) branch.thenStatements().get(0)).source());
     }
+
+    @Test
+    void shouldKeepStatementsBeforeTheFirstParagraphAsTheEntryParagraph() {
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(String.join("\n",
+                "       IDENTIFICATION DIVISION.",
+                "       PROGRAM-ID. MAINLINE.",
+                "       DATA DIVISION.",
+                "       WORKING-STORAGE SECTION.",
+                "       01 WS-C PIC 9.",
+                "       PROCEDURE DIVISION.",
+                "           PERFORM 1000-WORK.",
+                "           GOBACK.",
+                "       1000-WORK.",
+                "           MOVE 1 TO WS-C.",
+                "           EXIT."));
+
+        assertEquals(SimpleCobolIrParser.IMPLICIT_MAIN_PARAGRAPH, model.getEntryParagraph().name());
+        assertEquals(2, model.getEntryParagraph().statements().size());
+        assertTrue(model.findParagraph("1000-WORK").isPresent());
+    }
+
+    @Test
+    void shouldIgnoreSequenceNumbersInColumns1To6() {
+        String[] body = {
+                "000100 IDENTIFICATION DIVISION.",
+                "000200 PROGRAM-ID. SEQ06.",
+                "000300 DATA DIVISION.",
+                "000400 WORKING-STORAGE SECTION.",
+                "000500 01 WS-C PIC 9.",
+                "000600 PROCEDURE DIVISION.",
+                "000700 0000-MAIN.",
+                "000800     MOVE 1 TO WS-C.",
+                "000900     GOBACK."};
+        StringBuilder source = new StringBuilder();
+        for (String line : body) {
+            source.append(line).append(" ".repeat(80 - line.length())).append('\n');
+        }
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(source.toString());
+
+        assertEquals("0000-MAIN", model.getEntryParagraph().name());
+        assertEquals("1", ((MoveStatement) model.getEntryParagraph().statements().get(0)).source());
+    }
+
+    @Test
+    void shouldParseArithmeticVerbFormsIntoOneComputePerReceivingItem() {
+        CobolIntermediateModel model = procedure(
+                "    ADD 8 TO ZERO GIVING WS-C",
+                "    SUBTRACT WS-C FROM WS-C",
+                "    ADD 1 2 TO WS-A WS-B",
+                "    MULTIPLY 3 BY WS-C GIVING WS-A",
+                "    DIVIDE 2 INTO WS-C",
+                "    DIVIDE WS-C BY 4 GIVING WS-B",
+                "    ADD 1 TO WS-C ROUNDED",
+                "    GOBACK.");
+
+        List<org.modernash.renovatio.cobol.ir.model.CobolStatement> statements =
+                model.getEntryParagraph().statements();
+        java.util.function.Function<Integer, org.modernash.renovatio.cobol.ir.model.ComputeStatement> compute =
+                index -> (org.modernash.renovatio.cobol.ir.model.ComputeStatement) statements.get(index);
+        assertEquals("WS-C", compute.apply(0).target());
+        assertEquals("8 + 0", compute.apply(0).expression());
+        assertEquals("WS-C - WS-C", compute.apply(1).expression());
+        assertEquals("WS-A + 1 + 2", compute.apply(2).expression());
+        assertEquals("WS-B + 1 + 2", compute.apply(3).expression());
+        assertEquals("3 * WS-C", compute.apply(4).expression());
+        assertEquals("WS-C / 2", compute.apply(5).expression());
+        assertEquals("WS-C / 4", compute.apply(6).expression());
+        assertEquals(org.modernash.renovatio.cobol.ir.model.SimpleStatement.Kind.UNTRANSLATED,
+                ((org.modernash.renovatio.cobol.ir.model.SimpleStatement) statements.get(7)).kind());
+    }
+
+    @Test
+    void shouldKeepNestedEvaluateWhensAndJoinStackedWhens() {
+        CobolIntermediateModel model = procedure(
+                "    EVALUATE WS-C",
+                "        WHEN 1",
+                "        WHEN 2",
+                "            EVALUATE WS-A",
+                "                WHEN 'X'",
+                "                    MOVE 3 TO WS-C",
+                "                WHEN OTHER",
+                "                    MOVE 4 TO WS-C",
+                "            END-EVALUATE",
+                "        WHEN OTHER",
+                "            MOVE 5 TO WS-C",
+                "    END-EVALUATE",
+                "    GOBACK.");
+
+        org.modernash.renovatio.cobol.ir.model.EvaluateStatement outer =
+                (org.modernash.renovatio.cobol.ir.model.EvaluateStatement) model.getEntryParagraph().statements().get(0);
+        assertEquals(2, outer.branches().size(), () -> String.valueOf(outer.branches()));
+        assertEquals("1 OR 2", outer.branches().get(0).condition());
+        org.modernash.renovatio.cobol.ir.model.EvaluateStatement inner =
+                (org.modernash.renovatio.cobol.ir.model.EvaluateStatement) outer.branches().get(0).statements().get(0);
+        assertEquals(2, inner.branches().size());
+        assertEquals("OTHER", outer.branches().get(1).condition());
+    }
 }

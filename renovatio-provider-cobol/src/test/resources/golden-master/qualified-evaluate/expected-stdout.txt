@@ -1,0 +1,4 @@
+[Please enter user   ] [        ]
+[OK                  ] [ADMIN   ]
+[Please enter pass   ] [ADMIN   ]
+01
