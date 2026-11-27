@@ -244,7 +244,7 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 12,
+    "javaFiles" : 14,
     "manualActionItems" : 46,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
@@ -259,11 +259,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 10,
     "manualActionItems" : 854,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 633,
+    "notTranslatedMarkers" : 626,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ]
   }, {
@@ -274,11 +274,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 10,
     "manualActionItems" : 95,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 137,
+    "notTranslatedMarkers" : 134,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "STRING" ]
   }, {
@@ -304,11 +304,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 10,
     "manualActionItems" : 40,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 69,
+    "notTranslatedMarkers" : 62,
     "notTranslated" : [ ],
     "present" : [ "ADD", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING", "WRITE" ]
   }, {
@@ -352,11 +352,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 6,
     "manualActionItems" : 107,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 119,
+    "notTranslatedMarkers" : 112,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "SUBTRACT", "VARYING" ]
   }, {
@@ -367,11 +367,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 8,
     "manualActionItems" : 58,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 71,
+    "notTranslatedMarkers" : 70,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET" ]
   }, {
@@ -382,11 +382,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 6,
     "manualActionItems" : 134,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 118,
+    "notTranslatedMarkers" : 115,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING" ]
   }, {
@@ -427,11 +427,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 12,
+    "javaFiles" : 18,
     "manualActionItems" : 73,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 110,
+    "notTranslatedMarkers" : 107,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "CLOSE", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "OPEN", "PERFORM", "READ", "SET", "STRING", "UNSTRING" ]
   }, {
@@ -442,11 +442,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 10,
     "manualActionItems" : 118,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 160,
+    "notTranslatedMarkers" : 157,
     "notTranslated" : [ ],
     "present" : [ "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "EXEC DLI", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "VARYING" ]
   }, {
@@ -505,11 +505,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 6,
     "manualActionItems" : 15,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 20,
+    "notTranslatedMarkers" : 19,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ]
   }, {
@@ -520,11 +520,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 6,
     "manualActionItems" : 27,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 48,
+    "notTranslatedMarkers" : 44,
     "notTranslated" : [ ],
     "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT", "VARYING" ]
   }, {
@@ -535,11 +535,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 6,
     "manualActionItems" : 36,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 45,
+    "notTranslatedMarkers" : 44,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET" ]
   }, {
@@ -550,11 +550,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 6,
+    "javaFiles" : 12,
     "manualActionItems" : 82,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 149,
+    "notTranslatedMarkers" : 143,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SET", "STRING", "WRITE" ]
   }, {
@@ -598,11 +598,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 6,
     "manualActionItems" : 26,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 43,
+    "notTranslatedMarkers" : 39,
     "notTranslated" : [ ],
     "present" : [ "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "SUBTRACT", "VARYING" ]
   }, {
@@ -613,11 +613,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 6,
     "manualActionItems" : 21,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 38,
+    "notTranslatedMarkers" : 37,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "SET", "STRING", "WRITE" ]
   }, {
@@ -628,11 +628,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 6,
     "manualActionItems" : 32,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 61,
+    "notTranslatedMarkers" : 59,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "REWRITE", "SET", "STRING" ]
   }, {
@@ -643,11 +643,11 @@
     "parse" : true,
     "emit" : true,
     "compile" : true,
-    "javaFiles" : 4,
+    "javaFiles" : 6,
     "manualActionItems" : 25,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 44,
+    "notTranslatedMarkers" : 42,
     "notTranslated" : [ ],
     "present" : [ "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "IF", "MOVE", "PERFORM", "READ", "SET", "STRING" ]
   }, {

@@ -131,6 +131,13 @@ public final class CobolSemanticProjector {
         Projection projection = statements(model, programSpan, typeIdsByName);
         List<SemanticProgram.IoOperation> ioOperations = new ArrayList<>(projection.io());
         projectCics(programId, new String(bytes, StandardCharsets.UTF_8), programSpan, ioOperations);
+        int dataset = 0;
+        for (var file : model.cicsDatasets().values()) {
+            ioOperations.add(new SemanticProgram.IoOperation(SemanticProgram.Header.create(programId,
+                    SemanticProgram.NodeKind.IO_OPERATION, "cics-file:" + dataset++, programSpan),
+                    SemanticProgram.IoKind.FILE, "CICS", Optional.of(file.name()),
+                    SemanticProgram.Direction.UNKNOWN, List.of()));
+        }
         SemanticProgram.ControlFlow controlFlow = controlFlow(model, programSpan);
 
         return new SemanticProgram("1", SemanticProgram.Header.create(programId,

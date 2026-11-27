@@ -1,6 +1,7 @@
 package org.modernash.renovatio.generated.cobol;
 
 import java.lang.Override;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -9,6 +10,20 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class Cics001ServiceImpl implements Cics001Service {
+  private final Cics001CustomersPort customers;
+
+  /**
+   * Standalone wiring with in-memory file adapters and default program adapters.
+   */
+  public Cics001ServiceImpl() {
+    this(new Cics001CustomersInMemoryAdapter());
+  }
+
+  @Autowired
+  public Cics001ServiceImpl(Cics001CustomersPort customers) {
+    this.customers = customers;
+  }
+
   @Override
   public Cics001DTO process(Cics001DTO input) {
       {

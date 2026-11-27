@@ -8,6 +8,7 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import org.modernash.renovatio.architecture.java.JavaArchitectureLayoutPlanner;
+import org.modernash.renovatio.cobol.ir.model.CobolCicsDataset;
 import org.modernash.renovatio.cobol.ir.model.CobolFileDescriptor;
 import org.modernash.renovatio.cobol.ir.model.CobolIntermediateModel;
 import org.modernash.renovatio.cobol.ir.model.CobolRecordLayout;
@@ -108,7 +109,25 @@ public final class FilePortGenerator {
                 .addParameter(String.class, "key").build());
         type.addMethod(abstractMethod("start", String.class, "Positions sequential reading at the first "
                 + "record whose key is not less than the given key.").addParameter(String.class, "key").build());
+        if (cicsDataset(port, model) != null) {
+            type.addMethod(abstractMethod("readPrevious", readResult, "Reads the previous record of a browse "
+                    + "(CICS READPREV); right after start, the record start positioned at.").build());
+            type.addMethod(MethodSpec.methodBuilder("resp")
+                    .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                    .returns(int.class)
+                    .addParameter(String.class, "status")
+                    .addJavadoc("The CICS RESP condition for a FILE STATUS code (DFHRESP values).\n")
+                    .addStatement("return switch (status) { case \"00\", \"02\" -> 0; case \"10\" -> 20; "
+                            + "case \"23\" -> 13; case \"22\" -> 14; default -> 1; }")
+                    .build());
+        }
         return JavaFile.builder(PACKAGE, type.build()).build().toString();
+    }
+
+    /** The CICS dataset a port stands for, when the program has no FD of that name. */
+    private static CobolCicsDataset cicsDataset(FilePort port, CobolIntermediateModel model) {
+        if (model == null || model.findFile(port.selectName()).isPresent()) return null;
+        return model.cicsDatasets().get(port.selectName().toUpperCase(java.util.Locale.ROOT));
     }
 
     private static MethodSpec.Builder abstractMethod(String name, Object returns, String doc) {
@@ -124,20 +143,26 @@ public final class FilePortGenerator {
      */
     public static String inMemoryAdapter(FilePort port, CobolIntermediateModel model) {
         Optional<CobolFileDescriptor> descriptor = model == null ? Optional.empty() : model.findFile(port.selectName());
-        int[] key = descriptor.flatMap(model::recordKeySpan).orElse(null);
-        boolean keyed = descriptor.map(CobolFileDescriptor::keyed).orElse(false) && key != null;
+        CobolCicsDataset dataset = cicsDataset(port, model);
+        int[] key = dataset != null && dataset.keyed() ? new int[] {dataset.keyOffset(), dataset.keyLength()}
+                : descriptor.flatMap(model::recordKeySpan).orElse(null);
+        boolean keyed = (dataset != null || descriptor.map(CobolFileDescriptor::keyed).orElse(false)) && key != null;
         ClassName portType = ClassName.get(PACKAGE, port.portType());
         ClassName readResult = portType.nestedClass("ReadResult");
         TypeName records = ParameterizedTypeName.get(TreeMap.class, String.class, String.class);
         TypeName list = ParameterizedTypeName.get(List.class, String.class);
 
+        FieldSpec.Builder mode = FieldSpec.builder(String.class, "mode", Modifier.PRIVATE);
+        if (dataset != null) {
+            mode.initializer("$S", "I-O"); // CICS owns the files of an online program and keeps them open.
+        }
         TypeSpec.Builder type = TypeSpec.classBuilder(port.adapterType())
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(portType)
                 .addJavadoc("In-memory $L for golden-master runs and tests.\n", port.portType())
                 .addField(FieldSpec.builder(records, "records", Modifier.PRIVATE, Modifier.FINAL)
                         .initializer("new $T<>()", TreeMap.class).build())
-                .addField(FieldSpec.builder(String.class, "mode", Modifier.PRIVATE).build())
+                .addField(mode.build())
                 .addField(FieldSpec.builder(String.class, "position", Modifier.PRIVATE).build())
                 .addField(FieldSpec.builder(String.class, "lastRead", Modifier.PRIVATE).build())
                 .addField(FieldSpec.builder(long.class, "sequence", Modifier.PRIVATE).build());
@@ -196,6 +221,7 @@ public final class FilePortGenerator {
                 .beginControlFlow("if (!\"INPUT\".equals(mode) && !\"I-O\".equals(mode))")
                 .addStatement("return new $T(\"47\", null)", readResult)
                 .endControlFlow()
+                .addCode(dataset != null ? "startedAt = null;\n" : "")
                 .addStatement("String next = position == null ? (records.isEmpty() ? null : records.firstKey()) "
                         + ": records.higherKey(position)")
                 .beginControlFlow("if (next == null)")
@@ -266,13 +292,30 @@ public final class FilePortGenerator {
                 .beginControlFlow("if (!\"INPUT\".equals(mode) && !\"I-O\".equals(mode))")
                 .addStatement("return \"47\"")
                 .endControlFlow()
+                // shortcut: a failed start keeps the previous position (COBOL 46, CICS INVREQ not modeled); track browse state when a program reads on after it.
                 .addStatement("String first = records.ceilingKey(key)")
                 .beginControlFlow("if (first == null)")
                 .addStatement("return \"23\"")
                 .endControlFlow()
                 .addStatement("position = records.lowerKey(first)")
+                .addCode(dataset != null ? "startedAt = first;\n" : "")
                 .addStatement("return \"00\"")
                 .build());
+        if (dataset != null) {
+            type.addField(FieldSpec.builder(String.class, "startedAt", Modifier.PRIVATE).build());
+            type.addMethod(MethodSpec.methodBuilder("readPrevious")
+                    .addAnnotation(Override.class).addModifiers(Modifier.PUBLIC).returns(readResult)
+                    .addStatement("String previous = startedAt != null ? startedAt : position == null "
+                            + "? (records.isEmpty() ? null : records.lastKey()) : records.lowerKey(position)")
+                    .addStatement("startedAt = null")
+                    .beginControlFlow("if (previous == null)")
+                    .addStatement("return new $T(\"10\", null)", readResult)
+                    .endControlFlow()
+                    .addStatement("position = previous")
+                    .addStatement("lastRead = previous")
+                    .addStatement("return new $T(\"00\", records.get(previous))", readResult)
+                    .build());
+        }
         return JavaFile.builder(PACKAGE, type.build()).build().toString();
     }
 }

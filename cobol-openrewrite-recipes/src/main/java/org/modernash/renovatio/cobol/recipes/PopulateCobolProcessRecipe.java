@@ -936,6 +936,19 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     }
                     collectAssignedStatements(file.exceptionStatements(), assigned, model);
                     collectAssignedStatements(file.normalStatements(), assigned, model);
+                } else if (statement instanceof SimpleStatement simple
+                        && CobolCicsCommand.parse(simple.text()) instanceof CobolCicsCommand cics) {
+                    // CICS writes RECEIVE / READ INTO areas, RESP codes and the key a browse returns.
+                    for (String option : List.of("INTO", "RESP", "RESP2")) {
+                        addAssigned(assigned, cics.options().get(option));
+                    }
+                    if (cics.verb().startsWith("READ") && !cics.verb().equals("READ")) {
+                        addAssigned(assigned, cics.options().get("RIDFLD"));
+                    }
+                    if (cics.verb().equals("RECEIVE") && cics.options().get("MAP") != null
+                            && !cics.options().containsKey("INTO")) {
+                        addAssigned(assigned, cics.options().get("MAP").replace("'", "") + "I");
+                    }
                 } else if (statement instanceof IfStatement branch) {
                     collectAssignedStatements(branch.thenStatements(), assigned, model);
                     collectAssignedStatements(branch.elseStatements(), assigned, model);
@@ -1660,26 +1673,22 @@ public class PopulateCobolProcessRecipe extends Recipe {
             return null;
         }
 
-        private static final java.util.regex.Pattern CICS_OPTION = java.util.regex.Pattern.compile(
-                "([A-Za-z][A-Za-z0-9-]*)(?:\\s*\\(((?:[^()']|'[^']*'|\\([^()]*\\))*)\\))?");
-
         /**
          * One EXEC CICS command as screen-handler data: RECEIVE MAP reads the request, SEND MAP / TEXT
          * fill the response, XCTL and RETURN set the navigation and end the run. Other commands stay
          * explicit markers.
          */
         private List<String> renderCics(String text, String targetVar) {
-            String body = text.replaceAll("(?i)^EXEC\\s+CICS\\s+", "").replaceAll("(?i)\\s*END-EXEC\\s*$", "").trim();
-            List<String> words = new ArrayList<>();
-            Map<String, String> options = new LinkedHashMap<>();
-            java.util.regex.Matcher matcher = CICS_OPTION.matcher(body);
-            while (matcher.find()) {
-                String name = matcher.group(1).toUpperCase(Locale.ROOT);
-                if (matcher.group(2) == null) words.add(name);
-                else options.put(name, matcher.group(2).trim());
-            }
-            String verb = words.isEmpty() ? "" : words.get(0);
+            CobolCicsCommand command = CobolCicsCommand.parse(text);
+            List<String> words = command.words();
+            Map<String, String> options = command.options();
+            String verb = command.verb();
             String marker = "// COBOL not translated: " + truncate(text);
+            if (command.fileCommand()) {
+                List<String> lines = renderCicsFile(command, targetVar);
+                return lines == null || lines.stream().anyMatch(line -> line.contains(UNRESOLVED_MARKER))
+                        ? List.of(marker) : lines;
+            }
             List<String> lines = new ArrayList<>();
             String response = targetVar + ".getScreenResponse()";
             switch (verb) {
@@ -1727,6 +1736,82 @@ public class PopulateCobolProcessRecipe extends Recipe {
             }
             if (lines.stream().anyMatch(line -> line.contains(UNRESOLVED_MARKER))) {
                 return List.of(marker);
+            }
+            return lines;
+        }
+
+        /**
+         * A CICS file-control command as a call on the dataset's file port: the key is RIDFLD in its
+         * DISPLAY form, INTO receives the record, FROM supplies it, RESP gets the condition the FILE
+         * STATUS maps to. Null when the dataset or an operand is not modeled.
+         */
+        private @Nullable List<String> renderCicsFile(CobolCicsCommand command, String targetVar) {
+            String name = currentModel == null ? null : currentModel.cicsName(command.dataset());
+            CobolCicsDataset dataset = name == null ? null : currentModel.cicsDatasets().get(name);
+            if (dataset == null || command.words().stream().anyMatch(word -> word.equals("GENERIC")
+                    || word.equals("GTEQ") && command.verb().equals("READ"))) {
+                return null;
+            }
+            String port = filePortField(name);
+            Map<String, String> options = command.options();
+            String ridfld = options.get("RIDFLD");
+            String key = ridfld == null ? null : displayOperand(ridfld);
+            String into = options.get("INTO");
+            String from = options.get("FROM");
+            if (into != null && !isStringOperand(into) || from != null && !isStringOperand(from)) {
+                return null;
+            }
+            List<String> lines = new ArrayList<>();
+            String status = "fileStatus" + (++fileResultCounter);
+            switch (command.verb()) {
+                case "READ", "READNEXT", "READPREV" -> {
+                    String call = switch (command.verb()) {
+                        case "READ" -> key == null ? null : port + ".read(" + key + ")";
+                        case "READNEXT" -> port + ".read()";
+                        default -> port + ".readPrevious()";
+                    };
+                    if (call == null) return null;
+                    String result = "fileRead" + fileResultCounter;
+                    lines.add("var " + result + " = " + call + ";");
+                    lines.add("String " + status + " = " + result + ".status();");
+                    List<String> onSuccess = new ArrayList<>();
+                    if (into != null) onSuccess.add(setterCall(targetVar, into, result + ".record()") + ";");
+                    boolean ridfldInRecord = ridfld != null && dataset.recordName() != null
+                            && currentModel.fieldSpan(dataset.recordName(), ridfld).isPresent();
+                    if (!command.verb().equals("READ") && ridfld != null && !ridfldInRecord && dataset.keyed()) {
+                        // A browse returns the key of the record it read in RIDFLD.
+                        String type = dataTypes.get(toPascal(stripSubscripts(ridfld)));
+                        String recordKey = result + ".record().substring(" + dataset.keyOffset() + ", "
+                                + (dataset.keyOffset() + dataset.keyLength()) + ")";
+                        onSuccess.add(setterCall(targetVar, ridfld, convert(recordKey, "String",
+                                type == null ? "String" : type)) + ";");
+                    }
+                    if (!onSuccess.isEmpty()) {
+                        lines.add("if (" + result + ".successful()) {");
+                        onSuccess.forEach(line -> lines.add(indent(line)));
+                        lines.add("}");
+                    }
+                }
+                case "STARTBR" -> {
+                    if (key == null) return null;
+                    lines.add("String " + status + " = " + port + ".start(" + key + ");");
+                }
+                case "WRITE", "REWRITE" -> {
+                    if (from == null) return null;
+                    lines.add("String " + status + " = " + port + "." + command.verb().toLowerCase(Locale.ROOT)
+                            + "(" + toJavaExpression(from) + ");");
+                }
+                case "DELETE" -> lines.add("String " + status + " = " + port + ".delete("
+                        + (key == null ? "null" : key) + ");");
+                case "ENDBR" -> {
+                    return List.of("// EXEC CICS ENDBR " + name + ": the port keeps no browse to release");
+                }
+                default -> {
+                    return null;
+                }
+            }
+            if (options.containsKey("RESP")) {
+                lines.add(setterCall(targetVar, options.get("RESP"), port + ".resp(" + status + ")") + ";");
             }
             return lines;
         }

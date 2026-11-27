@@ -148,6 +148,45 @@ class CardDemoGoldenMasterTest {
         assertThat(dto).isNotNull();
     }
 
+    @Test
+    void cicsFileControlRunsOnTheDatasetPort() throws Exception {
+        Path workspace = tempDir.resolve("cics-files");
+        Files.createDirectories(workspace);
+        Files.copy(Path.of("src/test/resources/golden-master/screen-handler/USERMNT.cbl"), workspace.resolve("USERMNT.cbl"));
+        ClassLoader classes = compile(generate(workspace));
+
+        Object users = classes.loadClass(PACKAGE + ".UsermntUsrsecInMemoryAdapter").getConstructor(List.class)
+                .newInstance(List.of("ALICE   Alice A ", "BOB     Bob B   ", "CAROL   Carol C "));
+        Object service = wire(classes, "UsermntServiceImpl", Map.of(PACKAGE + ".UsermntUsrsecPort", users));
+        Class<?> requestType = classes.loadClass(PACKAGE + ".UsermntDTO$ScreenRequest");
+        Object controller = classes.loadClass(PACKAGE + ".UsermntCicsController")
+                .getConstructor(classes.loadClass(PACKAGE + ".UsermntService")).newInstance(service);
+        var handle = controller.getClass().getMethod("handle", requestType);
+        var newRequest = requestType.getConstructor(String.class, String.class, Map.class);
+        java.util.function.Function<String, Object> run = commarea -> {
+            try {
+                return get(handle.invoke(controller, newRequest.newInstance("ENTER", commarea, Map.of())), "text");
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        };
+
+        assertThat(run.apply("RBOB             ")).isEqualTo("00|BOB     Bob B   ");
+        assertThat(run.apply("RZED             ")).isEqualTo("13|                ");   // NOTFND
+        assertThat(run.apply("WDAVE    Dave D  ")).isEqualTo("00|                ");
+        assertThat(run.apply("WDAVE    Dave D  ")).isEqualTo("14|                ");   // DUPREC
+        assertThat(run.apply("UBOB     Bobby   ")).isEqualTo("00|                ");
+        assertThat(run.apply("DALICE           ")).isEqualTo("00|                ");
+        assertThat(run.apply("RALICE           ")).isEqualTo("13|                ");
+        // Browse forward from "B": BOB, then CAROL; backward from CAROL: CAROL, then BOB.
+        assertThat(run.apply("NB               ")).isEqualTo("00|CAROL   Carol C ");
+        assertThat(run.apply("PCAROL           ")).isEqualTo("00|BOB     Bobby   ");
+        assertThat(run.apply("NZZZ             ")).isEqualTo("13|                ");   // STARTBR past the end
+        @SuppressWarnings("unchecked")
+        List<String> content = (List<String>) users.getClass().getMethod("records").invoke(users);
+        assertThat(content).containsExactly("BOB     Bobby   ", "CAROL   Carol C ", "DAVE    Dave D  ");
+    }
+
     private static Object get(Object target, String accessor) throws Exception {
         return target.getClass().getMethod(accessor).invoke(target);
     }

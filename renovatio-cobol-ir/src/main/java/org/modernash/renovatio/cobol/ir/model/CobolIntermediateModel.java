@@ -116,11 +116,19 @@ public final class CobolIntermediateModel {
         if (file == null || file.recordKey() == null || file.recordName() == null) {
             return Optional.empty();
         }
-        Optional<CobolRecordLayout> record = findComposableLayout(file.recordName());
-        if (record.isEmpty()) {
+        return fieldSpan(file.recordName(), file.recordKey());
+    }
+
+    /**
+     * Offset and length of an item (elementary, or a group of consecutive fields) inside a
+     * composable record layout.
+     */
+    public Optional<int[]> fieldSpan(String recordName, String itemName) {
+        Optional<CobolRecordLayout> record = findComposableLayout(recordName);
+        if (record.isEmpty() || itemName == null) {
             return Optional.empty();
         }
-        String keyName = file.recordKey().toUpperCase();
+        String keyName = itemName.toUpperCase();
         List<String> keyFields = findComposableLayout(keyName)
                 .map(group -> group.fields().stream().map(CobolRecordLayout.Field::name).toList())
                 .orElse(List.of(keyName));
@@ -137,6 +145,68 @@ public final class CobolIntermediateModel {
             offset += fields.get(i).length();
         }
         return Optional.empty();
+    }
+
+    /**
+     * Datasets the program reaches through CICS file control, keyed by upper-case dataset name in
+     * first-use order. The key lies where RIDFLD lies inside the record; when RIDFLD is an item of
+     * its own, the key is assumed to lead the record.
+     */
+    public Map<String, CobolCicsDataset> cicsDatasets() {
+        List<CobolCicsCommand> commands = new ArrayList<>();
+        paragraphs.values().forEach(paragraph -> anyStatement(paragraph.statements(), statement -> {
+            if (statement instanceof SimpleStatement simple) {
+                CobolCicsCommand command = CobolCicsCommand.parse(simple.text());
+                if (command != null && command.fileCommand()) commands.add(command);
+            }
+            return false;
+        }));
+        Map<String, CobolCicsDataset> datasets = new LinkedHashMap<>();
+        for (CobolCicsCommand command : commands) {
+            String name = cicsName(command.dataset());
+            if (name == null) continue;
+            CobolCicsDataset known = datasets.get(name);
+            String area = command.options().getOrDefault("INTO", command.options().get("FROM"));
+            String record = known != null && known.recordName() != null ? known.recordName()
+                    : area == null ? null : area.toUpperCase();
+            int offset = known == null ? 0 : known.keyOffset();
+            int length = known == null ? 0 : known.keyLength();
+            String ridfld = command.options().get("RIDFLD");
+            if (length == 0 && ridfld != null) {
+                Optional<int[]> inRecord = fieldSpan(record, ridfld);
+                if (inRecord.isPresent()) {
+                    offset = inRecord.orElseThrow()[0];
+                    length = inRecord.orElseThrow()[1];
+                } else {
+                    // shortcut: a key outside the record area is taken to lead the record, as in most KSDS layouts.
+                    length = itemLength(ridfld);
+                }
+            }
+            datasets.put(name, new CobolCicsDataset(name, record, offset, length));
+        }
+        return datasets;
+    }
+
+    /** A CICS name argument: a literal, or an item whose VALUE is one; trimmed, upper case. */
+    public String cicsName(String argument) {
+        if (argument == null) return null;
+        String value = argument.trim();
+        if (!value.startsWith("'") && !value.startsWith("\"")) {
+            value = initialValues.get(value.toUpperCase());
+        }
+        if (value == null || !value.matches("'[^']*'|\"[^\"]*\"")) return null;
+        String name = value.substring(1, value.length() - 1).trim().toUpperCase();
+        return name.isEmpty() ? null : name;
+    }
+
+    /** DISPLAY length of an item: a composable group, or an elementary field of any layout; 0 when unknown. */
+    private int itemLength(String itemName) {
+        String name = itemName.trim().toUpperCase();
+        Optional<CobolRecordLayout> group = findComposableLayout(name);
+        if (group.isPresent()) return group.orElseThrow().length();
+        return recordLayouts.values().stream().flatMap(layout -> layout.fields().stream())
+                .filter(field -> name.equals(field.name())).mapToInt(CobolRecordLayout.Field::length)
+                .findFirst().orElse(0);
     }
 
     /** True when the program issues EXEC CICS commands (an online, screen-driven program). */

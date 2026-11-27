@@ -1126,6 +1126,7 @@ public class JavaGenerationService {
         java.util.TreeSet<String> files = new java.util.TreeSet<>();
         if (model != null) {
             model.getParagraphs().values().forEach(paragraph -> collectFiles(paragraph.statements(), files));
+            files.addAll(model.cicsDatasets().keySet());
         }
         return List.copyOf(files);
     }
