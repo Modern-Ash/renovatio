@@ -21,10 +21,10 @@ public class Cics001ServiceImpl implements Cics001Service {
           // COBOL not translated: EXEC CICS
           // COBOL not translated: RETURN
           // COBOL not translated: INITIALIZE
-          // COBOL not translated: SPACES (data item not modeled)
-          // COBOL not translated: SPACES (data item not modeled)
+          output.setWsCustomerId("          ");
+          output.setWsCustomerName("                                                  ");
           output.setWsResponse(0);
-          // COBOL not translated: SPACES (data item not modeled)
+          output.setWsMessage("                                                                                ");
           return output;
       }
   }
@@ -80,10 +80,10 @@ public class Cics001ServiceImpl implements Cics001Service {
     }
     @GeneratedFrom(paragraph = "CLEANUP", lines = "90-94")
     private void performCleanup(Cics001DTO input, Cics001DTO out) {
-        // COBOL not translated: SPACES (data item not modeled)
-        // COBOL not translated: SPACES (data item not modeled)
+        out.setWsCustomerId("          ");
+        out.setWsCustomerName("                                                  ");
         out.setWsResponse(0);
-        // COBOL not translated: SPACES (data item not modeled)
+        out.setWsMessage("                                                                                ");
     }
     @GeneratedFrom(paragraph = "SEND-ERROR", lines = "79-89")
     private void performSendError(Cics001DTO input, Cics001DTO out) {

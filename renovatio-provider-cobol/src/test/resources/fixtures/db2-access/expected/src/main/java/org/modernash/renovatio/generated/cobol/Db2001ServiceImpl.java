@@ -57,11 +57,11 @@ public class Db2001ServiceImpl implements Db2001Service {
     @GeneratedFrom(paragraph = "CLEANUP", lines = "76-82")
     private void performCleanup(Db2001DTO input, Db2001DTO out) {
         out.setWsEmpId(0);
-        // COBOL not translated: SPACES (data item not modeled)
-        // COBOL not translated: SPACES (data item not modeled)
+        out.setWsEmpName("                                                  ");
+        out.setWsEmpDept("                    ");
         out.setWsEmpSalary(new java.math.BigDecimal("0"));
         out.setWsResponse(0);
-        // COBOL not translated: SPACES (data item not modeled)
+        out.setWsMessage("                                                                                ");
     }
 }@interface GeneratedFrom {
     String paragraph();

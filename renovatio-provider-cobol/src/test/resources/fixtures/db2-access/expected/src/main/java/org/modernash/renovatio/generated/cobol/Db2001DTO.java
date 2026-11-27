@@ -20,6 +20,18 @@ public class Db2001DTO {
 
   private String wsMessage;
 
+  private Integer empId;
+
+  private String empName;
+
+  private String empDept;
+
+  private BigDecimal empSalary;
+
+  private String empHireDate;
+
+  private String empStatus;
+
   public Db2001DTO() {
   }
 
@@ -69,5 +81,53 @@ public class Db2001DTO {
 
   public void setWsMessage(String wsMessage) {
     this.wsMessage = wsMessage;
+  }
+
+  public Integer getEmpId() {
+    return empId;
+  }
+
+  public void setEmpId(Integer empId) {
+    this.empId = empId;
+  }
+
+  public String getEmpName() {
+    return empName;
+  }
+
+  public void setEmpName(String empName) {
+    this.empName = empName;
+  }
+
+  public String getEmpDept() {
+    return empDept;
+  }
+
+  public void setEmpDept(String empDept) {
+    this.empDept = empDept;
+  }
+
+  public BigDecimal getEmpSalary() {
+    return empSalary;
+  }
+
+  public void setEmpSalary(BigDecimal empSalary) {
+    this.empSalary = empSalary;
+  }
+
+  public String getEmpHireDate() {
+    return empHireDate;
+  }
+
+  public void setEmpHireDate(String empHireDate) {
+    this.empHireDate = empHireDate;
+  }
+
+  public String getEmpStatus() {
+    return empStatus;
+  }
+
+  public void setEmpStatus(String empStatus) {
+    this.empStatus = empStatus;
   }
 }

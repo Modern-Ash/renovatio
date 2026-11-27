@@ -2,6 +2,7 @@ package org.modernash.renovatio.generated.cobol;
 
 import java.lang.Integer;
 import java.lang.String;
+import java.math.BigDecimal;
 
 /**
  * Data Transfer Object generated from COBOL program: Cics001
@@ -14,6 +15,20 @@ public class Cics001DTO {
   private Integer wsResponse;
 
   private String wsMessage;
+
+  private String custId;
+
+  private String custName;
+
+  private String custAddress;
+
+  private String custPhone;
+
+  private String custEmail;
+
+  private BigDecimal custBalance;
+
+  private String custStatus;
 
   public Cics001DTO() {
   }
@@ -48,5 +63,61 @@ public class Cics001DTO {
 
   public void setWsMessage(String wsMessage) {
     this.wsMessage = wsMessage;
+  }
+
+  public String getCustId() {
+    return custId;
+  }
+
+  public void setCustId(String custId) {
+    this.custId = custId;
+  }
+
+  public String getCustName() {
+    return custName;
+  }
+
+  public void setCustName(String custName) {
+    this.custName = custName;
+  }
+
+  public String getCustAddress() {
+    return custAddress;
+  }
+
+  public void setCustAddress(String custAddress) {
+    this.custAddress = custAddress;
+  }
+
+  public String getCustPhone() {
+    return custPhone;
+  }
+
+  public void setCustPhone(String custPhone) {
+    this.custPhone = custPhone;
+  }
+
+  public String getCustEmail() {
+    return custEmail;
+  }
+
+  public void setCustEmail(String custEmail) {
+    this.custEmail = custEmail;
+  }
+
+  public BigDecimal getCustBalance() {
+    return custBalance;
+  }
+
+  public void setCustBalance(BigDecimal custBalance) {
+    this.custBalance = custBalance;
+  }
+
+  public String getCustStatus() {
+    return custStatus;
+  }
+
+  public void setCustStatus(String custStatus) {
+    this.custStatus = custStatus;
   }
 }

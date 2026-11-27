@@ -30,7 +30,7 @@ public class Batch001ServiceImpl implements Batch001Service {
     if (String.valueOf(Math.abs(input.getWsTotal())).length() > 8) { return false; };
     if (input.getWsResult() == null) { return false; };
     if (String.valueOf(Math.abs(input.getWsResult())).length() > 8) { return false; };
-    if (input.getWsFlag() == null || input.getWsFlag().length() > 2) { return false; };
+    if (input.getWsFlag() == null || input.getWsFlag().length() > 1) { return false; };
     if (input.getWsOutput() == null || input.getWsOutput().length() > 80) { return false; };
     return true;
   }
@@ -46,7 +46,7 @@ public class Batch001ServiceImpl implements Batch001Service {
     }
     @GeneratedFrom(paragraph = "DISPLAY-RESULT", lines = "36-43")
     private void performDisplayResult(Batch001DTO input, Batch001DTO out) {
-        if (out.getWsFlag() == "Y") {
+        if (java.util.Objects.equals(out.getWsFlag(), "Y")) {
             out.setWsOutput("Total exceeded 50");
         } else {
             out.setWsOutput("Total within limit");

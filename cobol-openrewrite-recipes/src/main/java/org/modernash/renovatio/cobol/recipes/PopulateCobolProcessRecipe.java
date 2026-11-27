@@ -24,6 +24,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
     private record ResolvedCondition(CobolDataItem parent, Level88Condition condition) { }
 
+    private static final Set<String> FIGURATIVE_ZERO = Set.of("ZERO", "ZEROS", "ZEROES");
+    private static final Set<String> FIGURATIVE_SPACE = Set.of("SPACE", "SPACES");
+
     public static final String CONTEXT_KEY = "renovatio.cobol.ir";
     /** One DISPLAY operand: a single- or double-quoted literal, or a run of non-space characters. */
     private static final java.util.regex.Pattern DISPLAY_OPERAND =
@@ -97,6 +100,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         /** Pascal-cased names of COBOL data items present in the model; the DTO exposes getters for these. */
         private Set<String> knownDataNames = Set.of();
+
+        /** Java type of each known data item, keyed like {@link #knownDataNames}. */
+        private Map<String, String> dataTypes = Map.of();
 
         private static final String UNRESOLVED_MARKER = "\u00A7RENO_UNRESOLVED\u00A7";
 
@@ -462,14 +468,88 @@ public class PopulateCobolProcessRecipe extends Recipe {
         private String renderMove(MoveStatement move, CobolIntermediateModel model,
                                   @Nullable String varName) {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
-            String expression = toJavaExpression(move.source());
             Optional<CobolDataItem> target = findDataItem(model, stripSubscripts(move.target()));
-            if (target.map(CobolDataItem::javaType).filter("BigDecimal"::equals).isPresent()
-                    && move.source().trim().matches("[+-]?[0-9]+(?:\\.[0-9]+)?")) {
-                expression = "new java.math.BigDecimal(\"" + move.source().trim() + "\")";
-            }
+            String targetType = target.map(CobolDataItem::javaType).orElse(null);
+            String expression = moveSourceExpression(move.source().trim(), target.orElse(null));
             return String.format(Locale.ROOT, "%s.%s(%s);",
                     targetVar, toSetter(move.target()), expression);
+        }
+
+        /**
+         * Java expression for a MOVE sending operand, converted to the receiving item's Java type.
+         * Handles figurative constants, signed/decimal numeric literals and data items of a
+         * different Java type. PICTURE-exact truncation and padding are out of scope here.
+         */
+        private String moveSourceExpression(String source, @Nullable CobolDataItem target) {
+            String targetType = target == null ? null : target.javaType();
+            String upper = source.toUpperCase(Locale.ROOT);
+            if (targetType != null && FIGURATIVE_ZERO.contains(upper)) {
+                return switch (targetType) {
+                    case "String" -> quoted("0".repeat(alphanumericLength(target)));
+                    case "Long" -> "0L";
+                    case "BigDecimal" -> "java.math.BigDecimal.ZERO";
+                    default -> "0";
+                };
+            }
+            if (targetType != null && FIGURATIVE_SPACE.contains(upper) && "String".equals(targetType)) {
+                return quoted(" ".repeat(alphanumericLength(target)));
+            }
+            if (source.matches("[+-]?[0-9]*\\.?[0-9]+")) {
+                return numericLiteral(source, targetType);
+            }
+            String expression = toJavaExpression(source);
+            if (targetType == null || expression.contains(UNRESOLVED_MARKER)) {
+                return expression;
+            }
+            String sourceType = source.startsWith("'") || source.startsWith("\"")
+                    ? "String"
+                    : dataTypes.get(toPascal(stripSubscripts(source)));
+            return convert(expression, sourceType, targetType);
+        }
+
+        private String numericLiteral(String literal, @Nullable String targetType) {
+            String plain = literal.startsWith("+") ? literal.substring(1) : literal;
+            if (targetType == null) {
+                return plain;
+            }
+            String integral = new java.math.BigDecimal(plain).toBigInteger().toString();
+            return switch (targetType) {
+                case "String" -> quoted(plain.replace("-", ""));
+                case "BigDecimal" -> "new java.math.BigDecimal(\"" + plain + "\")";
+                case "Long" -> integral + "L";
+                case "Integer" -> integral;
+                default -> plain;
+            };
+        }
+
+        /** Converts {@code expression} of {@code sourceType} to {@code targetType} (boxed types). */
+        private String convert(String expression, @Nullable String sourceType, String targetType) {
+            if (sourceType == null || sourceType.equals(targetType)) {
+                return expression;
+            }
+            return switch (targetType) {
+                case "String" -> "BigDecimal".equals(sourceType)
+                        ? expression + ".toPlainString()"
+                        : "String.valueOf(" + expression + ")";
+                case "Integer" -> "String".equals(sourceType)
+                        ? "Integer.valueOf(" + expression + ".trim())"
+                        : expression + ".intValue()";
+                case "Long" -> "String".equals(sourceType)
+                        ? "Long.valueOf(" + expression + ".trim())"
+                        : expression + ".longValue()";
+                case "BigDecimal" -> "String".equals(sourceType)
+                        ? "new java.math.BigDecimal(" + expression + ".trim())"
+                        : "java.math.BigDecimal.valueOf(" + expression + ")";
+                default -> expression;
+            };
+        }
+
+        private int alphanumericLength(CobolDataItem item) {
+            return item.picType() != null && item.picType().digits() > 0 ? item.picType().digits() : 1;
+        }
+
+        private String quoted(String value) {
+            return "\"" + value + "\"";
         }
 
         private String renderCompute(ComputeStatement compute, @Nullable String varName) {
@@ -534,11 +614,23 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     .findFirst();
         }
 
+        /**
+         * Pascal-cased names of the elementary data items: the generated DTO carries one field per
+         * elementary item. Group items have no field of their own, so a reference to one stays an
+         * explicit "not translated" marker instead of an accessor that does not compile.
+         */
         private Set<String> knownDataNamesOf(CobolIntermediateModel model) {
             Set<String> names = new LinkedHashSet<>();
+            Map<String, String> types = new HashMap<>();
             for (CobolDataItem item : model.getDataItems()) {
-                names.add(toPascal(item.name()));
+                if (item.picture() == null || item.name().equalsIgnoreCase("FILLER")) {
+                    continue;
+                }
+                String pascal = toPascal(item.name());
+                names.add(pascal);
+                types.putIfAbsent(pascal, item.javaType());
             }
+            dataTypes = types;
             return names;
         }
 
@@ -1224,6 +1316,16 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 };
                 String leftExpr = toJavaIdentifierRef(left, aliases);
                 String rightExpr = toJavaExpression(right);
+                if (("==".equals(javaOp) || "!=".equals(javaOp))
+                        && (isStringOperand(left) || isStringOperand(right))) {
+                    // Java == on String compares references; COBOL compares values. A numeric
+                    // literal against an alphanumeric item compares as its digit characters.
+                    if (right.matches("[0-9]+")) {
+                        rightExpr = "\"" + right + "\"";
+                    }
+                    String equals = "java.util.Objects.equals(" + leftExpr + ", " + rightExpr + ")";
+                    return "==".equals(javaOp) ? equals : "!" + equals;
+                }
                 return leftExpr + " " + javaOp + " " + rightExpr;
             }
             // Fallback to previous behavior for complex expressions
@@ -1231,6 +1333,15 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     .replace("=", "==")
                     .replace("<>", "!=");
             return toJavaExpression(javaCondition.trim());
+        }
+
+        /** True when a condition operand is an alphanumeric literal or a String data item. */
+        private boolean isStringOperand(String cobolOperand) {
+            String t = cobolOperand == null ? "" : cobolOperand.trim();
+            if (t.startsWith("'") || t.startsWith("\"")) {
+                return true;
+            }
+            return "String".equals(dataTypes.get(toPascal(stripSubscripts(t))));
         }
 
         private String toJavaIdentifierRef(String ident) {
@@ -1330,8 +1441,8 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (trimmed.matches("\".*\"")) {
                 return trimmed;
             }
-            if (trimmed.matches("[0-9]+")) {
-                return trimmed;
+            if (trimmed.matches("[+-]?[0-9]*\\.?[0-9]+")) {
+                return trimmed.startsWith("+") ? trimmed.substring(1) : trimmed;
             }
             if (trimmed.equalsIgnoreCase("TRUE") || trimmed.equalsIgnoreCase("FALSE")) {
                 return trimmed.toLowerCase(Locale.ROOT);

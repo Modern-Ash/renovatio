@@ -472,4 +472,83 @@ class PopulateCobolProcessRecipeTest {
             throw new IllegalStateException("Cannot read " + path, exception);
         }
     }
+
+    private static String populate(String cobol) {
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(cobol);
+        String javaSource = """
+                package sample;
+                public class SampleService {
+                    public SampleDto process(SampleDto input) {
+                        // TODO: Implement COBOL business logic
+                        SampleDto output = new SampleDto();
+                        return output;
+                    }
+                }
+                """;
+        ExecutionContext ctx = new InMemoryExecutionContext(Throwable::printStackTrace);
+        ctx.putMessage(PopulateCobolProcessRecipe.CONTEXT_KEY, model);
+        List<org.openrewrite.SourceFile> sources = JavaParser.fromJavaVersion().build().parse(ctx, javaSource)
+                .collect(java.util.stream.Collectors.toList());
+        var run = new PopulateCobolProcessRecipe()
+                .run(new org.openrewrite.internal.InMemoryLargeSourceSet(sources), ctx);
+        return run.getChangeset().getAllResults().get(0).getAfter().printAll();
+    }
+
+    @Test
+    void shouldCompareAlphanumericOperandsByValue() {
+        String updated = populate("""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. EQ01.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-STATUS PIC X(2).
+                01 WS-COUNT PIC 9(2).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    IF WS-STATUS = '00'
+                        MOVE 1 TO WS-COUNT
+                    END-IF
+                    IF WS-STATUS NOT = 10
+                        MOVE 2 TO WS-COUNT
+                    END-IF
+                    GOBACK.
+                """);
+
+        assertThat(updated).contains("if (java.util.Objects.equals(input.getWsStatus(), \"00\")) {");
+        assertThat(updated).contains("if (!java.util.Objects.equals(input.getWsStatus(), \"10\")) {");
+        assertThat(updated).doesNotContain("== \"00\"");
+    }
+
+    @Test
+    void shouldConvertMoveOperandsToTheReceivingJavaType() {
+        String updated = populate("""
+                IDENTIFICATION DIVISION.
+                PROGRAM-ID. MV01.
+                DATA DIVISION.
+                WORKING-STORAGE SECTION.
+                01 WS-AMOUNT PIC S9(7)V99.
+                01 WS-UNITS PIC 9(5).
+                01 WS-TEXT PIC X(5).
+                PROCEDURE DIVISION.
+                MAIN-PARA.
+                    MOVE WS-AMOUNT TO WS-UNITS.
+                    MOVE WS-UNITS TO WS-AMOUNT.
+                    MOVE WS-UNITS TO WS-TEXT.
+                    MOVE WS-TEXT TO WS-UNITS.
+                    MOVE -1025.50 TO WS-AMOUNT.
+                    MOVE 12.9 TO WS-UNITS.
+                    MOVE SPACES TO WS-TEXT.
+                    MOVE ZEROS TO WS-AMOUNT.
+                    GOBACK.
+                """);
+
+        assertThat(updated).contains("output.setWsUnits(output.getWsAmount().intValue());");
+        assertThat(updated).contains("output.setWsAmount(java.math.BigDecimal.valueOf(output.getWsUnits()));");
+        assertThat(updated).contains("output.setWsText(String.valueOf(output.getWsUnits()));");
+        assertThat(updated).contains("output.setWsUnits(Integer.valueOf(output.getWsText().trim()));");
+        assertThat(updated).contains("output.setWsAmount(new java.math.BigDecimal(\"-1025.50\"));");
+        assertThat(updated).contains("output.setWsUnits(12);");
+        assertThat(updated).contains("output.setWsText(\"     \");");
+        assertThat(updated).contains("output.setWsAmount(java.math.BigDecimal.ZERO);");
+    }
 }

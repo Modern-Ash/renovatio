@@ -46,6 +46,18 @@ public class SimpleCobolIrParser {
             "(?ms)^\\s*([A-Z][A-Z0-9-]*)\\.(.*?)(?=^\\s*[A-Z][A-Z0-9-]*\\.|\\Z)"
     );
     private static final Pattern EXEC_SQL_PATTERN = Pattern.compile(Regexes.EXEC_SQL + "(.*?)" + Keywords.END_EXEC, Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    /**
+     * Clauses that may follow a PICTURE string in a data description entry. The fallback branch of
+     * {@link #DATA_ITEM_PATTERN} captures everything up to the period, so they must be cut off
+     * before the picture is typed: {@code PIC 9 VALUE 0} is numeric, not "9 VALUE 0" (alphabetic).
+     */
+    private static final Pattern TRAILING_DATA_CLAUSE = Pattern.compile(
+            "\\s+(?:VALUES?|OCCURS|SIGN|JUST(?:IFIED)?|SYNC(?:HRONIZED)?|BLANK|EXTERNAL|GLOBAL"
+                    + "|INDEXED|DEPENDING|RENAMES)\\b.*$",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
+    private static final Pattern USAGE_KEYWORD = Pattern.compile(
+            "\\s+USAGE(?:\\s+IS)?\\s+", Pattern.CASE_INSENSITIVE);
+
     private static final Pattern DATA_NAME_PATTERN = Pattern.compile("[A-Z][A-Z0-9-]*", Pattern.CASE_INSENSITIVE);
     private static final Pattern SET_CONDITION_PATTERN = Pattern.compile(
             "(?i)^SET\\s+(.+?)\\s+TO\\s+(TRUE|FALSE)$");
@@ -407,7 +419,36 @@ public class SimpleCobolIrParser {
     // entire line as a comment. Replaced with same-length whitespace
     // rather than deleted so line/column numbers and character offsets
     // used elsewhere (diagnostics, span tracking) stay unchanged.
+    /** Last column of the fixed-format program text area; columns 73-80 hold a sequence number. */
+    private static final int FIXED_FORMAT_TEXT_END = 72;
+    private static final Pattern FREE_FORMAT_DIRECTIVE = Pattern.compile(
+            "(?i)>>\\s*SOURCE\\s+(?:FORMAT\\s+)?(?:IS\\s+)?FREE|\\$\\s*SET\\s+SOURCEFORMAT\\s*\\(?\\s*\"?FREE");
+
+    /**
+     * True for 80-column card-image source: no free-format directive, and every line that reaches
+     * past column 72 is exactly 80 columns long. Only then are columns 73-80 a sequence area;
+     * hand-written free-ish text with long lines keeps all of its columns.
+     */
+    private static boolean isCardImage(String source) {
+        if (FREE_FORMAT_DIRECTIVE.matcher(source).find()) {
+            return false;
+        }
+        boolean hasSequenceArea = false;
+        for (String raw : source.split("\n", -1)) {
+            String line = raw.endsWith("\r") ? raw.substring(0, raw.length() - 1) : raw;
+            if (line.length() <= FIXED_FORMAT_TEXT_END) {
+                continue;
+            }
+            if (line.length() != 80) {
+                return false;
+            }
+            hasSequenceArea = true;
+        }
+        return hasSequenceArea;
+    }
+
     private static String stripCommentLines(String source) {
+        boolean fixedFormat = isCardImage(source);
         StringBuilder result = new StringBuilder(source.length());
         int lineStart = 0;
         int length = source.length();
@@ -415,6 +456,15 @@ public class SimpleCobolIrParser {
             if (i == length || source.charAt(i) == '\n') {
                 String line = source.substring(lineStart, i);
                 boolean isComment = line.length() >= 7 && (line.charAt(6) == '*' || line.charAt(6) == '/');
+                // Fixed format: columns 73-80 are a sequence/identification area, never program
+                // text ("DISPLAY X        01790043" must not read 01790043 as an operand).
+                // Blanked, not cut, so offsets stay byte-identical like comment lines.
+                String trailingCr = line.endsWith("\r") ? "\r" : "";
+                String body = trailingCr.isEmpty() ? line : line.substring(0, line.length() - 1);
+                if (fixedFormat && !isComment && body.length() > FIXED_FORMAT_TEXT_END) {
+                    line = body.substring(0, FIXED_FORMAT_TEXT_END)
+                            + " ".repeat(body.length() - FIXED_FORMAT_TEXT_END) + trailingCr;
+                }
                 result.append(isComment ? " ".repeat(line.length()) : line);
                 if (i < length) result.append('\n');
                 lineStart = i + 1;
@@ -521,7 +571,7 @@ public class SimpleCobolIrParser {
             int level = Integer.parseInt(matcher.group(1));
             String name = matcher.group(2).toUpperCase(Locale.ROOT);
             String redefines = matcher.group(3) != null ? matcher.group(3).toUpperCase(Locale.ROOT) : null;
-            String pic = (matcher.group(4) != null ? matcher.group(4) : matcher.group(5)).trim();
+            String pic = normalizePicture(matcher.group(4) != null ? matcher.group(4) : matcher.group(5));
             var picType = CobolTypeMapper.picType(pic);
             if (picType == null) {
                 int pictureStart = matcher.group(4) != null ? matcher.start(4) : matcher.start(5);
@@ -796,7 +846,7 @@ public class SimpleCobolIrParser {
      */
     private Map<String, ParagraphLineRange> extractParagraphLineRanges(String source) {
         int procIdx = StringUtils.indexOfIgnoreCase(source, Sections.PROCEDURE_DIVISION);
-        String procedureDiv = procIdx < 0 ? source : source.substring(procIdx);
+        String procedureDiv = procIdx < 0 ? source : blankProcedureHeader(source.substring(procIdx));
         int baseLine = 1 + countLineFeeds(source, procIdx < 0 ? 0 : procIdx);
 
         List<int[]> entryBlockLines = entryBlockLineRanges(procedureDiv, baseLine);
@@ -962,12 +1012,45 @@ public class SimpleCobolIrParser {
         return entries;
     }
 
+    /** Reduces a captured PICTURE operand to the picture string plus an optional USAGE keyword. */
+    static String normalizePicture(String captured) {
+        if (captured == null) {
+            return null;
+        }
+        String pic = captured.replaceAll("\\s+", " ").trim();
+        if (pic.regionMatches(true, 0, "IS ", 0, 3)) {
+            pic = pic.substring(3).trim();
+        }
+        pic = TRAILING_DATA_CLAUSE.matcher(pic).replaceFirst("");
+        pic = USAGE_KEYWORD.matcher(pic).replaceAll(" ");
+        return pic.trim();
+    }
+
     private String extractProcedureDivision(String source) {
         int procIdx = StringUtils.indexOfIgnoreCase(source, Sections.PROCEDURE_DIVISION);
         if (procIdx < 0) {
             return source;
         }
-        return source.substring(procIdx);
+        return blankProcedureHeader(source.substring(procIdx));
+    }
+
+    /**
+     * Blanks the "PROCEDURE DIVISION [USING ...]." header sentence, keeping line breaks so line
+     * numbers do not move. A USING list continued on the next line ends with a bare
+     * "NAME." that would otherwise be read as a paragraph header.
+     */
+    private static String blankProcedureHeader(String procedureDiv) {
+        int period = procedureDiv.indexOf('.');
+        if (period < 0) {
+            return procedureDiv;
+        }
+        StringBuilder blanked = new StringBuilder(procedureDiv);
+        for (int i = 0; i <= period; i++) {
+            if (blanked.charAt(i) != '\n' && blanked.charAt(i) != '\r') {
+                blanked.setCharAt(i, ' ');
+            }
+        }
+        return blanked.toString();
     }
 
     private List<CobolStatement> parseStatements(String block) {
@@ -1088,40 +1171,88 @@ public class SimpleCobolIrParser {
         return upperNoPeriod.startsWith("END-") || upperNoPeriod.startsWith("EXIT ");
     }
 
+    /** Tokens that continue an IF condition on the next source line rather than start a statement. */
+    private static final Pattern CONDITION_CONTINUATION = Pattern.compile(
+            "^(?:AND|OR|NOT|EQUAL|EQUALS|GREATER|LESS|IS|THAN|TO|THEN)\\b|^[=<>(]",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern CONDITION_OPEN_END = Pattern.compile(
+            "(?:\\b(?:AND|OR|NOT|EQUAL|EQUALS|GREATER|LESS|IS|THAN|TO)|[=<>(])\\s*$",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Parses an IF and its branches. Nested IFs are tracked by depth, so only the matching
+     * END-IF/ELSE closes or splits this IF; a condition continued on the following lines is
+     * joined; and a sentence period (an IF with no END-IF) ends the IF and every IF nested in it.
+     */
     private int parseIf(List<String> lines, int index, List<CobolStatement> statements) {
         String line = lines.get(index).trim();
-        String condition = line.substring(Keywords.IF_PREFIX.length()).trim();
+        StringBuilder condition = new StringBuilder(line.substring(Keywords.IF_PREFIX.length()).trim());
+        int i = index + 1;
+        boolean sentenceEnded = stripTrailingPeriod(condition.toString()).length() < condition.length();
+        while (!sentenceEnded && i < lines.size()) {
+            String next = lines.get(i).trim();
+            if (next.isEmpty()) {
+                i++;
+                continue;
+            }
+            if (!CONDITION_CONTINUATION.matcher(next).find()
+                    && !CONDITION_OPEN_END.matcher(condition).find()) {
+                break;
+            }
+            condition.append(' ').append(next);
+            i++;
+            sentenceEnded = next.endsWith(Symbols.DOT);
+        }
+        boolean conditionEndedSentence = sentenceEnded;
+        String conditionText = stripTrailingPeriod(condition.toString())
+                .replaceAll("(?i)\\s+THEN$", "").trim();
+
         List<String> thenLines = new ArrayList<>();
         List<String> elseLines = new ArrayList<>();
         boolean inElse = false;
-        int i = index + 1;
-        for (; i < lines.size(); i++) {
+        int depth = 0;
+        for (; i < lines.size() && !sentenceEnded; i++) {
             String current = lines.get(i).trim();
             if (current.isEmpty()) {
                 continue;
             }
             String up = current.toUpperCase(Locale.ROOT);
-            if (up.startsWith(Keywords.ELSE)) {
+            boolean endsSentence = up.endsWith(Symbols.DOT);
+            if (depth == 0 && up.startsWith(Keywords.END_IF)) {
+                break;
+            }
+            if (depth == 0 && (up.equals(Keywords.ELSE) || up.startsWith(Keywords.ELSE + " ")
+                    || up.equals(Keywords.ELSE + Symbols.DOT))) {
                 inElse = true;
-                String afterElse = current.substring(current.length() >= Keywords.ELSE.length() ? Keywords.ELSE.length() : 0).trim();
+                String afterElse = current.substring(Keywords.ELSE.length()).trim();
                 if (!afterElse.isEmpty() && !afterElse.equals(Symbols.DOT)) {
                     elseLines.add(afterElse);
                 }
+                if (endsSentence) {
+                    break;
+                }
                 continue;
             }
-            if (up.startsWith(Keywords.END_IF)) {
-                break;
+            if (up.startsWith(Keywords.IF_PREFIX)) {
+                depth++;
+            } else if (up.startsWith(Keywords.END_IF)) {
+                depth--;
             }
             if (inElse) {
                 elseLines.add(current);
             } else {
                 thenLines.add(current);
             }
+            if (endsSentence) {
+                // The period ends the sentence: this IF and any IF nested in it.
+                break;
+            }
         }
-        statements.add(new IfStatement(normalizeCondition(condition),
+        statements.add(new IfStatement(normalizeCondition(conditionText),
                 parseStatements(String.join(Symbols.NEWLINE, thenLines)),
                 parseStatements(String.join(Symbols.NEWLINE, elseLines))));
-        return i;
+        // The caller resumes after the last consumed line.
+        return conditionEndedSentence ? i - 1 : Math.min(i, lines.size());
     }
 
     private int parseEvaluate(List<String> lines, int index, List<CobolStatement> statements) {
@@ -1410,12 +1541,13 @@ public class SimpleCobolIrParser {
             return new ComputeStatement(Defaults.RESULT_VAR, remainder);
         }
         String target = parts[0].trim();
-        String expression = parts[1].replace(Symbols.DOT, Symbols.EMPTY).trim();
+        String expression = stripTrailingPeriod(parts[1]);
         return new ComputeStatement(target, expression);
     }
 
     private ComputeStatement parseAdd(String line) {
-        String trimmed = line.replace(Symbols.DOT, Symbols.EMPTY).trim();
+        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
+        String trimmed = stripTrailingPeriod(line);
         String remainder = trimmed.substring(Keywords.ADD.length()).trim();
         // ADD source TO target
         String[] parts = remainder.split(Regexes.TO, 2);
@@ -1435,7 +1567,8 @@ public class SimpleCobolIrParser {
     }
 
     private ComputeStatement parseSubtract(String line) {
-        String trimmed = line.replace(Symbols.DOT, Symbols.EMPTY).trim();
+        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
+        String trimmed = stripTrailingPeriod(line);
         String remainder = trimmed.substring(Keywords.SUBTRACT.length()).trim();
         // SUBTRACT source FROM target
         String[] parts = remainder.split(Regexes.FROM, 2);
@@ -1459,7 +1592,8 @@ public class SimpleCobolIrParser {
     }
 
     private ComputeStatement parseMultiply(String line) {
-        String trimmed = line.replace(Symbols.DOT, Symbols.EMPTY).trim();
+        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
+        String trimmed = stripTrailingPeriod(line);
         String remainder = trimmed.substring(Keywords.MULTIPLY.length()).trim();
         // MULTIPLY source BY target
         String[] parts = remainder.split(Regexes.BY, 2);
@@ -1481,7 +1615,8 @@ public class SimpleCobolIrParser {
     }
 
     private ComputeStatement parseDivide(String line) {
-        String trimmed = line.replace(Symbols.DOT, Symbols.EMPTY).trim();
+        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
+        String trimmed = stripTrailingPeriod(line);
         String remainder = trimmed.substring(Keywords.DIVIDE.length()).trim();
         // DIVIDE source INTO target
         String[] parts = remainder.split(Regexes.INTO, 2);
@@ -1503,7 +1638,8 @@ public class SimpleCobolIrParser {
     }
 
     private MoveStatement parseMove(String line) {
-        String trimmed = line.replace(Symbols.DOT, Symbols.EMPTY).trim();
+        // Only the sentence-ending period: a decimal point belongs to a numeric literal.
+        String trimmed = stripTrailingPeriod(line);
         String remainder = trimmed.substring(Keywords.MOVE.length()).trim();
         String[] parts = remainder.split(Regexes.TO, 2);
         if (parts.length != 2) {
@@ -1545,7 +1681,7 @@ public class SimpleCobolIrParser {
     }
 
     private String normalizeCondition(String condition) {
-        return condition.replace(Keywords.THEN, Symbols.EMPTY).replace(Symbols.DOT, Symbols.EMPTY).trim();
+        return stripTrailingPeriod(condition).replaceAll("(?i)(^|\\s)THEN(\\s|$)", " ").trim();
     }
 
     private ControlFlowGraph buildControlFlowGraph(Map<String, CobolParagraph> paragraphs) {
