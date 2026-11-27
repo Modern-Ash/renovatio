@@ -2,8 +2,10 @@ package org.modernash.renovatio.generated.cobol;
 
 import java.lang.Integer;
 import java.lang.Number;
+import java.lang.RuntimeException;
 import java.lang.String;
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * Data Transfer Object generated from COBOL program: Cics001
@@ -30,6 +32,10 @@ public class Cics001DTO {
   private BigDecimal custBalance;
 
   private String custStatus;
+
+  private ScreenRequest screenRequest = ScreenRequest.firstEntry();
+
+  private final ScreenResponse screenResponse = new ScreenResponse();
 
   public Cics001DTO() {
     this.wsCustomerId = "          ";
@@ -245,5 +251,172 @@ public class Cics001DTO {
     }
     java.math.BigDecimal number = new java.math.BigDecimal(new java.math.BigInteger(digits.length() == 0 ? "0" : digits.toString()), scale);
     return signed && (sign == 0xD || sign == 0xB) ? number.negate() : number;
+  }
+
+  /**
+   * Ends the program run; {@code process} catches it and returns this DTO.
+   */
+  public void endRun() {
+    throw new ProgramExit();
+  }
+
+  public ScreenRequest getScreenRequest() {
+    return screenRequest;
+  }
+
+  public void setScreenRequest(ScreenRequest screenRequest) {
+    this.screenRequest = screenRequest;
+  }
+
+  public ScreenResponse getScreenResponse() {
+    return screenResponse;
+  }
+
+  /**
+   * Ends the program run (GOBACK, STOP RUN, CICS XCTL or RETURN) from any paragraph.
+   */
+  public static final class ProgramExit extends RuntimeException {
+    ProgramExit() {
+      super(null, null, false, false);
+    }
+  }
+
+  /**
+   * Input of one task: the attention key (ENTER, CLEAR, PF1..PF24, PA1..PA3), the COMMAREA
+   * the previous task returned (empty on first entry) and the received map data by map name.
+   */
+  public static final class ScreenRequest {
+    private final String aid;
+
+    private final String commarea;
+
+    private final Map<String, String> maps;
+
+    public ScreenRequest(String aid, String commarea, Map<String, String> maps) {
+      this.aid = aid;
+      this.commarea = commarea == null ? "" : commarea;
+      this.maps = maps == null ? Map.of() : Map.copyOf(maps);
+    }
+
+    /**
+     * A transaction started from scratch: no COMMAREA (EIBCALEN = 0).
+     */
+    public static ScreenRequest firstEntry() {
+      return new ScreenRequest("ENTER", "", Map.of());
+    }
+
+    public String aid() {
+      return aid;
+    }
+
+    public String commarea() {
+      return commarea;
+    }
+
+    public Integer commareaLength() {
+      return commarea.length();
+    }
+
+    public String map(String name) {
+      return maps.getOrDefault(name, "");
+    }
+  }
+
+  /**
+   * Outcome of one task: the screen sent (map and data, or plain text) and where the
+   * conversation goes next (transfer to a program, or resume a transaction with a COMMAREA).
+   */
+  public static final class ScreenResponse {
+    private String map;
+
+    private String mapset;
+
+    private String screen;
+
+    private String text;
+
+    private String nextProgram;
+
+    private String transid;
+
+    private String commarea;
+
+    private boolean ended;
+
+    public String map() {
+      return map;
+    }
+
+    public String mapset() {
+      return mapset;
+    }
+
+    public String screen() {
+      return screen;
+    }
+
+    public String text() {
+      return text;
+    }
+
+    public String nextProgram() {
+      return nextProgram;
+    }
+
+    public String transid() {
+      return transid;
+    }
+
+    public String commarea() {
+      return commarea;
+    }
+
+    public boolean ended() {
+      return ended;
+    }
+
+    /**
+     * SEND MAP: show {@code screen} (the symbolic output map) with map/mapset.
+     */
+    public void sendMap(String map, String mapset, String screen) {
+      this.map = map;
+      this.mapset = mapset;
+      this.screen = screen;
+      this.text = null;
+    }
+
+    /**
+     * SEND TEXT: show plain text instead of a map.
+     */
+    public void sendText(String text) {
+      this.text = text;
+      this.map = null;
+      this.screen = null;
+    }
+
+    /**
+     * XCTL: hand the conversation to {@code program} with {@code commarea}.
+     */
+    public void transfer(String program, String commarea) {
+      this.nextProgram = program;
+      this.commarea = commarea;
+      this.ended = true;
+    }
+
+    /**
+     * RETURN TRANSID: resume with {@code transid} and {@code commarea} on the next input.
+     */
+    public void returnTo(String transid, String commarea) {
+      this.transid = transid;
+      this.commarea = commarea;
+      this.ended = true;
+    }
+
+    /**
+     * RETURN without TRANSID: the conversation is over.
+     */
+    public void end() {
+      this.ended = true;
+    }
   }
 }

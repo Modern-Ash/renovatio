@@ -1374,42 +1374,47 @@ public class SimpleCobolIrParser {
         return conditionEndedSentence ? i - 1 : Math.min(i, lines.size());
     }
 
+    /**
+     * Parses EVALUATE. Nested EVALUATEs are tracked by depth so only this EVALUATE's WHEN and
+     * END-EVALUATE split or close it; consecutive WHENs with no statement between them share
+     * the next body, so their conditions are joined with OR ("WHEN 1 WHEN 2" = "WHEN 1 OR 2").
+     */
     private int parseEvaluate(List<String> lines, int index, List<CobolStatement> statements) {
         String expression = lines.get(index).trim().substring(Keywords.EVALUATE.length()).trim();
         List<EvaluateStatement.EvaluateWhenBranch> branches = new ArrayList<>();
         List<String> accumulator = new ArrayList<>();
-        String currentCondition = Defaults.OTHER_BRANCH;
+        List<String> pending = new ArrayList<>();
+        int depth = 0;
         int i = index + 1;
         for (; i < lines.size(); i++) {
             String current = lines.get(i).trim();
             String up = current.toUpperCase(Locale.ROOT);
-            if (up.startsWith(Keywords.WHEN_OTHER)) {
-                if (!accumulator.isEmpty()) {
-                    branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
-                            parseStatements(String.join(Symbols.NEWLINE, accumulator))));
-                    accumulator.clear();
-                }
-                currentCondition = Defaults.OTHER_BRANCH;
-                continue;
-            }
-            if (up.startsWith(Keywords.WHEN)) {
-                if (!accumulator.isEmpty()) {
-                    branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
-                            parseStatements(String.join(Symbols.NEWLINE, accumulator))));
-                    accumulator.clear();
-                }
-                currentCondition = current.substring(Keywords.WHEN.length()).trim();
-                continue;
-            }
-            if (up.startsWith(Keywords.END_EVALUATE)) {
+            if (depth == 0 && up.startsWith(Keywords.END_EVALUATE)) {
                 break;
+            }
+            if (depth == 0 && (up.startsWith(Keywords.WHEN + " ") || up.equals(Keywords.WHEN))) {
+                if (!accumulator.isEmpty()) {
+                    branches.add(new EvaluateStatement.EvaluateWhenBranch(String.join(" OR ", pending),
+                            parseStatements(String.join(Symbols.NEWLINE, accumulator))));
+                    accumulator.clear();
+                    pending.clear();
+                }
+                String condition = up.startsWith(Keywords.WHEN_OTHER) ? Defaults.OTHER_BRANCH
+                        : current.substring(Keywords.WHEN.length()).trim();
+                pending.add(condition);
+                continue;
+            }
+            if (up.startsWith(Keywords.EVALUATE + " ")) {
+                depth++;
+            } else if (up.startsWith(Keywords.END_EVALUATE)) {
+                depth--;
             }
             if (!current.isEmpty()) {
                 accumulator.add(current);
             }
         }
-        if (!accumulator.isEmpty()) {
-            branches.add(new EvaluateStatement.EvaluateWhenBranch(currentCondition,
+        if (!pending.isEmpty()) {
+            branches.add(new EvaluateStatement.EvaluateWhenBranch(String.join(" OR ", pending),
                     parseStatements(String.join(Symbols.NEWLINE, accumulator))));
         }
         statements.add(new EvaluateStatement(expression, branches));

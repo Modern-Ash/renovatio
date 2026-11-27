@@ -13,17 +13,17 @@ public class Cics001ServiceImpl implements Cics001Service {
   public Cics001DTO process(Cics001DTO input) {
       {
           Cics001DTO output = new Cics001DTO();
-          // PERFORM INITIALIZE (paragraph not found)
-          performReceiveData(input, output);
-          performProcessCustomer(input, output);
-          performSendResponse(input, output);
-          performCleanup(input, output);
-          // COBOL not translated: EXEC CICS RETURN END-EXEC
-          // COBOL not translated: INITIALIZE
-          output.setWsCustomerId("          ");
-          output.setWsCustomerName("                                                  ");
-          output.setWsResponse(0);
-          output.setWsMessage("                                                                                ");
+          try {
+              // PERFORM INITIALIZE (paragraph not found)
+              performReceiveData(input, output);
+              performProcessCustomer(input, output);
+              performSendResponse(input, output);
+              performCleanup(input, output);
+              output.getScreenResponse().end();
+              output.endRun();
+          } catch (Cics001DTO.ProgramExit ended) {
+              // the run ended in a performed paragraph (GOBACK, STOP RUN, XCTL or RETURN)
+          }
           return output;
       }
   }
@@ -73,7 +73,8 @@ public class Cics001ServiceImpl implements Cics001Service {
     @GeneratedFrom(paragraph = "SEND-ERROR", lines = "79-89")
     private void performSendError(Cics001DTO input, Cics001DTO out) {
         // COBOL not translated: EXEC CICS SEND FROM (WS-MESSAGE) LENGTH (LENGTH OF WS-MESSAGE) RESP (WS-RESPONSE) END-EXEC
-        // COBOL not translated: EXEC CICS RETURN END-EXEC
+        out.getScreenResponse().end();
+        out.endRun();
     }
 }@interface GeneratedFrom {
     String paragraph();

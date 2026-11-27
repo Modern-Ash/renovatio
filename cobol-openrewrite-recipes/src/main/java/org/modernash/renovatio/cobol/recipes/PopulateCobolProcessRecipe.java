@@ -104,6 +104,12 @@ public class PopulateCobolProcessRecipe extends Recipe {
         /** Model of the program being rendered. */
         private CobolIntermediateModel currentModel;
 
+        /** The program is online (EXEC CICS): EIB registers, DFH constants and screen I/O apply. */
+        private boolean cicsProgram;
+
+        /** The run can end inside a performed paragraph: GOBACK there calls endRun(). */
+        private boolean endsFromParagraphs;
+
         /** Pascal-cased OCCURS items the DTO models as arrays, with their size. */
         private Map<String, Integer> tableSizes = Map.of();
 
@@ -343,7 +349,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
         private boolean terminatesFlow(CobolStatement statement) {
             return statement instanceof SimpleStatement simple
                     && (simple.kind() == SimpleStatement.Kind.GOBACK
-                        || simple.kind() == SimpleStatement.Kind.STOP_RUN);
+                        || simple.kind() == SimpleStatement.Kind.STOP_RUN
+                        || cicsProgram && simple.text().toUpperCase(Locale.ROOT)
+                                .matches("EXEC CICS (XCTL|RETURN)\\b.*"));
         }
 
         private List<String> renderStatement(CobolStatement statement,
@@ -413,7 +421,8 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 case GOBACK:
                 case STOP_RUN:
                     if (voidMethodMode) {
-                        return List.of("return;");
+                        // A performed paragraph ends the whole run, not just this method.
+                        return List.of(endsFromParagraphs ? targetVar + ".endRun();" : "return;");
                     }
                     return List.of(String.format(Locale.ROOT, "return %s;", targetVar));
                 case DISPLAY:
@@ -421,6 +430,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
                             renderDisplayArguments(simple.text())));
                 case UNTRANSLATED:
                 default:
+                    if (cicsProgram && simple.text().toUpperCase(Locale.ROOT).startsWith("EXEC CICS")) {
+                        return renderCics(simple.text(), targetVar);
+                    }
                     return List.of("// COBOL not translated: " + truncate(simple.text()));
             }
         }
@@ -506,6 +518,13 @@ public class PopulateCobolProcessRecipe extends Recipe {
                                   @Nullable String varName) {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
             Optional<CobolDataItem> target = findDataItem(model, stripSubscripts(move.target()));
+            String source = move.source().trim().toUpperCase(Locale.ROOT);
+            int groupLength = target.isEmpty() ? textLength(move.target()) : 0;
+            if (groupLength > 0 && (FIGURATIVE_SPACE.contains(source) || source.matches("(LOW|HIGH)-VALUES?"))) {
+                // Group or group view not in the data items: fill its whole record.
+                String fill = FIGURATIVE_SPACE.contains(source) ? " " : source.startsWith("LOW") ? "\\u0000" : "\\u00FF";
+                return setterCall(targetVar, move.target(), quoted(fill.repeat(groupLength))) + ";";
+            }
             String expression = moveSourceExpression(move.source().trim(), target.orElse(null));
             return setterCall(targetVar, move.target(), expression) + ";";
         }
@@ -814,6 +833,14 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     types.putIfAbsent(pascal, "String");
                 }
             }
+            cicsProgram = model.usesCics();
+            endsFromParagraphs = model.endsFromPerformedParagraphs();
+            if (cicsProgram) {
+                for (String register : CICS_TYPES.keySet()) {
+                    names.add(toPascal(register));
+                    types.putIfAbsent(toPascal(register), CICS_TYPES.get(register));
+                }
+            }
             dataTypes = types;
             Map<String, Integer> tables = new HashMap<>();
             model.getTableDimensions().forEach((name, size) -> {
@@ -824,9 +851,15 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 }
             });
             tableSizes = tables;
-            model.getRedefinesViews().values().stream()
-                    .filter(view -> !view.supported())
-                    .forEach(view -> names.remove(toPascal(view.name()))); // shared storage not modeled
+            for (CobolRedefinesView view : model.getRedefinesViews().values()) {
+                if (!view.supported()) {
+                    names.remove(toPascal(view.name())); // shared storage not modeled
+                } else if (view.picType() == null) {
+                    // A group view is read and written as text, like a composable group.
+                    names.add(toPascal(view.name()));
+                    types.putIfAbsent(toPascal(view.name()), "String");
+                }
+            }
             return names;
         }
 
@@ -1550,7 +1583,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
             for (EvaluateStatement.EvaluateWhenBranch branch : evaluate.branches()) {
                 String label = branch.condition().equalsIgnoreCase("OTHER")
                         ? "default"
-                        : "case " + padLiteral(toJavaExpression(branch.condition()), selectorLength);
+                        : "case " + java.util.Arrays.stream(branch.condition().split("(?i)\\s+OR\\s+"))
+                                .map(value -> padLiteral(toJavaExpression(value), selectorLength))
+                                .collect(java.util.stream.Collectors.joining(", "));
                 lines.add(indent(label + " -> {"));
                 for (CobolStatement stmt : branch.statements()) {
                     for (String rendered : renderStatement(stmt, model, visitedParagraphs, varName)) {
@@ -1583,6 +1618,133 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 lines.add("}");
             }
             return lines;
+        }
+
+        /** EIB registers, DFHCOMMAREA and DFH constants an online program reads, with their types. */
+        private static final Map<String, String> CICS_TYPES = cicsTypes();
+
+        private static Map<String, String> cicsTypes() {
+            Map<String, String> types = new LinkedHashMap<>();
+            types.put("EIBCALEN", "Integer");
+            types.put("EIBAID", "String");
+            types.put("DFHCOMMAREA", "String");
+            types.put("DFHRESP", "Integer");
+            for (String aid : List.of("ENTER", "CLEAR", "PA1", "PA2", "PA3")) types.put("DFH" + aid, "String");
+            for (int key = 1; key <= 24; key++) types.put("DFHPF" + key, "String");
+            return types;
+        }
+
+        /** CICS response codes by condition name (DFHRESP). */
+        private static final Map<String, Integer> CICS_RESP = Map.ofEntries(
+                Map.entry("NORMAL", 0), Map.entry("ERROR", 1), Map.entry("NOTFND", 13), Map.entry("DUPREC", 14),
+                Map.entry("DUPKEY", 15), Map.entry("INVREQ", 16), Map.entry("NOTOPEN", 19), Map.entry("ENDFILE", 20),
+                Map.entry("LENGERR", 22), Map.entry("PGMIDERR", 27), Map.entry("MAPFAIL", 36), Map.entry("QIDERR", 44));
+
+        /** Java for an EIB register, DFHCOMMAREA or DFH constant reference, else null. */
+        private @Nullable String cicsRegister(String reference) {
+            String upper = reference.toUpperCase(Locale.ROOT).replaceAll("\\s+", "");
+            if (upper.equals("EIBCALEN")) return "input.getScreenRequest().commareaLength()";
+            if (upper.equals("EIBAID")) return "input.getScreenRequest().aid()";
+            // DFHCOMMAREA(1:EIBCALEN) is the whole COMMAREA the task received.
+            if (upper.equals("DFHCOMMAREA") || upper.equals("DFHCOMMAREA(1:EIBCALEN)")) {
+                return "input.getScreenRequest().commarea()";
+            }
+            java.util.regex.Matcher resp = java.util.regex.Pattern.compile("DFHRESP\\(([A-Z]+)\\)").matcher(upper);
+            if (resp.matches()) {
+                Integer code = CICS_RESP.get(resp.group(1));
+                return code == null ? UNRESOLVED_MARKER + "DFHRESP" : String.valueOf(code);
+            }
+            if (upper.startsWith("DFH") && CICS_TYPES.containsKey(upper) && !upper.equals("DFHRESP")) {
+                return "\"" + upper.substring(3) + "\"";
+            }
+            return null;
+        }
+
+        private static final java.util.regex.Pattern CICS_OPTION = java.util.regex.Pattern.compile(
+                "([A-Za-z][A-Za-z0-9-]*)(?:\\s*\\(((?:[^()']|'[^']*'|\\([^()]*\\))*)\\))?");
+
+        /**
+         * One EXEC CICS command as screen-handler data: RECEIVE MAP reads the request, SEND MAP / TEXT
+         * fill the response, XCTL and RETURN set the navigation and end the run. Other commands stay
+         * explicit markers.
+         */
+        private List<String> renderCics(String text, String targetVar) {
+            String body = text.replaceAll("(?i)^EXEC\\s+CICS\\s+", "").replaceAll("(?i)\\s*END-EXEC\\s*$", "").trim();
+            List<String> words = new ArrayList<>();
+            Map<String, String> options = new LinkedHashMap<>();
+            java.util.regex.Matcher matcher = CICS_OPTION.matcher(body);
+            while (matcher.find()) {
+                String name = matcher.group(1).toUpperCase(Locale.ROOT);
+                if (matcher.group(2) == null) words.add(name);
+                else options.put(name, matcher.group(2).trim());
+            }
+            String verb = words.isEmpty() ? "" : words.get(0);
+            String marker = "// COBOL not translated: " + truncate(text);
+            List<String> lines = new ArrayList<>();
+            String response = targetVar + ".getScreenResponse()";
+            switch (verb) {
+                case "RECEIVE" -> {
+                    String map = literal(options.get("MAP"));
+                    if (map == null) return List.of(marker);
+                    String target = options.getOrDefault("INTO", map + "I");
+                    String data = "input.getScreenRequest().map(\"" + map + "\")";
+                    lines.add(setterCall(targetVar, target, data) + ";");
+                    if (options.containsKey("RESP")) {
+                        // MAPFAIL when the terminal sent no data for the map.
+                        lines.add(setterCall(targetVar, options.get("RESP"), data + ".isEmpty() ? 36 : 0") + ";");
+                    }
+                }
+                case "SEND" -> {
+                    if (words.contains("TEXT")) {
+                        String from = options.get("FROM");
+                        if (from == null) return List.of(marker);
+                        lines.add(response + ".sendText(" + cicsText(from) + ");");
+                    } else {
+                        String map = literal(options.get("MAP"));
+                        String mapset = literal(options.getOrDefault("MAPSET", options.get("MAP")));
+                        if (map == null || mapset == null) return List.of(marker);
+                        String from = options.getOrDefault("FROM", map + "O");
+                        lines.add(response + ".sendMap(\"" + map + "\", \"" + mapset + "\", " + cicsText(from) + ");");
+                    }
+                }
+                case "XCTL" -> {
+                    String program = options.get("PROGRAM");
+                    if (program == null) return List.of(marker);
+                    String commarea = options.containsKey("COMMAREA") ? cicsText(options.get("COMMAREA")) : "null";
+                    lines.add(response + ".transfer(" + cicsText(program) + ", " + commarea + ");");
+                    lines.add(targetVar + ".endRun();");
+                }
+                case "RETURN" -> {
+                    String commarea = options.containsKey("COMMAREA") ? cicsText(options.get("COMMAREA")) : "null";
+                    lines.add(options.containsKey("TRANSID")
+                            ? response + ".returnTo(" + cicsText(options.get("TRANSID")) + ", " + commarea + ");"
+                            : response + ".end();");
+                    lines.add(targetVar + ".endRun();");
+                }
+                default -> {
+                    return List.of(marker);
+                }
+            }
+            if (lines.stream().anyMatch(line -> line.contains(UNRESOLVED_MARKER))) {
+                return List.of(marker);
+            }
+            return lines;
+        }
+
+        /** Content of a quoted CICS literal ('COSGN0A'), or null for anything else. */
+        private static @Nullable String literal(@Nullable String value) {
+            return value != null && value.matches("'[^']*'|\"[^\"]*\"") ? value.substring(1, value.length() - 1) : null;
+        }
+
+        /** A CICS argument as a Java String: literal, or a data item / group in its DISPLAY form. */
+        private String cicsText(String value) {
+            String literal = literal(value);
+            if (literal != null) {
+                return "\"" + literal + "\"";
+            }
+            String type = dataTypes.get(toPascal(stripSubscripts(value)));
+            String getter = getterCall(value);
+            return type == null || getter.contains(UNRESOLVED_MARKER) ? UNRESOLVED_MARKER + value : convert(getter, type, "String");
         }
 
         private String renderDb2(Db2Statement db2) {
@@ -2250,6 +2412,12 @@ public class PopulateCobolProcessRecipe extends Recipe {
          * subscripts on tables this generation does not model stay unresolved.
          */
         private String getterCall(String qualifiedReference) {
+            if (cicsProgram) {
+                String register = cicsRegister(qualifiedReference.trim());
+                if (register != null) {
+                    return register;
+                }
+            }
             String reference = unqualify(qualifiedReference);
             if (reference == null) {
                 return UNRESOLVED_MARKER + qualifiedReference.trim().split("\\s", 2)[0];
@@ -2410,6 +2578,19 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         private String buildBody(List<String> statements, String dtoType, String varName) {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            if (endsFromParagraphs) {
+                StringBuilder builder = new StringBuilder("{\n");
+                builder.append(String.format(Locale.ROOT, "    %s %s = new %s();\n", dtoType, targetVar, dtoType));
+                builder.append("    try {\n");
+                for (String statement : statements) {
+                    builder.append("        ").append(statement).append('\n');
+                }
+                builder.append("    } catch (").append(dtoType).append(".ProgramExit ended) {\n");
+                builder.append("        // the run ended in a performed paragraph (GOBACK, STOP RUN, XCTL or RETURN)\n");
+                builder.append("    }\n");
+                builder.append("    return ").append(targetVar).append(";\n}");
+                return builder.toString();
+            }
             StringBuilder builder = new StringBuilder();
             builder.append("{\n");
             builder.append(String.format(Locale.ROOT, "    %s %s = new %s();\n", dtoType, targetVar, dtoType));

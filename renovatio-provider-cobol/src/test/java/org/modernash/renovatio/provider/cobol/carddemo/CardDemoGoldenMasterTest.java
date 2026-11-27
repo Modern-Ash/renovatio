@@ -103,6 +103,55 @@ class CardDemoGoldenMasterTest {
         assertStdoutMatchesCobol("qualified-evaluate", "QUALEVAL", "Qualeval");
     }
 
+    @Test
+    void onlineProgramRunsAsAScreenHandlerAcrossAPseudoConversation() throws Exception {
+        Path workspace = tempDir.resolve("screen-handler");
+        Files.createDirectories(workspace);
+        Files.copy(Path.of("src/test/resources/golden-master/screen-handler/SIGNON.cbl"), workspace.resolve("SIGNON.cbl"));
+        Map<String, String> generated = generate(workspace);
+        assertThat(generated.keySet()).anyMatch(path -> path.endsWith("SignonCicsController.java"));
+        ClassLoader classes = compile(generated);
+
+        Class<?> dto = classes.loadClass(PACKAGE + ".SignonDTO");
+        Class<?> requestType = classes.loadClass(PACKAGE + ".SignonDTO$ScreenRequest");
+        Object service = classes.loadClass(PACKAGE + ".SignonServiceImpl").getConstructor().newInstance();
+        Object controller = classes.loadClass(PACKAGE + ".SignonCicsController")
+                .getConstructor(classes.loadClass(PACKAGE + ".SignonService")).newInstance(service);
+        var handle = controller.getClass().getMethod("handle", requestType);
+        var newRequest = requestType.getConstructor(String.class, String.class, Map.class);
+
+        // 1. First entry (no COMMAREA): the sign-on screen, resume SGN0 with an empty user.
+        Object first = handle.invoke(controller, requestType.getMethod("firstEntry").invoke(null));
+        assertThat(get(first, "map")).isEqualTo("SGNMAP");
+        assertThat(get(first, "transid")).isEqualTo("SGN0");
+        String commarea = (String) get(first, "commarea");
+        assertThat(commarea).isEqualTo("        00");
+
+        // 2. ENTER with a blank user id: same screen with an error, visit counted in the COMMAREA.
+        Object blank = handle.invoke(controller, newRequest.newInstance("ENTER", commarea, Map.of("SGNMAP", " ".repeat(38))));
+        assertThat((String) get(blank, "screen")).endsWith("Please enter User ID          ");
+        assertThat(get(blank, "commarea")).isEqualTo("        01");
+        assertThat(get(blank, "nextProgram")).isNull();
+
+        // 3. ENTER with a user id: XCTL to MENU with the user in the COMMAREA, no resume transaction.
+        Object signed = handle.invoke(controller, newRequest.newInstance("ENTER", (String) get(blank, "commarea"),
+                Map.of("SGNMAP", "ALICE   " + " ".repeat(30))));
+        assertThat(get(signed, "nextProgram")).isEqualTo("MENU");
+        assertThat(get(signed, "commarea")).isEqualTo("ALICE   02");
+        assertThat(get(signed, "transid")).isNull();
+
+        // 4. PF3: plain text and the conversation ends.
+        Object exit = handle.invoke(controller, newRequest.newInstance("PF3", commarea, Map.of()));
+        assertThat(get(exit, "text")).isNotNull();
+        assertThat(get(exit, "ended")).isEqualTo(true);
+        assertThat(get(exit, "transid")).isNull();
+        assertThat(dto).isNotNull();
+    }
+
+    private static Object get(Object target, String accessor) throws Exception {
+        return target.getClass().getMethod(accessor).invoke(target);
+    }
+
     /** Runs a self-contained program (no files) and compares its stdout with the GnuCOBOL reference. */
     private void assertStdoutMatchesCobol(String goldenDir, String program, String classBase) throws Exception {
         Path workspace = tempDir.resolve(goldenDir);

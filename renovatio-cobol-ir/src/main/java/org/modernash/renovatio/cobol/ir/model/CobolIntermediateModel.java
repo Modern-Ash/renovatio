@@ -139,6 +139,60 @@ public final class CobolIntermediateModel {
         return Optional.empty();
     }
 
+    /** True when the program issues EXEC CICS commands (an online, screen-driven program). */
+    public boolean usesCics() {
+        return paragraphs.values().stream().anyMatch(paragraph -> anyStatement(paragraph.statements(),
+                statement -> statement instanceof SimpleStatement simple
+                        && simple.text().toUpperCase().startsWith("EXEC CICS")));
+    }
+
+    /**
+     * True when the run unit can end inside a performed paragraph (GOBACK / STOP RUN outside the
+     * entry paragraph) or through CICS (XCTL, RETURN): generated code then needs a way to end
+     * the whole program, not just the current method.
+     */
+    public boolean endsFromPerformedParagraphs() {
+        if (usesCics()) {
+            return true;
+        }
+        CobolParagraph entry = getEntryParagraph();
+        return paragraphs.values().stream().filter(paragraph -> paragraph != entry)
+                .anyMatch(paragraph -> anyStatement(paragraph.statements(),
+                        statement -> statement instanceof SimpleStatement simple
+                                && (simple.kind() == SimpleStatement.Kind.GOBACK
+                                || simple.kind() == SimpleStatement.Kind.STOP_RUN)));
+    }
+
+    private static boolean anyStatement(List<CobolStatement> statements,
+                                        java.util.function.Predicate<CobolStatement> test) {
+        for (CobolStatement statement : statements) {
+            if (test.test(statement)) {
+                return true;
+            }
+            List<List<CobolStatement>> nested = new ArrayList<>();
+            if (statement instanceof IfStatement branch) {
+                nested.add(branch.thenStatements());
+                nested.add(branch.elseStatements());
+            } else if (statement instanceof EvaluateStatement evaluate) {
+                evaluate.branches().forEach(branch -> nested.add(branch.statements()));
+            } else if (statement instanceof PerformStatement perform) {
+                nested.add(perform.inlineBody());
+            } else if (statement instanceof FileOperationStatement file) {
+                nested.add(file.exceptionStatements());
+                nested.add(file.normalStatements());
+            } else if (statement instanceof CallStatement call) {
+                nested.add(call.exceptionStatements());
+                nested.add(call.normalStatements());
+            }
+            for (List<CobolStatement> body : nested) {
+                if (anyStatement(body, test)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public Optional<CobolFileDescriptor> findFile(String selectName) {
         return selectName == null ? Optional.empty()
                 : Optional.ofNullable(fileDescriptors.get(selectName.toUpperCase()));

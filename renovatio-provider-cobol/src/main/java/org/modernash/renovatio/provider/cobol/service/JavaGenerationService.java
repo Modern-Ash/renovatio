@@ -541,7 +541,9 @@ public class JavaGenerationService {
 
                     @SuppressWarnings("unchecked")
                     Set<String> cics = (Set<String>) metadata.get("cicsCommands");
-                    if (cics != null && !cics.isEmpty()) {
+                    if (cics != null && !cics.isEmpty() && model != null && model.usesCics()) {
+                        putArtifact(generatedFiles, classBase + "CicsController.java", screenController(classBase));
+                    } else if (cics != null && !cics.isEmpty()) {
                         Map<String, Object> tmplData = new HashMap<>();
                         tmplData.put("className", classBase + "CicsController");
                         List<Map<String, String>> transactions = new ArrayList<>();
@@ -983,6 +985,12 @@ public class JavaGenerationService {
         org.modernash.renovatio.provider.cobol.service.generation.RecordAccessorGenerator
                 .addTo(classBuilder, model, declared, this::toCamelCase);
         classBuilder.addMethod(initialValuesConstructor(model, declared));
+        if (model != null && model.endsFromPerformedParagraphs()) {
+            org.modernash.renovatio.provider.cobol.service.generation.ScreenTypesGenerator.addProgramExit(classBuilder);
+        }
+        if (model != null && model.usesCics()) {
+            org.modernash.renovatio.provider.cobol.service.generation.ScreenTypesGenerator.addScreenTypes(classBuilder);
+        }
 
         TypeSpec classSpec = classBuilder.build();
 
@@ -1629,6 +1637,36 @@ public class JavaGenerationService {
             return intermediateModelService.parse(source);
         }
         return null;
+    }
+
+    /**
+     * Screen handler of an online program: one call runs one CICS task, from the screen request
+     * (key, COMMAREA, received maps) to the screen response (screen sent, next program or
+     * transaction and COMMAREA).
+     */
+    private static String screenController(String classBase) {
+        ClassName dto = ClassName.get("org.modernash.renovatio.generated.cobol", classBase + "DTO");
+        ClassName service = ClassName.get("org.modernash.renovatio.generated.cobol", classBase + "Service");
+        TypeSpec controller = TypeSpec.classBuilder(classBase + "CicsController")
+                .addModifiers(Modifier.PUBLIC)
+                .addJavadoc("Screen handler for online program $L.\n", classBase)
+                .addField(service, "service", Modifier.PRIVATE, Modifier.FINAL)
+                .addMethod(MethodSpec.constructorBuilder()
+                        .addModifiers(Modifier.PUBLIC)
+                        .addParameter(service, "service")
+                        .addStatement("this.service = service")
+                        .build())
+                .addMethod(MethodSpec.methodBuilder("handle")
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(dto.nestedClass("ScreenResponse"))
+                        .addParameter(dto.nestedClass("ScreenRequest"), "request")
+                        .addJavadoc("Runs one task for {@code request} and returns the resulting screen and navigation.\n")
+                        .addStatement("$T input = new $T()", dto, dto)
+                        .addStatement("input.setScreenRequest(request)")
+                        .addStatement("return service.process(input).getScreenResponse()")
+                        .build())
+                .build();
+        return JavaFile.builder("org.modernash.renovatio.generated.cobol", controller).build().toString();
     }
 
     /** DTO names of the modeled REDEFINES views: they are accessors over their base, not fields. */

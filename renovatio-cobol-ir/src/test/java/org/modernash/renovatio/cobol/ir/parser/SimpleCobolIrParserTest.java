@@ -303,4 +303,31 @@ class SimpleCobolIrParserTest {
         assertEquals(org.modernash.renovatio.cobol.ir.model.SimpleStatement.Kind.UNTRANSLATED,
                 ((org.modernash.renovatio.cobol.ir.model.SimpleStatement) statements.get(7)).kind());
     }
+
+    @Test
+    void shouldKeepNestedEvaluateWhensAndJoinStackedWhens() {
+        CobolIntermediateModel model = procedure(
+                "    EVALUATE WS-C",
+                "        WHEN 1",
+                "        WHEN 2",
+                "            EVALUATE WS-A",
+                "                WHEN 'X'",
+                "                    MOVE 3 TO WS-C",
+                "                WHEN OTHER",
+                "                    MOVE 4 TO WS-C",
+                "            END-EVALUATE",
+                "        WHEN OTHER",
+                "            MOVE 5 TO WS-C",
+                "    END-EVALUATE",
+                "    GOBACK.");
+
+        org.modernash.renovatio.cobol.ir.model.EvaluateStatement outer =
+                (org.modernash.renovatio.cobol.ir.model.EvaluateStatement) model.getEntryParagraph().statements().get(0);
+        assertEquals(2, outer.branches().size(), () -> String.valueOf(outer.branches()));
+        assertEquals("1 OR 2", outer.branches().get(0).condition());
+        org.modernash.renovatio.cobol.ir.model.EvaluateStatement inner =
+                (org.modernash.renovatio.cobol.ir.model.EvaluateStatement) outer.branches().get(0).statements().get(0);
+        assertEquals(2, inner.branches().size());
+        assertEquals("OTHER", outer.branches().get(1).condition());
+    }
 }
