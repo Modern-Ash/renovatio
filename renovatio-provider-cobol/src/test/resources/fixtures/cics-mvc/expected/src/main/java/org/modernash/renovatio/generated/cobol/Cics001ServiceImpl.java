@@ -76,7 +76,8 @@ public class Cics001ServiceImpl implements Cics001Service {
     }
     @GeneratedFrom(paragraph = "SEND-RESPONSE", lines = "71-78")
     private void performSendResponse(Cics001DTO input, Cics001DTO out) {
-        // COBOL not translated: EXEC CICS SEND FROM (WS-MESSAGE) LENGTH (LENGTH OF WS-MESSAGE) RESP (WS-RESPONSE) END-EXEC
+        out.getScreenResponse().sendText(out.getWsMessage());
+        out.setWsResponse(0);
     }
     @GeneratedFrom(paragraph = "CLEANUP", lines = "90-94")
     private void performCleanup(Cics001DTO input, Cics001DTO out) {
@@ -87,7 +88,8 @@ public class Cics001ServiceImpl implements Cics001Service {
     }
     @GeneratedFrom(paragraph = "SEND-ERROR", lines = "79-89")
     private void performSendError(Cics001DTO input, Cics001DTO out) {
-        // COBOL not translated: EXEC CICS SEND FROM (WS-MESSAGE) LENGTH (LENGTH OF WS-MESSAGE) RESP (WS-RESPONSE) END-EXEC
+        out.getScreenResponse().sendText(out.getWsMessage());
+        out.setWsResponse(0);
         out.getScreenResponse().end();
         out.endRun();
     }

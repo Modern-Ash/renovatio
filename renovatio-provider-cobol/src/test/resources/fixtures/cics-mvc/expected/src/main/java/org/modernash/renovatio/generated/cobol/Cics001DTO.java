@@ -1,9 +1,11 @@
 package org.modernash.renovatio.generated.cobol;
 
+import java.lang.IllegalStateException;
 import java.lang.Integer;
 import java.lang.Number;
 import java.lang.RuntimeException;
 import java.lang.String;
+import java.lang.System;
 import java.math.BigDecimal;
 import java.util.Map;
 
@@ -273,6 +275,13 @@ public class Cics001DTO {
   }
 
   /**
+   * CICS ABEND: the task fails with the abend code; nothing is returned.
+   */
+  public void abend(String code) {
+    throw new IllegalStateException("CICS ABEND " + code);
+  }
+
+  /**
    * Ends the program run (GOBACK, STOP RUN, CICS XCTL or RETURN) from any paragraph.
    */
   public static final class ProgramExit extends RuntimeException {
@@ -315,6 +324,20 @@ public class Cics001DTO {
 
     public Integer commareaLength() {
       return commarea.length();
+    }
+
+    /**
+     * CICS ASSIGN APPLID: the region's application id (environment CICS_APPLID).
+     */
+    public String applid() {
+      return System.getenv().getOrDefault("CICS_APPLID", "");
+    }
+
+    /**
+     * CICS ASSIGN SYSID: the system id (environment CICS_SYSID).
+     */
+    public String sysid() {
+      return System.getenv().getOrDefault("CICS_SYSID", "");
     }
 
     public String map(String name) {

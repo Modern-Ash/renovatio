@@ -942,6 +942,14 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     for (String option : List.of("INTO", "RESP", "RESP2")) {
                         addAssigned(assigned, cics.options().get(option));
                     }
+                    if (List.of("ASKTIME", "FORMATTIME", "ASSIGN").contains(cics.verb())) {
+                        cics.options().forEach((option, item) -> {
+                            if (!List.of("ABSTIME", "DATESEP", "TIMESEP").contains(option)
+                                    || cics.verb().equals("ASKTIME")) {
+                                addAssigned(assigned, item);
+                            }
+                        });
+                    }
                     if (cics.verb().startsWith("READ") && !cics.verb().equals("READ")) {
                         addAssigned(assigned, cics.options().get("RIDFLD"));
                     }
@@ -1693,10 +1701,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
             String response = targetVar + ".getScreenResponse()";
             switch (verb) {
                 case "RECEIVE" -> {
-                    String map = literal(options.get("MAP"));
-                    if (map == null) return List.of(marker);
-                    String target = options.getOrDefault("INTO", map + "I");
-                    String data = "input.getScreenRequest().map(\"" + map + "\")";
+                    String map = options.get("MAP");
+                    String target = options.containsKey("INTO") ? options.get("INTO")
+                            : literal(map) != null ? literal(map) + "I" : null;
+                    if (map == null || target == null) return List.of(marker);
+                    String data = "input.getScreenRequest().map(" + cicsName(map) + ")";
                     lines.add(setterCall(targetVar, target, data) + ";");
                     if (options.containsKey("RESP")) {
                         // MAPFAIL when the terminal sent no data for the map.
@@ -1704,18 +1713,64 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     }
                 }
                 case "SEND" -> {
-                    if (words.contains("TEXT")) {
+                    String map = options.get("MAP");
+                    if (words.contains("TEXT") || map == null) {
                         String from = options.get("FROM");
                         if (from == null) return List.of(marker);
                         lines.add(response + ".sendText(" + cicsText(from) + ");");
                     } else {
-                        String map = literal(options.get("MAP"));
-                        String mapset = literal(options.getOrDefault("MAPSET", options.get("MAP")));
-                        if (map == null || mapset == null) return List.of(marker);
-                        String from = options.getOrDefault("FROM", map + "O");
-                        lines.add(response + ".sendMap(\"" + map + "\", \"" + mapset + "\", " + cicsText(from) + ");");
+                        String mapset = options.getOrDefault("MAPSET", map);
+                        String from = options.containsKey("FROM") ? options.get("FROM")
+                                : literal(map) != null ? literal(map) + "O" : null;
+                        if (from == null) return List.of(marker);
+                        lines.add(response + ".sendMap(" + cicsName(map) + ", " + cicsName(mapset) + ", "
+                                + cicsText(from) + ");");
                     }
                 }
+                case "ASKTIME" -> {
+                    String abstime = options.get("ABSTIME");
+                    if (abstime == null) return List.of(marker);
+                    // ABSTIME counts milliseconds since 1900-01-01.
+                    lines.add(setterCall(targetVar, abstime, convert("(System.currentTimeMillis() + 2208988800000L)",
+                            "Long", typeOf(abstime))) + ";");
+                }
+                case "FORMATTIME" -> {
+                    String abstime = options.get("ABSTIME");
+                    if (abstime == null) return List.of(marker);
+                    String instant = "java.time.LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli("
+                            + convert(toJavaExpression(abstime), typeOf(abstime), "Long")
+                            + " - 2208988800000L), java.time.ZoneId.systemDefault())";
+                    String dateSep = separator(words, options, "DATESEP", "/");
+                    String timeSep = separator(words, options, "TIMESEP", ":");
+                    for (Map.Entry<String, String> option : options.entrySet()) {
+                        String pattern = switch (option.getKey()) {
+                            case "YYYYMMDD" -> "yyyy'S'MM'S'dd";
+                            case "MMDDYYYY" -> "MM'S'dd'S'yyyy";
+                            case "DDMMYYYY" -> "dd'S'MM'S'yyyy";
+                            case "YYMMDD" -> "yy'S'MM'S'dd";
+                            case "MMDDYY" -> "MM'S'dd'S'yy";
+                            case "DDMMYY" -> "dd'S'MM'S'yy";
+                            case "TIME" -> "HH'T'mm'T'ss";
+                            case "ABSTIME", "DATESEP", "TIMESEP" -> "";
+                            default -> null;
+                        };
+                        if (pattern == null) return List.of(marker);
+                        if (pattern.isEmpty()) continue;
+                        pattern = pattern.replace("'S'", dateSep.isEmpty() ? "" : "'" + dateSep + "'")
+                                .replace("'T'", timeSep.isEmpty() ? "" : "'" + timeSep + "'");
+                        lines.add(setterCall(targetVar, option.getValue(), instant
+                                + ".format(java.time.format.DateTimeFormatter.ofPattern(\"" + pattern + "\"))") + ";");
+                    }
+                }
+                case "ASSIGN" -> {
+                    for (Map.Entry<String, String> option : options.entrySet()) {
+                        if (!option.getKey().equals("APPLID") && !option.getKey().equals("SYSID")) return List.of(marker);
+                        lines.add(setterCall(targetVar, option.getValue(), "input.getScreenRequest()."
+                                + option.getKey().toLowerCase(Locale.ROOT) + "()") + ";");
+                    }
+                }
+                case "ABEND" -> lines.add(targetVar + ".abend("
+                        + (options.containsKey("ABCODE") ? cicsText(options.get("ABCODE")) : "\"\"") + ");");
                 case "XCTL" -> {
                     String program = options.get("PROGRAM");
                     if (program == null) return List.of(marker);
@@ -1733,6 +1788,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 default -> {
                     return List.of(marker);
                 }
+            }
+            if (options.containsKey("RESP") && !verb.equals("RECEIVE")) {
+                // Screen, time and environment commands always complete NORMAL here.
+                lines.add(lines.size() - (verb.equals("XCTL") || verb.equals("RETURN") ? 1 : 0),
+                        setterCall(targetVar, options.get("RESP"), "0") + ";");
             }
             if (lines.stream().anyMatch(line -> line.contains(UNRESOLVED_MARKER))) {
                 return List.of(marker);
@@ -1814,6 +1874,25 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 lines.add(setterCall(targetVar, options.get("RESP"), port + ".resp(" + status + ")") + ";");
             }
             return lines;
+        }
+
+        /** A CICS name argument (map, mapset) as Java: the literal, or the naming item's trimmed value. */
+        private String cicsName(String value) {
+            String literal = literal(value);
+            return literal != null ? "\"" + literal + "\"" : cicsText(value) + ".trim()";
+        }
+
+        private @Nullable String typeOf(String operand) {
+            return dataTypes.get(toPascal(stripSubscripts(operand)));
+        }
+
+        /** FORMATTIME separator: absent = none, bare keyword = the default, else its literal. */
+        private static String separator(List<String> words, Map<String, String> options, String name, String standard) {
+            if (options.containsKey(name)) {
+                String literal = literal(options.get(name));
+                return literal == null ? standard : literal;
+            }
+            return words.contains(name) ? standard : "";
         }
 
         /** Content of a quoted CICS literal ('COSGN0A'), or null for anything else. */

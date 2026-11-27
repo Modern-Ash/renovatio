@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Behavioral equivalence of migrated CardDemo programs: the Java generated from the COBOL source
@@ -182,6 +183,10 @@ class CardDemoGoldenMasterTest {
         assertThat(run.apply("NB               ")).isEqualTo("00|CAROL   Carol C ");
         assertThat(run.apply("PCAROL           ")).isEqualTo("00|BOB     Bobby   ");
         assertThat(run.apply("NZZZ             ")).isEqualTo("13|                ");   // STARTBR past the end
+        // ASKTIME + FORMATTIME: today's date with '-' and the time without separators.
+        assertThat((String) run.apply("T                ")).matches(
+                "00\\|" + java.time.LocalDate.now() + "\\d{6}");
+        assertThatThrownBy(() -> run.apply("A                ")).rootCause().hasMessage("CICS ABEND 9999");
         @SuppressWarnings("unchecked")
         List<String> content = (List<String>) users.getClass().getMethod("records").invoke(users);
         assertThat(content).containsExactly("BOB     Bobby   ", "CAROL   Carol C ", "DAVE    Dave D  ");

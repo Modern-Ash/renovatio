@@ -8,6 +8,10 @@
            05 WS-OUT-RESP       PIC 9(02).
            05 FILLER            PIC X(01) VALUE '|'.
            05 WS-OUT-REC        PIC X(16).
+       01  WS-ABS-TIME          PIC S9(15) COMP-3 VALUE ZEROS.
+       01  WS-TS.
+           05 WS-TS-DATE        PIC X(10).
+           05 WS-TS-TIME        PIC X(06).
        01  WS-REQUEST.
            05 RQ-ACTION         PIC X(01).
            05 RQ-USER-ID        PIC X(08).
@@ -70,6 +74,15 @@
                       INTO(SEC-USER-DATA) RIDFLD(RQ-USER-ID)
                       RESP(WS-RESP-CD) END-EXEC
                  PERFORM END-BROWSE
+              WHEN 'T'
+                 EXEC CICS ASKTIME ABSTIME(WS-ABS-TIME) END-EXEC
+                 EXEC CICS FORMATTIME ABSTIME(WS-ABS-TIME)
+                      YYYYMMDD(WS-TS-DATE) DATESEP('-')
+                      TIME(WS-TS-TIME)
+                 END-EXEC
+                 MOVE WS-TS TO WS-OUT-REC
+              WHEN 'A'
+                 EXEC CICS ABEND ABCODE('9999') END-EXEC
            END-EVALUATE
            MOVE WS-RESP-CD TO WS-OUT-RESP
            EXEC CICS SEND TEXT FROM(WS-OUT) END-EXEC

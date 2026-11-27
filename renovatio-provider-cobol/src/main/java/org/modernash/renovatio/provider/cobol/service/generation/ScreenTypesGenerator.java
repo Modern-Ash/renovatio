@@ -40,6 +40,7 @@ public final class ScreenTypesGenerator {
                 .addJavadoc("Ends the program run; {@code process} catches it and returns this DTO.\n")
                 .addStatement("throw new ProgramExit()")
                 .build());
+
     }
 
     public static void addScreenTypes(TypeSpec.Builder dto) {
@@ -75,6 +76,19 @@ public final class ScreenTypesGenerator {
                         .addModifiers(Modifier.PUBLIC)
                         .returns(Integer.class)
                         .addStatement("return commarea.length()")
+                        .build())
+                // shortcut: APPLID / SYSID come from the environment; carry them on the request when a web layer (#214) knows the region.
+                .addMethod(MethodSpec.methodBuilder("applid")
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(String.class)
+                        .addJavadoc("CICS ASSIGN APPLID: the region's application id (environment CICS_APPLID).\n")
+                        .addStatement("return $T.getenv().getOrDefault(\"CICS_APPLID\", \"\")", System.class)
+                        .build())
+                .addMethod(MethodSpec.methodBuilder("sysid")
+                        .addModifiers(Modifier.PUBLIC)
+                        .returns(String.class)
+                        .addJavadoc("CICS ASSIGN SYSID: the system id (environment CICS_SYSID).\n")
+                        .addStatement("return $T.getenv().getOrDefault(\"CICS_SYSID\", \"\")", System.class)
                         .build())
                 .addMethod(MethodSpec.methodBuilder("map")
                         .addModifiers(Modifier.PUBLIC)
@@ -143,6 +157,12 @@ public final class ScreenTypesGenerator {
                 .build());
         dto.addMethod(MethodSpec.methodBuilder("getScreenResponse").addModifiers(Modifier.PUBLIC)
                 .returns(response).addStatement("return screenResponse").build());
+        dto.addMethod(MethodSpec.methodBuilder("abend")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(String.class, "code")
+                .addJavadoc("CICS ABEND: the task fails with the abend code; nothing is returned.\n")
+                .addStatement("throw new $T(\"CICS ABEND \" + code)", IllegalStateException.class)
+                .build());
     }
 
     private static MethodSpec accessor(String field, Object type) {
