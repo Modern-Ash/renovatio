@@ -260,10 +260,10 @@
     "emit" : true,
     "compile" : true,
     "javaFiles" : 10,
-    "manualActionItems" : 503,
+    "manualActionItems" : 392,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 509,
+    "notTranslatedMarkers" : 495,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "COMPUTE", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "OPEN", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING", "WRITE" ]
   }, {
@@ -275,7 +275,7 @@
     "emit" : true,
     "compile" : true,
     "javaFiles" : 10,
-    "manualActionItems" : 40,
+    "manualActionItems" : 39,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
     "notTranslatedMarkers" : 73,
@@ -353,10 +353,10 @@
     "emit" : true,
     "compile" : true,
     "javaFiles" : 6,
-    "manualActionItems" : 82,
+    "manualActionItems" : 81,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 89,
+    "notTranslatedMarkers" : 88,
     "notTranslated" : [ ],
     "present" : [ "ADD", "CALL", "COMPUTE", "CONTINUE", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "SEARCH", "SET", "SUBTRACT", "VARYING" ]
   }, {
@@ -368,10 +368,10 @@
     "emit" : true,
     "compile" : true,
     "javaFiles" : 8,
-    "manualActionItems" : 40,
+    "manualActionItems" : 39,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 45,
+    "notTranslatedMarkers" : 44,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "DISPLAY", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "MOVE", "PERFORM", "READ", "SEARCH", "SET" ]
   }, {
@@ -383,10 +383,10 @@
     "emit" : true,
     "compile" : true,
     "javaFiles" : 6,
-    "manualActionItems" : 103,
+    "manualActionItems" : 102,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 82,
+    "notTranslatedMarkers" : 81,
     "notTranslated" : [ ],
     "present" : [ "ACCEPT", "CONTINUE", "EVALUATE", "EXEC CICS", "GO TO", "IF", "INITIALIZE", "INSPECT", "MOVE", "PERFORM", "READ", "REWRITE", "SEARCH", "SET", "STRING" ]
   }, {
@@ -581,10 +581,10 @@
     "emit" : true,
     "compile" : true,
     "javaFiles" : 4,
-    "manualActionItems" : 126,
+    "manualActionItems" : 123,
     "todoBodies" : 0,
     "unhandledStatements" : 0,
-    "notTranslatedMarkers" : 119,
+    "notTranslatedMarkers" : 118,
     "notTranslated" : [ {
       "construct" : "EXEC SQL",
       "evidence" : 4

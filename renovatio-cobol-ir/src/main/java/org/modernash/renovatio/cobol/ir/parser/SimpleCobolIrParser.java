@@ -114,14 +114,15 @@ public class SimpleCobolIrParser {
     // SELECTs are actually one physical resource, unlike name similarity.
     private static final Pattern ASSIGN_TO_PATTERN = Pattern.compile(
             "ASSIGN\\s+TO\\s+([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
-    // A plain "COPY <member>." with nothing else between the name and its
-    // terminating period — deliberately conservative. A COPY with a
-    // REPLACING clause changes the copied text and this simple textual
-    // splice can't honor that safely, so such statements are left
-    // unexpanded rather than risk inlining the wrong content; better to
-    // miss a field than silently mis-substitute one.
+    // "COPY member." or "COPY 'member'." (the period may sit on a later line), optionally with
+    // REPLACING ==pseudo-text== BY ==pseudo-text== pairs. Other REPLACING forms (word BY word,
+    // LEADING / TRAILING) are left unexpanded: better to miss a field than mis-substitute one.
     private static final Pattern COPY_PATTERN = Pattern.compile(
-            "(?m)^\\s*COPY\\s+([A-Za-z0-9-]+)\\s*\\.", Pattern.CASE_INSENSITIVE);
+            "(?m)^\\s*COPY\\s+(['\"]?)([A-Za-z0-9-]+)\\1"
+                    + "(\\s+REPLACING((?:\\s+==[^=]*==\\s+BY\\s+==[^=]*==)+))?\\s*\\.",
+            Pattern.CASE_INSENSITIVE);
+    private static final Pattern PSEUDO_TEXT_PAIR = Pattern.compile("==([^=]*)==\\s+BY\\s+==([^=]*)==",
+            Pattern.CASE_INSENSITIVE);
     private static final int COPY_EXPANSION_MAX_DEPTH = 8;
     private static final int WORKSPACE_ROOT_CLIMB_LEVELS = 4;
 
@@ -282,7 +283,7 @@ public class SimpleCobolIrParser {
         while (matcher.find()) {
             result.append(source, last, matcher.start());
             last = matcher.end();
-            String memberName = matcher.group(1).toUpperCase(Locale.ROOT);
+            String memberName = matcher.group(2).toUpperCase(Locale.ROOT);
             if (inProgress.contains(memberName)) {
                 result.append(source, matcher.start(), matcher.end());
                 continue;
@@ -295,7 +296,15 @@ public class SimpleCobolIrParser {
             try {
                 String copyText = stripCommentLines(Files.readString(resolved));
                 inProgress.push(memberName);
-                result.append(expandCopyStatements(copyText, resolved, depth + 1, inProgress));
+                String expanded = expandCopyStatements(copyText, resolved, depth + 1, inProgress);
+                if (matcher.group(4) != null) {
+                    Matcher pair = PSEUDO_TEXT_PAIR.matcher(matcher.group(4));
+                    while (pair.find()) {
+                        // shortcut: plain text substitution, enough for whole-token pseudo-text such as (TESTVAR1).
+                        expanded = expanded.replace(pair.group(1).trim(), pair.group(2).trim());
+                    }
+                }
+                result.append(expanded);
                 inProgress.pop();
             } catch (IOException e) {
                 result.append(source, matcher.start(), matcher.end());

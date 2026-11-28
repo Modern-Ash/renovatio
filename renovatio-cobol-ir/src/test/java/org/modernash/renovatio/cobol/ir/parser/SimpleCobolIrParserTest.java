@@ -330,4 +330,37 @@ class SimpleCobolIrParserTest {
         assertEquals(2, inner.branches().size());
         assertEquals("OTHER", outer.branches().get(1).condition());
     }
+
+    @Test
+    void expandsQuotedCopyAndCopyReplacingInTheProcedureDivision(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
+            throws Exception {
+        java.nio.file.Files.writeString(dir.resolve("SETATTR.cpy"), String.join("\n",
+                "           IF FLG-(TESTVAR1)-BAD",
+                "               MOVE 'X' TO (SCRNVAR2)O",
+                "           END-IF"));
+        java.nio.file.Files.writeString(dir.resolve("TAILPARA.cpy"), String.join("\n",
+                "       TAIL-PARA.",
+                "           MOVE 'T' TO WS-OUT."));
+        java.nio.file.Files.writeString(dir.resolve("PROG.cbl"), String.join("\n",
+                "       IDENTIFICATION DIVISION.",
+                "       PROGRAM-ID. PROG.",
+                "       DATA DIVISION.",
+                "       WORKING-STORAGE SECTION.",
+                "       01  WS-OUT PIC X.",
+                "       PROCEDURE DIVISION.",
+                "       MAIN-PARA.",
+                "           COPY SETATTR REPLACING",
+                "             ==(TESTVAR1)== BY ==ACCT==",
+                "             ==(SCRNVAR2)== BY ==ACCTS== .",
+                "           GOBACK.",
+                "       COPY 'TAILPARA'",
+                "           ."));
+
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(dir.resolve("PROG.cbl"));
+
+        IfStatement copied = (IfStatement) model.getParagraphs().get("MAIN-PARA").statements().get(0);
+        assertTrue(copied.condition().toString().contains("FLG-ACCT-BAD"), copied.condition().toString());
+        assertEquals("ACCTSO", ((MoveStatement) copied.thenStatements().get(0)).target());
+        assertNotNull(model.getParagraphs().get("TAIL-PARA"), "paragraph from the quoted COPY");
+    }
 }
