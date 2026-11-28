@@ -214,16 +214,7 @@ class CardDemoGoldenMasterTest {
      */
     @Test
     void cardDemoSignOnValidatesUsersAgainstUsrsec() throws Exception {
-        Path workspace = tempDir.resolve("cosgn00c");
-        Files.createDirectories(workspace);
-        Files.copy(CORPUS.resolve("cbl/COSGN00C.cbl"), workspace.resolve("COSGN00C.cbl"));
-        for (String dir : List.of("cpy", "cpy-bms")) {
-            try (Stream<Path> copybooks = Files.list(CORPUS.resolve(dir))) {
-                for (Path copybook : copybooks.toList()) {
-                    Files.copy(copybook, workspace.resolve(copybook.getFileName()));
-                }
-            }
-        }
+        Path workspace = cardDemoWorkspace("COSGN00C");
         ClassLoader classes = compile(generate(workspace));
 
         String admin = String.format("%-8s%-20s%-20s%-8s%-1s%-23s", "ADMIN001", "Ada", "Admin", "PASSWORD", "A", "");
@@ -282,6 +273,148 @@ class CardDemoGoldenMasterTest {
         Object exit = handle.invoke(controller, newRequest.newInstance("PF3", commarea, Map.of()));
         assertThat((String) get(exit, "text")).contains("Thank you");
         assertThat(get(exit, "ended")).isEqualTo(true);
+    }
+
+    /**
+     * CardDemo's user list COUSR00C over 12 users in USRSEC: ten per page through STARTBR /
+     * READNEXT, PF8 to the next page, PF7 back with READPREV, and a row selected for update.
+     */
+    @Test
+    void cardDemoUserListPagesThroughUsrsec() throws Exception {
+        Path workspace = cardDemoWorkspace("COUSR00C");
+        ClassLoader classes = compile(generate(workspace));
+        List<String> records = new ArrayList<>();
+        for (int n = 1; n <= 12; n++) {
+            records.add(String.format("%-8s%-20s%-20s%-8s%-1s%-23s", String.format("USER%04d", n),
+                    "First" + n, "Last" + n, "PASSWORD", "U", ""));
+        }
+        Object users = classes.loadClass(PACKAGE + ".Cousr00cUsrsecInMemoryAdapter").getConstructor(List.class)
+                .newInstance(records);
+        Object service = wire(classes, "Cousr00cServiceImpl", Map.of(PACKAGE + ".Cousr00cUsrsecPort", users));
+        Class<?> dto = classes.loadClass(PACKAGE + ".Cousr00cDTO");
+        Class<?> requestType = classes.loadClass(PACKAGE + ".Cousr00cDTO$ScreenRequest");
+        Object controller = classes.loadClass(PACKAGE + ".Cousr00cCicsController")
+                .getConstructor(classes.loadClass(PACKAGE + ".Cousr00cService")).newInstance(service);
+        var handle = controller.getClass().getMethod("handle", requestType);
+        var newRequest = requestType.getConstructor(String.class, String.class, Map.class);
+        // Coming from the admin menu: a COMMAREA that is not yet a re-entry.
+        String fromMenu = (String) dto.getMethod("getCarddemoCommarea").invoke(dto.getConstructor().newInstance());
+
+        Object page1 = handle.invoke(controller, newRequest.newInstance("ENTER", fromMenu, Map.of()));
+        assertThat(get(page1, "map")).isEqualTo("COUSR0A");
+        assertThat((String) get(page1, "screen")).contains("USER0001", "USER0010").doesNotContain("USER0011");
+
+        Object page2 = handle.invoke(controller, newRequest.newInstance("PF8", (String) get(page1, "commarea"), Map.of()));
+        assertThat((String) get(page2, "screen")).contains("USER0011", "USER0012").doesNotContain("USER0010");
+
+        Object back = handle.invoke(controller, newRequest.newInstance("PF7", (String) get(page2, "commarea"), Map.of()));
+        assertThat((String) get(back, "screen")).contains("USER0001", "USER0010").doesNotContain("USER0011");
+
+        // 'U' next to the third row: transfer to the update program with that user selected.
+        Object screen = dto.getConstructor().newInstance();
+        dto.getMethod("setSel0003i", String.class).invoke(screen, "U");
+        dto.getMethod("setUsrid03i", String.class).invoke(screen, "USER0003");
+        String typed = (String) dto.getMethod("getCousr0ai").invoke(screen);
+        Object update = handle.invoke(controller, newRequest.newInstance("ENTER", (String) get(back, "commarea"),
+                Map.of("COUSR0A", typed)));
+        assertThat(get(update, "nextProgram")).isEqualTo("COUSR02C");
+        assertThat((String) get(update, "commarea")).contains("UUSER0003");
+    }
+
+    @Test
+    void cardDemoUserMaintenanceAddsUpdatesAndDeletesInUsrsec() throws Exception {
+        String bob = String.format("%-8s%-20s%-20s%-8s%-1s%-23s", "USER0002", "Bob", "Builder", "PASSWORD", "U", "");
+
+        // COUSR01C: add a user; a missing field and a duplicate id are rejected.
+        Online add = online("COUSR01C", List.of(bob));
+        String commarea = add.firstScreen();
+        Object missing = add.enter(commarea, "COUSR1A", Map.of("Fnamei", "Ann", "Useridi", "USER0001"));
+        assertThat((String) get(missing, "screen")).contains("Last Name can NOT be empty...");
+        Map<String, String> ann = Map.of("Fnamei", "Ann", "Lnamei", "Lee", "Useridi", "USER0001",
+                "Passwdi", "SECRET01", "Usrtypei", "A");
+        assertThat((String) get(add.enter(commarea, "COUSR1A", ann), "screen")).contains("USER0001 has been added ...");
+        assertThat((String) get(add.enter(commarea, "COUSR1A", ann), "screen")).contains("User ID already exist...");
+        assertThat(add.records()).anySatisfy(record -> assertThat(record).startsWith("USER0001Ann"));
+
+        // COUSR02C: show a user, then PF5 saves the changed first name.
+        Online update = online("COUSR02C", List.of(bob));
+        commarea = update.firstScreen();
+        Object shown = update.enter(commarea, "COUSR2A", Map.of("Usridini", "USER0002"));
+        assertThat((String) get(shown, "screen")).contains("Bob").contains("Press PF5 key to save your updates ...");
+        Object saved = update.send("PF5", commarea, "COUSR2A", Map.of("Usridini", "USER0002", "Fnamei", "Robert",
+                "Lnamei", "Builder", "Passwdi", "PASSWORD", "Usrtypei", "U"));
+        assertThat((String) get(saved, "screen")).contains("USER0002 has been updated ...");
+        assertThat(update.records()).containsExactly(String.format("%-8s%-20s%-20s%-8s%-1s%-23s",
+                "USER0002", "Robert", "Builder", "PASSWORD", "U", ""));
+
+        // COUSR03C: show a user, then PF5 deletes it.
+        Online delete = online("COUSR03C", List.of(bob));
+        commarea = delete.firstScreen();
+        assertThat((String) get(delete.enter(commarea, "COUSR3A", Map.of("Usridini", "USER0002")), "screen"))
+                .contains("Press PF5 key to delete this user ...");
+        Object deleted = delete.send("PF5", commarea, "COUSR3A", Map.of("Usridini", "USER0002"));
+        assertThat((String) get(deleted, "screen")).contains("USER0002 has been deleted ...");
+        assertThat(delete.records()).isEmpty();
+    }
+
+    /** A CardDemo online program generated from the real sources, wired to an in-memory USRSEC. */
+    private record Online(Class<?> dto, Object controller, java.lang.reflect.Method handle,
+                          java.lang.reflect.Constructor<?> request, Object users) {
+
+        /** First task from the admin menu (not a re-entry); returns the COMMAREA to resume with. */
+        String firstScreen() throws Exception {
+            String fromMenu = (String) dto.getMethod("getCarddemoCommarea").invoke(dto.getConstructor().newInstance());
+            return (String) get(handle.invoke(controller, request.newInstance("ENTER", fromMenu, Map.of())), "commarea");
+        }
+
+        Object enter(String commarea, String map, Map<String, String> fields) throws Exception {
+            return send("ENTER", commarea, map, fields);
+        }
+
+        /** One task: the key pressed, the COMMAREA, and the input map built from field values. */
+        Object send(String aid, String commarea, String map, Map<String, String> fields) throws Exception {
+            Object screen = dto.getConstructor().newInstance();
+            for (Map.Entry<String, String> field : fields.entrySet()) {
+                dto.getMethod("set" + field.getKey(), String.class).invoke(screen, field.getValue());
+            }
+            String data = (String) dto.getMethod("get" + map.charAt(0) + map.substring(1).toLowerCase(java.util.Locale.ROOT)
+                    + "i").invoke(screen);
+            return handle.invoke(controller, request.newInstance(aid, commarea, Map.of(map, data)));
+        }
+
+        @SuppressWarnings("unchecked")
+        List<String> records() throws Exception {
+            return (List<String>) users.getClass().getMethod("records").invoke(users);
+        }
+    }
+
+    private Online online(String program, List<String> usrsec) throws Exception {
+        ClassLoader classes = compile(generate(cardDemoWorkspace(program)));
+        String base = program.charAt(0) + program.substring(1).toLowerCase(java.util.Locale.ROOT);
+        Object users = classes.loadClass(PACKAGE + "." + base + "UsrsecInMemoryAdapter").getConstructor(List.class)
+                .newInstance(usrsec);
+        Object service = wire(classes, base + "ServiceImpl", Map.of(PACKAGE + "." + base + "UsrsecPort", users));
+        Class<?> requestType = classes.loadClass(PACKAGE + "." + base + "DTO$ScreenRequest");
+        Object controller = classes.loadClass(PACKAGE + "." + base + "CicsController")
+                .getConstructor(classes.loadClass(PACKAGE + "." + base + "Service")).newInstance(service);
+        return new Online(classes.loadClass(PACKAGE + "." + base + "DTO"), controller,
+                controller.getClass().getMethod("handle", requestType),
+                requestType.getConstructor(String.class, String.class, Map.class), users);
+    }
+
+    /** A workspace with one CardDemo program and every CardDemo copybook (data and BMS). */
+    private Path cardDemoWorkspace(String program) throws Exception {
+        Path workspace = tempDir.resolve(program.toLowerCase(java.util.Locale.ROOT));
+        Files.createDirectories(workspace);
+        Files.copy(CORPUS.resolve("cbl/" + program + ".cbl"), workspace.resolve(program + ".cbl"));
+        for (String dir : List.of("cpy", "cpy-bms")) {
+            try (Stream<Path> copybooks = Files.list(CORPUS.resolve(dir))) {
+                for (Path copybook : copybooks.toList()) {
+                    Files.copy(copybook, workspace.resolve(copybook.getFileName()));
+                }
+            }
+        }
+        return workspace;
     }
 
     private static Object get(Object target, String accessor) throws Exception {
