@@ -256,8 +256,10 @@ class PopulateCobolProcessRecipeTest {
 
         String updated = applyRecipe(cobol);
 
-        assertThat(updated).contains("for (int wsIdx = 1; !(wsIdx > 3); wsIdx += 1) {");
-        assertThat(updated).contains("output.setCustomerRating(wsIdx);");
+        // The loop steps WS-IDX itself, so it keeps its final value (4) after the loop, as in COBOL.
+        assertThat(updated).contains("for (output.setWsIdx((int) (1)); !(output.getWsIdx() > 3); "
+                + "output.setWsIdx((int) (output.getWsIdx() + 1))) {");
+        assertThat(updated).contains("output.setCustomerRating(output.getWsIdx());");
         assertThat(updated).contains("return output;");
         assertThat(updated).doesNotContain("input.getWsIdx()");
     }
@@ -282,9 +284,11 @@ class PopulateCobolProcessRecipeTest {
 
         String updated = applyRecipe(cobol);
 
-        assertThat(updated).contains("for (int wsI = 1; !(wsI > 2); wsI += 1) {");
-        assertThat(updated).contains("for (int wsJ = 1; !(wsJ > 3); wsJ += 1) {");
-        assertThat(updated).contains("output.setCustomerRating(wsJ);");
+        assertThat(updated).contains("for (output.setWsI((int) (1)); !(output.getWsI() > 2); "
+                + "output.setWsI((int) (output.getWsI() + 1))) {");
+        assertThat(updated).contains("for (output.setWsJ((int) (1)); !(output.getWsJ() > 3); "
+                + "output.setWsJ((int) (output.getWsJ() + 1))) {");
+        assertThat(updated).contains("output.setCustomerRating(output.getWsJ());");
         assertThat(updated).doesNotContain("input.getWsJ()");
     }
 

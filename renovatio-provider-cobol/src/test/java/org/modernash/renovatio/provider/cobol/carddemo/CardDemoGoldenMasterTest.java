@@ -110,6 +110,11 @@ class CardDemoGoldenMasterTest {
     }
 
     @Test
+    void performThruAndStructuredGoToMatchCobol() throws Exception {
+        assertStdoutMatchesCobol("perform-thru-goto", "GOTOS", "Gotos");
+    }
+
+    @Test
     void onlineProgramRunsAsAScreenHandlerAcrossAPseudoConversation() throws Exception {
         Path workspace = tempDir.resolve("screen-handler");
         Files.createDirectories(workspace);

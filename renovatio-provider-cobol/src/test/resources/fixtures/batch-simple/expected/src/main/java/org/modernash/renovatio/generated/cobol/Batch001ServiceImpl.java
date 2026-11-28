@@ -36,8 +36,8 @@ public class Batch001ServiceImpl implements Batch001Service {
   }
     @GeneratedFrom(paragraph = "PROCESS-DATA", lines = "26-35")
     private void performProcessData(Batch001DTO input, Batch001DTO out) {
-        for (int wsCounter = 1; !(wsCounter > 10); wsCounter += 1) {
-            out.setWsResult((int) (wsCounter * 2));
+        for (out.setWsCounter((int) (1)); !(out.getWsCounter() > 10); out.setWsCounter((int) (out.getWsCounter() + 1))) {
+            out.setWsResult((int) (out.getWsCounter() * 2));
             out.setWsTotal((int) (out.getWsTotal() + out.getWsResult()));
             if (out.getWsTotal() > 50) {
                 out.setWsFlag("Y");

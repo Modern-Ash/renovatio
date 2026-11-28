@@ -29,9 +29,9 @@ class PerformVaryingAfterService {
     public PerformVaryingAfterDto process(PerformVaryingAfterDto input) {
         {
             PerformVaryingAfterDto output = new PerformVaryingAfterDto();
-            for (int wsI = 1; !(wsI > 2); wsI += 1) {
-                for (int wsJ = 1; !(wsJ > 3); wsJ += 1) {
-                    output.setWsTraceNum(wsJ);
+            for (output.setWsI((int) (1)); !(output.getWsI() > 2); output.setWsI((int) (output.getWsI() + 1))) {
+                for (output.setWsJ((int) (1)); !(output.getWsJ() > 3); output.setWsJ((int) (output.getWsJ() + 1))) {
+                    output.setWsTraceNum(output.getWsJ());
                 }
             }
             return output;

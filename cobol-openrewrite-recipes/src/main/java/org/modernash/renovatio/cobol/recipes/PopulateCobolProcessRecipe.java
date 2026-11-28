@@ -329,7 +329,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     // A GOBACK/STOP RUN here, or one reached through an inlined PERFORM, ends the
                     // run unit: stop so no unreachable Java follows.
                     if (terminatesFlow(statement)
-                            || (!lines.isEmpty() && lines.get(lines.size() - 1).startsWith("return "))) {
+                            || (!lines.isEmpty() && lines.get(lines.size() - 1).startsWith("return"))) {
                         break;
                     }
                 }
@@ -438,6 +438,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 default:
                     if (cicsProgram && simple.text().toUpperCase(Locale.ROOT).startsWith("EXEC CICS")) {
                         return renderCics(simple.text(), targetVar);
+                    }
+                    String jumpTarget = goToTarget(simple);
+                    List<String> jump = jumpTarget == null ? null : renderGoTo(jumpTarget, targetVar);
+                    if (jump != null) {
+                        return jump;
                     }
                     return List.of("// COBOL not translated: " + truncate(simple.text()));
             }
@@ -1054,12 +1059,13 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (perform.isInline()) {
                 Map<String, String> savedAliases = variableAliases;
                 Map<String, String> loopAliases = new java.util.HashMap<>();
-                if (perform.varyingVariable() != null && !perform.varyingVariable().isBlank()) {
+                if (perform.varyingVariable() != null && !perform.varyingVariable().isBlank()
+                        && loopItem(perform.varyingVariable()) == null) {
                     loopAliases.put(perform.varyingVariable().toUpperCase(Locale.ROOT),
                             lowerCamel(perform.varyingVariable()));
                 }
                 for (PerformStatement.VaryingAxis axis : perform.varyingAfter()) {
-                    if (axis.variable() != null && !axis.variable().isBlank()) {
+                    if (axis.variable() != null && !axis.variable().isBlank() && loopItem(axis.variable()) == null) {
                         loopAliases.put(axis.variable().toUpperCase(Locale.ROOT), lowerCamel(axis.variable()));
                     }
                 }
@@ -1215,6 +1221,42 @@ public class PopulateCobolProcessRecipe extends Recipe {
             return performAnalysis;
         }
 
+        private static final java.util.regex.Pattern GO_TO = java.util.regex.Pattern.compile(
+                "(?i)GO\\s+TO\\s+([A-Z0-9][A-Z0-9-]*)\\.?");
+
+        /** Target paragraph of a plain {@code GO TO name}, else null. */
+        private static @Nullable String goToTarget(SimpleStatement simple) {
+            java.util.regex.Matcher matcher = GO_TO.matcher(simple.text().trim());
+            return matcher.matches() ? matcher.group(1).toUpperCase(Locale.ROOT) : null;
+        }
+
+        /** True when the paragraph's last statement ends the run (GOBACK, STOP RUN, CICS RETURN / XCTL). */
+        private boolean endsRun(CobolIntermediateModel model, String paragraph) {
+            List<CobolStatement> statements = model.findParagraph(paragraph)
+                    .map(CobolParagraph::statements).orElse(List.of());
+            return !statements.isEmpty() && terminatesFlow(statements.get(statements.size() - 1));
+        }
+
+        /**
+         * GO TO in the two shapes structured code can express: to the paragraph right after the
+         * current one (the -EXIT of a PERFORM THRU range), which leaves the current paragraph; and to
+         * a paragraph that ends the run (COMMON-RETURN), which runs it and ends the program. Other
+         * jumps stay explicit markers.
+         */
+        private @Nullable List<String> renderGoTo(String target, String targetVar) {
+            CobolIntermediateModel model = currentModel;
+            if (model == null || model.findParagraph(target).isEmpty()) return null;
+            if (endsFromParagraphs && endsRun(model, target)) {
+                return List.of(performCallLine(target, targetVar, model), targetVar + ".endRun();");
+            }
+            List<String> names = new ArrayList<>(model.getParagraphs().keySet());
+            int current = currentParagraphName == null ? -1 : names.indexOf(currentParagraphName);
+            if (voidMethodMode && current >= 0 && current + 1 < names.size() && names.get(current + 1).equals(target)) {
+                return List.of("return; // GO TO " + target + ": leaves " + currentParagraphName);
+            }
+            return null;
+        }
+
         private String performCallLine(String target, String targetVar, CobolIntermediateModel model) {
             if (model.findParagraph(target).isEmpty()) {
                 return "// PERFORM " + target + " (paragraph not found)";
@@ -1277,9 +1319,34 @@ public class PopulateCobolProcessRecipe extends Recipe {
             return inner;
         }
 
+        /** The numeric data item a VARYING axis steps, when the loop can run on the DTO field itself. */
+        private @Nullable CobolDataItem loopItem(String cobolVar) {
+            if (currentModel == null || cobolVar.contains("(")) return null;
+            return findDataItem(currentModel, cobolVar.trim())
+                    .filter(item -> List.of("Integer", "Long", "BigDecimal").contains(item.javaType()))
+                    .orElse(null);
+        }
+
         /** Renders a single {@code PERFORM VARYING} axis as a Java {@code for} loop. */
         private List<String> varyingLoop(String cobolVar, String fromClause, String byClause,
                                          String untilClause, boolean testAfter, List<String> inner) {
+            CobolDataItem item = loopItem(cobolVar);
+            Arithmetic from = item == null ? null : new ArithmeticParser(fromClause).parse();
+            Arithmetic next = item == null ? null : new ArithmeticParser(cobolVar + " + " + byClause).parse();
+            if (from != null && next != null) {
+                // The control item is a data item: the loop steps it, so it keeps its last value as in COBOL.
+                String targetVar = currentOutputVar == null ? "out" : currentOutputVar;
+                String init = setterCall(targetVar, cobolVar, toTargetType(from, item));
+                String update = setterCall(targetVar, cobolVar, toTargetType(next, item));
+                String cond = untilClause != null && !untilClause.isBlank() ? translateCondition(untilClause) : null;
+                List<String> wrapped = new ArrayList<>();
+                wrapped.add("for (" + init + "; " + (testAfter || cond == null ? "" : "!(" + cond + ")") + "; "
+                        + update + ") {");
+                inner.forEach(line -> wrapped.add(indent(line)));
+                if (testAfter && cond != null) wrapped.add(indent("if (" + cond + ") break;"));
+                wrapped.add("}");
+                return wrapped;
+            }
             String loopVar = lowerCamel(cobolVar);
             String start = toJavaExpression(fromClause);
             String step = toJavaExpression(byClause);
@@ -1328,6 +1395,16 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         private static void collectPerformTargetsInto(CobolStatement statement, CobolIntermediateModel model,
                                                List<String> out) {
+            if (statement instanceof SimpleStatement simple && goToTarget(simple) instanceof String target
+                    && model.findParagraph(target).isPresent() && !out.contains(target)) {
+                // A GO TO that ends the run calls its target paragraph as a method.
+                List<CobolStatement> body = model.findParagraph(target).orElseThrow().statements();
+                if (!body.isEmpty() && body.get(body.size() - 1) instanceof SimpleStatement last
+                        && (last.kind() == SimpleStatement.Kind.GOBACK || last.kind() == SimpleStatement.Kind.STOP_RUN
+                        || last.text().toUpperCase(Locale.ROOT).matches("EXEC CICS (XCTL|RETURN)\\b.*"))) {
+                    out.add(target);
+                }
+            }
             if (statement instanceof PerformStatement perform) {
                 if (!perform.isInline() && perform.paragraph() != null && !perform.paragraph().isBlank()) {
                     String start = perform.paragraph();

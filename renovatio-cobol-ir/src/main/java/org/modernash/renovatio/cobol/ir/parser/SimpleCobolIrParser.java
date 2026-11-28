@@ -1483,6 +1483,13 @@ public class SimpleCobolIrParser {
             joined = joined + Symbols.SPACE + nextRaw;
             lastIndex++;
         }
+        // "PERFORM A" / "THRU A-EXIT": the range continues on the next line.
+        if (lastIndex + 1 < lines.size() && !joined.toUpperCase(Locale.ROOT).contains(" " + Keywords.THRU + " ")
+                && lines.get(lastIndex + 1).trim().toUpperCase(Locale.ROOT)
+                        .matches(Keywords.THRU + "\\s+[A-Z0-9][A-Z0-9-]*\\.?(\\s.*)?")) {
+            joined = joined + Symbols.SPACE + lines.get(lastIndex + 1).trim();
+            lastIndex++;
+        }
         if (lastIndex + 1 < lines.size()) {
             String upperJoined = joined.toUpperCase(Locale.ROOT);
             String nextRaw = lines.get(lastIndex + 1).trim();

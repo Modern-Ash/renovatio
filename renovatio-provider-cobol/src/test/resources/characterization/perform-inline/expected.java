@@ -24,9 +24,9 @@ class PerformInlineService {
     public PerformInlineDto process(PerformInlineDto input) {
         {
             PerformInlineDto output = new PerformInlineDto();
-            for (int wsIdx = 1; ; wsIdx += 1) {
-                output.setWsTraceNum(wsIdx);
-                if (wsIdx > 1) break;
+            for (output.setWsIdx((int) (1)); ; output.setWsIdx((int) (output.getWsIdx() + 1))) {
+                output.setWsTraceNum(output.getWsIdx());
+                if (output.getWsIdx() > 1) break;
             }
             return output;
         }

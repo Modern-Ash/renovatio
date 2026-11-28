@@ -24,8 +24,8 @@ class PerformVaryingService {
     public PerformVaryingDto process(PerformVaryingDto input) {
         {
             PerformVaryingDto output = new PerformVaryingDto();
-            for (int wsIdx = 1; !(wsIdx > 3); wsIdx += 1) {
-                output.setWsTraceNum(wsIdx);
+            for (output.setWsIdx((int) (1)); !(output.getWsIdx() > 3); output.setWsIdx((int) (output.getWsIdx() + 1))) {
+                output.setWsTraceNum(output.getWsIdx());
             }
             return output;
         }
