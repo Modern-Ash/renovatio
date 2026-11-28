@@ -362,6 +362,68 @@ class CardDemoGoldenMasterTest {
         assertThat(delete.records()).isEmpty();
     }
 
+    /**
+     * CardDemo's account view COACTVWC over three datasets: the card cross-reference through its
+     * alternate index on the account id (CXACAIX), the account (ACCTDAT) and the customer (CUSTDAT).
+     */
+    @Test
+    void cardDemoAccountViewReadsXrefAccountAndCustomer() throws Exception {
+        ClassLoader classes = compile(generate(cardDemoWorkspace("COACTVWC")));
+        Class<?> dto = classes.loadClass(PACKAGE + ".CoactvwcDTO");
+        // Records built with the program's own record layouts (zoned signed amounts included).
+        Object data = dto.getConstructor().newInstance();
+        dto.getMethod("setXrefCardNum", String.class).invoke(data, "4111111111111111");
+        dto.getMethod("setXrefCustId", Integer.class).invoke(data, 7);
+        dto.getMethod("setXrefAcctId", Long.class).invoke(data, 42L);
+        dto.getMethod("setAcctId", Long.class).invoke(data, 42L);
+        dto.getMethod("setAcctActiveStatus", String.class).invoke(data, "Y");
+        dto.getMethod("setAcctCurrBal", java.math.BigDecimal.class).invoke(data, new java.math.BigDecimal("-1234.50"));
+        dto.getMethod("setAcctCreditLimit", java.math.BigDecimal.class).invoke(data, new java.math.BigDecimal("5000.00"));
+        dto.getMethod("setCustId", Integer.class).invoke(data, 7);
+        dto.getMethod("setCustFirstName", String.class).invoke(data, "Grace");
+        dto.getMethod("setCustLastName", String.class).invoke(data, "Hopper");
+        String xref = (String) dto.getMethod("getCardXrefRecord").invoke(data);
+        String account = (String) dto.getMethod("getAccountRecord").invoke(data);
+        String customer = (String) dto.getMethod("getCustomerRecord").invoke(data);
+
+        // CXACAIX is an alternate index path: keyed by XREF-ACCT-ID at offset 25, not by the card number.
+        Object xrefs = classes.loadClass(PACKAGE + ".CoactvwcCxacaixInMemoryAdapter")
+                .getConstructor(List.class, int.class, int.class).newInstance(List.of(xref), 25, 11);
+        Object accounts = classes.loadClass(PACKAGE + ".CoactvwcAcctdatInMemoryAdapter")
+                .getConstructor(List.class).newInstance(List.of(account));
+        Object customers = classes.loadClass(PACKAGE + ".CoactvwcCustdatInMemoryAdapter")
+                .getConstructor(List.class).newInstance(List.of(customer));
+        Object service = wire(classes, "CoactvwcServiceImpl", Map.of(
+                PACKAGE + ".CoactvwcCxacaixPort", xrefs, PACKAGE + ".CoactvwcAcctdatPort", accounts,
+                PACKAGE + ".CoactvwcCustdatPort", customers));
+        Class<?> requestType = classes.loadClass(PACKAGE + ".CoactvwcDTO$ScreenRequest");
+        Object controller = classes.loadClass(PACKAGE + ".CoactvwcCicsController")
+                .getConstructor(classes.loadClass(PACKAGE + ".CoactvwcService")).newInstance(service);
+        var handle = controller.getClass().getMethod("handle", requestType);
+        var newRequest = requestType.getConstructor(String.class, String.class, Map.class);
+
+        String fromMenu = (String) dto.getMethod("getCarddemoCommarea").invoke(dto.getConstructor().newInstance());
+        Object prompt = handle.invoke(controller, newRequest.newInstance("ENTER", fromMenu, Map.of()));
+        assertThat(get(prompt, "map")).isEqualTo("CACTVWA");
+        assertThat((String) get(prompt, "screen")).contains("Enter or update id of account to display");
+
+        Object screen = dto.getConstructor().newInstance();
+        dto.getMethod("setAcctsidi", Long.class).invoke(screen, 42L);
+        String typed = (String) dto.getMethod("getCactvwai").invoke(screen);
+        Object shown = handle.invoke(controller, newRequest.newInstance("ENTER", (String) get(prompt, "commarea"),
+                Map.of("CACTVWA", typed)));
+        assertThat((String) get(shown, "screen"))
+                .contains("Grace", "Hopper")
+                .contains("-      1,234.50")      // ACURBALO PIC +ZZZ,ZZZ,ZZZ.99
+                .contains("+      5,000.00");     // ACRDLIMO
+
+        Object missing = dto.getConstructor().newInstance();
+        dto.getMethod("setAcctsidi", Long.class).invoke(missing, 99L);
+        Object notFound = handle.invoke(controller, newRequest.newInstance("ENTER", (String) get(prompt, "commarea"),
+                Map.of("CACTVWA", (String) dto.getMethod("getCactvwai").invoke(missing))));
+        assertThat((String) get(notFound, "screen")).contains("Account:00000000099 not found in Cross ref file");
+    }
+
     /** A CardDemo online program generated from the real sources, wired to an in-memory USRSEC. */
     private record Online(Class<?> dto, Object controller, java.lang.reflect.Method handle,
                           java.lang.reflect.Constructor<?> request, Object users) {

@@ -204,9 +204,13 @@ public final class CobolIntermediateModel {
         String name = itemName.trim().toUpperCase();
         Optional<CobolRecordLayout> group = findComposableLayout(name);
         if (group.isPresent()) return group.orElseThrow().length();
-        return recordLayouts.values().stream().flatMap(layout -> layout.fields().stream())
+        int inLayout = recordLayouts.values().stream().flatMap(layout -> layout.fields().stream())
                 .filter(field -> name.equals(field.name())).mapToInt(CobolRecordLayout.Field::length)
                 .findFirst().orElse(0);
+        // A REDEFINES item is in no layout; its own picture still gives its length.
+        return inLayout > 0 ? inLayout : dataItems.stream()
+                .filter(item -> name.equalsIgnoreCase(item.name()) && item.picType() != null)
+                .mapToInt(item -> CobolRecordLayout.storageLength(item.picType())).findFirst().orElse(0);
     }
 
     /** True when the program issues EXEC CICS commands (an online, screen-driven program). */

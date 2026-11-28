@@ -167,15 +167,41 @@ public final class FilePortGenerator {
                 .addField(FieldSpec.builder(String.class, "lastRead", Modifier.PRIVATE).build())
                 .addField(FieldSpec.builder(long.class, "sequence", Modifier.PRIVATE).build());
 
-        type.addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).build());
-        type.addMethod(MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addJavadoc("Starts with the given records already in the file.\n")
-                .addParameter(list, "initialRecords")
-                .beginControlFlow("for (String record : initialRecords)")
-                .addStatement("records.put(keyOf(record), record)")
-                .endControlFlow()
-                .build());
+        boolean keyAtConstruction = dataset != null && keyed;
+        if (keyAtConstruction) {
+            // shortcut: the key position is inferred from RIDFLD in the program; an alternate index path keys elsewhere,
+            // so it can be given here (read it from the IDCAMS DEFINE KEYS when the JCL is part of the intake).
+            type.addField(int.class, "keyOffset", Modifier.PRIVATE, Modifier.FINAL);
+            type.addField(int.class, "keyLength", Modifier.PRIVATE, Modifier.FINAL);
+            type.addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC)
+                    .addStatement("this($T.of())", List.class).build());
+            type.addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC)
+                    .addJavadoc("Starts with the given records already in the file.\n")
+                    .addParameter(list, "initialRecords")
+                    .addStatement("this(initialRecords, $L, $L)", key[0], key[1]).build());
+            type.addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC)
+                    .addJavadoc("Starts with the given records, keyed by the characters at "
+                            + "{@code keyOffset} (an alternate index path keys on another field).\n")
+                    .addParameter(list, "initialRecords")
+                    .addParameter(int.class, "keyOffset")
+                    .addParameter(int.class, "keyLength")
+                    .addStatement("this.keyOffset = keyOffset")
+                    .addStatement("this.keyLength = keyLength")
+                    .beginControlFlow("for (String record : initialRecords)")
+                    .addStatement("records.put(keyOf(record), record)")
+                    .endControlFlow()
+                    .build());
+        } else {
+            type.addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PUBLIC).build());
+            type.addMethod(MethodSpec.constructorBuilder()
+                    .addModifiers(Modifier.PUBLIC)
+                    .addJavadoc("Starts with the given records already in the file.\n")
+                    .addParameter(list, "initialRecords")
+                    .beginControlFlow("for (String record : initialRecords)")
+                    .addStatement("records.put(keyOf(record), record)")
+                    .endControlFlow()
+                    .build());
+        }
         type.addMethod(MethodSpec.methodBuilder("records")
                 .addModifiers(Modifier.PUBLIC)
                 .returns(list)
@@ -186,7 +212,11 @@ public final class FilePortGenerator {
                 .addModifiers(Modifier.PRIVATE)
                 .returns(String.class)
                 .addParameter(String.class, "record");
-        if (keyed) {
+        if (keyAtConstruction) {
+            keyOf.addStatement("String padded = record.length() >= keyOffset + keyLength ? record "
+                    + ": record + $S.repeat(keyOffset + keyLength - record.length())", " ");
+            keyOf.addStatement("return padded.substring(keyOffset, keyOffset + keyLength)");
+        } else if (keyed) {
             keyOf.addStatement("String padded = record.length() >= $L ? record : record + $S.repeat($L - record.length())",
                     key[0] + key[1], " ", key[0] + key[1]);
             keyOf.addStatement("return padded.substring($L, $L)", key[0], key[0] + key[1]);

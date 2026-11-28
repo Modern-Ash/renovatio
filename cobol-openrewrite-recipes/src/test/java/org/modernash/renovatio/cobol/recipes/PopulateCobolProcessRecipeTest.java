@@ -548,7 +548,8 @@ class PopulateCobolProcessRecipeTest {
 
         assertThat(updated).contains("output.setWsUnits(output.getWsAmount().intValue());");
         assertThat(updated).contains("output.setWsAmount(java.math.BigDecimal.valueOf(output.getWsUnits()));");
-        assertThat(updated).contains("output.setWsText(String.valueOf(output.getWsUnits()));");
+        // Numeric to alphanumeric moves the DISPLAY digits, zero-padded as COBOL stores them.
+        assertThat(updated).contains("output.setWsText(String.format(\"%05d\", output.getWsUnits()));");
         assertThat(updated).contains("output.setWsUnits(Integer.valueOf(output.getWsText().trim()));");
         assertThat(updated).contains("output.setWsAmount(new java.math.BigDecimal(\"-1025.50\"));");
         assertThat(updated).contains("output.setWsUnits(12);");

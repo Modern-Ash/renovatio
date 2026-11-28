@@ -472,6 +472,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
          */
         private String displayOperand(String token) {
             String expression = toJavaExpression(token);
+            if (token.matches("(?s)[A-Za-z][A-Za-z0-9-]*\\s*\\([^():]*:[^()]*\\)")) {
+                return expression; // a reference modification is already characters
+            }
             Optional<CobolDataItem> item = currentModel == null || isQuoted(token) ? Optional.empty()
                     : findDataItem(currentModel, stripSubscripts(unqualifiedOrSelf(token)));
             if (item.isEmpty() || item.get().picType() == null || expression.contains(UNRESOLVED_MARKER)) {
@@ -576,6 +579,13 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 // MOVE to a numeric-edited item: COBOL numeric editing into the item's picture.
                 return currentOutputVar + ".editNumeric(" + convert(expression, sourceNumericType, "BigDecimal") + ", \""
                         + org.modernash.renovatio.cobol.ir.context.CobolTypeMapper.expandPicture(target.picture()) + "\")";
+            }
+            if ("String".equals(targetType) && !isQuoted(source)) {
+                // Numeric to alphanumeric moves the item's DISPLAY digits (PIC 9(11) 42 -> "00000000042").
+                String display = displayOperand(source);
+                if (display.startsWith("String.format")) {
+                    return display;
+                }
             }
             // A literal, or a reference modification (always alphanumeric in COBOL), sends characters.
             String sourceType = source.startsWith("'") || source.startsWith("\"")
@@ -2670,8 +2680,13 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         private String figurativeTest(String expr, @Nullable String type, String op, String figurative) {
             if (!FIGURATIVE_ZERO.contains(figurative) && type != null && !"String".equals(type)) {
-                // A numeric Java value cannot hold spaces or low/high-values (invalid COBOL data).
-                return UNRESOLVED_MARKER + figurative;
+                if (figurative.startsWith("HIGH")) {
+                    // A numeric Java value cannot hold high-values (invalid COBOL data).
+                    return UNRESOLVED_MARKER + figurative;
+                }
+                // shortcut: a numeric item read from blank or low-value characters holds zero here (the DTO reads
+                // non-digits as 0), so SPACES / LOW-VALUES test as zero; keep the raw text when blank must differ from 0.
+                figurative = "ZERO";
             }
             String test;
             if (FIGURATIVE_ZERO.contains(figurative)) {
