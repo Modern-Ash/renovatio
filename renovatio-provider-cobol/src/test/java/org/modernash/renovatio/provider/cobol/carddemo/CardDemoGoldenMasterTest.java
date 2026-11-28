@@ -115,6 +115,11 @@ class CardDemoGoldenMasterTest {
     }
 
     @Test
+    void intrinsicFunctionsMatchCobol() throws Exception {
+        assertStdoutMatchesCobol("intrinsic-functions", "FUNCS", "Funcs");
+    }
+
+    @Test
     void onlineProgramRunsAsAScreenHandlerAcrossAPseudoConversation() throws Exception {
         Path workspace = tempDir.resolve("screen-handler");
         Files.createDirectories(workspace);

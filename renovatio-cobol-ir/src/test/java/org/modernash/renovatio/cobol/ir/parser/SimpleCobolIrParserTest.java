@@ -407,4 +407,24 @@ class SimpleCobolIrParserTest {
         assertEquals("String", items.get("USRIDF").getJavaType());
         assertNotNull(items.get("USRIDI"));
     }
+
+    @Test
+    void joinsAComputeExpressionContinuedOnLaterLines() {
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(String.join("\n",
+                "       IDENTIFICATION DIVISION.",
+                "       PROGRAM-ID. SPLITCP.",
+                "       DATA DIVISION.",
+                "       WORKING-STORAGE SECTION.",
+                "       01  WS-TXT PIC X(10).",
+                "       01  WS-NUM PIC 9(05).",
+                "       PROCEDURE DIVISION.",
+                "       MAIN-PARA.",
+                "           COMPUTE WS-NUM = FUNCTION NUMVAL-C",
+                "                            (WS-TXT)",
+                "           GOBACK."));
+
+        List<?> statements = model.getParagraphs().get("MAIN-PARA").statements();
+        assertEquals(2, statements.size());
+        assertTrue(statements.get(0).toString().contains("(WS-TXT)"), statements.get(0).toString());
+    }
 }

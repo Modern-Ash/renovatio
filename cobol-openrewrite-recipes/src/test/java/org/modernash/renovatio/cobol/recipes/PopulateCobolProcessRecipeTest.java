@@ -614,7 +614,7 @@ class PopulateCobolProcessRecipeTest {
                 01 WS-COUNT PIC 9(2).
                 PROCEDURE DIVISION.
                 MAIN-PARA.
-                    IF FUNCTION LENGTH(WS-COUNT) = 0
+                    IF FUNCTION RANDOM(WS-COUNT) = 0
                         MOVE 1 TO WS-COUNT
                     END-IF
                     GOBACK.

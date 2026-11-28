@@ -1222,6 +1222,16 @@ public class SimpleCobolIrParser {
                 continue;
             }
             if (upperLine.startsWith(Keywords.COMPUTE)) {
+                // The expression may continue over later lines up to the period or the next statement.
+                while (!line.endsWith(Symbols.DOT) && i + 1 < lines.size()) {
+                    String next = lines.get(i + 1).trim();
+                    if (next.isEmpty() || startsStatement(next) || next.toUpperCase(Locale.ROOT).matches(
+                            "(ON\\s+SIZE|NOT\\s+ON|SIZE\\s+ERROR|END-COMPUTE)\\b.*")) {
+                        break;
+                    }
+                    line = line + Symbols.SPACE + next;
+                    i++;
+                }
                 statements.add(parseCompute(line));
                 continue;
             }

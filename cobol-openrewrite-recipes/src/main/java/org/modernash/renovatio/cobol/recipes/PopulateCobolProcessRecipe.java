@@ -546,6 +546,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
          * different Java type. PICTURE-exact truncation and padding are out of scope here.
          */
         private String moveSourceExpression(String source, @Nullable CobolDataItem target) {
+            source = hoistFunctions(source);
             String targetType = target == null ? null : target.javaType();
             String upper = source.toUpperCase(Locale.ROOT);
             if (targetType != null && FIGURATIVE_ZERO.contains(upper)) {
@@ -628,7 +629,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
             String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
             Optional<CobolDataItem> target = currentModel == null ? Optional.empty()
                     : findDataItem(currentModel, stripSubscripts(compute.target()));
-            Arithmetic value = new ArithmeticParser(compute.expression()).parse();
+            Arithmetic value = new ArithmeticParser(hoistFunctions(compute.expression())).parse();
             String converted = target.isEmpty() || value == null ? null : toTargetType(value, target.orElseThrow());
             if (converted == null) {
                 return "// COBOL not translated: COMPUTE " + truncate(compute.target() + " = " + compute.expression());
@@ -1998,6 +1999,132 @@ public class PopulateCobolProcessRecipe extends Recipe {
             return words.contains(name) ? standard : "";
         }
 
+        /** Java code of each hoisted intrinsic function call, keyed by its stand-in data name. */
+        private final Map<String, String> functionCode = new LinkedHashMap<>();
+
+        private static final java.util.regex.Pattern FUNCTION_CALL = java.util.regex.Pattern.compile(
+                "(?i)\\bFUNCTION\\s+([A-Z][A-Z0-9-]*)");
+
+        /**
+         * Replaces each translatable {@code FUNCTION name(args)} in an operand, condition or
+         * expression by a stand-in data name whose Java code and type are registered, so every
+         * translator treats the call like a data item. Untranslatable calls stay as written.
+         */
+        private String hoistFunctions(String text) {
+            if (text == null || !text.toUpperCase(Locale.ROOT).contains("FUNCTION")) return text;
+            String masked = maskLiterals(text);
+            java.util.regex.Matcher call = FUNCTION_CALL.matcher(masked);
+            if (!call.find()) return text;
+            int argsStart = call.end();
+            while (argsStart < text.length() && Character.isWhitespace(text.charAt(argsStart))) argsStart++;
+            String name = call.group(1).toUpperCase(Locale.ROOT);
+            int end = call.end();
+            List<String> args = new ArrayList<>();
+            boolean takesArguments = !name.equals("CURRENT-DATE");
+            if (takesArguments && argsStart < text.length() && text.charAt(argsStart) == '(') {
+                int close = matchingParen(masked, argsStart);
+                if (close < 0) return text;
+                args = functionArguments(hoistFunctions(text.substring(argsStart + 1, close)));
+                end = close + 1;
+            }
+            String code = intrinsic(name, args);
+            String rest = hoistFunctions(text.substring(end));
+            if (code == null) {
+                return text.substring(0, end) + rest;
+            }
+            String standIn = "RENO-FN-" + (functionCode.size() + 1);
+            functionCode.put(standIn, code.substring(code.indexOf(':') + 1));
+            if (!(dataTypes instanceof java.util.HashMap)) dataTypes = new java.util.HashMap<>(dataTypes);
+            dataTypes.put(toPascal(standIn), code.substring(0, code.indexOf(':')));
+            return text.substring(0, call.start()) + standIn + rest;
+        }
+
+        private static String maskLiterals(String text) {
+            java.util.regex.Matcher literal = java.util.regex.Pattern.compile("'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"")
+                    .matcher(text);
+            StringBuilder masked = new StringBuilder(text);
+            while (literal.find()) {
+                for (int k = literal.start(); k < literal.end(); k++) masked.setCharAt(k, '#');
+            }
+            return masked.toString();
+        }
+
+        /** Arguments split at top-level spaces or commas; "A OF B" stays one argument. */
+        private static List<String> functionArguments(String text) {
+            List<String> tokens = new ArrayList<>();
+            String masked = maskLiterals(text);
+            int depth = 0;
+            StringBuilder current = new StringBuilder();
+            for (int k = 0; k < text.length(); k++) {
+                char c = masked.charAt(k);
+                if (c == '(') depth++;
+                if (c == ')') depth--;
+                if (depth == 0 && (Character.isWhitespace(c) || c == ',')) {
+                    if (!current.isEmpty()) tokens.add(current.toString());
+                    current.setLength(0);
+                } else {
+                    current.append(text.charAt(k));
+                }
+            }
+            if (!current.isEmpty()) tokens.add(current.toString());
+            List<String> args = new ArrayList<>();
+            for (int k = 0; k < tokens.size(); k++) {
+                String token = tokens.get(k);
+                if ((token.equalsIgnoreCase("OF") || token.equalsIgnoreCase("IN")) && !args.isEmpty()
+                        && k + 1 < tokens.size()) {
+                    args.set(args.size() - 1, args.get(args.size() - 1) + " " + token + " " + tokens.get(++k));
+                } else {
+                    args.add(token);
+                }
+            }
+            return args;
+        }
+
+        /** "type:java" for an intrinsic function call, null when not translated. */
+        private @Nullable String intrinsic(String name, List<String> args) {
+            String text = args.isEmpty() ? null : textOperand(args.get(0));
+            String number = args.isEmpty() ? null : longExpression(name.equals("MOD") ? args.get(0) : String.join(" ", args));
+            String result = switch (name) {
+                case "TRIM" -> text == null ? null : "String:" + text + (args.size() > 1
+                        ? args.get(1).equalsIgnoreCase("LEADING") ? ".stripLeading()" : ".stripTrailing()"
+                        : ".strip()");
+                case "UPPER-CASE" -> text == null ? null : "String:" + text + ".toUpperCase()";
+                case "LOWER-CASE" -> text == null ? null : "String:" + text + ".toLowerCase()";
+                case "LENGTH" -> text == null ? null : "Integer:" + text + ".length()";
+                case "CURRENT-DATE" -> "String:java.time.ZonedDateTime.now().format("
+                        + "java.time.format.DateTimeFormatter.ofPattern(\"yyyyMMddHHmmssSSxx\"))";
+                case "NUMVAL", "NUMVAL-C" -> text == null ? null : "BigDecimal:(" + text + ".isBlank() "
+                        + "? java.math.BigDecimal.ZERO : new java.math.BigDecimal(" + numvalText(text, name) + "))";
+                case "TEST-NUMVAL", "TEST-NUMVAL-C" -> text == null ? null : "Integer:(" + numvalText(text, name)
+                        + ".matches(\"[+-]?[0-9]*\\\\.?[0-9]+\") ? 0 : 1)";
+                case "INTEGER-OF-DATE" -> number == null ? null : "Integer:(int) (java.time.LocalDate.parse("
+                        + "String.format(\"%08d\", " + number + "), java.time.format.DateTimeFormatter.BASIC_ISO_DATE)"
+                        + ".toEpochDay() - java.time.LocalDate.of(1600, 12, 31).toEpochDay())";
+                case "DATE-OF-INTEGER" -> number == null ? null : "Long:Long.parseLong(java.time.LocalDate.of(1600, 12, 31)"
+                        + ".plusDays(" + number + ").format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE))";
+                case "MOD" -> args.size() != 2 ? null : "Long:Math.floorMod(" + number + ", " + longExpression(args.get(1)) + ")";
+                default -> null;
+            };
+            return result == null || result.contains(UNRESOLVED_MARKER) ? null : result;
+        }
+
+        /** An integer argument (an arithmetic expression) as a Java long, or null when not translatable. */
+        private @Nullable String longExpression(String expression) {
+            Arithmetic value = new ArithmeticParser(expression).parse();
+            if (value == null) return null;
+            return value.decimal() ? value.code() + ".longValue()" : "(long) (" + value.code() + ")";
+        }
+
+        /**
+         * NUMVAL argument in Java BigDecimal syntax: spaces dropped, a trailing sign, CR or DB made a
+         * leading minus; NUMVAL-C also drops the currency sign and thousands separators.
+         */
+        private static String numvalText(String text, String function) {
+            String cleaned = text + ".replace(\" \", \"\")" + (function.endsWith("-C")
+                    ? ".replace(\"$\", \"\").replace(\",\", \"\")" : "");
+            return cleaned + ".replaceAll(\"^\\\\+\", \"\").replaceAll(\"^(.*)(-|CR|DB)$\", \"-$1\")";
+        }
+
         /** An operand of STRING / UNSTRING as its DISPLAY characters: literal, figurative or data item. */
         private String textOperand(String operand) {
             String upper = operand.toUpperCase(Locale.ROOT);
@@ -2324,7 +2451,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         private String translateCondition(String condition, Map<String, String> aliases) {
             if (condition == null) return "false";
-            String raw = condition.replaceAll("(?i)(^|\\s)THEN(\\s|$)", " ").replace('\n', ' ').trim();
+            String raw = hoistFunctions(condition).replaceAll("(?i)(^|\\s)THEN(\\s|$)", " ").replace('\n', ' ').trim();
             ConditionContext context = new ConditionContext(aliases);
             String translated = translateDisjunction(raw, context);
             if (translated != null) {
@@ -2769,6 +2896,10 @@ public class PopulateCobolProcessRecipe extends Recipe {
          * subscripts on tables this generation does not model stay unresolved.
          */
         private String getterCall(String qualifiedReference) {
+            String intrinsic = functionCode.get(qualifiedReference.trim().toUpperCase(Locale.ROOT));
+            if (intrinsic != null) {
+                return intrinsic;
+            }
             if (cicsProgram) {
                 String register = cicsRegister(qualifiedReference.trim());
                 if (register != null) {

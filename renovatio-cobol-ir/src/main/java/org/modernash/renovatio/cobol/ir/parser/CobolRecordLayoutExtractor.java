@@ -137,9 +137,23 @@ final class CobolRecordLayoutExtractor {
                 continue;
             }
             entries.add(new Entry(Integer.parseInt(head.group(1)), head.group(2).toUpperCase(Locale.ROOT),
-                    text.substring(head.end()).replaceAll("\\s+", " ").trim()));
+                    collapseOutsideLiterals(text.substring(head.end())).trim()));
         }
         return entries;
+    }
+
+    private static final Pattern LITERAL = Pattern.compile("'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"");
+
+    /** Collapses runs of white space to one space, except inside literals: VALUE '  A' keeps its spaces. */
+    private static String collapseOutsideLiterals(String text) {
+        Matcher literal = LITERAL.matcher(text);
+        StringBuilder collapsed = new StringBuilder();
+        int last = 0;
+        while (literal.find()) {
+            collapsed.append(text.substring(last, literal.start()).replaceAll("\\s+", " ")).append(literal.group());
+            last = literal.end();
+        }
+        return collapsed.append(text.substring(last).replaceAll("\\s+", " ")).toString();
     }
 
     /** Entries nested under {@code entries[index]}: those after it until a level not deeper than it. */
