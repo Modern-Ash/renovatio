@@ -72,7 +72,8 @@ class CobolRecordLayoutExtractorTest {
         assertTrue(model.getRecordLayouts().get("WS-FLOAT").nonComposableReason().orElseThrow()
                 .contains("COMP-2"));
         assertTrue(model.findComposableLayout("WS-TABLE").isEmpty());
-        assertTrue(model.findComposableLayout("WS-EDITED").isEmpty());
+        // A numeric-edited item holds its edited characters: ZZ9.99 is 6 characters of text.
+        assertEquals(6, model.findComposableLayout("WS-EDITED").orElseThrow().length());
         assertTrue(model.findComposableLayout("WS-FIRST").isEmpty());
     }
 

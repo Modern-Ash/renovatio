@@ -985,6 +985,10 @@ public class JavaGenerationService {
         org.modernash.renovatio.provider.cobol.service.generation.RecordAccessorGenerator
                 .addTo(classBuilder, model, declared, this::toCamelCase);
         classBuilder.addMethod(initialValuesConstructor(model, declared));
+        if (model != null && model.getDataItems().stream().anyMatch(item ->
+                org.modernash.renovatio.cobol.ir.context.CobolTypeMapper.isNumericEdited(item.getPicture()))) {
+            org.modernash.renovatio.provider.cobol.service.generation.NumericEditGenerator.addEditMethod(classBuilder);
+        }
         if (model != null && model.endsFromPerformedParagraphs()) {
             org.modernash.renovatio.provider.cobol.service.generation.ScreenTypesGenerator.addProgramExit(classBuilder);
         }

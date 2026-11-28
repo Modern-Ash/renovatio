@@ -570,6 +570,13 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (targetType == null || expression.contains(UNRESOLVED_MARKER)) {
                 return expression;
             }
+            String sourceNumericType = isQuoted(source) ? null : dataTypes.get(toPascal(stripSubscripts(source)));
+            if (target != null && org.modernash.renovatio.cobol.ir.context.CobolTypeMapper.isNumericEdited(target.picture())
+                    && sourceNumericType != null && !"String".equals(sourceNumericType)) {
+                // MOVE to a numeric-edited item: COBOL numeric editing into the item's picture.
+                return currentOutputVar + ".editNumeric(" + convert(expression, sourceNumericType, "BigDecimal") + ", \""
+                        + org.modernash.renovatio.cobol.ir.context.CobolTypeMapper.expandPicture(target.picture()) + "\")";
+            }
             // A literal, or a reference modification (always alphanumeric in COBOL), sends characters.
             String sourceType = source.startsWith("'") || source.startsWith("\"")
                     || source.matches("(?s)[A-Za-z][A-Za-z0-9-]*\\s*\\([^():]*:[^()]*\\)")

@@ -36,7 +36,8 @@ public class SimpleCobolIrParser {
                     + "(?:\\s+(?:USAGE\\s+(?:IS\\s+)?)?(COMP(?:UTATIONAL)?(?:-\\d+)?|BINARY|PACKED-DECIMAL))?"
                     + "\\s+PIC(?:TURE)?\\s+"
                     + "(?:([A-Z0-9()V+\\-]+\\s+(?:COMP(?:-?\\d+)?|BINARY|PACKED-DECIMAL))"
-                    + "(?:\\s+VALUES?\\b[^.]*)?|([^.]+))\\.");
+                    // A period ends the entry only before white space: PIC +ZZ9.99 keeps its decimal point.
+                    + "(?:\\s+VALUES?\\b[^.]*)?|((?:[^.]|\\.(?=\\S))+))\\.(?=\\s|$)");
     private static final Pattern LEVEL_88_PATTERN = Pattern.compile(
             "(?m)^\\s*88\\s+([A-Z0-9-]+)\\s+VALUES?(?:\\s+(?:IS|ARE))?\\s+(.+)\\.",
             Pattern.CASE_INSENSITIVE);

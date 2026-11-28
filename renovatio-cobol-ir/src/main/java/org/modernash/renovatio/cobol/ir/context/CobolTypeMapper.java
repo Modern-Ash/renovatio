@@ -17,6 +17,11 @@ public final class CobolTypeMapper {
         if (pic == null || pic.isBlank()) {
             return null;
         }
+        if (isNumericEdited(pic)) {
+            // A numeric-edited item holds its edited characters: stored and read as text.
+            return new PicType(PicType.Category.ALPHANUMERIC, expandPicture(pic).replace("V", "").length(), 0, false,
+                    PicType.Usage.DISPLAY);
+        }
         try {
             PicType type = PicClause.parse(pic);
             if (type.category() == PicType.Category.NUMERIC && type.digits() == 0) {
@@ -26,6 +31,31 @@ public final class CobolTypeMapper {
         } catch (RuntimeException ex) {
             return null;
         }
+    }
+
+    /**
+     * True for a numeric-edited picture ({@code +ZZZ,ZZ9.99}, {@code Z(5)9-}, {@code $$$,$$9.99CR}):
+     * digit positions with suppression, insertion or sign symbols, and no alphanumeric symbols.
+     */
+    public static boolean isNumericEdited(String pic) {
+        if (pic == null) return false;
+        String upper = pic.trim().toUpperCase(java.util.Locale.ROOT);
+        if (upper.contains(" ") || upper.matches(".*[XA].*") || upper.matches(".*\\(\\d{4,}\\).*")) return false;
+        String expanded = expandPicture(upper);
+        return !expanded.contains("S") && expanded.matches("[9ZV*,.+\\-$B0/]*(CR|DB)?") && expanded.matches(".*[Z*,.+\\-$B/].*|.*(CR|DB)")
+                && expanded.matches(".*[9Z*$+\\-].*");
+    }
+
+    /** The picture with repetition counts written out: {@code Z(3)9} becomes {@code ZZZ9}. */
+    public static String expandPicture(String pic) {
+        java.util.regex.Matcher repeat = java.util.regex.Pattern.compile("(.)\\((\\d+)\\)")
+                .matcher(pic.trim().toUpperCase(java.util.Locale.ROOT));
+        StringBuilder expanded = new StringBuilder();
+        while (repeat.find()) {
+            repeat.appendReplacement(expanded, repeat.group(1).repeat(Integer.parseInt(repeat.group(2))));
+        }
+        repeat.appendTail(expanded);
+        return expanded.toString();
     }
 
     /**

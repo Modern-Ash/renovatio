@@ -120,6 +120,11 @@ class CardDemoGoldenMasterTest {
     }
 
     @Test
+    void numericEditingMatchesCobol() throws Exception {
+        assertStdoutMatchesCobol("numeric-edited", "EDITS", "Edits");
+    }
+
+    @Test
     void onlineProgramRunsAsAScreenHandlerAcrossAPseudoConversation() throws Exception {
         Path workspace = tempDir.resolve("screen-handler");
         Files.createDirectories(workspace);

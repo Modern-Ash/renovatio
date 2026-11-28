@@ -1,5 +1,7 @@
 package org.modernash.renovatio.cobol.ir.parser;
 
+import org.modernash.renovatio.cobol.ir.context.CobolTypeMapper;
+
 import org.modernash.renovatio.cobol.ir.model.CobolRecordLayout;
 import org.modernash.renovatio.cobol.ir.model.CobolRedefinesView;
 import org.modernash.renovatio.cobol.runtime.PicClause;
@@ -276,15 +278,20 @@ final class CobolRecordLayoutExtractor {
             return usageToken != null ? entry.name() + " has group-level USAGE" : null;
         }
         String pic = picture.group(1).toUpperCase(Locale.ROOT);
-        if (EDITED_OR_SCALED.matcher(pic.replaceAll("\\(\\d+\\)", "")).find()
-                || SEPARATE_SIGN.matcher(text).find()) {
-            return entry.name() + " has an edited, scaled or separate-sign picture";
-        }
         PicType type;
-        try {
-            type = PicClause.parse(usageToken == null ? pic : pic + " " + usageToken);
-        } catch (RuntimeException ex) {
-            return entry.name() + " has an unreadable picture";
+        if (usageToken == null && CobolTypeMapper.isNumericEdited(pic)) {
+            // A numeric-edited item stores its edited characters.
+            type = CobolTypeMapper.picType(pic);
+        } else {
+            if (EDITED_OR_SCALED.matcher(pic.replaceAll("\\(\\d+\\)", "")).find()
+                    || SEPARATE_SIGN.matcher(text).find()) {
+                return entry.name() + " has an edited, scaled or separate-sign picture";
+            }
+            try {
+                type = PicClause.parse(usageToken == null ? pic : pic + " " + usageToken);
+            } catch (RuntimeException ex) {
+                return entry.name() + " has an unreadable picture";
+            }
         }
         if (type.digits() <= 0) {
             return entry.name() + " has an empty picture";
