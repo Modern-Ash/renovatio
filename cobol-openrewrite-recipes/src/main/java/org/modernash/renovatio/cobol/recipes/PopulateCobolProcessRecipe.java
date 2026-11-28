@@ -782,6 +782,18 @@ public class PopulateCobolProcessRecipe extends Recipe {
             List<String> lines = new ArrayList<>();
             for (String target : initialize.targets()) {
                 Optional<CobolDataItem> item = findDataItem(model, target);
+                Optional<CobolRecordLayout> group = model.findComposableLayout(target);
+                if (group.isPresent() && (item.isEmpty() || item.orElseThrow().picture() == null)) {
+                    // A group: every elementary field to spaces or zeros; FILLER keeps its content.
+                    for (CobolRecordLayout.Field field : group.orElseThrow().fields()) {
+                        Optional<String> value = field.filler() ? Optional.empty()
+                                : findDataItem(model, field.name()).flatMap(CobolDataVerbValueResolver::initialValue);
+                        if (value.isPresent() && !tableSizes.containsKey(toPascal(field.name()))) {
+                            lines.add(setterCall(targetVar, field.name(), value.orElseThrow()) + ";");
+                        }
+                    }
+                    continue;
+                }
                 if (item.isEmpty()) {
                     lines.add("// COBOL not translated: INITIALIZE " + truncate(target)
                             + " (not an elementary data item)");
@@ -1780,6 +1792,17 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (upper.equals("DFHCOMMAREA") || upper.equals("DFHCOMMAREA(1:EIBCALEN)")) {
                 return "input.getScreenRequest().commarea()";
             }
+            java.util.regex.Matcher slice = java.util.regex.Pattern
+                    .compile("(?i)DFHCOMMAREA\\s*\\(\\s*(.+?)\\s*:\\s*(.+?)\\s*\\)").matcher(lengthOf(reference));
+            if (slice.matches()) {
+                // A slice of the COMMAREA received; a shorter COMMAREA reads as spaces past its end.
+                String from = intExpression(slice.group(1));
+                String length = intExpression(slice.group(2));
+                if (from == null || length == null) return UNRESOLVED_MARKER + "DFHCOMMAREA";
+                String end = "(" + from + ") - 1 + (" + length + ")";
+                return "String.format(\"%-\" + (" + end + ") + \"s\", input.getScreenRequest().commarea())"
+                        + ".substring((" + from + ") - 1, " + end + ")";
+            }
             java.util.regex.Matcher resp = java.util.regex.Pattern.compile("DFHRESP\\(([A-Z]+)\\)").matcher(upper);
             if (resp.matches()) {
                 Integer code = CICS_RESP.get(resp.group(1));
@@ -2008,6 +2031,26 @@ public class PopulateCobolProcessRecipe extends Recipe {
             return words.contains(name) ? standard : "";
         }
 
+        private static final java.util.regex.Pattern LENGTH_OF = java.util.regex.Pattern.compile(
+                "(?i)\\bLENGTH\\s+OF\\s+([A-Z0-9][A-Z0-9-]*)");
+
+        /** Replaces {@code LENGTH OF item} by the item's length in characters, when known. */
+        private @Nullable String lengthOf(@Nullable String text) {
+            if (text == null || currentModel == null) return text;
+            java.util.regex.Matcher matcher = LENGTH_OF.matcher(text);
+            StringBuilder result = new StringBuilder();
+            while (matcher.find()) {
+                String name = matcher.group(1).toUpperCase(Locale.ROOT);
+                int length = currentModel.findComposableLayout(name).map(CobolRecordLayout::length)
+                        .orElseGet(() -> findDataItem(currentModel, name).map(CobolDataItem::picType)
+                                .map(CobolRecordLayout::storageLength).orElse(0));
+                matcher.appendReplacement(result, length > 0 ? String.valueOf(length)
+                        : java.util.regex.Matcher.quoteReplacement(matcher.group()));
+            }
+            matcher.appendTail(result);
+            return result.toString();
+        }
+
         /** Java code of each hoisted intrinsic function call, keyed by its stand-in data name. */
         private final Map<String, String> functionCode = new LinkedHashMap<>();
 
@@ -2020,6 +2063,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
          * translator treats the call like a data item. Untranslatable calls stay as written.
          */
         private String hoistFunctions(String text) {
+            text = lengthOf(text);
             if (text == null || !text.toUpperCase(Locale.ROOT).contains("FUNCTION")) return text;
             String masked = maskLiterals(text);
             java.util.regex.Matcher call = FUNCTION_CALL.matcher(masked);
@@ -2875,6 +2919,8 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         /** {@code target.setX(value)}, or {@code target.setX(subscript, value)} for an OCCURS item. */
         private String setterCall(String targetVar, String qualifiedName, String value) {
+            // LENGTH OF first: its OF is not a qualifier.
+            qualifiedName = lengthOf(qualifiedName);
             String cobolName = unqualify(qualifiedName);
             if (cobolName == null) {
                 return targetVar + "." + UNRESOLVED_MARKER + qualifiedName.trim().split("\\s", 2)[0] + "(" + value + ")";
@@ -2905,6 +2951,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
          * subscripts on tables this generation does not model stay unresolved.
          */
         private String getterCall(String qualifiedReference) {
+            qualifiedReference = lengthOf(qualifiedReference);
             String intrinsic = functionCode.get(qualifiedReference.trim().toUpperCase(Locale.ROOT));
             if (intrinsic != null) {
                 return intrinsic;
@@ -2997,6 +3044,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
 
         /** Reference modification {@code NAME(start:length)} of an alphanumeric item: [from, to) bounds. */
         private @Nullable String[] referenceModification(String reference) {
+            reference = lengthOf(reference).replaceFirst("^([A-Za-z][A-Za-z0-9-]*)\\s+\\(", "$1(");
             java.util.regex.Matcher matcher = java.util.regex.Pattern
                     .compile("^([A-Za-z][A-Za-z0-9-]*)\\(\\s*([^:()]+?)\\s*:\\s*([^:()]*?)\\s*\\)$")
                     .matcher(reference.trim());
@@ -3030,7 +3078,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 return inner;
             }
             if (!inner.matches("[A-Za-z][A-Za-z0-9-]*")) {
-                return null;
+                // An integer expression: 2501 + 1, WS-IDX - 1.
+                Arithmetic value = inner.matches(".*[+*/-].*") ? new ArithmeticParser(inner).parse() : null;
+                return value == null || value.decimal() ? null : "(int) (" + value.code() + ")";
             }
             String alias = variableAliases.get(inner.toUpperCase(Locale.ROOT));
             if (alias != null) {

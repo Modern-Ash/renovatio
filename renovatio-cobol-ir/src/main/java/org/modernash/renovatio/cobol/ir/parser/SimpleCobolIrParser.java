@@ -484,9 +484,11 @@ public class SimpleCobolIrParser {
                     line = body.substring(0, FIXED_FORMAT_TEXT_END)
                             + " ".repeat(body.length() - FIXED_FORMAT_TEXT_END) + trailingCr;
                 }
-                // Columns 1-6 are the sequence number area ("034500 0000-MAIN.").
-                if (fixedFormat && !isComment && line.length() >= 6
-                        && line.substring(0, 6).chars().allMatch(c -> c == ' ' || Character.isDigit(c))) {
+                // Columns 1-6 are the sequence number area ("034500 0000-MAIN."); six digits there are
+                // one even in a short-line copybook, since fixed-format code starts in column 8.
+                if (!isComment && line.length() >= 6 && (fixedFormat
+                        && line.substring(0, 6).chars().allMatch(c -> c == ' ' || Character.isDigit(c))
+                        || line.substring(0, 6).chars().allMatch(Character::isDigit))) {
                     line = "      " + line.substring(6);
                 }
                 result.append(isComment ? " ".repeat(line.length()) : line);
@@ -1267,6 +1269,10 @@ public class SimpleCobolIrParser {
                     line = line + Symbols.SPACE + next;
                     i++;
                 }
+                // A reference modification left open continues on the next lines.
+                while (openParentheses(line) > 0 && !line.endsWith(Symbols.DOT) && i + 1 < lines.size()) {
+                    line = line + Symbols.SPACE + lines.get(++i).trim();
+                }
                 // "MOVE X TO A" / "B OF C": further receiving items on the following lines.
                 while (hasWordOutsideLiterals(line, "TO") && !line.endsWith(Symbols.DOT) && i + 1 < lines.size()
                         && DATA_REFERENCE_LINE.matcher(lines.get(i + 1).trim()).matches()
@@ -1277,6 +1283,12 @@ public class SimpleCobolIrParser {
                 continue;
             }
             if (upperLine.startsWith(Keywords.INITIALIZE)) {
+                // "INITIALIZE A" / "B": further items on the following lines.
+                while (!line.endsWith(Symbols.DOT) && i + 1 < lines.size()
+                        && DATA_REFERENCE_LINE.matcher(lines.get(i + 1).trim()).matches()
+                        && !startsStatement(lines.get(i + 1).trim())) {
+                    line = line + Symbols.SPACE + lines.get(++i).trim();
+                }
                 statements.add(parseInitialize(line));
                 continue;
             }
@@ -1812,6 +1824,12 @@ public class SimpleCobolIrParser {
             for (int k = literal.start(); k < literal.end(); k++) masked.setCharAt(k, '#');
         }
         return masked.toString();
+    }
+
+    /** Opening minus closing parentheses outside literals. */
+    private static int openParentheses(String text) {
+        String masked = maskLiterals(text);
+        return (int) (masked.chars().filter(c -> c == '(').count() - masked.chars().filter(c -> c == ')').count());
     }
 
     /** True when {@code word} occurs as a separate word outside quoted literals. */
