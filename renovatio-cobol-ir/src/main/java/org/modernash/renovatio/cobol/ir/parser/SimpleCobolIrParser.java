@@ -1246,8 +1246,9 @@ public class SimpleCobolIrParser {
                 continue;
             }
             if (upperLine.startsWith(Keywords.MOVE)) {
-                // "MOVE 'long literal'" / "TO TARGET": the receiving part continues on later lines.
-                while (!hasWordOutsideLiterals(line, "TO") && !line.endsWith(Symbols.DOT) && i + 1 < lines.size()) {
+                // "MOVE 'long literal'" / "TO TARGET" or "MOVE X TO" / "TARGET": the receiving part continues.
+                while ((!hasWordOutsideLiterals(line, "TO") || line.toUpperCase(Locale.ROOT).endsWith(" TO"))
+                        && !line.endsWith(Symbols.DOT) && i + 1 < lines.size()) {
                     String next = lines.get(i + 1).trim();
                     if (next.isEmpty() || (startsStatement(next) && !next.toUpperCase(Locale.ROOT).startsWith("TO "))) {
                         break;
@@ -1786,6 +1787,16 @@ public class SimpleCobolIrParser {
         return new CallStatement(target, args);
     }
 
+    /** The text with every quoted literal's characters replaced by '#', so offsets are kept. */
+    private static String maskLiterals(String text) {
+        Matcher literal = Pattern.compile("'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"").matcher(text);
+        StringBuilder masked = new StringBuilder(text);
+        while (literal.find()) {
+            for (int k = literal.start(); k < literal.end(); k++) masked.setCharAt(k, '#');
+        }
+        return masked.toString();
+    }
+
     /** True when {@code word} occurs as a separate word outside quoted literals. */
     private static boolean hasWordOutsideLiterals(String text, String word) {
         String unquoted = text.replaceAll("'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", " ").toUpperCase(Locale.ROOT);
@@ -2201,11 +2212,12 @@ public class SimpleCobolIrParser {
         // Only the sentence-ending period: a decimal point belongs to a numeric literal.
         String trimmed = stripTrailingPeriod(line);
         String remainder = trimmed.substring(Keywords.MOVE.length()).trim();
-        String[] parts = remainder.split(Regexes.TO, 2);
-        if (parts.length != 2) {
+        // Split at the first TO outside a literal: 'Select a report to print' is one operand.
+        Matcher to = Pattern.compile(Regexes.TO).matcher(maskLiterals(remainder));
+        if (!to.find()) {
             return new MoveStatement(remainder, remainder);
         }
-        return new MoveStatement(parts[0].trim(), parts[1].trim());
+        return new MoveStatement(remainder.substring(0, to.start()).trim(), remainder.substring(to.end()).trim());
     }
 
     private CobolStatement parseInitialize(String line) {

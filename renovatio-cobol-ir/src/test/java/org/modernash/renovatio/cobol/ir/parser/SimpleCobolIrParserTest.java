@@ -376,12 +376,14 @@ class SimpleCobolIrParserTest {
                 "       MAIN-PARA.",
                 "           MOVE 'ACCOUNT RECORD NOT FOUND'",
                 "             TO WS-DESC",
+                "           MOVE 'Select a report to print' TO",
+                "                WS-DESC",
                 "           GOBACK."));
 
         List<?> statements = model.getParagraphs().get("MAIN-PARA").statements();
-        MoveStatement move = (MoveStatement) statements.get(0);
-        assertEquals("WS-DESC", move.target());
-        assertEquals(2, statements.size());
+        assertEquals("WS-DESC", ((MoveStatement) statements.get(0)).target());
+        assertEquals("WS-DESC", ((MoveStatement) statements.get(1)).target());
+        assertEquals(3, statements.size());
     }
 
     @Test
