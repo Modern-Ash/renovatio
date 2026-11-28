@@ -1240,6 +1240,15 @@ public class SimpleCobolIrParser {
                 continue;
             }
             if (upperLine.startsWith(Keywords.MOVE)) {
+                // "MOVE 'long literal'" / "TO TARGET": the receiving part continues on later lines.
+                while (!hasWordOutsideLiterals(line, "TO") && !line.endsWith(Symbols.DOT) && i + 1 < lines.size()) {
+                    String next = lines.get(i + 1).trim();
+                    if (next.isEmpty() || (startsStatement(next) && !next.toUpperCase(Locale.ROOT).startsWith("TO "))) {
+                        break;
+                    }
+                    line = line + Symbols.SPACE + next;
+                    i++;
+                }
                 statements.add(parseMove(line));
                 continue;
             }
@@ -1769,6 +1778,12 @@ public class SimpleCobolIrParser {
             args.addAll(Arrays.stream(parts[1].split(",|\\s+")).map(String::trim).filter(s -> !s.isEmpty()).toList());
         }
         return new CallStatement(target, args);
+    }
+
+    /** True when {@code word} occurs as a separate word outside quoted literals. */
+    private static boolean hasWordOutsideLiterals(String text, String word) {
+        String unquoted = text.replaceAll("'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"", " ").toUpperCase(Locale.ROOT);
+        return (" " + unquoted + " ").matches("(?s).*\\s" + word + "\\s.*");
     }
 
     private static final Pattern STRING_TOKEN = Pattern.compile(

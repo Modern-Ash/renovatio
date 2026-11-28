@@ -363,4 +363,24 @@ class SimpleCobolIrParserTest {
         assertEquals("ACCTSO", ((MoveStatement) copied.thenStatements().get(0)).target());
         assertNotNull(model.getParagraphs().get("TAIL-PARA"), "paragraph from the quoted COPY");
     }
+
+    @Test
+    void joinsAMoveWhoseReceivingPartIsOnTheNextLine() {
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(String.join("\n",
+                "       IDENTIFICATION DIVISION.",
+                "       PROGRAM-ID. SPLITMV.",
+                "       DATA DIVISION.",
+                "       WORKING-STORAGE SECTION.",
+                "       01  WS-DESC PIC X(30).",
+                "       PROCEDURE DIVISION.",
+                "       MAIN-PARA.",
+                "           MOVE 'ACCOUNT RECORD NOT FOUND'",
+                "             TO WS-DESC",
+                "           GOBACK."));
+
+        List<?> statements = model.getParagraphs().get("MAIN-PARA").statements();
+        MoveStatement move = (MoveStatement) statements.get(0);
+        assertEquals("WS-DESC", move.target());
+        assertEquals(2, statements.size());
+    }
 }
