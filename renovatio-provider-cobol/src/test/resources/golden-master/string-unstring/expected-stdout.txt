@@ -1,0 +1,6 @@
+[Hello ANN, PARIS!*************]
+[Count=007 user=U0042          ]
+[ABCDEFGH]
+[  XYZ   ] 06
+[AB   ][0123][     ][XYZ  ]
+[ONE  ][TWO  ][THREE][qqq]

@@ -1226,6 +1226,10 @@ public class SimpleCobolIrParser {
                 statements.addAll(parseArithmetic(line, Keywords.DIVIDE));
                 continue;
             }
+            if (upperLine.matches("(UN)?STRING(\\s.*|$)")) {
+                i = parseStringStatement(lines, i, statements);
+                continue;
+            }
             if (upperLine.startsWith(Keywords.MOVE)) {
                 statements.add(parseMove(line));
                 continue;
@@ -1749,6 +1753,107 @@ public class SimpleCobolIrParser {
             args.addAll(Arrays.stream(parts[1].split(",|\\s+")).map(String::trim).filter(s -> !s.isEmpty()).toList());
         }
         return new CallStatement(target, args);
+    }
+
+    private static final Pattern STRING_TOKEN = Pattern.compile(
+            "'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"|[A-Za-z0-9][A-Za-z0-9-]*(?:\\s*\\([^)]*\\))?|,");
+
+    /**
+     * STRING / UNSTRING over its continuation lines up to END-STRING / END-UNSTRING, the sentence
+     * period or the next statement. Forms with OVERFLOW, COUNT, DELIMITER IN or TALLYING stay
+     * untranslated.
+     */
+    private int parseStringStatement(List<String> lines, int index, List<CobolStatement> statements) {
+        StringBuilder text = new StringBuilder(lines.get(index).trim());
+        int last = index;
+        String end = text.toString().toUpperCase(Locale.ROOT).startsWith("UN") ? "END-UNSTRING" : "END-STRING";
+        boolean ended = text.toString().endsWith(Symbols.DOT) || text.toString().toUpperCase(Locale.ROOT).contains(end);
+        for (int i = index + 1; !ended && i < lines.size(); i++) {
+            String next = lines.get(i).trim();
+            if (next.isEmpty()) continue;
+            String upper = next.toUpperCase(Locale.ROOT);
+            if (startsStatement(next) && !upper.startsWith(end)) break;
+            text.append(' ').append(next);
+            last = i;
+            ended = next.endsWith(Symbols.DOT) || upper.startsWith(end);
+        }
+        String sentence = stripTrailingPeriod(text.toString().replaceAll("\\s+", " "));
+        List<String> tokens = new ArrayList<>();
+        Matcher matcher = STRING_TOKEN.matcher(sentence);
+        while (matcher.find()) {
+            String token = matcher.group();
+            String upper = token.toUpperCase(Locale.ROOT);
+            if ((upper.equals("OF") || upper.equals("IN")) && !tokens.isEmpty() && matcher.find()) {
+                tokens.set(tokens.size() - 1, tokens.get(tokens.size() - 1) + " " + upper + " " + matcher.group());
+            } else if (!token.equals(",")) {
+                tokens.add(token.startsWith("'") || token.startsWith("\"") ? token : upper);
+            }
+        }
+        CobolStatement parsed = tokens.get(0).equals("UNSTRING") ? unstring(tokens) : string(tokens);
+        statements.add(parsed != null ? parsed : new SimpleStatement(SimpleStatement.Kind.UNTRANSLATED, sentence));
+        return last;
+    }
+
+    private static StringStatement string(List<String> tokens) {
+        List<StringStatement.Source> sources = new ArrayList<>();
+        List<String> pending = new ArrayList<>();
+        String target = null;
+        String pointer = null;
+        for (int i = 1; i < tokens.size(); i++) {
+            String token = tokens.get(i);
+            switch (token) {
+                case "DELIMITED" -> {
+                    if (i + 1 < tokens.size() && tokens.get(i + 1).equals("BY")) i++;
+                    if (++i >= tokens.size() || pending.isEmpty()) return null;
+                    String delimiter = tokens.get(i).equals("SIZE") ? null : tokens.get(i);
+                    pending.forEach(operand -> sources.add(new StringStatement.Source(operand, delimiter)));
+                    pending.clear();
+                }
+                case "INTO" -> {
+                    if (++i >= tokens.size()) return null;
+                    target = tokens.get(i);
+                }
+                case "WITH" -> { }
+                case "POINTER" -> {
+                    if (++i >= tokens.size()) return null;
+                    pointer = tokens.get(i);
+                }
+                case "END-STRING" -> { }
+                case "ON", "OVERFLOW", "NOT", "ALL" -> {
+                    return null;
+                }
+                default -> {
+                    if (target != null) return null;
+                    pending.add(token);
+                }
+            }
+        }
+        return target == null || !pending.isEmpty() || sources.isEmpty() ? null
+                : new StringStatement(sources, target, pointer);
+    }
+
+    private static UnstringStatement unstring(List<String> tokens) {
+        if (tokens.size() < 4) return null;
+        String source = tokens.get(1);
+        List<String> delimiters = new ArrayList<>();
+        List<String> targets = new ArrayList<>();
+        boolean into = false;
+        for (int i = 2; i < tokens.size(); i++) {
+            String token = tokens.get(i);
+            switch (token) {
+                case "DELIMITED", "BY", "OR", "END-UNSTRING" -> { }
+                case "ALL" -> {
+                    if (into || ++i >= tokens.size()) return null;
+                    delimiters.add("ALL " + tokens.get(i));
+                }
+                case "INTO" -> into = true;
+                case "COUNT", "DELIMITER", "TALLYING", "POINTER", "WITH", "ON", "OVERFLOW", "NOT", "IN" -> {
+                    return null;
+                }
+                default -> (into ? targets : delimiters).add(token);
+            }
+        }
+        return targets.isEmpty() || delimiters.isEmpty() ? null : new UnstringStatement(source, delimiters, targets);
     }
 
     private FileOperationStatement.OperationType detectFileOperation(String line) {

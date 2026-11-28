@@ -67,9 +67,13 @@ public class Cics001ServiceImpl implements Cics001Service {
         // COBOL not translated: EXEC CICS READ FILE('CUSTOMERS') INTO (CUSTOMER-RECORD) LENGTH (LENGTH OF CUSTOMER-RECORD) KEY (WS-CUSTOMER-ID) RESP (WS
         if (out.getWsResponse() == 0) {
             out.setWsCustomerName(out.getCustName());
-            // COBOL not translated: STRING 'Customer: ' DELIMITED BY SIZE
-            // COBOL not translated: WS-CUSTOMER-NAME DELIMITED BY SIZE
-            // COBOL not translated: INTO WS-MESSAGE
+            String stringValue2 = "Customer: " + out.getWsCustomerName();
+            String stringTarget2 = out.getWsMessage();
+            int stringStart2 = 0;
+            if (stringStart2 >= 0 && stringStart2 < stringTarget2.length()) {
+                int stringCount2 = Math.min(stringValue2.length(), stringTarget2.length() - stringStart2);
+                out.setWsMessage(stringTarget2.substring(0, stringStart2) + stringValue2.substring(0, stringCount2) + stringTarget2.substring(stringStart2 + stringCount2));
+            }
         } else {
             out.setWsMessage("Customer not found");
         }

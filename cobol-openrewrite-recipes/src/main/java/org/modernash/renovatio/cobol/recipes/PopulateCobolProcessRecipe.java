@@ -407,6 +407,12 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (statement instanceof SetConditionStatement setCondition) {
                 return renderSetCondition(setCondition, model, varName);
             }
+            if (statement instanceof StringStatement string) {
+                return renderString(string, varName);
+            }
+            if (statement instanceof UnstringStatement unstring) {
+                return renderUnstring(unstring, varName);
+            }
             if (statement instanceof SimpleStatement simple) {
                 return renderSimple(simple, varName);
             }
@@ -936,6 +942,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
                     }
                     collectAssignedStatements(file.exceptionStatements(), assigned, model);
                     collectAssignedStatements(file.normalStatements(), assigned, model);
+                } else if (statement instanceof StringStatement string) {
+                    addAssigned(assigned, string.target());
+                    addAssigned(assigned, string.pointer());
+                } else if (statement instanceof UnstringStatement unstring) {
+                    unstring.targets().forEach(target -> addAssigned(assigned, target));
                 } else if (statement instanceof SimpleStatement simple
                         && CobolCicsCommand.parse(simple.text()) instanceof CobolCicsCommand cics) {
                     // CICS writes RECEIVE / READ INTO areas, RESP codes and the key a browse returns.
@@ -1893,6 +1904,96 @@ public class PopulateCobolProcessRecipe extends Recipe {
                 return literal == null ? standard : literal;
             }
             return words.contains(name) ? standard : "";
+        }
+
+        /** An operand of STRING / UNSTRING as its DISPLAY characters: literal, figurative or data item. */
+        private String textOperand(String operand) {
+            String upper = operand.toUpperCase(Locale.ROOT);
+            if (upper.equals("SPACE") || upper.equals("SPACES")) return "\" \"";
+            if (upper.equals("ZERO") || upper.equals("ZEROS") || upper.equals("ZEROES")) return "\"0\"";
+            if (upper.equals("LOW-VALUE") || upper.equals("LOW-VALUES")) return "\"\\u0000\"";
+            if (upper.equals("HIGH-VALUE") || upper.equals("HIGH-VALUES")) return "\"\\u00ff\"";
+            if (isQuoted(operand)) return toJavaExpression(operand.replace("''", "'"));
+            String expression = displayOperand(operand);
+            String type = typeOf(unqualifiedOrSelf(operand));
+            return type == null || "String".equals(type) || expression.startsWith("String.format")
+                    ? expression : "String.valueOf(" + expression + ")";
+        }
+
+        /**
+         * STRING: the delimited sources, concatenated, overwrite the target from the pointer on and
+         * stop at its end; the rest of the target keeps its content.
+         */
+        private List<String> renderString(StringStatement string, @Nullable String varName) {
+            String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            String marker = "// COBOL not translated: STRING ... INTO " + string.target();
+            if (!isStringOperand(string.target())) return List.of(marker);
+            int id = ++fileResultCounter;
+            List<String> lines = new ArrayList<>();
+            List<String> parts = new ArrayList<>();
+            for (int index = 0; index < string.sources().size(); index++) {
+                StringStatement.Source source = string.sources().get(index);
+                String value = textOperand(source.operand());
+                if (source.delimiter() == null) {
+                    parts.add(value);
+                    continue;
+                }
+                String piece = "stringPiece" + id + "_" + index;
+                String delimiter = textOperand(source.delimiter());
+                lines.add("String " + piece + " = " + value + ";");
+                parts.add("(" + piece + ".contains(" + delimiter + ") ? " + piece + ".substring(0, " + piece
+                        + ".indexOf(" + delimiter + ")) : " + piece + ")");
+            }
+            String value = "stringValue" + id;
+            String target = "stringTarget" + id;
+            String start = "stringStart" + id;
+            String count = "stringCount" + id;
+            String pointerType = string.pointer() == null ? null : typeOf(string.pointer());
+            lines.add("String " + value + " = " + String.join(" + ", parts) + ";");
+            lines.add("String " + target + " = " + toJavaExpression(string.target()) + ";");
+            lines.add("int " + start + " = " + (string.pointer() == null ? "0"
+                    : convert(toJavaExpression(string.pointer()), pointerType, "Integer") + " - 1") + ";");
+            lines.add("if (" + start + " >= 0 && " + start + " < " + target + ".length()) {");
+            lines.add(indent("int " + count + " = Math.min(" + value + ".length(), " + target + ".length() - "
+                    + start + ");"));
+            lines.add(indent(setterCall(targetVar, string.target(), target + ".substring(0, " + start + ") + "
+                    + value + ".substring(0, " + count + ") + " + target + ".substring(" + start + " + " + count
+                    + ")") + ";"));
+            if (string.pointer() != null) {
+                lines.add(indent(setterCall(targetVar, string.pointer(),
+                        convert("(" + start + " + " + count + " + 1)", "Integer", pointerType)) + ";"));
+            }
+            lines.add("}");
+            return lines.stream().anyMatch(line -> line.contains(UNRESOLVED_MARKER)) ? List.of(marker) : lines;
+        }
+
+        /** UNSTRING: split at the delimiters; the fields go, in order, to the receiving items. */
+        private List<String> renderUnstring(UnstringStatement unstring, @Nullable String varName) {
+            String targetVar = (varName == null || varName.isBlank()) ? "out" : varName;
+            String marker = "// COBOL not translated: UNSTRING " + unstring.source();
+            int id = ++fileResultCounter;
+            List<String> alternatives = new ArrayList<>();
+            for (String delimiter : unstring.delimiters()) {
+                boolean all = delimiter.startsWith("ALL ");
+                String quoted = "java.util.regex.Pattern.quote(" + textOperand(all ? delimiter.substring(4) : delimiter) + ")";
+                alternatives.add(all ? "\"(?:\" + " + quoted + " + \")+\"" : quoted);
+            }
+            String fields = "unstringFields" + id;
+            List<String> lines = new ArrayList<>();
+            lines.add("String[] " + fields + " = " + textOperand(unstring.source()) + ".split("
+                    + String.join(" + \"|\" + ", alternatives) + ", -1);");
+            // A delimiter that ends the source starts no further field.
+            lines.add("if (" + fields + ".length > 1 && " + fields + "[" + fields + ".length - 1].isEmpty()) "
+                    + fields + " = java.util.Arrays.copyOf(" + fields + ", " + fields + ".length - 1);");
+            for (int index = 0; index < unstring.targets().size(); index++) {
+                String receiver = unstring.targets().get(index);
+                String type = typeOf(unqualifiedOrSelf(receiver));
+                String field = fields + "[" + index + "]";
+                String value = type == null || "String".equals(type) ? field
+                        : convert("(" + field + ".isBlank() ? \"0\" : " + field + ")", "String", type);
+                lines.add("if (" + fields + ".length > " + index + ") " + setterCall(targetVar, receiver, value) + ";");
+            }
+            return lines.stream().anyMatch(line -> line.contains(UNRESOLVED_MARKER)) ? List.of(marker) : lines;
         }
 
         /** Content of a quoted CICS literal ('COSGN0A'), or null for anything else. */

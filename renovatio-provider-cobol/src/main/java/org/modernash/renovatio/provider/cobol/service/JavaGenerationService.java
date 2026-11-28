@@ -1438,6 +1438,16 @@ public class JavaGenerationService {
 
     private static String initialLiteral(String raw, String type, int length) {
         String upper = raw.toUpperCase(Locale.ROOT);
+        if (upper.startsWith("ALL ") && "String".equals(type)) {
+            // VALUE ALL 'x': the literal repeated across the item.
+            String pattern = raw.substring(4).trim();
+            if (pattern.length() > 2 && (pattern.startsWith("'") || pattern.startsWith("\""))) {
+                String text = pattern.substring(1, pattern.length() - 1).repeat(length).substring(0, length);
+                return CodeBlock.of("$S", text).toString();
+            }
+            raw = pattern;
+            upper = raw.toUpperCase(Locale.ROOT);
+        }
         boolean quoted = raw.startsWith("'") || raw.startsWith("\"");
         boolean zero = upper.startsWith("ZERO");
         if ("String".equals(type)) {

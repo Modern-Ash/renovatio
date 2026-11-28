@@ -243,7 +243,9 @@ public final class CobolIrIdentityProjector {
     }
 
     private static java.util.stream.Stream<CobolStatement> identityBearing(List<CobolStatement> statements) {
-        return statements.stream().filter(statement -> !(statement instanceof SimpleStatement));
+        // STRING / UNSTRING carry no annotation anchors yet; they hash like simple statements.
+        return statements.stream().filter(statement -> !(statement instanceof SimpleStatement
+                || statement instanceof StringStatement || statement instanceof UnstringStatement));
     }
 
     private Map<String, Object> statement(CobolStatement value) {

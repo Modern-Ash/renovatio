@@ -35,7 +35,7 @@ final class CobolRecordLayoutExtractor {
     private static final Pattern REDEFINES = Pattern.compile("\\bREDEFINES\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern SEPARATE_SIGN = Pattern.compile("\\bSEPARATE\\b", Pattern.CASE_INSENSITIVE);
     private static final Pattern VALUE_LITERAL = Pattern.compile(
-            "\\bVALUES?\\s+(?:IS\\s+|ARE\\s+)?('(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"|SPACES?|ZEROS?|ZEROES)",
+            "\\bVALUES?\\s+(?:IS\\s+|ARE\\s+)?((?:ALL\\s+)?(?:'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\")|SPACES?|ZEROS?|ZEROES)",
             Pattern.CASE_INSENSITIVE);
     /** Picture symbols other than 9, X, A, S and V: editing or scaling, not plain DISPLAY data. */
     private static final Pattern EDITED_OR_SCALED = Pattern.compile("[ZB0/,.+\\-*$CRDBP]");
@@ -78,7 +78,7 @@ final class CobolRecordLayoutExtractor {
     }
 
     private static final Pattern ELEMENTARY_VALUE = Pattern.compile(
-            "\\bVALUES?\\s+(?:IS\\s+|ARE\\s+)?('(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"|[+-]?[0-9]*\\.?[0-9]+"
+            "\\bVALUES?\\s+(?:IS\\s+|ARE\\s+)?((?:ALL\\s+)?(?:'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\")|[+-]?[0-9]*\\.?[0-9]+"
                     + "|SPACES?|ZEROS?|ZEROES|LOW-VALUES?|HIGH-VALUES?)",
             Pattern.CASE_INSENSITIVE);
 
@@ -423,10 +423,15 @@ final class CobolRecordLayoutExtractor {
         String content = "";
         if (value.find()) {
             String literal = value.group(1);
+            boolean all = literal.toUpperCase(Locale.ROOT).startsWith("ALL");
+            literal = all ? literal.substring(3).trim() : literal;
             char quote = literal.charAt(0);
             if (quote == '\'' || quote == '"') {
                 content = literal.substring(1, literal.length() - 1)
                         .replace(String.valueOf(quote) + quote, String.valueOf(quote));
+                if (all && !content.isEmpty()) {
+                    content = content.repeat(length / content.length() + 1);
+                }
             } else if (literal.toUpperCase(Locale.ROOT).startsWith("ZERO")) {
                 content = "0".repeat(length);
             }

@@ -105,6 +105,11 @@ class CardDemoGoldenMasterTest {
     }
 
     @Test
+    void stringAndUnstringMatchCobol() throws Exception {
+        assertStdoutMatchesCobol("string-unstring", "STRUNS", "Struns");
+    }
+
+    @Test
     void onlineProgramRunsAsAScreenHandlerAcrossAPseudoConversation() throws Exception {
         Path workspace = tempDir.resolve("screen-handler");
         Files.createDirectories(workspace);
