@@ -383,4 +383,26 @@ class SimpleCobolIrParserTest {
         assertEquals("WS-DESC", move.target());
         assertEquals(2, statements.size());
     }
+
+    @Test
+    void readsBmsSymbolicMapEntriesWithUsageBeforePictureAndPictureKeyword() {
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(String.join("\n",
+                "       IDENTIFICATION DIVISION.",
+                "       PROGRAM-ID. BMSMAP.",
+                "       DATA DIVISION.",
+                "       WORKING-STORAGE SECTION.",
+                "       01  USRMAPI.",
+                "           02  USRIDL    COMP  PIC  S9(4).",
+                "           02  USRIDF    PICTURE X.",
+                "           02  USRIDI  PIC X(8).",
+                "       PROCEDURE DIVISION.",
+                "       MAIN-PARA.",
+                "           GOBACK."));
+
+        var items = model.getDataItems().stream()
+                .collect(java.util.stream.Collectors.toMap(item -> item.getName(), item -> item, (a, b) -> a));
+        assertEquals("COMP", items.get("USRIDL").getPicType().usage().name());
+        assertEquals("String", items.get("USRIDF").getJavaType());
+        assertNotNull(items.get("USRIDI"));
+    }
 }

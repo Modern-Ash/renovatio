@@ -1729,6 +1729,17 @@ public class PopulateCobolProcessRecipe extends Recipe {
             return lines;
         }
 
+        /** DFHBMSCA: 3270 field attribute, colour and highlight bytes, as IBM defines them. */
+        private static final Map<String, String> BMS_ATTRIBUTES = Map.ofEntries(
+                Map.entry("DFHBMUNP", " "), Map.entry("DFHBMUNN", "&"), Map.entry("DFHBMPRO", "-"),
+                Map.entry("DFHBMASK", "0"), Map.entry("DFHBMASF", "1"), Map.entry("DFHBMASB", "8"),
+                Map.entry("DFHBMBRY", "H"), Map.entry("DFHBMDAR", "<"), Map.entry("DFHBMFSE", "A"),
+                Map.entry("DFHBMPRF", "/"), Map.entry("DFHDFCOL", "\\u0000"), Map.entry("DFHBLUE", "1"),
+                Map.entry("DFHRED", "2"), Map.entry("DFHPINK", "3"), Map.entry("DFHGREEN", "4"),
+                Map.entry("DFHTURQ", "5"), Map.entry("DFHYELLO", "6"), Map.entry("DFHNEUTR", "7"),
+                Map.entry("DFHDFHI", "\\u0000"), Map.entry("DFHBLINK", "1"), Map.entry("DFHREVRS", "2"),
+                Map.entry("DFHUNDLN", "4"));
+
         /** EIB registers, DFHCOMMAREA and DFH constants an online program reads, with their types. */
         private static final Map<String, String> CICS_TYPES = cicsTypes();
 
@@ -1740,6 +1751,7 @@ public class PopulateCobolProcessRecipe extends Recipe {
             types.put("DFHRESP", "Integer");
             for (String aid : List.of("ENTER", "CLEAR", "PA1", "PA2", "PA3")) types.put("DFH" + aid, "String");
             for (int key = 1; key <= 24; key++) types.put("DFHPF" + key, "String");
+            BMS_ATTRIBUTES.keySet().forEach(name -> types.put(name, "String"));
             return types;
         }
 
@@ -1762,6 +1774,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (resp.matches()) {
                 Integer code = CICS_RESP.get(resp.group(1));
                 return code == null ? UNRESOLVED_MARKER + "DFHRESP" : String.valueOf(code);
+            }
+            if (BMS_ATTRIBUTES.containsKey(upper)) {
+                return "\"" + BMS_ATTRIBUTES.get(upper) + "\"";
             }
             if (upper.startsWith("DFH") && CICS_TYPES.containsKey(upper) && !upper.equals("DFHRESP")) {
                 return "\"" + upper.substring(3) + "\"";

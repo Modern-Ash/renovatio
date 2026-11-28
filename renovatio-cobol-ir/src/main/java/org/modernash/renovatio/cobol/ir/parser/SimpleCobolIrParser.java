@@ -31,7 +31,10 @@ public class SimpleCobolIrParser {
     private static final Pattern PROGRAM_ID_PATTERN = Pattern.compile("PROGRAM-ID\\.\\s*([A-Z0-9-]+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern DATA_ITEM_PATTERN = Pattern.compile(
             "(?m)^\\s*(0[1-9]|[1-4][0-9])\\s+([A-Z0-9-]+)"
-                    + "(?:\\s+REDEFINES\\s+([A-Z0-9-]+))?\\s+PIC\\s+"
+                    + "(?:\\s+REDEFINES\\s+([A-Z0-9-]+))?"
+                    // USAGE may precede the picture: "02 USRIDINL COMP PIC S9(4)." (BMS symbolic maps).
+                    + "(?:\\s+(?:USAGE\\s+(?:IS\\s+)?)?(COMP(?:UTATIONAL)?(?:-\\d+)?|BINARY|PACKED-DECIMAL))?"
+                    + "\\s+PIC(?:TURE)?\\s+"
                     + "(?:([A-Z0-9()V+\\-]+\\s+(?:COMP(?:-?\\d+)?|BINARY|PACKED-DECIMAL))"
                     + "(?:\\s+VALUES?\\b[^.]*)?|([^.]+))\\.");
     private static final Pattern LEVEL_88_PATTERN = Pattern.compile(
@@ -608,10 +611,13 @@ public class SimpleCobolIrParser {
             int level = Integer.parseInt(matcher.group(1));
             String name = matcher.group(2).toUpperCase(Locale.ROOT);
             String redefines = matcher.group(3) != null ? matcher.group(3).toUpperCase(Locale.ROOT) : null;
-            String pic = normalizePicture(matcher.group(4) != null ? matcher.group(4) : matcher.group(5));
+            String pic = normalizePicture(matcher.group(5) != null ? matcher.group(5) : matcher.group(6));
+            if (matcher.group(4) != null && pic != null) {
+                pic = pic + " " + matcher.group(4).toUpperCase(Locale.ROOT).replace("COMPUTATIONAL", "COMP");
+            }
             var picType = CobolTypeMapper.picType(pic);
             if (picType == null) {
-                int pictureStart = matcher.group(4) != null ? matcher.start(4) : matcher.start(5);
+                int pictureStart = matcher.group(5) != null ? matcher.start(5) : matcher.start(6);
                 diagnostics.add(error("COBOL-PIC-001", "DATA_ITEM",
                         "Unsupported or malformed PIC clause for " + name, source, start + pictureStart));
             }
