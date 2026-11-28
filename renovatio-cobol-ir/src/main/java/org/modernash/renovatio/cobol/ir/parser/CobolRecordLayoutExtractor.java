@@ -130,7 +130,8 @@ final class CobolRecordLayoutExtractor {
             int from = spans.get(k)[0];
             int to = k + 1 < spans.size() ? spans.get(k + 1)[0] : dataSection.length();
             String raw = dataSection.substring(from, to);
-            Matcher end = ENTRY_END.matcher(raw);
+            // A period inside a literal ('...application...') does not end the entry.
+            Matcher end = ENTRY_END.matcher(maskLiterals(raw));
             String text = end.find() ? raw.substring(0, end.start()) : raw;
             Matcher head = ENTRY_START.matcher(text);
             if (!head.find()) {
@@ -143,6 +144,16 @@ final class CobolRecordLayoutExtractor {
     }
 
     private static final Pattern LITERAL = Pattern.compile("'(?:[^']|'')*'|\"(?:[^\"]|\"\")*\"");
+
+    /** The text with each literal's characters replaced by '#', keeping offsets. */
+    private static String maskLiterals(String text) {
+        Matcher literal = LITERAL.matcher(text);
+        StringBuilder masked = new StringBuilder(text);
+        while (literal.find()) {
+            for (int k = literal.start(); k < literal.end(); k++) masked.setCharAt(k, '#');
+        }
+        return masked.toString();
+    }
 
     /** Collapses runs of white space to one space, except inside literals: VALUE '  A' keeps its spaces. */
     private static String collapseOutsideLiterals(String text) {

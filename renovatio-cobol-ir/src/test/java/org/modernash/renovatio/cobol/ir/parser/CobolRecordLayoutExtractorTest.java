@@ -155,4 +155,16 @@ class CobolRecordLayoutExtractorTest {
         assertEquals(8, model.getRedefinesViews().get("WS-DATE-PARTS").length());
         assertFalse(model.getRedefinesViews().get("WS-LONG").supported(), "longer than its base");
     }
+
+    @Test
+    void aPeriodInsideAValueLiteralDoesNotEndTheEntry() {
+        var values = CobolRecordLayoutExtractor.initialValues(String.join("\n",
+                "       01 MESSAGES.",
+                "         05 MSG-THANKS   PIC X(30) VALUE",
+                "              'Thanks for using it...    '.",
+                "         05 MSG-NEXT     PIC X(04) VALUE 'NEXT'."));
+
+        assertEquals("'Thanks for using it...    '", values.get("MSG-THANKS"));
+        assertEquals("'NEXT'", values.get("MSG-NEXT"));
+    }
 }

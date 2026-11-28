@@ -427,4 +427,28 @@ class SimpleCobolIrParserTest {
         assertEquals(2, statements.size());
         assertTrue(statements.get(0).toString().contains("(WS-TXT)"), statements.get(0).toString());
     }
+
+    @Test
+    void splitsAMoveWithSeveralReceivingItemsAcrossLines() {
+        CobolIntermediateModel model = new SimpleCobolIrParser().parse(String.join("\n",
+                "       IDENTIFICATION DIVISION.",
+                "       PROGRAM-ID. MULTMV.",
+                "       DATA DIVISION.",
+                "       WORKING-STORAGE SECTION.",
+                "       01  WS-A PIC X(4).",
+                "       01  WS-B PIC X(4).",
+                "       01  MAPO.",
+                "           05 MSGO PIC X(4).",
+                "       PROCEDURE DIVISION.",
+                "       MAIN-PARA.",
+                "           MOVE SPACES TO WS-A",
+                "                          MSGO OF MAPO",
+                "           MOVE 'X' TO WS-A WS-B",
+                "           GOBACK."));
+
+        List<?> statements = model.getParagraphs().get("MAIN-PARA").statements();
+        assertEquals(5, statements.size());
+        assertEquals("MSGO OF MAPO", ((MoveStatement) statements.get(1)).target());
+        assertEquals("WS-B", ((MoveStatement) statements.get(3)).target());
+    }
 }

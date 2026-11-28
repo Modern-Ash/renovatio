@@ -207,6 +207,83 @@ class CardDemoGoldenMasterTest {
         assertThat(content).containsExactly("BOB     Bobby   ", "CAROL   Carol C ", "DAVE    Dave D  ");
     }
 
+    /**
+     * CardDemo's sign-on program COSGN00C, generated from the real sources and copybooks, run as a
+     * screen handler over the in-memory USRSEC dataset: first entry, missing password, unknown
+     * user, wrong password, admin and regular sign-on (XCTL with the user in the COMMAREA), PF3.
+     */
+    @Test
+    void cardDemoSignOnValidatesUsersAgainstUsrsec() throws Exception {
+        Path workspace = tempDir.resolve("cosgn00c");
+        Files.createDirectories(workspace);
+        Files.copy(CORPUS.resolve("cbl/COSGN00C.cbl"), workspace.resolve("COSGN00C.cbl"));
+        for (String dir : List.of("cpy", "cpy-bms")) {
+            try (Stream<Path> copybooks = Files.list(CORPUS.resolve(dir))) {
+                for (Path copybook : copybooks.toList()) {
+                    Files.copy(copybook, workspace.resolve(copybook.getFileName()));
+                }
+            }
+        }
+        ClassLoader classes = compile(generate(workspace));
+
+        String admin = String.format("%-8s%-20s%-20s%-8s%-1s%-23s", "ADMIN001", "Ada", "Admin", "PASSWORD", "A", "");
+        String user = String.format("%-8s%-20s%-20s%-8s%-1s%-23s", "USER0001", "Uma", "User", "SECRET01", "U", "");
+        Object users = classes.loadClass(PACKAGE + ".Cosgn00cUsrsecInMemoryAdapter").getConstructor(List.class)
+                .newInstance(List.of(admin, user));
+        Object service = wire(classes, "Cosgn00cServiceImpl", Map.of(PACKAGE + ".Cosgn00cUsrsecPort", users));
+        Class<?> dto = classes.loadClass(PACKAGE + ".Cosgn00cDTO");
+        Class<?> requestType = classes.loadClass(PACKAGE + ".Cosgn00cDTO$ScreenRequest");
+        Object controller = classes.loadClass(PACKAGE + ".Cosgn00cCicsController")
+                .getConstructor(classes.loadClass(PACKAGE + ".Cosgn00cService")).newInstance(service);
+        var handle = controller.getClass().getMethod("handle", requestType);
+        var newRequest = requestType.getConstructor(String.class, String.class, Map.class);
+
+        // 1. First entry: the sign-on screen, resume transaction CC00.
+        Object first = handle.invoke(controller, requestType.getMethod("firstEntry").invoke(null));
+        assertThat(get(first, "map")).isEqualTo("COSGN0A");
+        assertThat(get(first, "transid")).isEqualTo("CC00");
+        String commarea = (String) get(first, "commarea");
+
+        // The terminal's input map, built with the program's own symbolic map layout.
+        java.util.function.BiFunction<String, String, String> typed = (userId, password) -> {
+            try {
+                Object screen = dto.getConstructor().newInstance();
+                dto.getMethod("setUseridi", String.class).invoke(screen, userId);
+                dto.getMethod("setPasswdi", String.class).invoke(screen, password);
+                return (String) dto.getMethod("getCosgn0ai").invoke(screen);
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        };
+        java.util.function.Function<String, Object> enter = map -> {
+            try {
+                return handle.invoke(controller, newRequest.newInstance("ENTER", commarea, Map.of("COSGN0A", map)));
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        };
+
+        assertThat((String) get(enter.apply(typed.apply("admin001", "")), "screen"))
+                .contains("Please enter Password ...");
+        assertThat((String) get(enter.apply(typed.apply("nobody", "x")), "screen"))
+                .contains("User not found. Try again ...");
+        assertThat((String) get(enter.apply(typed.apply("user0001", "wrong")), "screen"))
+                .contains("Wrong Password. Try again ...");
+
+        // User ids and passwords are upper-cased before the lookup, as COSGN00C does.
+        Object adminIn = enter.apply(typed.apply("admin001", "password"));
+        assertThat(get(adminIn, "nextProgram")).isEqualTo("COADM01C");
+        assertThat((String) get(adminIn, "commarea")).contains("CC00COSGN00C").contains("ADMIN001A");
+        Object userIn = enter.apply(typed.apply("user0001", "secret01"));
+        assertThat(get(userIn, "nextProgram")).isEqualTo("COMEN01C");
+        assertThat((String) get(userIn, "commarea")).contains("USER0001U");
+
+        // PF3: thank-you text and the conversation ends.
+        Object exit = handle.invoke(controller, newRequest.newInstance("PF3", commarea, Map.of()));
+        assertThat((String) get(exit, "text")).contains("Thank you");
+        assertThat(get(exit, "ended")).isEqualTo(true);
+    }
+
     private static Object get(Object target, String accessor) throws Exception {
         return target.getClass().getMethod(accessor).invoke(target);
     }

@@ -1266,7 +1266,13 @@ public class SimpleCobolIrParser {
                     line = line + Symbols.SPACE + next;
                     i++;
                 }
-                statements.add(parseMove(line));
+                // "MOVE X TO A" / "B OF C": further receiving items on the following lines.
+                while (hasWordOutsideLiterals(line, "TO") && !line.endsWith(Symbols.DOT) && i + 1 < lines.size()
+                        && DATA_REFERENCE_LINE.matcher(lines.get(i + 1).trim()).matches()
+                        && !startsStatement(lines.get(i + 1).trim())) {
+                    line = line + Symbols.SPACE + lines.get(++i).trim();
+                }
+                statements.addAll(parseMoves(line));
                 continue;
             }
             if (upperLine.startsWith(Keywords.INITIALIZE)) {
@@ -2216,6 +2222,32 @@ public class SimpleCobolIrParser {
             }
         }
         return values.isEmpty() ? null : values;
+    }
+
+    private static final Pattern DATA_REFERENCE_LINE = Pattern.compile(
+            "(?i)[A-Z0-9][A-Z0-9-]*(?:\\([^)]*\\))?(?:\\s+(?:OF|IN)\\s+[A-Z0-9][A-Z0-9-]*)*\\.?");
+    private static final Pattern RECEIVING_ITEM = Pattern.compile(
+            "(?i)[A-Z0-9][A-Z0-9-]*(?:\\s*\\([^)]*\\))?(?:\\s+(?:OF|IN)\\s+[A-Z0-9][A-Z0-9-]*)*");
+
+    /** MOVE with one or more receiving items: one statement per receiver, in order, as COBOL moves. */
+    private List<MoveStatement> parseMoves(String line) {
+        MoveStatement move = parseMove(line);
+        if (move.source().equals(move.target())) {
+            return List.of(move);
+        }
+        List<String> receivers = new ArrayList<>();
+        Matcher item = RECEIVING_ITEM.matcher(move.target().replace(",", " "));
+        int last = 0;
+        String targets = move.target().replace(",", " ");
+        while (item.find()) {
+            if (!targets.substring(last, item.start()).isBlank()) return List.of(move);
+            receivers.add(item.group().trim());
+            last = item.end();
+        }
+        if (receivers.size() <= 1 || !targets.substring(last).isBlank()) {
+            return List.of(move);
+        }
+        return receivers.stream().map(receiver -> new MoveStatement(move.source(), receiver)).toList();
     }
 
     private MoveStatement parseMove(String line) {

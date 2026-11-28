@@ -570,7 +570,9 @@ public class PopulateCobolProcessRecipe extends Recipe {
             if (targetType == null || expression.contains(UNRESOLVED_MARKER)) {
                 return expression;
             }
+            // A literal, or a reference modification (always alphanumeric in COBOL), sends characters.
             String sourceType = source.startsWith("'") || source.startsWith("\"")
+                    || source.matches("(?s)[A-Za-z][A-Za-z0-9-]*\\s*\\([^():]*:[^()]*\\)")
                     ? "String"
                     : dataTypes.get(toPascal(stripSubscripts(source)));
             return convert(expression, sourceType, targetType);
@@ -2923,8 +2925,11 @@ public class PopulateCobolProcessRecipe extends Recipe {
             }
             if (!stripSubscripts(reference).equals(reference.trim())) {
                 String[] slice = referenceModification(reference);
-                return slice == null ? UNRESOLVED_MARKER + reference
-                        : owner + ".get" + pascal + "().substring(" + slice[1] + ", " + slice[2] + ")";
+                if (slice == null) {
+                    String digits = numericReferenceModification(reference, owner + ".get" + pascal + "()");
+                    return digits == null ? UNRESOLVED_MARKER + reference : digits;
+                }
+                return owner + ".get" + pascal + "().substring(" + slice[1] + ", " + slice[2] + ")";
             }
             return owner + ".get" + pascal + "()";
         }
@@ -2959,6 +2964,28 @@ public class PopulateCobolProcessRecipe extends Recipe {
             int visible = content.replace("\\\\", "\\").replace("\\\"", "\"").length();
             return visible >= length ? javaLiteral
                     : "\"" + content + " ".repeat(length - visible) + "\"";
+        }
+
+        /**
+         * Read-only reference modification of an unsigned integer DISPLAY item: a slice of its
+         * zero-padded digits ({@code WS-CURDATE-YEAR(3:2)} is the two-digit year).
+         */
+        private @Nullable String numericReferenceModification(String reference, String getter) {
+            java.util.regex.Matcher matcher = java.util.regex.Pattern
+                    .compile("^([A-Za-z][A-Za-z0-9-]*)\\(\\s*([^:()]+?)\\s*:\\s*([^:()]+?)\\s*\\)$")
+                    .matcher(reference.trim());
+            if (!matcher.matches() || currentModel == null) return null;
+            var pic = findDataItem(currentModel, matcher.group(1)).map(CobolDataItem::picType).orElse(null);
+            if (pic == null || pic.category() != org.modernash.renovatio.cobol.runtime.PicType.Category.NUMERIC
+                    || pic.signed() || pic.scale() != 0
+                    || pic.usage() != org.modernash.renovatio.cobol.runtime.PicType.Usage.DISPLAY) {
+                return null;
+            }
+            String start = intExpression(matcher.group(2));
+            String size = intExpression(matcher.group(3));
+            if (start == null || size == null) return null;
+            return "String.format(\"%0" + pic.digits() + "d\", " + getter + ").substring((" + start + ") - 1, ("
+                    + start + ") - 1 + (" + size + "))";
         }
 
         /** Reference modification {@code NAME(start:length)} of an alphanumeric item: [from, to) bounds. */
