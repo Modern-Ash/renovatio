@@ -1915,6 +1915,8 @@ public class PopulateCobolProcessRecipe extends Recipe {
                                 + option.getKey().toLowerCase(Locale.ROOT) + "()") + ";");
                     }
                 }
+                case "HANDLE" -> lines.add("// shortcut: EXEC CICS " + String.join(" ", command.words())
+                        + " ignored, an abend propagates as an exception; translate the handler if it must run");
                 case "ABEND" -> lines.add(targetVar + ".abend("
                         + (options.containsKey("ABCODE") ? cicsText(options.get("ABCODE")) : "\"\"") + ");");
                 case "XCTL" -> {

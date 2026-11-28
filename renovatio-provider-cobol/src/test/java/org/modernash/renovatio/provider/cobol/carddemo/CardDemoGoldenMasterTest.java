@@ -424,6 +424,57 @@ class CardDemoGoldenMasterTest {
         assertThat((String) get(notFound, "screen")).contains("Account:00000000099 not found in Cross ref file");
     }
 
+    /**
+     * CardDemo's card view COCRDSLC over CARDDAT: a card typed on the screen, a card picked on the
+     * card list (passed in the COMMAREA, from COCRDLIC), and a card that is not on file.
+     */
+    @Test
+    void cardDemoCardViewReadsCarddat() throws Exception {
+        ClassLoader classes = compile(generate(cardDemoWorkspace("COCRDSLC")));
+        Class<?> dto = classes.loadClass(PACKAGE + ".CocrdslcDTO");
+        Object data = dto.getConstructor().newInstance();
+        dto.getMethod("setCardNum", String.class).invoke(data, "4111111111111111");
+        dto.getMethod("setCardAcctId", Long.class).invoke(data, 42L);
+        dto.getMethod("setCardEmbossedName", String.class).invoke(data, "GRACE HOPPER");
+        dto.getMethod("setCardExpiraionDate", String.class).invoke(data, "2027-05-31");
+        dto.getMethod("setCardActiveStatus", String.class).invoke(data, "Y");
+        Object cards = classes.loadClass(PACKAGE + ".CocrdslcCarddatInMemoryAdapter")
+                .getConstructor(List.class).newInstance(List.of((String) dto.getMethod("getCardRecord").invoke(data)));
+        Object byAccount = classes.loadClass(PACKAGE + ".CocrdslcCardaixInMemoryAdapter")
+                .getConstructor(List.class).newInstance(List.of());
+        Object service = wire(classes, "CocrdslcServiceImpl", Map.of(
+                PACKAGE + ".CocrdslcCarddatPort", cards, PACKAGE + ".CocrdslcCardaixPort", byAccount));
+        Class<?> requestType = classes.loadClass(PACKAGE + ".CocrdslcDTO$ScreenRequest");
+        Object controller = classes.loadClass(PACKAGE + ".CocrdslcCicsController")
+                .getConstructor(classes.loadClass(PACKAGE + ".CocrdslcService")).newInstance(service);
+        var handle = controller.getClass().getMethod("handle", requestType);
+        var newRequest = requestType.getConstructor(String.class, String.class, Map.class);
+
+        String fromMenu = (String) dto.getMethod("getCarddemoCommarea").invoke(dto.getConstructor().newInstance());
+        Object prompt = handle.invoke(controller, newRequest.newInstance("ENTER", fromMenu, Map.of()));
+        assertThat(get(prompt, "map")).isEqualTo("CCRDSLA");
+
+        Object screen = dto.getConstructor().newInstance();
+        dto.getMethod("setAcctsidi", String.class).invoke(screen, "00000000042");
+        dto.getMethod("setCardsidi", String.class).invoke(screen, "4111111111111111");
+        Object shown = handle.invoke(controller, newRequest.newInstance("ENTER", (String) get(prompt, "commarea"),
+                Map.of("CCRDSLA", (String) dto.getMethod("getCcrdslai").invoke(screen))));
+        assertThat((String) get(shown, "screen")).contains("GRACE HOPPER", "2027");
+
+        Object fromList = dto.getConstructor().newInstance();
+        dto.getMethod("setCdemoFromProgram", String.class).invoke(fromList, "COCRDLIC");
+        dto.getMethod("setCdemoAcctId", Long.class).invoke(fromList, 42L);
+        dto.getMethod("setCdemoCardNum", Long.class).invoke(fromList, 4111111111111111L);
+        Object picked = handle.invoke(controller, newRequest.newInstance("ENTER",
+                (String) dto.getMethod("getCarddemoCommarea").invoke(fromList), Map.of()));
+        assertThat((String) get(picked, "screen")).contains("GRACE HOPPER");
+
+        dto.getMethod("setCardsidi", String.class).invoke(screen, "4000000000000002");
+        Object missing = handle.invoke(controller, newRequest.newInstance("ENTER", (String) get(prompt, "commarea"),
+                Map.of("CCRDSLA", (String) dto.getMethod("getCcrdslai").invoke(screen))));
+        assertThat((String) get(missing, "screen")).contains("Did not find cards for this search condition");
+    }
+
     /** A CardDemo online program generated from the real sources, wired to an in-memory USRSEC. */
     private record Online(Class<?> dto, Object controller, java.lang.reflect.Method handle,
                           java.lang.reflect.Constructor<?> request, Object users) {

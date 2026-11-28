@@ -332,6 +332,22 @@ class SimpleCobolIrParserTest {
     }
 
     @Test
+    void joinsAWhenConditionContinuedOnTheNextLine() {
+        CobolIntermediateModel model = procedure(
+                "    EVALUATE TRUE",
+                "        WHEN WS-A = 1",
+                "         AND WS-C = 2",
+                "            MOVE 3 TO WS-C",
+                "    END-EVALUATE",
+                "    GOBACK.");
+
+        org.modernash.renovatio.cobol.ir.model.EvaluateStatement evaluate =
+                (org.modernash.renovatio.cobol.ir.model.EvaluateStatement) model.getEntryParagraph().statements().get(0);
+        assertEquals("WS-A = 1 AND WS-C = 2", evaluate.branches().get(0).condition());
+        assertEquals(1, evaluate.branches().get(0).statements().size());
+    }
+
+    @Test
     void expandsQuotedCopyAndCopyReplacingInTheProcedureDivision(@org.junit.jupiter.api.io.TempDir java.nio.file.Path dir)
             throws Exception {
         java.nio.file.Files.writeString(dir.resolve("SETATTR.cpy"), String.join("\n",

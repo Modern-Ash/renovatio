@@ -1462,6 +1462,12 @@ public class SimpleCobolIrParser {
                 pending.add(condition);
                 continue;
             }
+            if (depth == 0 && accumulator.isEmpty() && !pending.isEmpty()
+                    && (up.startsWith("AND ") || up.startsWith("OR "))) {
+                // A WHEN condition continued on the next line.
+                pending.set(pending.size() - 1, pending.get(pending.size() - 1) + " " + current);
+                continue;
+            }
             if (up.startsWith(Keywords.EVALUATE + " ")) {
                 depth++;
             } else if (up.startsWith(Keywords.END_EVALUATE)) {
